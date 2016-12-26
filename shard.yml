@@ -21,4 +21,4 @@ dependencies:
     branch: master
 
 scripts:
-  postinstall: make install
+  postinstall: make build
