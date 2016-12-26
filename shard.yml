@@ -1,0 +1,13 @@
+name: kemalyst-generator
+version: 0.1.0
+
+authors:
+  - Arnaud Fernandés <arnaud.fernandes@laposte.net>
+
+targets:
+  kemalyst-generator:
+    main: src/kemalyst-generator.cr
+
+crystal: 0.20.1+123
+
+license: MIT
