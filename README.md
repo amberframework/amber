@@ -1,22 +1,46 @@
 # kemalyst-generator
 
-TODO: Write a description here
+Rails like command line for kemalyst
 
 ## Installation
 
-TODO: Write installation instructions here
+``` yaml
+development_dependencies:
+    kemalyst-generator:
+        github: TechMagister/kemalyst-generator
+        branch: master
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+``` shell
+./bin/kgen --help
+kgen [OPTIONS] SUBCOMMAND
+
+Kemalyst Generator
+
+Subcommands:
+  console
+
+Options:
+  -h, --help     show this help
+  -v, --version  show version
+```
 
 ## Development
 
-TODO: Write development instructions here
+TODO:
+- [x] Basic console
+- [ ] Import models, controllers when starting console
+- [ ] Add Generator for models
+- [ ] Add Generator for controllers
+- [ ] Run database console accoding to config/database.yml
+- [ ] Add database migration
+- [ ] Run a sentry instance
 
 ## Contributing
 
-1. Fork it ( https://github.com/[your-github-name]/kemalyst-generator/fork )
+1. Fork it ( https://github.com/TechMagister/kemalyst-generator/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
@@ -24,4 +48,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [[your-github-name]](https://github.com/[your-github-name]) Arnaud Fernandés - creator, maintainer
+- [TechMagister](https://github.com/TechMagister) Arnaud Fernandés - creator, maintainer
