@@ -1,5 +1,3 @@
-require "./kemalyst-generator/*"
+require "./kemalyst-generator/commands"
 
-module Kemalyst::Generator
-  # TODO Put your code here
-end
+Kemalyst::Generator::MainCommand.run ARGV

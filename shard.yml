@@ -11,3 +11,14 @@ targets:
 crystal: 0.20.1+123
 
 license: MIT
+
+dependencies:
+  cli:
+    github: mosop/cli
+    branch: master
+  icr:
+    github: TechMagister/crystal-icr
+    branch: master
+
+scripts:
+  postinstall: make install
