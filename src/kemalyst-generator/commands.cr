@@ -1,5 +1,3 @@
-require "cli"
-
 require "./version"
 require "./commands/console"
 
