@@ -19,6 +19,7 @@ dependencies:
   icr:
     github: TechMagister/crystal-icr
     branch: master
-
+  crustache:
+      github: MakeNowJust/crustache
 scripts:
   postinstall: make build

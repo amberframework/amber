@@ -1,5 +1,5 @@
 require "./version"
-require "./commands/console"
+require "./commands/*"
 
 module Kemalyst::Generator
 

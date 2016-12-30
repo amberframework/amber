@@ -1,0 +1,21 @@
+name: {{name}}
+version: 0.1.0
+
+authors:
+  - your_name <your_email>
+
+license: MIT
+
+dependencies:
+  kemalyst:
+    github: drujensen/kemalyst
+
+  pg:
+    github: asterite/crystal-pg
+    branch: feature/db
+
+development_dependencies:
+  mocks:
+    github: waterlink/mocks.cr
+  icr:
+    github: greyblake/crystal-icr

@@ -1,0 +1,19 @@
+<h1>New Demo</h1>
+
+<% if demo.errors %>
+  <ul class="errors">
+  <% demo.errors.each do |error| %>
+    <li><%= error %></li>
+  <% end %>
+  </ul>
+<% end %>
+
+<form action="/demos" method="post">
+  <div class="form-group">
+    <input type="text" class="form-control" id="name" name="name"
+    placeholder="Name">
+  </div>
+  <button type="submit" class="btn btn-default">Submit</button>
+</form>
+
+<a href="/demos">Back</a>
