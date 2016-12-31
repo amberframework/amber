@@ -2,7 +2,7 @@ require "markdown"
 require "../models/demo"
 
 module DemoController
- class Index < Kemalyst::Controller
+  class Index < Kemalyst::Controller
     def call(context)
       demos = Demo.all
       render "demo/index.ecr", "main.ecr"

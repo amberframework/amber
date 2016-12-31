@@ -12,4 +12,3 @@ describe Demo do
     demo.last_updated.should eq formatter.format(Time.now)
   end
 end
-

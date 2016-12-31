@@ -2,9 +2,7 @@ require "./version"
 require "./commands/*"
 
 module Kemalyst::Generator
-
   class MainCommand < Cli::Supercommand
-
     version VERSION
 
     class Help
@@ -15,7 +13,5 @@ module Kemalyst::Generator
       version
       help
     end
-
   end
-
 end
