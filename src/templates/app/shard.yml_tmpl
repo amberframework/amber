@@ -11,11 +11,8 @@ dependencies:
     github: drujensen/kemalyst
 
   pg:
-    github: asterite/crystal-pg
-    branch: feature/db
+    github: will/crystal-pg
 
 development_dependencies:
   mocks:
     github: waterlink/mocks.cr
-  icr:
-    github: greyblake/crystal-icr

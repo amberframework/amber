@@ -1,9 +1,9 @@
-FROM drujensen/crystal:0.20.0
+FROM drujensen/crystal:0.20.3
+
+WORKDIR /app/user
 
 ADD . /app/user
-WORKDIR /app/user
 
 RUN crystal deps
 
 CMD ["crystal", "spec"]
-

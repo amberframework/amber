@@ -1,3 +1,4 @@
+require "markdown"
 require "../models/demo"
 
 module DemoController
@@ -30,7 +31,9 @@ module DemoController
   class Create < Kemalyst::Controller
     def call(context)
       demo = Demo.new
-      demo.name = context.params["name"].as(String)
+      demo.name = context.params["name"]
+      demo.description = context.params["description"]
+
       if demo.valid? && demo.save
         redirect "/demos"
       else
@@ -56,7 +59,9 @@ module DemoController
     def call(context)
       id = context.params["id"]
       if demo = Demo.find id
-        demo.name = context.params["name"].as(String)
+        demo.name = context.params["name"]
+        demo.description = context.params["description"]
+
         if demo.valid? && demo.save
           redirect "/demos"
         else
@@ -82,4 +87,3 @@ module DemoController
     end
   end
 end
-

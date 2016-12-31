@@ -10,10 +10,9 @@ describe DemoController do
       demo = Demo.new
       demo.name = "test"
       demo.save
-      request = HTTP::Request.new("GET", "/demos")
-      io, context = create_context(request)
-      response = DemoController::Index.instance.call(context).as(String)
-      response.should contain "test"
+
+      get "/demos"
+      response.body.should contain "test"
     end
   end
 
@@ -22,29 +21,22 @@ describe DemoController do
       demo = Demo.new
       demo.name = "test"
       demo.save
-      request = HTTP::Request.new("GET", "/demos/#{demo.id}")
-      io, context = create_context(request)
-      context.params["id"] = demo.id.to_s
-      response = DemoController::Show.instance.call(context).as(String)
-      response.should contain "test"
+
+      get "/demos/#{demo.id}"
+      response.body.should contain "test"
     end
   end
 
   describe DemoController::New do
     it "render new template" do
-      request = HTTP::Request.new("GET", "/demos/new")
-      io, context = create_context(request)
-      response = DemoController::New.instance.call(context).as(String)
-      response.should contain "New"
+      get "/demos/new"
+      response.body.should contain "New Demo"
     end
   end
 
   describe DemoController::Create do
-    it "" do
-      request = HTTP::Request.new("POST", "/demos")
-      io, context = create_context(request)
-      context.params["name"] = "test"
-      response = DemoController::Create.instance.call(context).as(String)
+    it "creates a demo" do
+      post "/demos", body: {name: "testing"}
       demo = Demo.all
       demo.size.should eq 1
     end
@@ -55,38 +47,31 @@ describe DemoController do
       demo = Demo.new
       demo.name = "test"
       demo.save
-      request = HTTP::Request.new("GET", "/demos/#{demo.id}/edit")
-      io, context = create_context(request)
-      context.params["id"] = demo.id.to_s
-      response = DemoController::Edit.instance.call(context).as(String)
-      response.should contain "New"
+      
+      get "/demos/#{demo.id}/edit"
+      response.body.should contain "Edit Demo"
     end
   end
 
   describe DemoController::Update do
-    it "updates demo" do
+    it "updates a demo" do
       demo = Demo.new
       demo.name = "test"
       demo.save
-      request = HTTP::Request.new("PUT", "/demos/#{demo.id}")
-      io, context = create_context(request)
-      context.params["id"] = demo.id.to_s
-      context.params["name"] = "test2"
-      response = DemoController::Update.instance.call(context).as(String)
+      
+      put "/demos/#{demo.id}", body: {name: "test2"}
       demo = Demo.find(demo.id).not_nil!
       demo.name.should eq "test2"
     end
   end
 
   describe DemoController::Delete do
-    it "" do
+    it "deletes a demo" do
       demo = Demo.new
       demo.name = "test"
       demo.save
-      request = HTTP::Request.new("DELETE", "/demos/#{demo.id}")
-      io, context = create_context(request)
-      context.params["id"] = demo.id.to_s
-      response = DemoController::Delete.instance.call(context).as(String)
+      
+      delete "/demos/#{demo.id}"
       demo = Demo.find demo.id
       demo.should eq nil
     end
