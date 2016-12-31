@@ -49,3 +49,4 @@ TODO:
 ## Contributors
 
 - [TechMagister](https://github.com/TechMagister) Arnaud Fernandés - creator, maintainer
+- [drujensen](https://github.com/drujensen) Dru Jensen - contributor

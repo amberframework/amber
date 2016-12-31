@@ -2,7 +2,8 @@ name: kemalyst-generator
 version: 0.1.0
 
 authors:
-  - Arnaud Fernandés <arnaud.fernandes@laposte.net>
+  - Arnaud Fernandés <arnaud.fernandes@tech-magister.com>
+  - Dru Jensen <drujensen@gmail.com>
 
 targets:
   kemalyst-generator:
