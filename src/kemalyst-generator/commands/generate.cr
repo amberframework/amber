@@ -1,7 +1,4 @@
-require "../generator"
-
 module Kemalyst::Generator
-
   class MainCommand < Cli::Supercommand
     command "g", aliased: "generate"
 
@@ -12,8 +9,8 @@ module Kemalyst::Generator
       end
 
       def run
-        generator = ::Generator.new(args.name, ".")
-        generator.generate args.type
+        template = Template.new(args.name, ".")
+        template.generate args.type
       end
     end
   end
