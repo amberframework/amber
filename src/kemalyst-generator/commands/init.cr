@@ -4,21 +4,12 @@ module Kemalyst::Generator
 
     class Init < Cli::Command
       class Options
-        arg "type", required: true, any_of: %w(app)
+        arg "type", desc: "app, spa, api", required: true
         arg "name", desc: "name of project", required: true
       end
 
       def run
-
-        templates_path = ENV["KGEN_TEMPLATES"]?
-
-        if !templates_path
-          error! "Unable to find templates path, try to set KGEN_TEMPLATES"
-        end
-
-        path = `pwd`
-
-        template = Template.new(args.name, path, templates_path)
+        template = Template.new(args.name, "./#{args.name}")
         template.generate args.type
       end
     end
