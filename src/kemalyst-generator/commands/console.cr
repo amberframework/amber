@@ -1,5 +1,4 @@
 require "icr"
-require "../commands"
 
 module Kemalyst::Generator
 

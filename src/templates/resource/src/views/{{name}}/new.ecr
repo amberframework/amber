@@ -1,0 +1,15 @@
+<h1>New Demo</h1>
+
+<%= render "demo/_errors.ecr" %>
+
+<form action="/demos" method="post">
+  <%= csrf_tag(context) %>
+  <div class="form-group">
+    <input type="text" class="form-control" name="name" placeholder="Name">
+  </div>
+  <div class="form-group">
+    <textarea rows="4" cols="50" class="form-control" name="description"></textarea>
+  </div>
+  <button type="submit" class="btn btn-primary btn-xs">Submit</button>
+  <a class="btn btn-default btn-xs" href="/demos">Back</a>
+</form>

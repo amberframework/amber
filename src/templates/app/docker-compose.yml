@@ -1,0 +1,38 @@
+version: '2'
+services:
+  web:
+    build: .
+    image: kemalyst-app
+    command: 'crystal run src/app.cr'
+    working_dir: /app/user
+    environment:
+      PORT: 3000
+      DATABASE_URL: 'postgres://postgres:password@pg:5432/postgres'
+    ports:
+      - '80:3000'
+    depends_on:
+      - pg
+    volumes:
+      - '.:/app/user'
+
+  migrate:
+    image: kemalyst-app
+    command: 'crystal run db/migrate.cr'
+    working_dir: /app/user
+    environment:
+      DATABASE_URL: 'postgres://postgres:password@pg:5432/postgres'
+    volumes:
+      - '.:/app/user'
+    depends_on:
+      - pg
+
+  pg:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: 'password'
+    volumes:
+      - 'pg:/var/lib/postgres/data'
+
+volumes:
+  pg:
+
