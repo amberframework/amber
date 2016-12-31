@@ -1,3 +1,5 @@
+require "../../templates/template"
+
 module Kemalyst::Generator
   class MainCommand < Cli::Supercommand
     command "i", aliased: "init"
