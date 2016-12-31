@@ -16,10 +16,13 @@ dependencies:
   cli:
     github: mosop/cli
     branch: master
+
+  teeplate:
+    github: mosop/teeplate
+
   icr:
     github: TechMagister/crystal-icr
     branch: master
-  crustache:
-      github: MakeNowJust/crustache
+
 scripts:
   postinstall: make build

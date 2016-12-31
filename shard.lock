@@ -8,10 +8,6 @@ shards:
     github: mosop/cli
     commit: 1eb9c7e7b1109bac9800972c7be538583a13587d
 
-  crustache:
-    github: MakeNowJust/crustache
-    version: 2.3.0
-
   icr:
     github: TechMagister/crystal-icr
     commit: fea1ddd02c8becdced0cb1a049c62b42e7aaa63d
@@ -23,4 +19,8 @@ shards:
   string_inflection:
     github: mosop/string_inflection
     version: 0.2.0
+
+  teeplate:
+    github: mosop/teeplate
+    version: 0.2.1
 

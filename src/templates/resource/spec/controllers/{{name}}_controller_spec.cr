@@ -47,7 +47,6 @@ describe DemoController do
       demo = Demo.new
       demo.name = "test"
       demo.save
-      
       get "/demos/#{demo.id}/edit"
       response.body.should contain "Edit Demo"
     end
@@ -58,7 +57,6 @@ describe DemoController do
       demo = Demo.new
       demo.name = "test"
       demo.save
-      
       put "/demos/#{demo.id}", body: {name: "test2"}
       demo = Demo.find(demo.id).not_nil!
       demo.name.should eq "test2"
@@ -70,7 +68,6 @@ describe DemoController do
       demo = Demo.new
       demo.name = "test"
       demo.save
-      
       delete "/demos/#{demo.id}"
       demo = Demo.find demo.id
       demo.should eq nil
