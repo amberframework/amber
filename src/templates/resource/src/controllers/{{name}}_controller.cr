@@ -5,7 +5,7 @@ module DemoController
   class Index < Kemalyst::Controller
     def call(context)
       demos = Demo.all
-      render "demo/index.ecr", "main.ecr"
+      render "demo/index.slang", "main.slang"
     end
   end
 
@@ -13,7 +13,7 @@ module DemoController
     def call(context)
       id = context.params["id"]
       if demo = Demo.find id
-        render "demo/show.ecr", "main.ecr"
+        render "demo/show.slang", "main.slang"
       else
         context.flash["warning"] = "Demo with ID #{id} Not Found"
         redirect "/demos"
@@ -24,7 +24,7 @@ module DemoController
   class New < Kemalyst::Controller
     def call(context)
       demo = Demo.new
-      render "demo/new.ecr", "main.ecr"
+      render "demo/new.slang", "main.slang"
     end
   end
 
@@ -38,7 +38,7 @@ module DemoController
         redirect "/demos"
       else
         context.flash["danger"] = "Could not create Demo!"
-        render "demo/new.ecr", "main.ecr"
+        render "demo/new.slang", "main.slang"
       end
     end
   end
@@ -47,7 +47,7 @@ module DemoController
     def call(context)
       id = context.params["id"]
       if demo = Demo.find id
-        render "demo/edit.ecr", "main.ecr"
+        render "demo/edit.slang", "main.slang"
       else
         context.flash["warning"] = "Demo with ID #{id} Not Found"
         redirect "/demos"
@@ -66,7 +66,7 @@ module DemoController
           redirect "/demos"
         else
           context.flash["danger"] = "Could not update Demo!"
-          render "demo/edit.ecr", "main.ecr"
+          render "demo/edit.slang", "main.slang"
         end
       else
         context.flash["warning"] = "Demo with ID #{id} Not Found"
