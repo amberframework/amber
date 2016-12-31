@@ -21,10 +21,13 @@ module Kemalyst::Generator
       case type
       when "controller", "model", "view"
         path = ["resource", "src", "#{type}s"]
+        output = path[1..-1]
+      when "app"
+        path = ["app"]
+        output = [@name]
       else
         raise Exception.new "Invalid template type : #{type}"
       end
-      output = path[1..-1]
       generate_from_path path, output
     end
 
@@ -76,11 +79,11 @@ module Kemalyst::Generator
       Dir.glob("#{@directory}/**/*_tmpl") do |tmpl_file|
         next if in_lib? tmpl_file
         template = Crustache.parse File.read(tmpl_file)
-        model = {"name" => name, "Name" => name.capitalize}
+        model = {name: name, Name: name.capitalize}.to_h
         new_file = tmpl_file.gsub("_tmpl", "")
         puts "Processing template: #{new_file}"
         File.write(new_file, String.build { |io|
-          #io << Crustache.render template, model
+          io << Crustache.render template, model
         })
         File.delete tmpl_file
       end
