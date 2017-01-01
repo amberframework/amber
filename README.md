@@ -5,22 +5,23 @@ Rails like command line for kemalyst
 ## Installation
 
 You can build the `kgen` tool from source:
-
+```shellsession
 $ git clone git@github.com:TechMagister/kemalyst-generator.git
 $ cd kemalyst-generator/
 $ shards install
 $ make
+```
 
 You should now have a bin/kgen file to run. 
 
 You can symlink this to a more global location like /usr/local/bin to make it easier to use:
 
-$ ln -sf $(pwd)/bin/kgen /usr/local/bin/kgen
+`$ ln -sf $(pwd)/bin/kgen /usr/local/bin/kgen`
 
 Optionally, you can use homebrew to install.
 
-$ brew tap drujensen/kgen
-$ brew install kgen
+`$ brew tap drujensen/kgen`
+`$ brew install kgen`
 
 ## Usage
 
