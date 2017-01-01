@@ -20,13 +20,15 @@ You can symlink this to a more global location like /usr/local/bin to make it ea
 
 Optionally, you can use homebrew to install.
 
-`$ brew tap drujensen/kgen`
-`$ brew install kgen`
+```shellsession
+$ brew tap drujensen/kgen
+$ brew install kgen
+```
 
 ## Usage
 
 ``` shell
-./bin/kgen --help
+$ ./bin/kgen --help
 kgen [OPTIONS] SUBCOMMAND
 
 Kemalyst Generator
