@@ -1,0 +1,76 @@
+require "./spec_helper"
+
+describe <%= @name.capitalize %>Controller do
+  Spec.before_each do
+    <%= @name.capitalize %>.clear
+  end
+
+  describe <%= @name.capitalize %>Controller::Index do
+    it "renders all the <%= @name %>s" do
+      <%= @name %> = <%= @name.capitalize %>.new
+      <%= @name %>.name = "test"
+      <%= @name %>.save
+
+      get "/<%= @name %>s"
+      response.body.should contain "test"
+    end
+  end
+
+  describe <%= @name.capitalize %>Controller::Show do
+    it "renders a single <%= @name %>" do
+      <%= @name %> = <%= @name.capitalize %>.new
+      <%= @name %>.name = "test"
+      <%= @name %>.save
+
+      get "/<%= @name %>s/#{<%= @name %>.id}"
+      response.body.should contain "test"
+    end
+  end
+
+  describe <%= @name.capitalize %>Controller::New do
+    it "render new template" do
+      get "/<%= @name %>s/new"
+      response.body.should contain "New <%= @name.capitalize %>"
+    end
+  end
+
+  describe <%= @name.capitalize %>Controller::Create do
+    it "creates a <%= @name %>" do
+      post "/<%= @name %>s", body: {name: "testing"}
+      <%= @name %> = <%= @name.capitalize %>.all
+      <%= @name %>.size.should eq 1
+    end
+  end
+
+  describe <%= @name.capitalize %>Controller::Edit do
+    it "renders edit template" do
+      <%= @name %> = <%= @name.capitalize %>.new
+      <%= @name %>.name = "test"
+      <%= @name %>.save
+      get "/<%= @name %>s/#{<%= @name %>.id}/edit"
+      response.body.should contain "Edit <%= @name.capitalize %>"
+    end
+  end
+
+  describe <%= @name.capitalize %>Controller::Update do
+    it "updates a <%= @name %>" do
+      <%= @name %> = <%= @name.capitalize %>.new
+      <%= @name %>.name = "test"
+      <%= @name %>.save
+      put "/<%= @name %>s/#{<%= @name %>.id}", body: {name: "test2"}
+      <%= @name %> = <%= @name.capitalize %>.find(<%= @name %>.id).not_nil!
+      <%= @name %>.name.should eq "test2"
+    end
+  end
+
+  describe <%= @name.capitalize %>Controller::Delete do
+    it "deletes a <%= @name %>" do
+      <%= @name %> = <%= @name.capitalize %>.new
+      <%= @name %>.name = "test"
+      <%= @name %>.save
+      delete "/<%= @name %>s/#{<%= @name %>.id}"
+      <%= @name %> = <%= @name.capitalize %>.find <%= @name %>.id
+      <%= @name %>.should eq nil
+    end
+  end
+end
