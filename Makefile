@@ -1,8 +1,14 @@
-CRYSTAL_BIN ?= $(shell which crystal)
-CONTENT = "\#! /usr/bin/env sh\n\
-echo 'Building kgen...'\n\
-$(CRYSTAL_BIN) build --release -o bin/kgen lib/kemalyst-generator/src/kemalyst-generator.cr\n\
-echo 'rerun ./bin/kgen'"
+OUT_DIR=bin
+
+all: build
 
 build:
-	cd ../.. && mkdir -p bin && echo -e $(CONTENT) > bin/kgen && chmod +x bin/kgen
+	@echo "Building kgen in $(shell pwd)"
+	@mkdir -p $(OUT_DIR)
+	@crystal build --release -o $(OUT_DIR)/kgen src/kemalyst-generator.cr
+
+run:
+	$(OUT_DIR)/kgen
+
+clean:
+	rm -rf  $(OUT_DIR) .crystal .shards libs lib
