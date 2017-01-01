@@ -1,8 +1,0 @@
-<h2 class="blog-post-title"><%= demo.name %></h2>
-<p class="blog-description"><%= Markdown.to_html(demo.description || "") %></p>
-<p class="blog-post-meta"><%= demo.last_updated %></p>
-<p>
-  <a class="btn btn-default btn-xs" href="/demos">back</a>
-  <a class="btn btn-success btn-xs" href="/demos/<%= demo.id %>/edit">edit</a>
-  <a class="btn btn-danger btn-xs" href="/demos/<%= demo.id %>?_method=delete" onclick="return confirm('Are you sure?');">delete</a>
-</p>
