@@ -1,4 +1,5 @@
 require "icr"
+require "cli"
 
 module Kemalyst::Generator
   class MainCommand < Cli::Supercommand

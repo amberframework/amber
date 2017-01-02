@@ -1,2 +1,2 @@
 require "spec"
-require "../src/kemalyst-generator"
+require "../src/kemalyst-generator/**"

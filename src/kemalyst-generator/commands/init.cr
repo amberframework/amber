@@ -11,7 +11,8 @@ module Kemalyst::Generator
       end
 
       def run
-        template = Template.new(args.name, "./#{args.name}")
+        name = File.basename(args.name)
+        template = Template.new(name, "./#{args.name}")
         template.generate args.type
       end
     end
