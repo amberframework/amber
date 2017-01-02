@@ -1,0 +1,6 @@
+h2 = <%= @name %>.name
+p = <%= @name %>.description
+p
+  a.btn.btn-default.btn-xs href="/<%= @name %>s" back
+  a.btn.btn-success.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }/edit" edit
+  a.btn.btn-danger.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }?_method=delete" onclick="return confirm('Are you sure?');" delete

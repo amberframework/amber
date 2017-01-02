@@ -1,0 +1,89 @@
+require "markdown"
+require "../models/<%= @name %>"
+
+module <%= @name.capitalize %>Controller
+  class Index < Kemalyst::Controller
+    def call(context)
+      <%= @name %>s = <%= @name.capitalize %>.all
+      render "<%= @name %>/index.slang", "main.slang"
+    end
+  end
+
+  class Show < Kemalyst::Controller
+    def call(context)
+      id = context.params["id"]
+      if <%= @name %> = <%= @name.capitalize %>.find id
+        render "<%= @name %>/show.slang", "main.slang"
+      else
+        context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
+        redirect "/<%= @name %>s"
+      end
+    end
+  end
+
+  class New < Kemalyst::Controller
+    def call(context)
+      <%= @name %> = <%= @name.capitalize %>.new
+      render "<%= @name %>/new.slang", "main.slang"
+    end
+  end
+
+  class Create < Kemalyst::Controller
+    def call(context)
+      <%= @name %> = <%= @name.capitalize %>.new
+      <%= @name %>.name = context.params["name"]
+      <%= @name %>.description = context.params["description"]
+
+      if <%= @name %>.valid? && <%= @name %>.save
+        redirect "/<%= @name %>s"
+      else
+        context.flash["danger"] = "Could not create <%= @name.capitalize %>!"
+        render "<%= @name %>/new.slang", "main.slang"
+      end
+    end
+  end
+
+  class Edit < Kemalyst::Controller
+    def call(context)
+      id = context.params["id"]
+      if <%= @name %> = <%= @name.capitalize %>.find id
+        render "<%= @name %>/edit.slang", "main.slang"
+      else
+        context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
+        redirect "/<%= @name %>s"
+      end
+    end
+  end
+
+  class Update < Kemalyst::Controller
+    def call(context)
+      id = context.params["id"]
+      if <%= @name %> = <%= @name.capitalize %>.find id
+        <%= @name %>.name = context.params["name"]
+        <%= @name %>.description = context.params["description"]
+
+        if <%= @name %>.valid? && <%= @name %>.save
+          redirect "/<%= @name %>s"
+        else
+          context.flash["danger"] = "Could not update <%= @name.capitalize %>!"
+          render "<%= @name %>/edit.slang", "main.slang"
+        end
+      else
+        context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
+        redirect "/<%= @name %>s"
+      end
+    end
+  end
+
+  class Delete < Kemalyst::Controller
+    def call(context)
+      id = context.params["id"]
+      if <%= @name %> = <%= @name.capitalize %>.find id
+        <%= @name %>.destroy
+      else
+        context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
+      end
+      redirect "/<%= @name %>s"
+    end
+  end
+end
