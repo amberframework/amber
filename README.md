@@ -1,4 +1,5 @@
-# kemalyst-generator
+# kemalyst-generator 
+[![Build Status](https://travis-ci.org/TechMagister/kemalyst-generator.svg?branch=master)](https://travis-ci.org/TechMagister/kemalyst-generator)
 
 Rails like command line for kemalyst
 
@@ -43,14 +44,7 @@ Options:
 
 ## Development
 
-TODO:
-- [x] Basic console
-- [ ] Import models, controllers when starting console
-- [ ] Add Generator for models
-- [ ] Add Generator for controllers
-- [ ] Run database console accoding to config/database.yml
-- [ ] Add database migration
-- [ ] Run a sentry instance
+See opened issues.
 
 ## Contributing
 
