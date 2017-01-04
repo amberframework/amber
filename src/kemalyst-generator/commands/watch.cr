@@ -7,6 +7,7 @@ module Kemalyst::Generator
     command "w", aliased: "watch"
 
     class Watch < Sentry::SentryCommand
+      command_name "watch"
 
       def run
         options.watch << "./config/**/*.cr"
