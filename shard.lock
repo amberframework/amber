@@ -18,7 +18,7 @@ shards:
 
   sentry:
     github: TechMagister/sentry
-    commit: edb4b7da7411eb634409aac3c0ed778738a36f32
+    commit: a78129ec1e66aa24c91b93199ea187e4793c8d58
 
   string_inflection:
     github: mosop/string_inflection
