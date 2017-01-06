@@ -35,7 +35,14 @@ kgen [OPTIONS] SUBCOMMAND
 Kemalyst Generator
 
 Subcommands:
+  c         alias for console
   console
+  g         alias for generate
+  generate
+  i         alias for init
+  init
+  w         alias for watch
+  watch
 
 Options:
   -h, --help     show this help
