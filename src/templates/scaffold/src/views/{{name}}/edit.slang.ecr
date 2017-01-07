@@ -1,13 +1,3 @@
 h1 Edit <%= @name.capitalize %>
 
-== render "<%= @name %>/_errors.slang"
-
-form action="/<%= @name %>s/#{ <%= @name %>.id }" method="post"
-  == csrf_tag(context)
-  input type="hidden" name="_method" value="put"
-<% @fields.each do |field| -%>
-  div.form-group
-    input.form-control type="text" name="<%= field.name %>" placeholder="<%= field.name.capitalize %>" value="#{ <%= @name %>.<%= field.name %> }"
-<% end -%>
-  button.btn.btn-primary.btn-xs type="submit" Submit
-  a.btn.btn-default.btn-xs href="/<%= @name %>s" back
+== render "<%= @name %>/_form.slang"

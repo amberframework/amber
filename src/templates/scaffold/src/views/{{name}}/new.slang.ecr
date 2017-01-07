@@ -1,12 +1,4 @@
 h1 New <%= @name.capitalize %>
 
-== render "<%= @name %>/_errors.slang"
+== render "<%= @name %>/_form.slang"
 
-form action="/<%= @name %>s" method="post"
-  == csrf_tag(context)
-<% @fields.each do |field| -%>
-  div.form-group
-    input.form-control type="text" name="<%= field.name %>" placeholder="<%= field.name.capitalize %>" value="#{ <%= @name %>.<%= field.name %> }"
-<% end -%>
-  button.btn.btn-primary.btn-xs type="submit" Submit
-  a.btn.btn-default.btn-xs href="/<%= @name %>s" back
