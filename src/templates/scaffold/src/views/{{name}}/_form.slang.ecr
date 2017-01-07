@@ -3,11 +3,6 @@
   - <%= @name %>.errors.each do |error|
     li = error
 
-- if demo.errors 
-  ul.errors
-  - demo.errors.each do |error|
-    li = error
-
 - action = (<%= @name %>.id ? "/<%= @name %>s/" + <%= @name %>.id.to_s : "/<%= @name %>s")
 form action="#{ action }" method="post"
   == csrf_tag(context)
