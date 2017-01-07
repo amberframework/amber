@@ -1,16 +1,18 @@
 module Kemalyst::Generator
   class Field
     property name : String
+    property type : String
     property cr_type : String
     property db_type : String
 
     def initialize(field)
-      @name, type = field.split(":")
-      @cr_type, @db_type = cr_db_type(type)
+      @name, @type = field.split(":")
+      @cr_type, @db_type = cr_db_type(@type)
     end
 
     def cr_db_type(type = "string")
-      case type.downcase
+      @type = type.downcase
+      case @type
       when "text"
         ["String","TEXT"]
       when "int", "integer"
