@@ -1,5 +1,7 @@
-h2 = <%= @name %>.name
-p = <%= @name %>.description
+<% @fields.each do |field| -%>
+<% field_name, field_type = field.split(":") -%>
+p = <%= @name %>.<%= field_name %>
+<% end -%>
 p
   a.btn.btn-default.btn-xs href="/<%= @name %>s" back
   a.btn.btn-success.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }/edit" edit

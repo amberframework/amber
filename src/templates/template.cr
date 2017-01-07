@@ -1,13 +1,14 @@
 require "teeplate"
 require "./app"
-require "./resource"
+require "./scaffold"
 
 module Kemalyst::Generator
   class Template
     getter name : String
     getter directory : String
+    getter fields : Array(String)
 
-    def initialize(name : String, directory : String)
+    def initialize(name : String, directory : String, fields = [] of String)
       if name.match(/\A[a-zA-Z]/)
         @name = name
       else
@@ -18,6 +19,8 @@ module Kemalyst::Generator
       unless Dir.exists?(@directory)
         Dir.mkdir_p(@directory)
       end
+
+      @fields = fields
     end
 
     def generate(template : String)
@@ -25,9 +28,9 @@ module Kemalyst::Generator
       when "app"
         puts "Rendering App #{name} in #{directory}"
         App.new(name).render(directory)
-      when "resource"
-        puts "Rendering Resource #{name} in #{directory}"
-        Resource.new(name).render(directory)
+      when "scaffold"
+        puts "Rendering Scaffold #{name} in #{directory}"
+        Scaffold.new(name, fields).render(directory)
       else
         raise "Template not found"
       end

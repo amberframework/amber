@@ -4,12 +4,13 @@ module Kemalyst::Generator
 
     class Generate < Cli::Command
       class Options
-        arg "type", desc: "resource", required: true
+        arg "type", desc: "scaffold", required: true
         arg "name", desc: "name of resource", required: true
+        arg_array "fields", desc: "fields for resource. e.g. name:String address:String phone:Int32"
       end
 
       def run
-        template = Template.new(args.name, ".")
+        template = Template.new(args.name, ".", args.fields)
         template.generate args.type
       end
     end

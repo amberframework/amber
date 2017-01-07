@@ -5,9 +5,10 @@ h1 Edit <%= @name.capitalize %>
 form action="/<%= @name %>s/#{ <%= @name %>.id }" method="post"
   == csrf_tag(context)
   input type="hidden" name="_method" value="put"
+<% @fields.each do |field| -%>
+<% field_name, field_type = field.split(":") -%>
   div.form-group
-    input.form-control type="text" name="name" placeholder="Name" value="#{ <%= @name %>.name }"
-  div.form-group
-    textarea.form-control rows="4" cols="50" name="description" = <%= @name %>.description
+    input.form-control type="text" name="<%= field_name %>" placeholder="<%= field_name.capitalize %>" value="#{ <%= @name %>.<%= field_name %> }"
+<% end -%>
   button.btn.btn-primary.btn-xs type="submit" Submit
   a.btn.btn-default.btn-xs href="/<%= @name %>s" back
