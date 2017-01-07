@@ -21,3 +21,6 @@ get "/", StaticController::Index
 # get "/demos/:id/edit", DemoController::Edit
 # put "/demos/:id", DemoController::Update
 # delete "/demos/:id", DemoController::Delete
+
+# the `resource` macro will create the 7 routes for you:
+# resource Demo
