@@ -32,8 +32,7 @@ module <%= @name.capitalize %>Controller
     def call(context)
       <%= @name %> = <%= @name.capitalize %>.new
 <% @fields.each do |field| -%>
-<% field_name, field_type = field.split(":") -%>
-      <%= @name %>.<%= field_name %> = context.params["<%= field_name %>"]
+      <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"]
 <% end -%>
 
       if <%= @name %>.valid? && <%= @name %>.save
@@ -62,8 +61,7 @@ module <%= @name.capitalize %>Controller
       id = context.params["id"]
       if <%= @name %> = <%= @name.capitalize %>.find id
 <% @fields.each do |field| -%>
-<% field_name, field_type = field.split(":") -%>
-        <%= @name %>.<%= field_name %> = context.params["<%= field_name %>"]
+        <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"]
 <% end -%>
 
         if <%= @name %>.valid? && <%= @name %>.save

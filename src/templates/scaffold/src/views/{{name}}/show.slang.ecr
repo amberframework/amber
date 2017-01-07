@@ -1,6 +1,5 @@
 <% @fields.each do |field| -%>
-<% field_name, field_type = field.split(":") -%>
-p = <%= @name %>.<%= field_name %>
+p = <%= @name %>.<%= field.name %>
 <% end -%>
 p
   a.btn.btn-default.btn-xs href="/<%= @name %>s" back

@@ -6,8 +6,7 @@ class <%= @name.capitalize %> < Kemalyst::Model
   # id, created_at and updated_at columns are automatically created for you.
   sql_mapping({
 <% @fields.each do |field| -%>
-<% field_name, field_type = field.split(":") -%>
-    <%= field_name %>: ["VARCHAR", <%= field_type %>],
+  <%= field.name %>: [<%= field.db_type %>, <%= field.cr_type %>],
 <% end -%>
   })
 
