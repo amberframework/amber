@@ -10,7 +10,7 @@ module Kemalyst::Generator
       end
 
       def run
-        template = Template.new(args.name, ".", args.fields)
+        template = Template.new(args.name.downcase, ".", args.fields)
         template.generate args.type
       end
     end
