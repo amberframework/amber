@@ -1,3 +1,4 @@
+<% field_name = @fields.first.name -%>
 require "./spec_helper"
 
 describe <%= @name.capitalize %>Controller do
@@ -8,7 +9,7 @@ describe <%= @name.capitalize %>Controller do
   describe <%= @name.capitalize %>Controller::Index do
     it "renders all the <%= @name %>s" do
       <%= @name %> = <%= @name.capitalize %>.new
-      <%= @name %>.name = "test"
+      <%= @name %>.<%= field_name %> = "test"
       <%= @name %>.save
 
       get "/<%= @name %>s"
@@ -19,7 +20,7 @@ describe <%= @name.capitalize %>Controller do
   describe <%= @name.capitalize %>Controller::Show do
     it "renders a single <%= @name %>" do
       <%= @name %> = <%= @name.capitalize %>.new
-      <%= @name %>.name = "test"
+      <%= @name %>.<%= field_name %> = "test"
       <%= @name %>.save
 
       get "/<%= @name %>s/#{<%= @name %>.id}"
@@ -36,7 +37,7 @@ describe <%= @name.capitalize %>Controller do
 
   describe <%= @name.capitalize %>Controller::Create do
     it "creates a <%= @name %>" do
-      post "/<%= @name %>s", body: {name: "testing"}
+      post "/<%= @name %>s", body: {<%= field_name %>: "testing"}
       <%= @name %> = <%= @name.capitalize %>.all
       <%= @name %>.size.should eq 1
     end
@@ -45,7 +46,7 @@ describe <%= @name.capitalize %>Controller do
   describe <%= @name.capitalize %>Controller::Edit do
     it "renders edit template" do
       <%= @name %> = <%= @name.capitalize %>.new
-      <%= @name %>.name = "test"
+      <%= @name %>.<%= field_name %> = "test"
       <%= @name %>.save
       get "/<%= @name %>s/#{<%= @name %>.id}/edit"
       response.body.should contain "Edit <%= @name.capitalize %>"
@@ -55,18 +56,18 @@ describe <%= @name.capitalize %>Controller do
   describe <%= @name.capitalize %>Controller::Update do
     it "updates a <%= @name %>" do
       <%= @name %> = <%= @name.capitalize %>.new
-      <%= @name %>.name = "test"
+      <%= @name %>.<%= field_name %> = "test"
       <%= @name %>.save
-      put "/<%= @name %>s/#{<%= @name %>.id}", body: {name: "test2"}
+      put "/<%= @name %>s/#{<%= @name %>.id}", body: {<%= field_name %>: "test2"}
       <%= @name %> = <%= @name.capitalize %>.find(<%= @name %>.id).not_nil!
-      <%= @name %>.name.should eq "test2"
+      <%= @name %>.<%= field_name %>.should eq "test2"
     end
   end
 
   describe <%= @name.capitalize %>Controller::Delete do
     it "deletes a <%= @name %>" do
       <%= @name %> = <%= @name.capitalize %>.new
-      <%= @name %>.name = "test"
+      <%= @name %>.<%= field_name %> = "test"
       <%= @name %>.save
       delete "/<%= @name %>s/#{<%= @name %>.id}"
       <%= @name %> = <%= @name.capitalize %>.find <%= @name %>.id

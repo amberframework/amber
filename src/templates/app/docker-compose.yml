@@ -3,7 +3,7 @@ services:
   web:
     build: .
     image: kemalyst-app
-    command: 'crystal run dev/sentry.cr'
+    command: 'crystal run bin/sentry.cr'
     working_dir: /app/user
     environment:
       PORT: 3000

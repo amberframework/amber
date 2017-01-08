@@ -7,7 +7,7 @@ files_cleared = false
 show_help = false
 
 OptionParser.parse! do |parser|
-  parser.banner = "Usage: ./sentry [options]"
+  parser.banner = "Usage: ./bin/sentry [options]"
   parser.on(
     "-r RUN_COMMAND",
     "--run=RUN_COMMAND",

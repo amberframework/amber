@@ -7,14 +7,16 @@ div.table-responsive
   table.table.table-striped
     thead
       tr
-        th Name
-        th Description
+<% @fields.each do |field| -%>
+        th <%= field.name.capitalize %>
+<% end -%>
         th Actions
     tbody
     - <%= @name %>s.each do |<%= @name %>|
       tr
-        td = <%= @name %>.name
-        td = <%= @name %>.description
+<% @fields.each do |field| -%>
+        td = <%= @name %>.<%= field.name %>
+<% end -%>
         td
           a.btn.btn-primary.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }" read
           a.btn.btn-success.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }/edit" edit

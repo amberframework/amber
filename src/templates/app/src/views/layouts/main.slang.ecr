@@ -13,7 +13,8 @@ html
     div.masthead
       div.container
         nav.nav
-          a.nav-item.active href="/" Home
+          - active = context.request.path == "/" ? "active" : ""
+          a class="nav-item #{active}" href="/" Home
 
     div.container
       div.row
@@ -22,7 +23,7 @@ html
           p = value
 
       div.row
-        div.col-sm-12.blog-main
+        div.col-sm-12.main
           == content
 
     script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"

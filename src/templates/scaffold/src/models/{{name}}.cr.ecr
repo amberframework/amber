@@ -1,0 +1,13 @@
+require "kemalyst-model/adapter/pg"
+
+class <%= @name.capitalize %> < Kemalyst::Model
+  adapter pg
+
+  # id, created_at and updated_at columns are automatically created for you.
+  sql_mapping({
+<% @fields.each do |field| -%>
+  <%= field.name %>: [<%= field.db_type %>, <%= field.cr_type %>],
+<% end -%>
+  })
+
+end

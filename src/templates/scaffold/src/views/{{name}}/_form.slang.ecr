@@ -1,0 +1,16 @@
+- if <%= @name %>.errors 
+  ul.errors
+  - <%= @name %>.errors.each do |error|
+    li = error
+
+- action = (<%= @name %>.id ? "/<%= @name %>s/" + <%= @name %>.id.to_s : "/<%= @name %>s")
+form action="#{ action }" method="post"
+  == csrf_tag(context)
+  - if <%= @name %>.id
+    input type="hidden" name="_method" value="put"
+<% @fields.each do |field| -%>
+  div.form-group
+    input.form-control type="text" name="<%= field.name %>" placeholder="<%= field.name.capitalize %>" value="#{ <%= @name %>.<%= field.name %> }"
+<% end -%>
+  button.btn.btn-primary.btn-xs type="submit" Submit
+  a.btn.btn-default.btn-xs href="/<%= @name %>s" back

@@ -67,3 +67,7 @@ h6, .h6 {
   border-bottom: 5px solid;
   border-left: 5px solid transparent;
 }
+
+.main {
+  padding-top: 20px;
+}

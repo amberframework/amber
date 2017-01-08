@@ -31,8 +31,9 @@ module <%= @name.capitalize %>Controller
   class Create < Kemalyst::Controller
     def call(context)
       <%= @name %> = <%= @name.capitalize %>.new
-      <%= @name %>.name = context.params["name"]
-      <%= @name %>.description = context.params["description"]
+<% @fields.each do |field| -%>
+      <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"]
+<% end -%>
 
       if <%= @name %>.valid? && <%= @name %>.save
         redirect "/<%= @name %>s"
@@ -59,8 +60,9 @@ module <%= @name.capitalize %>Controller
     def call(context)
       id = context.params["id"]
       if <%= @name %> = <%= @name.capitalize %>.find id
-        <%= @name %>.name = context.params["name"]
-        <%= @name %>.description = context.params["description"]
+<% @fields.each do |field| -%>
+        <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"]
+<% end -%>
 
         if <%= @name %>.valid? && <%= @name %>.save
           redirect "/<%= @name %>s"
