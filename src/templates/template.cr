@@ -29,7 +29,7 @@ module Kemalyst::Generator
         puts "Rendering App #{name} in #{directory}"
         App.new(name).render(directory)
       when "scaffold"
-        puts "Rendering Scaffold #{name} in #{directory}"
+        puts "Rendering Scaffold #{name}"
         Scaffold.new(name, fields).render(directory)
       else
         raise "Template not found"

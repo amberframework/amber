@@ -1,5 +1,6 @@
 require "teeplate"
 require "./field.cr"
+require "./entry.cr"
 
 module Kemalyst::Generator
   class Scaffold < Teeplate::FileTree
