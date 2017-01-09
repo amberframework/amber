@@ -12,9 +12,7 @@ html
   body
     div.masthead
       div.container
-        nav.nav
-          - active = context.request.path == "/" ? "active" : ""
-          a class="nav-item #{active}" href="/" Home
+        == render "layouts/_nav.slang"
 
     div.container
       div.row
