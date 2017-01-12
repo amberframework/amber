@@ -1,0 +1,3 @@
+smtp:
+  host: localhost
+  port: 25

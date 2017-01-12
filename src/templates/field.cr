@@ -6,6 +6,7 @@ module Kemalyst::Generator
     property db_type : String
 
     def initialize(field)
+      field = "#{field}:string" unless field.includes? ":"
       @name, @type = field.split(":")
       @cr_type, @db_type = cr_db_type(@type)
     end
