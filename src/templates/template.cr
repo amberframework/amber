@@ -1,6 +1,9 @@
 require "teeplate"
 require "./app"
 require "./scaffold"
+require "./model"
+require "./controller"
+require "./mailer"
 
 module Kemalyst::Generator
   class Template
@@ -31,6 +34,15 @@ module Kemalyst::Generator
       when "scaffold"
         puts "Rendering Scaffold #{name}"
         Scaffold.new(name, fields).render(directory)
+      when "model"
+        puts "Rendering Model #{name}"
+        Model.new(name, fields).render(directory)
+      when "controller"
+        puts "Rendering Controller #{name}"
+        Controller.new(name, fields).render(directory)
+      when "mailer"
+        puts "Rendering Mailer #{name}"
+        Mailer.new(name, fields).render(directory)
       else
         raise "Template not found"
       end

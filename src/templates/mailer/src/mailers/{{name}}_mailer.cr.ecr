@@ -1,0 +1,12 @@
+class <%= @name.capitalize %>Mailer < Kemalyst::Mailer
+  property name : String
+
+  def initialize
+    super
+    @name = "User Name"
+    from "from@example.com"
+    to "to@example.com"
+    subject "Example Subject"
+    render "mailers/<%= @name %>_mailer.slang", "mailer.slang"
+  end
+end

@@ -1,0 +1,10 @@
+module <%= @name.capitalize %>Controller
+<% @fields.each do |field| -%>
+
+  class <%= field.name.capitalize %> < Kemalyst::Controller
+    def call(context)
+      render "<%= @name %>/<%= field.name %>.slang", "main.slang"
+    end
+  end
+<% end -%>
+end
