@@ -17,7 +17,7 @@ html
     div.container
       div.row
       - context.flash.each do |key, value|
-        div.alert.alert-#{ key }
+        div class="alert alert-#{ key }"
           p = value
 
       div.row

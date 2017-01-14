@@ -41,7 +41,7 @@ module <%= @name.capitalize %>Controller
 <% when "date", "time" -%>
       <%= @name %>.<%= field.name %> = Time.parse(context.params["<%= field.name %>"], "%F %X")
 <% when "boolean" -%>
-      <%= @name %>.<%= field.name %> = context.params.includes? "<%= field.name %>"
+      <%= @name %>.<%= field.name %> = context.params.has_key? "<%= field.name %>"
 <% else -%>
       <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"]
 <% end -%>
@@ -84,7 +84,7 @@ module <%= @name.capitalize %>Controller
 <% when "date", "time" -%>
       <%= @name %>.<%= field.name %> = Time.parse(context.params["<%= field.name %>"], "%F %X")
 <% when "boolean" -%>
-      <%= @name %>.<%= field.name %> = context.params.includes? "<%= field.name %>"
+      <%= @name %>.<%= field.name %> = context.params.has_key? "<%= field.name %>"
 <% else -%>
       <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"]
 <% end -%>
