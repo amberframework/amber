@@ -17,16 +17,19 @@ module Kemalyst::Generator
       when "text"
         ["String","TEXT"]
       when "int", "integer"
+        @type = "integer"
         ["Int32", "INT"]
       when "float"
         ["Float32", "FLOAT"]
       when "real"
         ["Float64", "REAL"]
       when "bool", "boolean"
+        @type = "boolean"
         ["Bool", "BOOL"]
       when "date"
         ["Time", "DATE"]
       when "time", "timestamp"
+        @type = "time"
         ["Time", "TIMESTAMP"]
       else
         ["String", "VARCHAR"]
