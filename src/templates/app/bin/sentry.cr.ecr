@@ -1,7 +1,7 @@
 require "option_parser"
 
-build_command = "crystal build ./src/app.cr"
-run_command = "./app"
+build_command = "crystal build ./src/<%= @name %>.cr"
+run_command = "./<%= @name %>"
 files = ["./src/**/*", "./config/*"]
 files_cleared = false
 show_help = false

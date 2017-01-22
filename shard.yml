@@ -16,10 +16,11 @@ license: MIT
 dependencies:
   cli:
     github: mosop/cli
-    branch: master
+    version: ~> 0.5.1
 
   teeplate:
     github: mosop/teeplate
+    version: ~> 0.2.3
 
   icr:
     github: TechMagister/crystal-icr
