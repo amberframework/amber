@@ -2,11 +2,11 @@ version: 1.0
 shards:
   callback:
     github: mosop/callback
-    version: 0.5.0
+    version: 0.5.1
 
   cli:
     github: mosop/cli
-    version: 0.5.1
+    version: 0.5.2
 
   icr:
     github: TechMagister/crystal-icr
@@ -14,7 +14,7 @@ shards:
 
   optarg:
     github: mosop/optarg
-    version: 0.4.2.7
+    version: 0.4.4
 
   sentry:
     github: TechMagister/sentry
