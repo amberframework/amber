@@ -31,20 +31,22 @@ module <%= @name.capitalize %>Controller
     def call(context)
       <%= @name %> = <%= @name.capitalize %>.new
 <% @fields.each do |field| -%>
+      if value = context.params.fetch("<%= field.name %>", nil)
 <% case field.type
    when "integer" -%>
-      <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"].to_i32
+        <%= @name %>.<%= field.name %> = value.to_i32
 <% when "float" -%>
-      <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"].to_f32
+        <%= @name %>.<%= field.name %> = value.to_f32
 <% when "real" -%>
-      <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"].to_f64
+        <%= @name %>.<%= field.name %> = value.to_f64
 <% when "date", "time" -%>
-      <%= @name %>.<%= field.name %> = Time.parse(context.params["<%= field.name %>"], "%F %X")
+        <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X")
 <% when "boolean" -%>
-      <%= @name %>.<%= field.name %> = context.params.has_key? "<%= field.name %>"
+        <%= @name %>.<%= field.name %> = (value != nil)
 <% else -%>
-      <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"]
+        <%= @name %>.<%= field.name %> = value
 <% end -%>
+      end
 <% end -%>
 
       if <%= @name %>.valid? && <%= @name %>.save
@@ -74,20 +76,22 @@ module <%= @name.capitalize %>Controller
       id = context.params["id"]
       if <%= @name %> = <%= @name.capitalize %>.find id
 <% @fields.each do |field| -%>
+        if value = context.params.fetch("<%= field.name %>", nil)
 <% case field.type
-  when "integer" -%>
-      <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"].to_i32
+   when "integer" -%>
+          <%= @name %>.<%= field.name %> = value.to_i32
 <% when "float" -%>
-      <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"].to_f32
+          <%= @name %>.<%= field.name %> = value.to_f32
 <% when "real" -%>
-      <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"].to_f64
+          <%= @name %>.<%= field.name %> = value.to_f64
 <% when "date", "time" -%>
-      <%= @name %>.<%= field.name %> = Time.parse(context.params["<%= field.name %>"], "%F %X")
+          <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X")
 <% when "boolean" -%>
-      <%= @name %>.<%= field.name %> = context.params.has_key? "<%= field.name %>"
+          <%= @name %>.<%= field.name %> = (value != nil)
 <% else -%>
-      <%= @name %>.<%= field.name %> = context.params["<%= field.name %>"]
+          <%= @name %>.<%= field.name %> = value
 <% end -%>
+        end
 <% end -%>
 
         if <%= @name %>.valid? && <%= @name %>.save
