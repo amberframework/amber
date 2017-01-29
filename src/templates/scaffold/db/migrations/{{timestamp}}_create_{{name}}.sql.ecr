@@ -6,23 +6,21 @@ CREATE TABLE <%= @name %>s (
 <% @fields.each do |field| -%>
   <%= field.name %> <%= field.db_type %>,
 <% end -%>
-  created_at VARCHAR,
-  updated_at VARCHAR,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP,
   PRIMARY KEY (id)
-)
-ENGINE=InnoDB
-DEFAULT CHARACTER SET=utf8;
+);
 <% when "pg" -%>
 CREATE TABLE <%= @name %>s (
   id BIGSERIAL PRIMARY KEY,
 <% @fields.each do |field| -%>
   <%= field.name %> <%= field.db_type %>,
 <% end -%>
-  created_at VARCHAR,
-  updated_at VARCHAR
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
 );
 <% else -%>
-CREATE TABLE <%= @name %> (
+CREATE TABLE <%= @name %>s (
   id INTEGER NOT NULL PRIMARY KEY,
 <% @fields.each do |field| -%>
   <%= field.name %> <%= field.db_type %>,

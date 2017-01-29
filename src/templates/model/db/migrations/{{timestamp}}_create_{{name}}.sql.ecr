@@ -10,8 +10,6 @@ CREATE TABLE <%= @name %>s (
   updated_at TIMESTAMP,
   PRIMARY KEY (id)
 )
-ENGINE=InnoDB
-DEFAULT CHARACTER SET=utf8
 <% when "pg" -%>
 CREATE TABLE <%= @name %>s (
   id BIGSERIAL PRIMARY KEY,
@@ -22,7 +20,7 @@ CREATE TABLE <%= @name %>s (
   updated_at TIMESTAMP
 )
 <% else -%>
-CREATE TABLE #{table_name} (
+CREATE TABLE <%= @name %>s (
   id INTEGER NOT NULL PRIMARY KEY,
 <% @fields.each do |field| -%>
   <%= field.name %> <%= field.db_type %>,

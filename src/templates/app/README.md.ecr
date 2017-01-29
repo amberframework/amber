@@ -10,15 +10,15 @@ to provide the credentials to access the table.
 Then:
 ```
 shards update
-crystal db/migrate.cr
+kgen migrate up
 ```
 
 ## Usage
 
 To run the demo:
 ```
-crystal build src/app.cr
-./app
+crystal build src/<%= @name %>.cr
+./<%= @name %>
 ```
 
 ## Docker and Docker Compose
