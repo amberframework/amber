@@ -41,6 +41,8 @@ Subcommands:
   generate
   i         alias for init
   init
+  m         alias for migrate
+  migrate
   w         alias for watch
   watch
 
