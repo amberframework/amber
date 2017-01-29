@@ -4,6 +4,7 @@ require "./scaffold"
 require "./model"
 require "./controller"
 require "./mailer"
+require "./migration"
 
 module Kemalyst::Generator
   class Template
@@ -43,6 +44,9 @@ module Kemalyst::Generator
       when "mailer"
         puts "Rendering Mailer #{name}"
         Mailer.new(name, fields).render(directory)
+      when "migration"
+        puts "Rendering Migration #{name}"
+        Migration.new(name, fields).render(directory)
       else
         raise "Template not found"
       end
