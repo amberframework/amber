@@ -1,0 +1,37 @@
+-- +micrate Up
+<% case @database
+   when "mysql" -%>
+CREATE TABLE <%= @name %>s (
+  id BIGINT NOT NULL AUTO_INCREMENT, 
+<% @fields.each do |field| -%>
+  <%= field.name %> <%= field.db_type %>,
+<% end -%>
+  created_at VARCHAR,
+  updated_at VARCHAR,
+  PRIMARY KEY (id)
+)
+ENGINE=InnoDB
+DEFAULT CHARACTER SET=utf8;
+<% when "pg" -%>
+CREATE TABLE <%= @name %>s (
+  id BIGSERIAL PRIMARY KEY,
+<% @fields.each do |field| -%>
+  <%= field.name %> <%= field.db_type %>,
+<% end -%>
+  created_at VARCHAR,
+  updated_at VARCHAR
+);
+<% else -%>
+CREATE TABLE <%= @name %> (
+  id INTEGER NOT NULL PRIMARY KEY,
+<% @fields.each do |field| -%>
+  <%= field.name %> <%= field.db_type %>,
+<% end -%>
+  created_at VARCHAR,
+  updated_at VARCHAR
+);
+<% end -%>
+
+-- +micrate Down
+DROP TABLE IF EXISTS <%= @name %>s;
+

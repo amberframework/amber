@@ -15,6 +15,7 @@ module Kemalyst::Generator
       end
 
       def run
+        Micrate::Cli.setup_logger
         Micrate::DB.connection_url = database_url
 
         begin
@@ -32,6 +33,9 @@ module Kemalyst::Generator
           else
             Micrate::Cli.print_help
           end
+        rescue e : Micrate::UnorderedMigrationsException
+          Micrate::Cli.report_unordered_migrations(e.versions)
+          exit 1
         rescue e : Exception
           puts e.message
           exit 1

@@ -7,12 +7,20 @@ module Kemalyst::Generator
     directory "#{__DIR__}/migration"
 
     @name : String
-    @timestamp: String
     @fields : Array(Field)
+    @database : String
+    @timestamp: String
 
     def initialize(@name, fields)
-      @timestamp = Time.now.to_s("%Y%m%d%H%M%S")
       @fields = fields.map {|field| Field.new(field)}
+      @database = database
+      @timestamp = Time.now.to_s("%Y%m%d%H%M%S")
+    end
+
+    def database
+      yaml_file = File.read("config/database.yml")
+      yaml = YAML.parse(yaml_file)
+      yaml.first.to_s
     end
   end
 end
