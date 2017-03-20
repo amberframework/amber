@@ -30,7 +30,7 @@ shards:
 
   pg:
     github: will/crystal-pg
-    version: 0.13.1
+    version: 0.13.2
 
   sentry:
     github: TechMagister/sentry
