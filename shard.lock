@@ -10,7 +10,7 @@ shards:
 
   db:
     github: crystal-lang/crystal-db
-    version: 0.3.3
+    version: 0.4.0
 
   icr:
     github: TechMagister/crystal-icr
@@ -22,7 +22,7 @@ shards:
 
   mysql:
     github: crystal-lang/crystal-mysql
-    version: 0.3.1
+    version: 0.3.2
 
   optarg:
     github: mosop/optarg
@@ -30,7 +30,7 @@ shards:
 
   pg:
     github: will/crystal-pg
-    version: 0.13.2
+    version: 0.13.3
 
   sentry:
     github: TechMagister/sentry
@@ -38,7 +38,7 @@ shards:
 
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-    version: 0.8.1
+    version: 0.8.2
 
   string_inflection:
     github: mosop/string_inflection
