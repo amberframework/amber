@@ -1,32 +1,49 @@
 require "radix"
+require "http"
 
 module Amber
     class Router
-        INSTANCE = new
+        HTTP_METHODS = %w(GET PUT POST DELETE OPTIONS HEAD CONNECT)
+
+        getter :routes
+
+        def self.instance
+            @@router ||= new
+        end
 
         def initialize
-            @routes = Radix::Tree(Symbol).new
-        end
-
-        def call(context)
-            process(context)
-        end
-
-        private def process(context : HTTP::Server::Context)
-        cd
+            @routes = Radix::Tree(Route).new
         end
 
         # This registers all the routes for the application
-        def draw(&block) : Nil
-            with self yield
+        def self.draw(&block)
+            block.call
         end
 
-        def add(http_verb, path, action)
-            @routes.add "/#{http_verb.downcase}#{path}", action
+        def match(http_verb, path) : Route | Symbol
+            node = @routes.find build_node(http_verb, path)
+            return :not_found if node.nil?
+
+            route= node.payload
+            route.params= node.params
+            route
         end
 
-        def match(method, path)
-            @routes.find "/#{http_verb.downcase}#{path}"
+        def add(route : Route)
+            trail = build_node(route.verb, route.path)
+            @routes.add(trail, route)
+
+            if route.verb == :GET
+                trail = build_node(:HEAD, route.path)
+                @routes.add(trail, route)
+            end
+
+        rescue Radix::Tree::DuplicateError
+            raise Amber::Exceptions::DuplicateRouteError.new(route)
+        end
+
+        private def build_node(http_verb : Symbol, path : String)
+            "#{http_verb.to_s.downcase}#{path}"
         end
     end
 end
