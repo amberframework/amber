@@ -1,10 +1,9 @@
 module <%= @name.capitalize %>Controller
+  include ActionHelper
+  
 <% @fields.each do |field| -%>
-
-  class <%= field.name.capitalize %> < Kemalyst::Controller
-    def call(context)
-      render "<%= @name %>/<%= field.name %>.slang", "main.slang"
-    end
+  action <%= field.name %> do
+    render "<%= @name %>/<%= field.name %>.slang", "main.slang"
   end
 <% end -%>
 end
