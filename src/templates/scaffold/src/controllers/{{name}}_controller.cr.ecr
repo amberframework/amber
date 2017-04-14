@@ -1,121 +1,109 @@
 require "../models/<%= @name %>"
 
 module <%= @name.capitalize %>Controller
-  class Index < Kemalyst::Controller
-    def call(context)
-      <%= @name %>s = <%= @name.capitalize %>.all
-      render "<%= @name %>/index.slang", "main.slang"
+  include ActionHelper
+
+  action Index do
+    <%= @name %>s = <%= @name.capitalize %>.all
+    render "<%= @name %>/index.slang", "main.slang"
+  end
+
+  action Show do
+    id = context.params["id"]
+    if <%= @name %> = <%= @name.capitalize %>.find id
+      render "<%= @name %>/show.slang", "main.slang"
+    else
+      context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
+      redirect "/<%= @name %>s"
     end
   end
 
-  class Show < Kemalyst::Controller
-    def call(context)
-      id = context.params["id"]
-      if <%= @name %> = <%= @name.capitalize %>.find id
-        render "<%= @name %>/show.slang", "main.slang"
-      else
-        context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
-        redirect "/<%= @name %>s"
-      end
-    end
+  action New do
+    <%= @name %> = <%= @name.capitalize %>.new
+    render "<%= @name %>/new.slang", "main.slang"
   end
 
-  class New < Kemalyst::Controller
-    def call(context)
-      <%= @name %> = <%= @name.capitalize %>.new
+  action Create do
+    <%= @name %> = <%= @name.capitalize %>.new
+<% @fields.each do |field| -%>
+    value = context.params.fetch("<%= field.name %>", nil)
+<% case field.type
+ when "integer" -%>
+    <%= @name %>.<%= field.name %> = value.to_i32 if value
+<% when "float" -%>
+    <%= @name %>.<%= field.name %> = value.to_f32 if value
+<% when "real" -%>
+    <%= @name %>.<%= field.name %> = value.to_f64 if value
+<% when "date", "time" -%>
+    <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X") if value
+<% when "boolean" -%>
+    <%= @name %>.<%= field.name %> = (value != nil)
+<% else -%>
+    <%= @name %>.<%= field.name %> = value if value
+<% end -%>
+<% end -%>
+
+    if <%= @name %>.valid? && <%= @name %>.save
+      context.flash["success"] = "Created <%= @name.capitalize %> successfully."
+      redirect "/<%= @name %>s"
+    else
+      context.flash["danger"] = "Could not create <%= @name.capitalize %>!"
       render "<%= @name %>/new.slang", "main.slang"
     end
   end
 
-  class Create < Kemalyst::Controller
-    def call(context)
-      <%= @name %> = <%= @name.capitalize %>.new
+  action Edit do
+    id = context.params["id"]
+    if <%= @name %> = <%= @name.capitalize %>.find id
+      render "<%= @name %>/edit.slang", "main.slang"
+    else
+      context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
+      redirect "/<%= @name %>s"
+    end
+  end
+
+  action Update do
+    id = context.params["id"]
+    if <%= @name %> = <%= @name.capitalize %>.find id
 <% @fields.each do |field| -%>
-      value = context.params.fetch("<%= field.name %>", nil)
+      if value = context.params.fetch("<%= field.name %>", nil)
 <% case field.type
-   when "integer" -%>
-      <%= @name %>.<%= field.name %> = value.to_i32 if value
+ when "integer" -%>
+        <%= @name %>.<%= field.name %> = value.to_i32
 <% when "float" -%>
-      <%= @name %>.<%= field.name %> = value.to_f32 if value
+        <%= @name %>.<%= field.name %> = value.to_f32
 <% when "real" -%>
-      <%= @name %>.<%= field.name %> = value.to_f64 if value
+        <%= @name %>.<%= field.name %> = value.to_f64
 <% when "date", "time" -%>
-      <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X") if value
+        <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X")
 <% when "boolean" -%>
-      <%= @name %>.<%= field.name %> = (value != nil)
+        <%= @name %>.<%= field.name %> = (value != nil)
 <% else -%>
-      <%= @name %>.<%= field.name %> = value if value
+        <%= @name %>.<%= field.name %> = value
 <% end -%>
+      end
 <% end -%>
 
       if <%= @name %>.valid? && <%= @name %>.save
-        context.flash["success"] = "Created <%= @name.capitalize %> successfully."
+        context.flash["success"] = "Updated <%= @name.capitalize %> successfully."
         redirect "/<%= @name %>s"
       else
-        context.flash["danger"] = "Could not create <%= @name.capitalize %>!"
-        render "<%= @name %>/new.slang", "main.slang"
-      end
-    end
-  end
-
-  class Edit < Kemalyst::Controller
-    def call(context)
-      id = context.params["id"]
-      if <%= @name %> = <%= @name.capitalize %>.find id
+        context.flash["danger"] = "Could not update <%= @name.capitalize %>!"
         render "<%= @name %>/edit.slang", "main.slang"
-      else
-        context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
-        redirect "/<%= @name %>s"
       end
-    end
-  end
-
-  class Update < Kemalyst::Controller
-    def call(context)
-      id = context.params["id"]
-      if <%= @name %> = <%= @name.capitalize %>.find id
-<% @fields.each do |field| -%>
-        if value = context.params.fetch("<%= field.name %>", nil)
-<% case field.type
-   when "integer" -%>
-          <%= @name %>.<%= field.name %> = value.to_i32
-<% when "float" -%>
-          <%= @name %>.<%= field.name %> = value.to_f32
-<% when "real" -%>
-          <%= @name %>.<%= field.name %> = value.to_f64
-<% when "date", "time" -%>
-          <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X")
-<% when "boolean" -%>
-          <%= @name %>.<%= field.name %> = (value != nil)
-<% else -%>
-          <%= @name %>.<%= field.name %> = value
-<% end -%>
-        end
-<% end -%>
-
-        if <%= @name %>.valid? && <%= @name %>.save
-          context.flash["success"] = "Updated <%= @name.capitalize %> successfully."
-          redirect "/<%= @name %>s"
-        else
-          context.flash["danger"] = "Could not update <%= @name.capitalize %>!"
-          render "<%= @name %>/edit.slang", "main.slang"
-        end
-      else
-        context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
-        redirect "/<%= @name %>s"
-      end
-    end
-  end
-
-  class Delete < Kemalyst::Controller
-    def call(context)
-      id = context.params["id"]
-      if <%= @name %> = <%= @name.capitalize %>.find id
-        <%= @name %>.destroy
-      else
-        context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
-      end
+    else
+      context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
       redirect "/<%= @name %>s"
     end
+  end
+
+  action Delete do
+    id = context.params["id"]
+    if <%= @name %> = <%= @name.capitalize %>.find id
+      <%= @name %>.destroy
+    else
+      context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
+    end
+    redirect "/<%= @name %>s"
   end
 end
