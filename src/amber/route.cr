@@ -1,18 +1,18 @@
 module Amber
-    class Route
-        getter :controller, :handler, :verb, :path, :params
-        setter :params
+  class Route
+    property :controller, :handler, :verb, :resource, :params
+    getter controller : Amber::Controller
 
-        def initialize( verb : Symbol,
-                        path : String,
-                        controller : Controller,
-                        handler : Proc(Nil),
-                        params : Hash(String, String) | Nil = nil)
-            @verb = verb
-            @path = path
-            @controller = controller
-            @handler = handler
-            @params = params
-        end
+    def initialize(verb : String | Symbol,
+                   resource : String,
+                   controller = Controller.new,
+                   handler : Proc(String) = ->{ "500" },
+                   params : Hash(String, String) | Nil = nil)
+      @verb = verb
+      @resource = resource
+      @controller = controller
+      @handler = handler
+      @params = params
     end
+  end
 end

@@ -1,0 +1,3 @@
+module Amber
+
+end
