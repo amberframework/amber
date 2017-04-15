@@ -1,6 +1,5 @@
 require "teeplate"
 require "./field.cr"
-require "./entry.cr"
 
 module Kemalyst::Generator
   class Mailer < Teeplate::FileTree
