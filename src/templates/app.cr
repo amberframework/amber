@@ -12,7 +12,6 @@ module Kemalyst::Generator
     end
 
     def filter(entry)
-      puts "DRU: #{entry.path}"
       return entry.path.includes?("src/views") && !entry.path.includes?("#{@language}")
     end
   end
