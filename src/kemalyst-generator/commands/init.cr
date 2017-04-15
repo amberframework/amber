@@ -8,7 +8,7 @@ module Kemalyst::Generator
       class Options
         arg "type", desc: "app, spa, api", required: true
         arg "name", desc: "name of project", required: true
-        string "--db"
+        string "--db", desc: "type of database", any_of: %w(pg mysql sqlite), default: "pg"
       end
 
       def run
