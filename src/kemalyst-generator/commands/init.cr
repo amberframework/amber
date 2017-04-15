@@ -6,9 +6,10 @@ module Kemalyst::Generator
 
     class Init < Cli::Command
       class Options
-        arg "type", desc: "app, spa, api", required: true
+        arg "type", desc: "app, api, spa", required: true
         arg "name", desc: "name of project", required: true
-        string "--db", desc: "type of database", any_of: %w(pg mysql sqlite), default: "pg"
+        string "--db", desc: "database", any_of: %w(pg mysql sqlite), default: "pg"
+        string "--tl", desc: "template language", any_of: %w(slang ecr), default: "slang"
       end
 
       def run
