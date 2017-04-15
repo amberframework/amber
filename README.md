@@ -1,4 +1,4 @@
-# kemalyst-generator 
+# kemalyst-generator
 [![Build Status](https://travis-ci.org/TechMagister/kemalyst-generator.svg?branch=master)](https://travis-ci.org/TechMagister/kemalyst-generator)
 
 Rails like command line for kemalyst
@@ -13,7 +13,7 @@ $ shards install
 $ make
 ```
 
-You should now have a bin/kgen file to run. 
+You should now have a bin/kgen file to run.
 
 You can symlink this to a more global location like /usr/local/bin to make it easier to use:
 
@@ -54,7 +54,7 @@ Options:
 ## Usage
 
 ```sh
-kgen init app [your_app] --db [pg | mysql] # defaults to pg
+kgen init app [your_app] --db [pg | mysql] --tl [slang | ecr] # defaults to pg and slang
 cd [your_app]
 shards update
 ```
@@ -68,7 +68,7 @@ This will generate a traditional web application:
 
 Generate scaffolding for a resource:
 ```sh
-kgen generate scaffold Post name:string description:text
+kgen generate scaffold Post name:string body:text draft:bool
 ```
 
 This will generate scaffolding for a Post:
@@ -86,7 +86,7 @@ To test the demo app locally:
 
 1. Create a new Postgres or Mysql database called `[your_app]_development`
 2. Configure your database with one of the following ways.
-  * Add it in `config/database.yml` 
+  * Add it in `config/database.yml`
   * Run `export DATABASE_URL=postgres://[username]:[password]@localhost:5432/[your_app]_development` which exposes the database url to `config/database.yml`.
 3. Migrate the database: `kgen migrate up`. You should see output like `
 Migrating db, current version: 0, target: [datetimestamp]
