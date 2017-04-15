@@ -50,6 +50,5 @@ module Kemalyst::Generator
     def filter(entry)
       return entry.path.includes?("src/views") && !entry.path.includes?("#{@language}")
     end
-
   end
 end
