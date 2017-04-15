@@ -26,7 +26,7 @@ $ brew tap drujensen/kgen
 $ brew install kgen
 ```
 
-## Usage
+## Commands
 
 ``` shell
 $ ./bin/kgen --help
@@ -50,6 +50,59 @@ Options:
   -h, --help     show this help
   -v, --version  show version
 ```
+
+## Usage
+
+```sh
+kgen init app [your_app] --db [pg | mysql] # defaults to pg
+cd [your_app]
+shards update
+```
+This will generate a traditional web application:
+ - /config - Application and HTTP::Handler config's goes here.  The database.yml and routes.cr are here.
+ - /lib - shards are installed here.
+ - /public - Default location for html/css/js files.  The static handler points to this directory.
+ - /spec - all the crystal specs go here.
+ - /src - all the source code goes here.
+
+
+Generate scaffolding for a resource:
+```sh
+kgen generate scaffold Post name:string description:text
+```
+
+This will generate scaffolding for a Post:
+ - src/controllers/post_controller.cr
+ - src/models/post.cr
+ - src/views/post/*
+ - db/migrations/[datetimestamp]_create_post.sql
+ - spec/controllers/post_controller_spec.cr
+ - spec/models/post_spec.cr
+ - appends route to config/routes.cr
+ - appends navigation to src/layouts/_nav.slang
+
+### Run Locally
+To test the demo app locally:
+
+1. Create a new Postgres or Mysql database called `[your_app]_development`
+2. Configure your database with one of the following ways.
+  * Add it in `config/database.yml` 
+  * Run `export DATABASE_URL=postgres://[username]:[password]@localhost:5432/[your_app]_development` which exposes the database url to `config/database.yml`.
+3. Migrate the database: `kgen migrate up`. You should see output like `
+Migrating db, current version: 0, target: [datetimestamp]
+OK   [datetimestamp]_create_shop.sql`
+4. Run the specs: `crystal spec`
+5. Start your app: `kgen watch`
+6. Then visit `http://0.0.0.0:3000/`
+
+Note: The `kgen watch` command uses [Sentry](https://github.com/samueleaton/sentry) to watch for any changes in your source files, recompiling automatically.
+
+If you don't want to use Sentry, you can compile and run manually:
+
+1. Build the app `crystal build --release src/[your_app].cr`
+2. Run with `./[your_app]`
+3. Visit `http://0.0.0.0:3000/`
+
 
 ## Development
 
