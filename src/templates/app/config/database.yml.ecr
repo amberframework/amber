@@ -1,0 +1,6 @@
+<%= @database %>:
+<% if @database == "mysql" -%>
+  database: mysql://root@localhost:3306/<%= "#{@name}_development" %>
+<% else -%>
+  database: ${DATABASE_URL}
+<% end -%>

@@ -8,11 +8,13 @@ module Kemalyst::Generator
       class Options
         arg "type", desc: "app, spa, api", required: true
         arg "name", desc: "name of project", required: true
+        string "--db"
       end
 
       def run
         name = File.basename(args.name)
-        template = Template.new(name, "./#{args.name}")
+        database = options.db? == "mysql" ? "mysql" : "pg"
+        template = Template.new(name, "./#{args.name}", database: database)
         template.generate args.type
       end
     end
