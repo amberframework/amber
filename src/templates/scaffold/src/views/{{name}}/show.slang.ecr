@@ -1,4 +1,4 @@
-<% @fields.each do |field| -%>
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
 p = <%= @name %>.<%= field.name %>
 <% end -%>
 p
