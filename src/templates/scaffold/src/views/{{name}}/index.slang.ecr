@@ -7,14 +7,14 @@ div.table-responsive
   table.table.table-striped
     thead
       tr
-<% @fields.each do |field| -%>
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
         th <%= field.name.capitalize %>
 <% end -%>
         th Actions
     tbody
     - <%= @name %>s.each do |<%= @name %>|
       tr
-<% @fields.each do |field| -%>
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
         td = <%= @name %>.<%= field.name %>
 <% end -%>
         td

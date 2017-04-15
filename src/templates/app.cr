@@ -5,8 +5,9 @@ module Kemalyst::Generator
     directory "#{__DIR__}/app"
 
     @name : String
+    @database : String
 
-    def initialize(@name)
+    def initialize(@name, @database = "pg")
     end
   end
 end

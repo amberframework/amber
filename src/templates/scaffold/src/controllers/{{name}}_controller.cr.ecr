@@ -25,7 +25,7 @@ module <%= @name.capitalize %>Controller
 
   action Create do
     <%= @name %> = <%= @name.capitalize %>.new
-<% @fields.each do |field| -%>
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
     value = context.params.fetch("<%= field.name %>", nil)
 <% case field.type
  when "integer" -%>
@@ -65,7 +65,7 @@ module <%= @name.capitalize %>Controller
   action Update do
     id = context.params["id"]
     if <%= @name %> = <%= @name.capitalize %>.find id
-<% @fields.each do |field| -%>
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
       if value = context.params.fetch("<%= field.name %>", nil)
 <% case field.type
  when "integer" -%>

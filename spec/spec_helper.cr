@@ -1,5 +1,5 @@
 require "spec"
 require "../src/kemalyst-generator/**"
 
-TESTING_APP = "../testing/testapp"
+TESTING_APP = "./testapp"
 APP_TPL_PATH = "./src/templates/app"
