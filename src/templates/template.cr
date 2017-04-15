@@ -78,7 +78,7 @@ end
 
 module Teeplate
   abstract class FileTree
-   # Renders all collected file entries.
+    # Renders all collected file entries.
     #
     # For more information about the arguments, see `Renderer`.
     def render(out_dir, force : Bool = false, interactive : Bool = false, interact : Bool = false, list : Bool = false, color : Bool = false, per_entry : Bool = false, quit : Bool = true)

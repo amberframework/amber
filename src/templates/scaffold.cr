@@ -46,5 +46,10 @@ module Kemalyst::Generator
         "id INTEGER NOT NULL PRIMARY KEY"
       end
     end
+
+    def filter(entry)
+      return entry.path.includes?("src/views") && !entry.path.includes?("#{@language}")
+    end
+
   end
 end
