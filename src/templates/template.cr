@@ -12,8 +12,9 @@ module Kemalyst::Generator
     getter directory : String
     getter fields : Array(String)
     getter database : String
+    getter language : String
 
-    def initialize(name : String, directory : String, fields = [] of String, database = "pg")
+    def initialize(name : String, directory : String, fields = [] of String, database = "pg", language = "slang")
       if name.match(/\A[a-zA-Z]/)
         @name = name
       else
@@ -33,7 +34,7 @@ module Kemalyst::Generator
       case template
       when "app"
         puts "Rendering App #{name} in #{directory}"
-        App.new(name, @database).render(directory)
+        App.new(name, @database, @language).render(directory)
       when "scaffold"
         puts "Rendering Scaffold #{name}"
         Scaffold.new(name, fields).render(directory)

@@ -15,7 +15,8 @@ module Kemalyst::Generator
       def run
         name = File.basename(args.name)
         database = options.db? == "mysql" ? "mysql" : "pg"
-        template = Template.new(name, "./#{args.name}", database: database)
+        language = options.tl? == "ecr" ? "ecr" : "slang"
+        template = Template.new(name, "./#{args.name}", database: database, language: language)
         template.generate args.type
       end
     end
