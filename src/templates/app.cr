@@ -6,7 +6,6 @@ module Kemalyst::Generator
 
     @name : String
     @database : String
-    @language : String
 
     def initialize(@name, @database = "pg", @language = "slang")
     end

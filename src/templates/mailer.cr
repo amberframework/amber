@@ -20,5 +20,9 @@ module Kemalyst::Generator
       yaml = YAML.parse(yaml_file)
       yaml["language"].to_s
     end
+
+    def filter(entry)
+      return entry.path.includes?("src/views") && !entry.path.includes?("#{@language}")
+    end
   end
 end
