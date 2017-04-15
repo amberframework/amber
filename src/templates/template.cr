@@ -28,6 +28,7 @@ module Kemalyst::Generator
 
       @fields = fields
       @database = database
+      @language = language
     end
 
     def generate(template : String)
