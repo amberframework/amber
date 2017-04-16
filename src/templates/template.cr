@@ -11,10 +11,8 @@ module Kemalyst::Generator
     getter name : String
     getter directory : String
     getter fields : Array(String)
-    getter database : String
-    getter language : String
 
-    def initialize(name : String, directory : String, fields = [] of String, database = "pg", language = "slang")
+    def initialize(name : String, directory : String, fields = [] of String)
       if name.match(/\A[a-zA-Z]/)
         @name = name
       else
@@ -27,15 +25,19 @@ module Kemalyst::Generator
       end
 
       @fields = fields
-      @database = database
-      @language = language
     end
 
-    def generate(template : String)
+    def generate(template : String, options = nil)
       case template
       when "app"
-        puts "Rendering App #{name} in #{directory}"
-        App.new(name, @database, @language).render(directory, list: true, color: true)
+        if options
+          puts "Rendering App #{name} in #{directory}"
+          App.new(name, options.d, options.t).render(directory, list: true, color: true)
+          if options.deps?
+            puts "Installing Dependencies"
+            puts `cd #{name} && crystal deps update`
+          end
+        end
       when "scaffold"
         puts "Rendering Scaffold #{name}"
         Scaffold.new(name, fields).render(directory, list: true, color: true)

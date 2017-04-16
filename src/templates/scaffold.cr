@@ -42,6 +42,8 @@ module Kemalyst::Generator
         "id BIGSERIAL PRIMARY KEY"
       when "mysql"
         "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY"
+      when "sqlite"
+        "id INTEGER NOT NULL PRIMARY KEY"
       else
         "id INTEGER NOT NULL PRIMARY KEY"
       end
