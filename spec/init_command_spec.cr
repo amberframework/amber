@@ -23,16 +23,21 @@ describe Kemalyst::Generator do
     end
 
     it "should create app with mysql settings" do
-      Kemalyst::Generator::MainCommand.run ["init", "app", TESTING_APP, "--db", "mysql"]
+      Kemalyst::Generator::MainCommand.run ["init", "app", TESTING_APP, "-d", "mysql"]
       File.read_lines("#{TESTING_APP}/config/database.yml").first.should eq "mysql:"
       File.read_lines("#{TESTING_APP}/shard.yml")[13]?.should eq "  mysql:"
       `rm -rf #{TESTING_APP}`
     end
 
     it "should create app with sqlite settings" do
-      Kemalyst::Generator::MainCommand.run ["init", "app", TESTING_APP, "--db", "sqlite"]
+      Kemalyst::Generator::MainCommand.run ["init", "app", TESTING_APP, "-d", "sqlite"]
       File.read_lines("#{TESTING_APP}/config/database.yml").first.should eq "sqlite:"
       File.read_lines("#{TESTING_APP}/shard.yml")[13]?.should eq "  sqlite3:"
+      `rm -rf #{TESTING_APP}`
+    end
+    it "should generate .kgen.yml with language settings" do
+      Kemalyst::Generator::MainCommand.run ["init", "app", TESTING_APP, "-t", "ecr"]
+      File.read_lines("#{TESTING_APP}/.kgen.yml")[2]?.should eq "language: ecr"
       `rm -rf #{TESTING_APP}`
     end
   end

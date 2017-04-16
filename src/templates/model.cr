@@ -1,6 +1,5 @@
 require "teeplate"
 require "./field.cr"
-require "./entry.cr"
 
 module Kemalyst::Generator
   class Model < Teeplate::FileTree
@@ -22,7 +21,6 @@ module Kemalyst::Generator
       yaml = YAML.parse(yaml_file)
       yaml.first.to_s
     end
-
   end
 end
 
