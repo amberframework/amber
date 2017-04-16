@@ -6,6 +6,7 @@ module Kemalyst::Generator
 
     class Init < Cli::Command
       class Options
+        bool "--deps", desc: "installs deps, (shards update)", default: false
         arg "type", desc: "app, spa, api", required: true
         arg "name", desc: "name of project", required: true
         string "--db", desc: "type of database", any_of: %w(pg mysql sqlite), default: "pg"
@@ -13,9 +14,8 @@ module Kemalyst::Generator
 
       def run
         name = File.basename(args.name)
-        database = options.db? == "mysql" ? "mysql" : "pg"
-        template = Template.new(name, "./#{args.name}", database: database)
-        template.generate args.type
+        template = Template.new(name, "./#{args.name}")
+        template.generate(args.type, options)
       end
     end
   end
