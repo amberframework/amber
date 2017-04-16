@@ -21,7 +21,6 @@ module Kemalyst::Generator
       yaml = YAML.parse(yaml_file)
       yaml.first.to_s
     end
-
   end
 end
 

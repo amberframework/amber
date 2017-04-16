@@ -47,8 +47,8 @@ module Kemalyst::Generator
       end
     end
 
-    def filter(entry)
-      return entry.path.includes?("src/views") && !entry.path.includes?("#{@language}")
+    def filter(entries)
+      entries.reject{|entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }
     end
   end
 end
