@@ -11,7 +11,7 @@ module Amber::Pipe
     property :key, :secret
 
     def self.instance
-        @@instance ||= new
+      @@instance ||= new
     end
 
     def initialize
@@ -48,4 +48,3 @@ module Amber::Pipe
     end
   end
 end
-

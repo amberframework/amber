@@ -1,4 +1,3 @@
-
 module Amber
   module Pipe
     # The base class for Amber Pipes.  This extension provides a singleton
@@ -6,7 +5,6 @@ module Amber
     # be maintained in the `/config` folder for consistency.
     class Base
       include HTTP::Handler
-
 
       # Ability to configure the singleton instance from the class
       def self.config
@@ -21,11 +19,6 @@ module Amber
       # Execution of this handler.
       def call(context)
         call_next context
-      end
-
-      # Helper method to get the logger
-      def logger
-        Amber::Application.instance.logger
       end
     end
   end

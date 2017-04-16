@@ -1,17 +1,18 @@
-require "./../../spec_helper"
+require "http"
+require "spec"
+require "../../../spec_helper"
 
 module Amber::Pipe
   describe Pipeline do
     it "connects pipes to the pipeline for given valve" do
-      pipeline = Pipeline.new
+      pipeline = Pipeline.instance
 
-      pipeline.pipe_through :api do |valve|
-        connect Pipe::Logger.instance, valve
-        connect Pipe::Logger.instance, valve
+      pipeline.build :api do
+        plug Pipe::Logger.instance
+        plug Pipe::Logger.instance
       end
 
-      pipeline.pipespipes.size.should eq 2
-
+      pipeline.pipeline[:api].size.should eq 2
     end
   end
 end
