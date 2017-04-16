@@ -57,6 +57,6 @@ module Amber
         else                      "application/octet-stream"
         end
       end
-      end
+    end
   end
 end

@@ -4,21 +4,18 @@ require "logger"
 module Amber
   module Pipe
     class Logger < Base
-      property log : ::Logger
-
       def self.instance
         @@instance ||= new
-      end
-
-      def initialize
-        @log = Amber::Server.instance.log
       end
 
       def call(context : HTTP::Server::Context)
         time = Time.now
         call_next(context)
+        status_code = context.response.status_code
+        method = context.request.method
+        resource = context.request.resource
         elapsed = elapsed_text(Time.now - time)
-
+        puts "#{status_code} | #{method} #{resource} | #{elapsed}"
         context
       end
 

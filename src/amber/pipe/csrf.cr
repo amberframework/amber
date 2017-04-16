@@ -19,9 +19,9 @@ module Amber
 
       def call(context)
         if !check_methods.includes?(context.request.method) ||
-            context.params.fetch(param_key, nil) == token(context) ||
-            context.request.headers.fetch(header_key, nil) == token(context)
-            call_next(context)
+           context.params.fetch(param_key, nil) == token(context) ||
+           context.request.headers.fetch(header_key, nil) == token(context)
+          call_next(context)
         else
           raise Amber::Exceptions::Forbidden.new("CSRF check failed.")
         end

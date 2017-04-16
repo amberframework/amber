@@ -1,6 +1,6 @@
-#The Context holds the request and the response objects.  The context is
-#passed to each handler that will read from the request object and build a
-#response object.  Params and Session hash can be accessed from the Context.
+# The Context holds the request and the response objects.  The context is
+# passed to each handler that will read from the request object and build a
+# response object.  Params and Session hash can be accessed from the Context.
 class HTTP::Server::Context
   alias ParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
 
@@ -41,7 +41,6 @@ class HTTP::Server::Context
 
   # A hash that keeps track if its been accessed
   class FlashHash < Hash(String, String)
-
     def initialize
       @read = [] of String
       super
@@ -63,7 +62,7 @@ class HTTP::Server::Context
     end
 
     def unread
-      reject {|key,_| @read.includes? key}
+      reject { |key, _| @read.includes? key }
     end
   end
 end

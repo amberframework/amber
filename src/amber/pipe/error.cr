@@ -4,7 +4,6 @@ module Amber
     # response based on the `Accepts` header as JSON or HTML.  It also catches
     # any runtime Exceptions and returns a backtrace in text/plain format.
     class Error < Base
-
       # class method to return a singleton instance of this Controller
       def self.instance
         @@instance ||= new
@@ -44,7 +43,7 @@ module Amber
       private def message_based_on_content_type(message, content_type)
         case content_type
         when "application/json"
-          { "error": message }.to_json
+          {"error": message}.to_json
         when "text/html"
           "<html><body>#{message}</body></html>"
         else

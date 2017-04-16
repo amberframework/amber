@@ -3,7 +3,6 @@ require "radix"
 module Amber
   module Pipe
     class Router < Base
-
       property :routes
 
       def self.instance
@@ -34,7 +33,7 @@ module Amber
         add_head(route) if route.verb == :GET
         node
       rescue Radix::Tree::DuplicateError
-        raise Exceptions::DuplicateRouteError.new(route)
+        raise Amber::Exceptions::DuplicateRouteError.new(route)
       end
 
       def route_defined?(request)

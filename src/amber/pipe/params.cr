@@ -1,4 +1,3 @@
-
 require "json"
 
 module Amber
@@ -56,13 +55,13 @@ module Amber
 
       private def parse_part(context, part)
         values = case part
-        when IO
-          part.gets_to_end
-        when String
-          part.to_s
-        else
-          ""
-        end
+                 when IO
+                   part.gets_to_end
+                 when String
+                   part.to_s
+                 else
+                   ""
+                 end
 
         HTTP::Params.parse(values) do |key, value|
           context.params.add(key, value)
