@@ -35,6 +35,7 @@ describe Kemalyst::Generator do
       File.read_lines("#{TESTING_APP}/shard.yml")[13]?.should eq "  sqlite3:"
       `rm -rf #{TESTING_APP}`
     end
+
     it "should generate .kgen.yml with language settings" do
       Kemalyst::Generator::MainCommand.run ["init", "app", TESTING_APP, "-t", "ecr"]
       File.read_lines("#{TESTING_APP}/.kgen.yml")[2]?.should eq "language: ecr"

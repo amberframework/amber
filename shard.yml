@@ -1,5 +1,5 @@
 name: kemalyst-generator
-version: 0.2.5
+version: 0.2.6
 
 authors:
   - Arnaud Fernandés <arnaud.fernandes@tech-magister.com>
@@ -20,7 +20,7 @@ dependencies:
 
   teeplate:
     github: mosop/teeplate
-    version: ~> 0.2.3
+    version: ~> 0.4.4
 
   icr:
     github: TechMagister/crystal-icr
