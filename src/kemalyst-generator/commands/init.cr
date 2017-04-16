@@ -6,10 +6,11 @@ module Kemalyst::Generator
 
     class Init < Cli::Command
       class Options
-        bool "--deps", desc: "installs deps, (shards update)", default: false
-        arg "type", desc: "app, spa, api", required: true
+        arg "type", desc: "app, api, spa", required: true
         arg "name", desc: "name of project", required: true
-        string "--db", desc: "type of database", any_of: %w(pg mysql sqlite), default: "pg"
+        string "-d", desc: "database", any_of: %w(pg mysql sqlite), default: "pg"
+        string "-t", desc: "template language", any_of: %w(slang ecr), default: "slang"
+        bool "--deps", desc: "installs deps, (shards update)", default: false
       end
 
       def run
