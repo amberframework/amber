@@ -10,7 +10,7 @@ shards:
 
   db:
     github: crystal-lang/crystal-db
-    version: 0.4.0
+    version: 0.4.1
 
   icr:
     github: TechMagister/crystal-icr
@@ -46,5 +46,5 @@ shards:
 
   teeplate:
     github: mosop/teeplate
-    version: 0.2.3
+    version: 0.4.4
 
