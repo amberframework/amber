@@ -54,10 +54,11 @@ Options:
 ## Usage
 
 ```sh
-kgen init app [your_app] --db [pg | mysql] --tl [slang | ecr] # defaults to pg and slang
+kgen init app [your_app] -d [pg | mysql | sqlite] -t [slang | ecr] --deps 
 cd [your_app]
-shards update
 ```
+options: `-d` defaults to pg. `-t` defaults to slang. `--deps` will run `crystal deps` for you.
+
 This will generate a traditional web application:
  - /config - Application and HTTP::Handler config's goes here.  The database.yml and routes.cr are here.
  - /lib - shards are installed here.
@@ -87,7 +88,7 @@ To test the demo app locally:
 1. Create a new Postgres or Mysql database called `[your_app]_development`
 2. Configure your database with one of the following ways.
   * Add it in `config/database.yml`
-  * Run `export DATABASE_URL=postgres://[username]:[password]@localhost:5432/[your_app]_development` which exposes the database url to `config/database.yml`.
+  * Run `export DATABASE_URL=postgres://[username]:[password]@localhost:5432/[your_app]_development` which overrides the `config/database.yml`.
 3. Migrate the database: `kgen migrate up`. You should see output like `
 Migrating db, current version: 0, target: [datetimestamp]
 OK   [datetimestamp]_create_shop.sql`
