@@ -83,15 +83,14 @@ module Teeplate
     # For more information about the arguments, see `Renderer`.
     def render(out_dir, force : Bool = false, interactive : Bool = false, interact : Bool = false, list : Bool = false, color : Bool = false, per_entry : Bool = false, quit : Bool = true)
       renderer = Renderer.new(out_dir, force: force, interact: interactive || interact, list: list, color: color, per_entry: per_entry, quit: quit)
-      entries = file_entries.reject{|entry| filter(entry) }
-      renderer << entries
+      renderer << filter(file_entries)
       renderer.render
       renderer
     end
 
-    # Override to filter files based on filename
-    def filter(entry)
-      return false
+    # Override to filter files rendered
+    def filter(entries)
+      entries
     end
   end
 end
