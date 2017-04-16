@@ -1,5 +1,5 @@
 version: '2'
-<% if @database == "pg" %>
+
 services:
   web:
     build: .
@@ -8,62 +8,46 @@ services:
     working_dir: /app/user
     environment:
       PORT: 3000
+<% if @database == "pg" -%>
       DATABASE_URL: 'postgres://postgres:password@pg:5432/postgres'
+<% elsif @database == "mysql" -%>
+      DATABASE_URL: mysql://root:password@db:3306/kemalyst_app
+<% end -%>
     ports:
       - '3000:3000'
-    depends_on:
-      - pg
     volumes:
       - '.:/app/user'
+<% if %w(pg mysql).includes?(@database) -%>
+    depends_on:
+      - db 
+<% end -%>
 
   migrate:
     image: kemalyst-app
     command: 'kgen migrate up'
     working_dir: /app/user
+<% if @database == "pg" -%>
     environment:
       DATABASE_URL: 'postgres://postgres:password@pg:5432/postgres'
+<% elsif @database == "mysql" -%>
+    environment:
+      DATABASE_URL: mysql://root:password@db:3306/kemalyst_app
+<% end -%>
     volumes:
       - '.:/app/user'
+<% if %w(pg mysql).includes?(@database) -%>
     depends_on:
-      - pg
+      - db 
+<% end -%>
 
-  pg:
+<% if @database == "pg" -%>
+  db:
     image: postgres
     environment:
       POSTGRES_PASSWORD: 'password'
     volumes:
-      - 'pg:/var/lib/postgres/data'
-
-volumes:
-  pg:
-<% elsif @database == "mysql" %>
-services:
-  web:
-    build: .
-    image: kemalyst-app
-    command: 'kgen watch'
-    working_dir: /app/user
-    environment:
-      PORT: 3000
-      DATABASE_URL: mysql://root:password@db:3306/kemalyst_app
-    ports:
-      - '3000:3000'
-    depends_on:
-      - db
-    volumes:
-      - '.:/app/user'
-
-  migrate:
-    image: kemalyst-app
-    command: 'kgen migrate up'
-    working_dir: /app/user
-    environment:
-      DATABASE_URL: mysql://root:password@db:3306/kemalyst_app
-    volumes:
-      - '.:/app/user'
-    depends_on:
-      - db
-
+      - 'db:/var/lib/postgres/data'
+<% elsif @database == "mysql" -%>
   db:
     image: mysql
     ports:
@@ -73,7 +57,9 @@ services:
       MYSQL_DATABASE: kemalyst_app
     volumes:
       - 'db:/var/lib/mysql'
+<% end -%>
 
+<% if %w(pg mysql).includes?(@database) -%>
 volumes:
   db:
-<% end %>
+<% end -%>
