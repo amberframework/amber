@@ -8,6 +8,10 @@ class <%= @name.capitalize %> < Kemalyst::Model
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
     <%= field.name %>: <%= field.cr_type %>,
 <% end -%>
+<% if @database == "sqlite" -%>
+  }, nil, false)
+<% else -%>
   })
+<% end -%>
 
 end
