@@ -15,9 +15,7 @@ module Kemalyst::Generator
       end
 
       def run
-        Micrate::Cli.setup_logger
         Micrate::DB.connection_url = database_url
-
         begin
           case args.command
           when "up"
@@ -36,6 +34,9 @@ module Kemalyst::Generator
         rescue e : Micrate::UnorderedMigrationsException
           Micrate::Cli.report_unordered_migrations(e.versions)
           exit 1
+        rescue e : DB::ConnectionRefused
+          puts "Connection refused: #{Micrate::DB.connection_url}"
+          exit 1
         rescue e : Exception
           puts e.message
           exit 1
@@ -43,11 +44,13 @@ module Kemalyst::Generator
       end
 
       def database_url
-        yaml_file = File.read("config/database.yml")
-        yaml = YAML.parse(yaml_file)
-        db = yaml.first.to_s
-        settings = yaml[db]
-        env(settings["database"].to_s)
+        ENV["DATABASE_URL"]? || begin
+          yaml_file = File.read("config/database.yml")
+          yaml = YAML.parse(yaml_file)
+          db = yaml.first.to_s
+          settings = yaml[db]
+          env(settings["database"].to_s)
+        end
       end
 
       private def env(value)
