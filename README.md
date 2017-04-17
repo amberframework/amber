@@ -1,16 +1,17 @@
+![Amber Crystal Framework](https://github.com/eliasjpr/amber/blob/master/media/amber.png)
+
+[![Build Status](https://travis-ci.org/Amber-Crystal/amber.svg?branch=master)](https://travis-ci.org/Amber-Crystal/amber)
+
 # Welcome to Amber
 
 **Amber** is a web application framework written in Crystal (http://www.crystal-lang.org) inspired by Kemal, Rails, Phoenix
 and other popular application frameworks.
 
-The purpose of Amber was not to create yet another framework, but to take advantage of a beautiful language capabilities
-and provide engineers an efficient, cohesive, and well maintian web framework that embraces the Crystal language
-philosophies, conventions and guides.
+The purpose of Amber is not to create yet another framework, but to take advantage of the beautiful Crystal language capabilities and provide engineers an efficient, cohesive, and well maintian web framework for the crystal commuunity that embraces the language philosophies, conventions and guides.
 
-Crystal will borrow concepts that already have been successful, we will embrace new concepts through team/community
-collaboration and analysis, that align with Amber and Crystal philosphies.
+Ambar Crystal borrows concepts that already have been battle tested, successful, and embrace new concepts through team and community collaboration and analysis, that aligns with Crystal philosphies.
 
-## Amber Philosophies H.R.T.
+## Amber Philosophy at H.R.T.
 
 It's all about the community. Software development is a team sport!
 
@@ -28,7 +29,7 @@ appropiate.
 
 ## Code of Conduct
 
-We have adopted the Contributor Covenant to be our (CODE OF CONDUCT)[CODE_OF_CONDUCT.md] guidelines for Amber.
+We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](CODE_OF_CONDUCT.md) guidelines for Amber.
 
 ## Installation
 
@@ -37,7 +38,7 @@ Add this to your application's `shard.yml`:
 ```yaml
 dependencies:
   amber:
-    github: eliasjpr/amber
+    github: Amber-Crystal/amber
 ```
 
 ## Usage

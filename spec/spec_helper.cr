@@ -1,3 +1,4 @@
+require "http"
 require "spec"
 require "../src/amber"
 require "../src/amber/*"
