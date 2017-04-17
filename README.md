@@ -1,34 +1,29 @@
+![Amber Crystal Framework](https://github.com/eliasjpr/amber/blob/master/media/amber.png)
+
+[![Build Status](https://travis-ci.org/Amber-Crystal/amber.svg?branch=master)](https://travis-ci.org/Amber-Crystal/amber)
+
 # Welcome to Amber
 
 **Amber** is a web application framework written in Crystal (http://www.crystal-lang.org) inspired by Kemal, Rails, Phoenix
 and other popular application frameworks.
 
-The purpose of Amber was not to create yet another framework, but to take advantage of a beautiful language capabilities
-and provide engineers an efficient, cohesive, and well maintian web framework that embraces the Crystal language
-philosophies, conventions and guides.
+The purpose of Amber is not to create yet another framework, but to take advantage of the beautiful Crystal language capabilities and provide engineers an efficient, cohesive, and well maintain web framework for the crystal community that embraces the language philosophies, conventions, and guides.
 
-Crystal will borrow concepts that already have been successful, we will embrace new concepts through team/community
-collaboration and analysis, that align with Amber and Crystal philosphies.
+Ambar Crystal borrows concepts that already have been battle tested, successful, and embrace new concepts through team and community collaboration and analysis,that aligns with Crystal philosophies.
 
-## Amber Philosophies H.R.T.
+## Amber Philosophy at H.R.T.
 
-It's all about the community. Software development is a team sport!
+It's not enough to be brilliant when you're alone in your programming lair. You are not going to change the world or delight millions of users by hiding and preparing your secret invention. We need to work with other members, we need to share our visions, divide the labor, learn from others, we need to be a team.
 
-It's not enough to be brilliant when you're alone in your programming lair. You are not going to change the world or
-delight millions of users by hidding and preparing your secret invention. We need to work with other members, we need to
-share our visions, devide the labor, learn from others, we need to be a team.
+**HUMILITY** We are not the center of the universe. You're neither omniscient nor infallible. You are open to self-improvement.
 
-**HUMILITY** We are not the center of the universe. You're neither omnicient nor infalible. You are open to self-improvemnt.
+**RESPECT** You genuinely care about others you work with. You treat them as human beings and appreciate their abilities and accomplishments.
 
-**RESPECT** You genuinly care about others you work with. You treat them as human beingsm and appreciate their abilities
-and accomplishments.
-
-**TRUST** You believe others are competent and will do the right thing, and you are OK with letting them drive when
-appropiate.
+**TRUST** You believe others are competent and will do the right thing, and you are OK with letting them drive when appropriate.
 
 ## Code of Conduct
 
-We have adopted the Contributor Covenant to be our (CODE OF CONDUCT)[CODE_OF_CONDUCT.md] guidelines for Amber.
+We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](CODE_OF_CONDUCT.md) guidelines for Amber.
 
 ## Installation
 
@@ -37,7 +32,7 @@ Add this to your application's `shard.yml`:
 ```yaml
 dependencies:
   amber:
-    github: eliasjpr/amber
+    github: Amber-Crystal/amber
 ```
 
 ## Usage
@@ -111,6 +106,8 @@ end
 # Finally this is how you will bootup the server.
 MyAwesomeApp.run
 ```
+
+
 
 ## Contributing
 
