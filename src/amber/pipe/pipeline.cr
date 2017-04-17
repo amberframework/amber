@@ -14,6 +14,7 @@ module Amber
         @router = Pipe::Router.instance
         @valve = :web
         @pipeline = {} of Symbol => Array(HTTP::Handler)
+        @pipeline[@valve] = [] of HTTP::Handler
       end
 
       def call(context : HTTP::Server::Context)
@@ -31,7 +32,7 @@ module Amber
       end
 
       def plug(pipe : HTTP::Handler)
-        @pipeline[@valve].unshift pipe
+        @pipeline[@valve].unshift(pipe)
       end
 
       def proccess_pipeline(pipeline, last_pipe : (Context ->)? = nil)
