@@ -18,7 +18,7 @@ services:
 
   migrate:
     image: <%= @name %>
-    command: 'wait_on tcp:pg:5432 && kgen migrate up'
+    command: 'wait-on tcp:pg:5432 && kgen migrate up'
     working_dir: /app/user
     environment:
       DATABASE_URL: 'postgres://postgres:password@pg:5432/postgres'
@@ -55,7 +55,7 @@ services:
 
   migrate:
     image: <%= @name %>
-    command: 'wait_on tcp:db:3306 && kgen migrate up'
+    command: 'wait-on tcp:db:3306 && kgen migrate up'
     working_dir: /app/user
     environment:
       DATABASE_URL: mysql://root:password@db:3306/<%= "#{@name}_development" %>
