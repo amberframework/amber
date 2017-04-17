@@ -74,7 +74,7 @@ services:
       MYSQL_USER: admin
       MYSQL_PASSWORD: password
       MYSQL_DATABASE: <%= "#{@name}_development" %>
-      MYSQL_RANDOM_ROOT_PASSWORD: true
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
     volumes:
       - 'db:/var/lib/mysql'
 
