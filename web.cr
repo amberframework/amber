@@ -17,7 +17,10 @@ MyAwesomeApp.config do
   log.level = ::Logger::INFO
 
   pipeline :api do
+    plug Amber::Pipe::Params.instance
     plug Amber::Pipe::Logger.instance
+    plug Amber::Pipe::Error.instance
+    plug Amber::Pipe::Session.instance
   end
 
   routes do
