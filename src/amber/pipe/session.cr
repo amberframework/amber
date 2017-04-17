@@ -44,7 +44,7 @@ module Amber::Pipe
     private def encode(session)
       data = Base64.encode(session.to_json)
       sha1 = OpenSSL::HMAC.hexdigest(:sha1, @secret, data)
-      return "#{sha1}--#{data}"
+      "#{sha1}--#{data}"
     end
   end
 end
