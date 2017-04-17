@@ -16,6 +16,7 @@ module Amber
       def call(context : HTTP::Server::Context)
         raise Exceptions::RouteNotFound.new(context.request) if !route_defined?(context.request)
         route_node = match_by_request(context.request)
+        merge_params(route_node.params, context)
         content = route_node.payload.handler.call
       ensure
         context.response.print(content)
@@ -41,7 +42,11 @@ module Amber
       end
 
       def match_by_request(request)
-        match(request.method, request.resource)
+        match(request.method, request.path)
+      end
+
+      private def merge_params(params, context)
+        params.each { |k,v| context.params.add(k.to_s, v) }
       end
 
       private def match(http_verb, resource) : Radix::Result(Amber::Route)
