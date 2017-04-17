@@ -8,7 +8,7 @@ services:
     working_dir: /app/user
     environment:
       PORT: 3000
-      DATABASE_URL: postgres://root:password@db:5432/<%= "#{@name}_development" %>
+      DATABASE_URL: postgres://admin:password@db:5432/<%= "#{@name}_development" %>
     ports:
       - '3000:3000'
     depends_on:
@@ -21,7 +21,7 @@ services:
     command: bash -c 'while ! nc -q 1 db 5432 </dev/null; do sleep 1; done && kgen migrate up'
     working_dir: /app/user
     environment:
-      DATABASE_URL: postgres://root:password@db:5432/<%= "#{@name}_development" %>
+      DATABASE_URL: postgres://admin:password@db:5432/<%= "#{@name}_development" %>
     volumes:
       - '.:/app/user'
     depends_on:
@@ -30,10 +30,9 @@ services:
   db:
     image: postgres
     environment:
-      POSTGRES_USER: 'root'
-      POSTGRES_PASSWORD: 'password'
-      POSTGRES_DB: '<%= "#{@name}_development" %>'
-      POSTGRES_PASSWORD: 'password'
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: <%= "#{@name}_development" %>
     volumes:
       - 'db:/var/lib/postgres/data'
 
@@ -48,7 +47,7 @@ services:
     working_dir: /app/user
     environment:
       PORT: 3000
-      DATABASE_URL: mysql://root:password@db:3306/<%= "#{@name}_development" %>
+      DATABASE_URL: mysql://admin:password@db:3306/<%= "#{@name}_development" %>
     ports:
       - '3000:3000'
     depends_on:
@@ -61,7 +60,7 @@ services:
     command: bash -c 'while ! nc -q 1 db 3306 </dev/null; do sleep 1; done && kgen migrate up'
     working_dir: /app/user
     environment:
-      DATABASE_URL: mysql://root:password@db:3306/<%= "#{@name}_development" %>
+      DATABASE_URL: mysql://admin:password@db:3306/<%= "#{@name}_development" %>
     volumes:
       - '.:/app/user'
     depends_on:
@@ -70,16 +69,19 @@ services:
   db:
     image: mysql
     ports:
-      - "3307:3306"
+      - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: password
       MYSQL_DATABASE: <%= "#{@name}_development" %>
+      MYSQL_RANDOM_ROOT_PASSWORD: true
     volumes:
       - 'db:/var/lib/mysql'
 
 volumes:
   db:
 <% else %>
+services:
   web:
     build: .
     image: <%= @name %>
@@ -90,6 +92,14 @@ volumes:
       PORT: 3000
     ports:
       - '3000:3000'
+    volumes:
+      - '.:/app/user'
+  migrate:
+    image: <%= @name %>
+    command: bash -c 'kgen migrate up'
+    working_dir: /app/user
+    environment:
+      DATABASE_URL: sqlite3:./db/<%= "#{@name}_development" %>.db
     volumes:
       - '.:/app/user'
 <% end %>
