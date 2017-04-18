@@ -1,26 +1,29 @@
 
-require "./../../spec_helper"
+require "../../spec_helper"
 
-describe Amber::Pipe::Error do
+module Amber
+  module Pipe
+    describe Error do
+      it "returns status code 404 when route not found" do
+        router = Error.instance
+        request = HTTP::Request.new("GET", "/")
 
-  it "handles route not found exception" do
-    request = HTTP::Request.new("GET", "/")
-    io, context = create_context(request)
-    error = Error.instance
-    error.next = Router.new
-    error.call(context)
-    context.response.status_code.should eq 404
+        response = create_request_and_return_io(router, request)
 
+        response.status_code.should eq 404
+      end
+
+      it "returns status code 500 for all other exceptions" do
+        error = Error.instance
+        request = HTTP::Request.new("GET", "/")
+        error.next = ->(context : HTTP::Server::Context) { raise "Oops!"}
+
+        response = create_request_and_return_io(error, request)
+
+        response.status_code.should eq 500
+      end
+    end
   end
-
-  it "handles all other exceptions" do
-    request = HTTP::Request.new("GET", "/")
-    io, context = create_context(request)
-    error = Error.instance
-    error.next = ->(c : HTTP::Server::Context) { raise "Oh no!"}
-    error.call(context)
-    context.response.status_code.should eq 500
-  end
-
 end
+
 

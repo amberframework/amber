@@ -1,4 +1,3 @@
-require "http/cookie"
 require "base64"
 require "json"
 require "openssl/hmac"
@@ -19,11 +18,11 @@ module Amber
       end
 
       def call(context)
-        cookies = HTTP::Cookies.from_headers(context.request.headers)
+        cookies = context.request.cookies
         decode(context.flash, cookies[@key].value) if cookies.has_key?(@key)
         call_next(context)
         value = encode(context.flash.unread)
-        cookies = HTTP::Cookies.from_headers(context.response.headers)
+        cookies = context.response.cookies
         cookies << HTTP::Cookie.new(@key, value)
         cookies.add_response_headers(context.response.headers)
         context

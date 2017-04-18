@@ -1,3 +1,5 @@
+require "http"
+
 module Amber
   module Pipe
     # The base class for Amber Pipes.  This extension provides a singleton
@@ -17,7 +19,7 @@ module Amber
       end
 
       # Execution of this handler.
-      def call(context)
+      def call(context : HTTP::Server::Context )
         call_next context
       end
     end

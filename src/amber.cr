@@ -1,17 +1,23 @@
 require "http"
 require "logger"
+require "json"
+require "secure_random"
 require "./amber/*"
-require "./amber/pipe/*"
 
 module Amber
   class Server
     setter port : Int32
     setter name : String
     setter env : String
-    getter log : ::Logger
+    getter log : Logger
+    getter secret : String
 
     def self.instance
       @@instance ||= new
+    end
+
+    def self.settings
+      instance
     end
 
     def initialize
@@ -21,6 +27,7 @@ module Amber
       @env = "development".colorize(:yellow).to_s
       @log = ::Logger.new(STDOUT)
       @log.level = ::Logger::INFO
+      @secret = SecureRandom.hex
     end
 
     def run(port : Int = 4000)

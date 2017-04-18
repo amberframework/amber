@@ -1,7 +1,7 @@
 ![Amber Crystal Framework](https://github.com/Amber-Crystal/amber/blob/master/media/amber.png)
 
-[![Build Status](https://travis-ci.org/eliasjpr/amber.svg?branch=master)](https://travis-ci.org/eliasjpr/amber)
-
+[![Build Status](https://travis-ci.org/Amber-Crystal/amber.svg?branch=master)](https://travis-ci.org/Amber-Crystal/amber)
+[![Code Triagers Badge](https://www.codetriage.com/amber-crystal/amber/badges/users.svg)](https://www.codetriage.com/amber-crystal/amber)
 # Welcome to Amber
 
 **Amber** is a web application framework written in [Crystal](http://www.crystal-lang.org) inspired by Kemal, Rails, Phoenix and other popular application frameworks.
@@ -104,9 +104,9 @@ MyAwesomeApp.config do
     # Each route is defined as follow
     # verb, resources : String, controller : Symbol, action : Symbol,
     # pipeline : Symbol
-    get "/", :elias, :perez, :api
-    get "/elias", :elias, :perez, :api
-    get "/elias/:role", :elias, :perez, :api
+    get "/", :hello, :world, :api
+    get "/hello", :hello, :world, :api
+    get "/hello/:planet", :hello, :world, :api
   end
 end
 
@@ -136,4 +136,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-* Inspired by Kemal, Rails, Phoenix, Kemalyst
+* Inspired by Kemal, Rails, Phoenix
