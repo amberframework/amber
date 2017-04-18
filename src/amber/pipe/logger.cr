@@ -1,10 +1,9 @@
 require "colorize"
-require "logger"
 
 module Amber
   module Pipe
     class Logger < Base
-      getter log : ::Logger
+      property log : ::Logger
 
       def self.instance
         @@instance ||= new

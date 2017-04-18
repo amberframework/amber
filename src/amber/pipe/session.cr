@@ -8,7 +8,8 @@ module Amber::Pipe
   # encode and decode the cookie and provide the hash in the context that can
   # be used to maintain data across requests.
   class Session < Base
-    property :key, :secret
+    property :key
+    property secret : String
 
     def self.instance
       @@instance ||= new
@@ -16,11 +17,11 @@ module Amber::Pipe
 
     def initialize
       @key = "amber.session"
-      @secret = "change_me"
+      @secret = Server.settings.secret
     end
 
-    def call(context)
-      cookies = HTTP::Cookies.from_headers(context.request.headers)
+    def call(context : HTTP::Server::Context)
+      cookies = context.request.cookies
       decode(context.session, cookies[@key].value) if cookies.has_key?(@key)
       call_next(context)
       value = encode(context.session)
