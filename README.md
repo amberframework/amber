@@ -1,17 +1,18 @@
-![Amber Crystal Framework](https://github.com/eliasjpr/amber/blob/master/media/amber.png)
+![Amber Crystal Framework](https://github.com/Amber-Crystal/amber/blob/master/media/amber.png)
 
-[![Build Status](https://travis-ci.org/Amber-Crystal/amber.svg?branch=master)](https://travis-ci.org/Amber-Crystal/amber)
+[![Build Status](https://travis-ci.org/eliasjpr/amber.svg?branch=master)](https://travis-ci.org/eliasjpr/amber)
 
 # Welcome to Amber
 
-**Amber** is a web application framework written in Crystal (http://www.crystal-lang.org) inspired by Kemal, Rails, Phoenix
-and other popular application frameworks.
+**Amber** is a web application framework written in [Crystal](http://www.crystal-lang.org) inspired by Kemal, Rails, Phoenix and other popular application frameworks.
 
 The purpose of Amber is not to create yet another framework, but to take advantage of the beautiful Crystal language capabilities and provide engineers an efficient, cohesive, and well maintain web framework for the crystal community that embraces the language philosophies, conventions, and guides.
 
-Ambar Crystal borrows concepts that already have been battle tested, successful, and embrace new concepts through team and community collaboration and analysis,that aligns with Crystal philosophies.
+Ambar Crystal borrows concepts that already have been battle tested, successful, and embrace new concepts through team and community collaboration and analysis, that aligns with Crystal philosophies.
 
-## Amber Philosophy at H.R.T.
+## Amber Philosophy H.R.T.
+
+*It's all about the community. Software development is a team sport!*
 
 It's not enough to be brilliant when you're alone in your programming lair. You are not going to change the world or delight millions of users by hiding and preparing your secret invention. We need to work with other members, we need to share our visions, divide the labor, learn from others, we need to be a team.
 
@@ -20,6 +21,13 @@ It's not enough to be brilliant when you're alone in your programming lair. You 
 **RESPECT** You genuinely care about others you work with. You treat them as human beings and appreciate their abilities and accomplishments.
 
 **TRUST** You believe others are competent and will do the right thing, and you are OK with letting them drive when appropriate.
+appropiate.
+
+## Become a Contributor
+
+Contributing to Amber can be a rewarding way to learn, teach, and build experience in just about any skill you can imagine. You don’t have to become a lifelong contributor to enjoy participating in Amber.
+
+Amber is a community effort and we want You to be part of ours [Join Amber Community!](https://github.com/Amber-Crystal/amber/blob/master/.github/CONTRIBUTING.md)
 
 ## Code of Conduct
 
@@ -32,7 +40,7 @@ Add this to your application's `shard.yml`:
 ```yaml
 dependencies:
   amber:
-    github: Amber-Crystal/amber
+    github: eliasjpr/amber
 ```
 
 ## Usage
@@ -66,15 +74,14 @@ MyAwesomeApp.config do
   log.level = ::Logger::INFO
 
   # Every Amber application needs to define a pipeline set of pipes
-  # each pipelines allow a set of middleware transformations to be applied to
-  # different sets of route, this give you granular control and explicitnes
-  # of which transformation to run for each of the app request.
+  # each pipeline allow a set of middleware transformations to be applied to
+  # different sets of route, this give you granular control and explicitness
+  # of which transformation to run for each of the app requests.
 
   # All api scoped routes will run these transformations
   pipeline :api do
-    # Plug is the method to use add a pipe (middleware)
+    # Plug is the method to use connect a pipe (middleware)
     # A plug accepts an instance of HTTP::Handler
-    # Note: We recomment to use singleton patter for middlewares.
     plug Amber::Pipe::Params.instance
     plug Amber::Pipe::Logger.instance
     plug Amber::Pipe::Error.instance
@@ -94,7 +101,7 @@ MyAwesomeApp.config do
   # Read more about HTTP methods here
   # (HTTP METHODS)[https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html]
   routes do
-    # each route is defined as follow
+    # Each route is defined as follow
     # verb, resources : String, controller : Symbol, action : Symbol,
     # pipeline : Symbol
     get "/", :elias, :perez, :api
@@ -107,11 +114,9 @@ end
 MyAwesomeApp.run
 ```
 
-
-
 ## Contributing
 
-1. Fork it ( https://github.com/eliasjpr/amber/fork )
+1. Fork it (https://github.com/Amber-Crystal/amber)
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
@@ -120,6 +125,10 @@ MyAwesomeApp.run
 ## Contributors
 
 - [eliasjpr](https://github.com/eliasjpr) Elias Perez - creator, maintainer
+- [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
+- [elorest](https://github.com/elorest) Isaac Sloan - Maintainer
+- [phoffer](https://github.com/phoffer) Paul Hoffer - Maintainer
+- [bew](https://github.com/fridgerator) Benoit de Chezelles - Member
 
 ## License
 
