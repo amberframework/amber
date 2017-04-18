@@ -31,6 +31,9 @@ appropiate.
 
 We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](CODE_OF_CONDUCT.md) guidelines for Amber.
 
+## Community
+Questions or suggestions? Ask in our [Gitter channel](https://gitter.im/Amber-Crystal/Lobby) or ask on Stack Overflow under the crystal-amber tag.
+
 ## Installation
 
 Add this to your application's `shard.yml`:
