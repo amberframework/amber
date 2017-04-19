@@ -9,7 +9,10 @@ def create_request_and_return_io(router, request)
 end
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> Adds CSRF specs to validate requests
 def make_router_call(router, request, token : (String | Nil) = nil)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
@@ -21,13 +24,20 @@ def make_router_call(router, request, token : (String | Nil) = nil)
   router.call(context)
 end
 
+<<<<<<< HEAD
+>>>>>>> Adds CSRF specs to validate requests
+=======
 >>>>>>> Adds CSRF specs to validate requests
 def create_context(request)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
   HTTP::Server::Context.new(request, response)
 <<<<<<< HEAD
+<<<<<<< HEAD
 end
+=======
+end
+>>>>>>> Adds CSRF specs to validate requests
 =======
 end
 >>>>>>> Adds CSRF specs to validate requests
