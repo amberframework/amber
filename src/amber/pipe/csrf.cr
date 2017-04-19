@@ -6,6 +6,8 @@ module Amber
     class CSRF < Base
       property session_key, header_key, param_key, check_methods
 
+      CHECK_METHODS = %w(PUT POST PATCH DELETE)
+
       def self.instance
         @@instance ||= new
       end
@@ -14,17 +16,22 @@ module Amber
         @session_key = "csrf.token"
         @header_key = "HTTP_X_CSRF_TOKEN"
         @param_key = "_csrf"
-        @check_methods = "PUT, POST, PATCH, DELETE"
+        @check_methods = CHECK_METHODS
       end
 
       def call(context)
-        if !check_methods.includes?(context.request.method) ||
-           context.params.fetch(param_key, nil) == token(context) ||
-           context.request.headers.fetch(header_key, nil) == token(context)
+        if !check_methods.includes?(context.request.method) || valid_token?(context)
           call_next(context)
         else
           raise Amber::Exceptions::Forbidden.new("CSRF check failed.")
         end
+      end
+
+      def valid_token?(context)
+        context.params.fetch(param_key, nil) == token(context) ||
+          context.request.headers.fetch(header_key, nil) == token(context)
+      rescue
+        false
       end
 
       def token(context)
