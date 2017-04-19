@@ -62,7 +62,7 @@ class HTTP::Server::Context
     end
 
     def unread
-      reject { |key, _| @read.includes? key }
+      reject { |key, _| !@read.includes? key }
     end
   end
 end
