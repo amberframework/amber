@@ -26,20 +26,20 @@ module <%= @name.capitalize %>Controller
   action Create do
     <%= @name %> = <%= @name.capitalize %>.new
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
-    value = context.params.fetch("<%= field.name %>", nil)
 <% case field.type
- when "integer" -%>
-    <%= @name %>.<%= field.name %> = value.to_i32 if value
+when "integer" -%>
+    <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_i32)
 <% when "float" -%>
-    <%= @name %>.<%= field.name %> = value.to_f32 if value
+    <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_f32)
 <% when "real" -%>
-    <%= @name %>.<%= field.name %> = value.to_f64 if value
+    <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_f64)
 <% when "date", "time" -%>
+    value = params.fetch("<%= field.name %>", nil)
     <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X") if value
 <% when "boolean" -%>
-    <%= @name %>.<%= field.name %> = (value != nil)
+    <%= @name %>.<%= field.name %> = (params["<%= field.name %>"]? != nil)
 <% else -%>
-    <%= @name %>.<%= field.name %> = value if value
+    <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?
 <% end -%>
 <% end -%>
 
@@ -66,22 +66,21 @@ module <%= @name.capitalize %>Controller
     id = context.params["id"]
     if <%= @name %> = <%= @name.capitalize %>.find id
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
-      if value = context.params.fetch("<%= field.name %>", nil)
 <% case field.type
- when "integer" -%>
-        <%= @name %>.<%= field.name %> = value.to_i32
+when "integer" -%>
+      <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_i32)
 <% when "float" -%>
-        <%= @name %>.<%= field.name %> = value.to_f32
+      <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_f32)
 <% when "real" -%>
-        <%= @name %>.<%= field.name %> = value.to_f64
+      <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_f64)
 <% when "date", "time" -%>
-        <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X")
+      value = params.fetch("<%= field.name %>", nil)
+      <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X") if value
 <% when "boolean" -%>
-        <%= @name %>.<%= field.name %> = (value != nil)
+      <%= @name %>.<%= field.name %> = (params["<%= field.name %>"]? != nil)
 <% else -%>
-        <%= @name %>.<%= field.name %> = value
+      <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?
 <% end -%>
-      end
 <% end -%>
 
       if <%= @name %>.valid? && <%= @name %>.save
