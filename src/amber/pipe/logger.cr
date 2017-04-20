@@ -3,14 +3,13 @@ require "colorize"
 module Amber
   module Pipe
     class Logger < Base
-      property log : ::Logger
 
       def self.instance
         @@instance ||= new
       end
 
-      def initialize
-        @log = Amber::Server.instance.log
+      def initialize( io : IO = STDOUT)
+        @io = io
       end
 
       def call(context : HTTP::Server::Context)
@@ -18,8 +17,8 @@ module Amber
         call_next(context)
         status = context.response.status_code
         elapsed = elapsed_text(Time.now - time)
-        @log.info "#{http_status(status)} | #{method(context)} #{path(context)} | #{elapsed}"
-        @log.info "Params: #{context.params.to_s.colorize(:yellow)}"
+        @io.puts "#{http_status(status)} | #{method(context)} #{path(context)} | #{elapsed}"
+        @io.puts "Params: #{context.params.to_s.colorize(:yellow)}"
         context
       end
 
