@@ -15,6 +15,7 @@ module Kemalyst::Generator
       end
 
       def run
+        Micrate::Cli.setup_logger
         Micrate::DB.connection_url = database_url
         begin
           case args.command

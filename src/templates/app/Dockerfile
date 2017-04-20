@@ -1,6 +1,6 @@
 FROM drujensen/crystal:0.21.1
 
-ENV KGEN_VERSION 0.2.9
+ENV KGEN_VERSION 0.2.10
 
 RUN cd /tmp && curl -L https://github.com/TechMagister/kemalyst-generator/archive/v$KGEN_VERSION.tar.gz | tar xz && cd kemalyst-generator-$KGEN_VERSION && crystal deps && make && cp bin/kgen /usr/local/bin/.
 
