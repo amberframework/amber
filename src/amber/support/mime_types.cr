@@ -626,6 +626,10 @@ module Amber
         format = format[1 .. -1] if format.starts_with?('.')
         MIME_TYPES.fetch(format, fallback)
       end
+
+      def self.zip_types(path) # https://github.com/h5bp/server-configs-nginx/blob/master/nginx.conf
+        [".htm", ".html", ".txt", ".css", ".js", ".svg", ".json", ".xml", ".otf", ".ttf", ".woff", ".woff2"].includes? File.extname(path)
+      end
     end
   end
 end

@@ -11,7 +11,7 @@ module Amber
           plug Pipe::Error.instance
         end
         # Should eq 3 because of default pipe
-        pipeline.pipeline[:api].size.should eq 3
+        pipeline.pipeline[:api].size.should eq 2
       end
     end
   end

@@ -27,19 +27,20 @@ module Amber
       # Connects pipes to a pipeline to process requests
       def build(valve : Symbol, &block)
         @valve = valve
-        @pipeline[@valve] = [Router.instance] of HTTP::Handler unless @pipeline.key? @valve
+        @pipeline[@valve] = [] of HTTP::Handler unless @pipeline.key? @valve
         with self yield
       end
 
       def plug(pipe : HTTP::Handler)
-        @pipeline[@valve].unshift(pipe)
+        @pipeline[@valve] << pipe
       end
 
-      def proccess_pipeline(pipeline, last_pipe : (Context ->)? = nil)
-        raise ArgumentError.new "You must specify at least one pipeline." if pipeline.empty?
-        0.upto(pipeline.size - 2) { |i| pipeline[i].next = pipeline[i + 1] }
-        pipeline.last.next = last_pipe if last_pipe
-        pipeline.first
+      def proccess_pipeline(pipes, last_pipe : (Context ->)? = nil)
+        pipes << Router.instance unless pipes.includes? Router.instance
+        raise ArgumentError.new "You must specify at least one pipeline." if pipes.empty?
+        0.upto(pipes.size - 2) { |i| pipes[i].next = pipes[i + 1] }
+        pipes.last.next = last_pipe if last_pipe
+        pipes.first
       end
     end
   end
