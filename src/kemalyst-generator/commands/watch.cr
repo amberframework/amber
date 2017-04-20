@@ -11,6 +11,7 @@ module Kemalyst::Generator
 
       def run
         options.watch << "./config/**/*.cr"
+        options.watch << "./src/views/**/*.slang"
         super
       end
 
