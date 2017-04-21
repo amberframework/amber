@@ -39,7 +39,7 @@ module Amber
       str_host = "http://#{host}:#{port}".colorize(:light_cyan).underline
       version = "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
 
-      log.info "#{version} serving application \"#{self.name}\" at #{str_host}".to_s
+      log.info "#{version} serving application \"#{name}\" at #{str_host}".to_s
 
       server = HTTP::Server.new(host, port, handler)
 
