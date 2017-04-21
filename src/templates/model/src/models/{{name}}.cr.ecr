@@ -3,11 +3,11 @@ require "kemalyst-model/adapter/<%= @database %>"
 class <%= @name.capitalize %> < Kemalyst::Model
   adapter <%= @database %>
 
-  # id, created_at and updated_at columns are automatically created for you.
-  sql_mapping({
-<% @fields.each do |field| -%>
-    <%= field.name %>: <%= field.cr_type %>,
+  # id : Int64 primary key is created for you
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
+  field <%= field.name %> : <%= field.cr_type %>
 <% end -%>
-  })
-
+<% if @database != "sqlite" -%>
+  timestamps
+<% end -%>
 end
