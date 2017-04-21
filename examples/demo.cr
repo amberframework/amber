@@ -1,5 +1,3 @@
-
-
 # Location for your initialization code
 # {YourApp}/src/config/app.cr
 
@@ -9,19 +7,40 @@
 # The first line requires the framework library.
 require "../src/amber"
 
-class HelloController < Amber::Controller
-    def world
-        "Server Running!"
+class HelloController < Amber::Controller::Base
+  def world
+    redirect_to unless world_params.valid?
+    # Returns a validation result struct
+    # Contains valid? and params methods available
+    <<-HTML
+      <body>
+        <h1>Salute #{params["planet"]}</h1>
+        <b>Params:</b> #{world_params.params}
+        <b>Valid?:</b> #{world_params.valid?}
+      </body>
+    HTML
+  end
+
+  def world_params
+    validate do
+      required("planet") { |p| p.str? & !p.empty? }
     end
+  end
+
+  def user_params
+    validate do
+      required("planet") { |p| p.str? & !p.empty? }
+    end
+  end
 end
+
 MY_APP_SERVER = Amber::Server.instance
 
 # This line represents how you will define your application configuration.
 MY_APP_SERVER.config do |app|
   # Server options
-  app_path = __FILE__ # Do not change unless you understand what you are doing.
   app.name = "Hello World App" # A descriptive name for your app
-  app.port = 4000 # Port you wish your app to run
+  app.port = 4000              # Port you wish your app to run
   app.env = "development".colorize(:yellow).to_s
   app.log = ::Logger.new(STDOUT)
   app.log.level = ::Logger::INFO
@@ -59,4 +78,3 @@ end
 
 # Run the server
 MY_APP_SERVER.run
-

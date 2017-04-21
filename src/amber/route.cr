@@ -1,11 +1,11 @@
 module Amber
   class Route
     property :controller, :handler, :verb, :resource, :valve, :params
-    getter controller : Amber::Controller
+    getter controller : Amber::Controller::Base
 
     def initialize(verb : String | Symbol,
                    resource : String,
-                   controller = Controller.new,
+                   controller = Amber::Controller::Base.new,
                    handler : Proc(String) = ->{ "500" },
                    valve : Symbol = :web)
       @verb = verb
