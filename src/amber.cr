@@ -7,11 +7,11 @@ require "./amber/**"
 
 module Amber
   class Server
-    setter port : Int32
-    setter name : String
-    setter env : String
-    getter log : Logger
-    getter secret : String
+    property port : Int32
+    property name : String
+    property env : String
+    property log : Logger
+    property secret : String
 
     def self.instance
       @@instance ||= new
@@ -31,15 +31,15 @@ module Amber
       @secret = SecureRandom.hex
     end
 
-    def run(port : Int = 4000)
+    def run
+      puts port
       time = Time.now
       host = "127.0.0.1"
-      @port = port.to_i
 
-      str_host = "http://#{host}:#{@port}".colorize(:light_cyan).underline
+      str_host = "http://#{host}:#{port}".colorize(:light_cyan).underline
       version = "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
 
-      log.info "#{version} serving application \"#{@name}\" at #{str_host}".to_s
+      log.info "#{version} serving application \"#{self.name}\" at #{str_host}".to_s
 
       server = HTTP::Server.new(host, port, handler)
 
@@ -49,13 +49,13 @@ module Amber
         exit
       end
 
-      log.info "Server started in #{@env}.".to_s
+      log.info "Server started in #{env}.".to_s
       log.info "Startup Time #{Time.now - time}\n\n".colorize(:white).to_s
       server.listen
     end
 
-    def config
-      with self yield
+    def config(&block)
+      with self yield self
     end
 
     def routes(&block)
