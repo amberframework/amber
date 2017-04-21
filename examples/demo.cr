@@ -14,14 +14,15 @@ class HelloController < Amber::Controller
         "Server Running!"
     end
 end
+MY_APP_SERVER = Amber::Server.instance
 
 # This line represents how you will define your application configuration.
-Amber::Server.instance.config do |app|
+MY_APP_SERVER.config do |app|
   # Server options
   app_path = __FILE__ # Do not change unless you understand what you are doing.
   app.name = "Hello World App" # A descriptive name for your app
-  app.port = 4000 # Port yu wish your app to run
-  app.env = "elias".colorize(:yellow).to_s
+  app.port = 4000 # Port you wish your app to run
+  app.env = "development".colorize(:yellow).to_s
   app.log = ::Logger.new(STDOUT)
   app.log.level = ::Logger::INFO
 
@@ -54,7 +55,8 @@ Amber::Server.instance.config do |app|
     get "/hello", :hello, :world, :api
     get "/hello/:planet", :hello, :world, :api
   end
-
-  run
 end
+
+# Run the server
+MY_APP_SERVER.run
 
