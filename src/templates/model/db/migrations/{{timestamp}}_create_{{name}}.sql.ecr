@@ -1,35 +1,8 @@
 -- +micrate Up
-<% case @database
-   when "mysql" -%>
 CREATE TABLE <%= @name %>s (
-  id BIGINT NOT NULL AUTO_INCREMENT, 
-<% @fields.each do |field| -%>
-  <%= field.name %> <%= field.db_type %>,
-<% end -%>
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP,
-  PRIMARY KEY (id)
-)
-<% when "pg" -%>
-CREATE TABLE <%= @name %>s (
-  id BIGSERIAL PRIMARY KEY,
-<% @fields.each do |field| -%>
-  <%= field.name %> <%= field.db_type %>,
-<% end -%>
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP
-)
-<% else -%>
-CREATE TABLE <%= @name %>s (
-  id INTEGER NOT NULL PRIMARY KEY,
-<% @fields.each do |field| -%>
-  <%= field.name %> <%= field.db_type %>,
-<% end -%>
-  created_at VARCHAR,
-  updated_at VARCHAR
-)
-<% end -%>
+  <%= @primary_key %>,
+  <%= @fields.map{ |field| "#{field.name} #{field.db_mapped_type}" }.join(",\n  ") %>
+);
 
 -- +micrate Down
 DROP TABLE IF EXISTS <%= @name %>s;
-

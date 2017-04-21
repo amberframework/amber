@@ -2,15 +2,9 @@ module Kemalyst::Generator
   class Field
     TYPE_MAPPING = {
       mysql: {
-        TEXT: "TEXT",
-        INT: "INT",
-        FLOAT: "FLOAT",
-        REAL: "REAL",
-        BOOL: "BOOL",
-        DATE: "DATE",
         TIMESTAMP: "TIMESTAMP NULL",
         VARCHAR: "VARCHAR(255)"
-      } 
+      }
     }
 
     property name : String
