@@ -1,8 +1,9 @@
 require "http"
 require "logger"
 require "json"
+require "colorize"
 require "secure_random"
-require "./amber/*"
+require "./amber/**"
 
 module Amber
   class Server
