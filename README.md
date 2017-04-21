@@ -40,7 +40,7 @@ Add this to your application's `shard.yml`:
 ```yaml
 dependencies:
   amber:
-    github: eliasjpr/amber
+    github: Amber-Crystal/amber
 ```
 
 ## Usage
