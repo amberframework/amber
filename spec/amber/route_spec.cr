@@ -6,7 +6,7 @@ module Amber
       controller = HelloController.new
       world = ->controller.world
 
-      route = Route.new("GET", "/", controller, world)
+      route = Route.new("GET", "/", HelloController.new, world)
 
       route.class.should eq Route
     end

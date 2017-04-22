@@ -4,7 +4,6 @@ module Amber
     class Static < HTTP::StaticFileHandler
       property default_file, public_dir
 
-
       # class method to return a singleton instance of this Controller
       def self.instance(public_dir : String, fallthrough = true)
         @@instance ||= new(public_dir, fallthrough)
@@ -17,8 +16,6 @@ module Amber
         @static_config = { "dir_listing" => false, "gzip" => true }
       end
 
-
-
       def initialize
         @public_dir = File.expand_path "./public"
         @default_file = "index.html"
@@ -26,7 +23,7 @@ module Amber
         @static_config = { "dir_listing" => false, "gzip" => true }
       end
 
-      def call(context)
+      def call(context : HTTP::Server::Context)
         return call_next(context) if context.request.path.not_nil! == "/"
 
         unless context.request.method == "GET" || context.request.method == "HEAD"
