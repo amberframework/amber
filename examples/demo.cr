@@ -51,9 +51,9 @@ MY_APP_SERVER.config do |app|
     # Each route is defined as follow
     # verb, resources : String, controller : Symbol, action : Symbol,
     # pipeline : Symbol
-    get "/*", :hello, :world, :static
-    get "/hello", :hello, :world, :api
-    get "/hello/:planet", :hello, :world, :api
+    get "/*", HelloController, :world, :static
+    get "/hello", HelloController, :world, :api
+    get "/hello/:planet", HelloController, :world, :api
   end
 end
 
