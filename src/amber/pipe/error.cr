@@ -9,7 +9,7 @@ module Amber
         @@instance ||= new
       end
 
-      def call(context)
+      def call(context : HTTP::Server::Context)
         begin
           call_next(context)
         rescue ex : Amber::Exceptions::Forbidden
