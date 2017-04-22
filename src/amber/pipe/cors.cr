@@ -17,7 +17,7 @@ module Amber
         @max_age = 0
       end
 
-      def call(context)
+      def call(context : HTTP::Server::Context)
         begin
           context.response.headers["Access-Control-Allow-Origin"] = allow_origin
 

@@ -17,7 +17,7 @@ module Amber
         @key = "amber.flash"
       end
 
-      def call(context)
+      def call(context : HTTP::Server::Context)
         cookies = context.request.cookies
         decode(context.flash, cookies[@key].value) if cookies.has_key?(@key)
         call_next(context)

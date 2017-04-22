@@ -28,9 +28,9 @@ describe Amber do
                 end
 
                 routes do
-                    get "/", :hello, :world, :api
-                    get "/hello", :hello, :world, :api
-                    get "/hello/:role", :hello, :world, :api
+                    get "/", HelloController, :world, :api
+                    get "/hello", HelloController, :world, :api
+                    get "/hello/:role", HelloController, :world, :api
                 end
             end
         end
