@@ -25,7 +25,7 @@ module Amber
 
       # This registers all the routes for the application
       def draw
-        with RouterDSL.new yield
+        with RouterDSL.new(self) yield
       end
 
       def add(route : Route)
@@ -62,13 +62,14 @@ module Amber
         @routes.add(trail, route)
       end
 
-      struct RouterDSL
+      record RouterDSL, router : Router do
         macro route(verb, resource, controller, handler, pipeline)
           %ctrl = {{controller.id}}.new
           %action = ->%ctrl.{{handler.id}}
           %verb = {{verb.upcase.id.stringify}}
           %route = Amber::Route.new(%verb, {{resource}}, %ctrl, %action, {{pipeline}})
-          Amber::Pipe::Router.instance.add(%route)
+
+          router.add(%route)
         end
 
         {% for verb in {:get, :post, :put, :delete, :options, :head, :trace, :connect} %}
