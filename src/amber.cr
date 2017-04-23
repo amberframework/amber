@@ -64,8 +64,10 @@ module Amber
       end
     end
 
-    def pipeline(valve : Symbol, &block)
-      handler.build valve, &block
+    macro pipeline(valve)
+      handler.build {{valve}} do
+        {{yield}}
+      end
     end
 
     def handler

@@ -28,7 +28,13 @@ module Amber
       def build(valve : Symbol, &block)
         @valve = valve
         @pipeline[@valve] = [] of HTTP::Handler unless @pipeline.key? @valve
-        with self yield
+        with PipelineDSL.new yield
+      end
+
+      struct PipelineDSL
+        def plug(pipe)
+          Amber::Pipe::Pipeline.instance.plug pipe
+        end
       end
 
       def plug(pipe : HTTP::Handler)
