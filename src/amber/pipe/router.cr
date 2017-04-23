@@ -25,7 +25,7 @@ module Amber
 
       # This registers all the routes for the application
       def draw
-        with RouterDSL.new(self) yield
+        with Support::DSL::Router.new(self) yield
       end
 
       def add(route : Route)
@@ -46,7 +46,7 @@ module Amber
       end
 
       private def merge_params(params, context)
-        params.each { |k,v| context.params.add(k.to_s, v) }
+        params.each { |k, v| context.params.add(k.to_s, v) }
       end
 
       private def match(http_verb, resource) : Radix::Result(Amber::Route)
@@ -61,27 +61,6 @@ module Amber
         trail = build_node(:HEAD, route.resource)
         @routes.add(trail, route)
       end
-
-      record RouterDSL, router : Router do
-        macro route(verb, resource, controller, handler, pipeline)
-          %ctrl = {{controller.id}}.new
-          %action = ->%ctrl.{{handler.id}}
-          %verb = {{verb.upcase.id.stringify}}
-          %route = Amber::Route.new(%verb, {{resource}}, %ctrl, %action, {{pipeline}})
-
-          router.add(%route)
-        end
-
-        {% for verb in {:get, :post, :put, :delete, :options, :head, :trace, :connect} %}
-
-          macro {{verb.id}}(*args)
-            route {{verb}}, \{{*args}}
-          end
-
-        {% end %}
-
-      end
-
     end
   end
 end
