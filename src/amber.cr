@@ -58,12 +58,16 @@ module Amber
       with self yield self
     end
 
-    def routes(&block)
-      router.draw(&block)
+    macro routes
+      router.draw do
+        {{yield}}
+      end
     end
 
-    def pipeline(valve : Symbol, &block)
-      handler.build valve, &block
+    macro pipeline(valve)
+      handler.build {{valve}} do
+        {{yield}}
+      end
     end
 
     def handler
