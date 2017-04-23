@@ -25,7 +25,7 @@ module Amber
 
       # This registers all the routes for the application
       def draw
-        with self yield
+        with Support::DSL::Router.new(self) yield
       end
 
       def add(route : Route)
@@ -46,7 +46,7 @@ module Amber
       end
 
       private def merge_params(params, context)
-        params.each { |k,v| context.params.add(k.to_s, v) }
+        params.each { |k, v| context.params.add(k.to_s, v) }
       end
 
       private def match(http_verb, resource) : Radix::Result(Amber::Route)

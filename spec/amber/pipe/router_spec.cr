@@ -6,7 +6,7 @@ module Amber
       describe "#call" do
         it "raises exception when route not found" do
           router = Router.instance
-          request = HTTP::Request.new("GET", "/hello/world")
+          request = HTTP::Request.new("GET", "/bad/route")
 
           expect_raises Exceptions::RouteNotFound do
             create_request_and_return_io(router, request)
