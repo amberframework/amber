@@ -9,7 +9,7 @@
 # The first line requires the framework library.
 require "../src/amber"
 
-class HelloController < Amber::Controller
+class HelloController < Amber::Controller::Base
     def world
         "Server Running!"
     end
