@@ -17,5 +17,19 @@ module Amber
         super("The request was not found.")
       end
     end
+
+    module Validator
+      class MissingValidationRules < Exception
+        def initialize
+          super("No validation rules defined for this validator.")
+        end
+      end
+
+      class ValidationFailed < Exception
+        def initialize(errors)
+          super("Validation failed. #{errors}s")
+        end
+      end
+    end
   end
 end
