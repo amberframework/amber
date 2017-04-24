@@ -1,4 +1,3 @@
-
 module Amber
   module Support
     module MimeTypes
@@ -617,13 +616,13 @@ module Amber
       # Returns the Mime Type for a given format or file extname.
       #
       # ```
-      # Amber::Support::Mime.mime_type("json") # => "application/json"
-      # Amber::Support::Mime.mime_type(".jpg") # => "image/jpeg"
-      # Amber::Support::Mime.mime_type("unknown") # => "application/octet-stream"
+      # Amber::Support::Mime.mime_type("json")                  # => "application/json"
+      # Amber::Support::Mime.mime_type(".jpg")                  # => "image/jpeg"
+      # Amber::Support::Mime.mime_type("unknown")               # => "application/octet-stream"
       # Amber::Support::Mime.mime_type("unknown", "text/plain") # => "text/plain"
       # ```
       def self.mime_type(format, fallback = DEFAULT_MIME_TYPE)
-        format = format[1 .. -1] if format.starts_with?('.')
+        format = format[1..-1] if format.starts_with?('.')
         MIME_TYPES.fetch(format, fallback)
       end
 
