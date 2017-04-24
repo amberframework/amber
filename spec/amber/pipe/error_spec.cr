@@ -15,7 +15,7 @@ module Amber
       it "returns status code 500 for all other exceptions" do
         error = Error.instance
         request = HTTP::Request.new("GET", "/")
-        error.next = ->(context : HTTP::Server::Context) { raise "Oops!"}
+        error.next = ->(context : HTTP::Server::Context) { raise "Oops!" }
 
         response = create_request_and_return_io(error, request)
 
@@ -24,5 +24,3 @@ module Amber
     end
   end
 end
-
-
