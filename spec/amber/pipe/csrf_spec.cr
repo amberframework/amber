@@ -3,7 +3,6 @@ require "../../../spec_helper"
 module Amber
   module Pipe
     describe CSRF do
-
       context "when requests have HTTP methods" do
         CSRF::CHECK_METHODS.each do |method|
           it "raises forbbiden error for PUT request" do
