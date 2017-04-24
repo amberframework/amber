@@ -1,12 +1,12 @@
 require "../../../spec_helper"
 require "http"
 
-module Amber::Validations
+module Amber::Validators
   describe Params do
     describe "#validation" do
       it "validates required field" do
         http_params = HTTP::Params.parse("name=elias&last_name=perez&middle=j")
-        validator = Params::Validator.new(http_params)
+        validator = Params.new(http_params)
 
         result = validator.validation do
           required("name") { |v| v.str? & !v.empty? }
@@ -20,7 +20,7 @@ module Amber::Validations
     describe "#valid?" do
       it "returns false with invalid fields" do
         http_params = HTTP::Params.parse("name=john&last_name=doe&middle=j")
-        validator = Params::Validator.new(http_params)
+        validator =Params.new(http_params)
 
         result = validator.validation do
           required("name") { |v| v.str? & !v.empty? }
@@ -32,7 +32,7 @@ module Amber::Validations
 
       it "returns false when key does not exist" do
         http_params = HTTP::Params.parse("name=elias&last_name=perez&middle=j")
-        validator = Params::Validator.new(http_params)
+        validator = Params.new(http_params)
         result : Tuple(String, String) = {"invalid", "nonexisting does not exist."}
 
         validator.validation do
@@ -45,8 +45,8 @@ module Amber::Validations
       end
 
       it "returns true with valid fields" do
-        http_params = HTTP::Params.parse("name=elias&last_name=perez&middle=j")
-        validator = Params::Validator.new(http_params)
+        http_params = HTTP::Params.parse("name=eliaslast_name=perez&middle=j")
+        validator = Params.new(http_params)
         result : Tuple(String, String) = {"invalid", "nonexisting does not exist."}
 
         validator.validation do
@@ -62,7 +62,7 @@ module Amber::Validations
     describe "#validate!" do
       it "raises error with no validation rules" do
         http_params = HTTP::Params.parse("name=elias&last_name=perez&middle=j")
-        validator = Params::Validator.new(http_params)
+        validator = Params.new(http_params)
 
         expect_raises Exceptions::Validator::MissingValidationRules do
           validator.validate!
@@ -71,7 +71,7 @@ module Amber::Validations
 
       it "raises error on failed validation" do
         http_params = HTTP::Params.parse("name=elias&last_name=perez&middle=j")
-        validator = Params::Validator.new(http_params)
+        validator = Params.new(http_params)
 
         validator.validation do
           required("name") { |v| v.str? & !v.empty? }
@@ -85,7 +85,7 @@ module Amber::Validations
 
       it "returns validated params on successful validation" do
         http_params = HTTP::Params.parse("name=elias&last_name=perez&middle=j")
-        validator = Params::Validator.new(http_params)
+        validator = Params.new(http_params)
         result : Hash(String, String) = {"invalid", "nonexisting does not exist."}
 
         validator.validation do
