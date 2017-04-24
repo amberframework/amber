@@ -10,13 +10,15 @@ module Amber
     # replaced or not needed.
     class Params < Base
       URL_ENCODED_FORM = "application/x-www-form-urlencoded"
+      MULTIPART_FORM   = "multipart/form-data"
       APPLICATION_JSON = "application/json"
 
+      # class method to return a singleton instance of this Controller
       def self.instance
         @@instance ||= new
       end
 
-      def call(context : HTTP::Server::Context)
+      def call(context)
         context.clear_params
         parse(context)
         call_next(context)
@@ -25,7 +27,8 @@ module Amber
       def parse(context)
         parse_query(context)
         if content_type = context.request.headers["Content-Type"]?
-          parse_body(context) if content_type.match /^#{Regex.escape URL_ENCODED_FORM}/
+          parse_multipart(context) if content_type.try(&.starts_with?(MULTIPART_FORM))
+          parse_body(context) if content_type.try(&.starts_with?(URL_ENCODED_FORM))
           parse_json(context) if content_type == APPLICATION_JSON
         end
       end
@@ -49,6 +52,18 @@ module Amber
             when Array
               context.params["_json"] = json.to_s
             end
+          end
+        end
+      end
+
+      def parse_multipart(context)
+        HTTP::FormData.parse(context.request) do |upload|
+          next unless upload
+          filename = upload.filename
+          if !filename.nil?
+            context.files[upload.name] = UploadedFile.new(upload: upload)
+          else
+            context.params.add(upload.name, upload.body.gets_to_end)
           end
         end
       end
