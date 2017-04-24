@@ -15,6 +15,14 @@ class HTTP::Server::Context
     @params ||= HTTP::Params.new({} of String => Array(String))
   end
 
+  def clear_files
+    @files = {} of String => UploadedFile
+  end
+
+  def files
+    @files ||= {} of String => UploadedFile
+  end
+
   # clear the session.  You can call this to logout a user.
   def clear_session
     @session = {} of String => String
