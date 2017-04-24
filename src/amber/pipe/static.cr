@@ -1,4 +1,5 @@
 require "zlib"
+
 module Amber
   module Pipe
     class Static < HTTP::StaticFileHandler
@@ -13,14 +14,14 @@ module Amber
         @public_dir = File.expand_path public_dir
         @fallthrough = !!fallthrough
         @default_file = "index.html"
-        @static_config = { "dir_listing" => false, "gzip" => true }
+        @static_config = {"dir_listing" => false, "gzip" => true}
       end
 
       def initialize
         @public_dir = File.expand_path "./public"
         @default_file = "index.html"
         @fallthrough = true
-        @static_config = { "dir_listing" => false, "gzip" => true }
+        @static_config = {"dir_listing" => false, "gzip" => true}
       end
 
       def call(context : HTTP::Server::Context)
@@ -93,7 +94,7 @@ module Amber
       private def serve_file(env, path : String, mime_type : String? = nil)
         config = @static_config
         file_path = File.expand_path(path, Dir.current)
-        mime_type ||=mime_type(file_path)
+        mime_type ||= mime_type(file_path)
         env.response.content_type = mime_type
         minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
         request_headers = env.request.headers
@@ -171,9 +172,6 @@ module Amber
           IO.copy(file, env.response)
         end
       end
-
-
-
     end
   end
 end
