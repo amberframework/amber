@@ -22,17 +22,15 @@ module Amber
     end
 
     def initialize
-      @app_path = __FILE__
       @name = "My Awesome App"
       @port = 8080
       @env = "development".colorize(:yellow).to_s
-      @log = ::Logger.new(STDOUT)
-      @log.level = ::Logger::INFO
+      @log = Logger.new(STDOUT)
+      @log.level = Logger::INFO
       @secret = SecureRandom.hex
     end
 
     def run
-      puts port
       time = Time.now
       host = "127.0.0.1"
 

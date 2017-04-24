@@ -3,7 +3,6 @@ require "../../spec_helper"
 module Amber
   module Pipe
     describe Flash do
-
       it "sets a cookie" do
         flash = Flash.instance
         request = HTTP::Request.new("GET", "/")
