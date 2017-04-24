@@ -10,7 +10,7 @@ abstract struct Number
   include Amber::Support::Predicates::Number
 end
 
-module Amber::Validations
+module Amber::Validators
   class Params
     property raw_params : HTTP::Params = HTTP::Params.parse("t=t")
     property errors = {} of String => {String, String}
@@ -44,9 +44,9 @@ module Amber::Validations
     # ```
     # returns validated parms hash String => String
     def validate!
-      raise Amber::Exceptions::Validator::MissingValidationRules unless @captured.nil?
+      raise Amber::Exceptions::Validator::MissingValidationRules.new unless @captured.nil?
       validate(&callback) if callback = @captured
-      raise Amber::Exceptions::Validator::ValidationFailed, errors unless errors.empty?
+      raise Amber::Exceptions::Validator::ValidationFailed.new errors unless errors.empty?
       params
     end
 
@@ -58,7 +58,7 @@ module Amber::Validations
     # ```
     # returns validated parms hash String => String
     def validate
-      raise Amber::Exceptions::Validator::MissingValidationRules unless @captured.nil?
+      raise Amber::Exceptions::Validator::MissingValidationRules.new unless @captured.nil?
       validate(&callback) if callback = @captured
       params
     end
