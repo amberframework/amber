@@ -1,0 +1,13 @@
+name: amber_demo
+version: 0.1.0
+
+authors:
+  - Elias Perez <<eliasjpr@gmail.com>>
+
+crystal: 0.21.1
+
+license: MIT
+
+dependencies:
+  amber:
+    path: ../ 

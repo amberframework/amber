@@ -3,6 +3,9 @@ require "logger"
 require "json"
 require "colorize"
 require "secure_random"
+require "kilt"
+require "kilt/slang"
+require "./amber/support/*"
 require "./amber/**"
 
 module Amber
