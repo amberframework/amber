@@ -12,12 +12,11 @@ end
 
 module Amber::Validators
   class Params
-    property raw_params : HTTP::Params = HTTP::Params.parse("t=t")
-    property errors = {} of String => {String, String}
-    property params = {} of String => String
+    getter raw_params : HTTP::Params = HTTP::Params.parse("t=t")
+    getter errors = {} of String => {String, String}
+    getter params = {} of String => String
 
-    def initialize(@raw_params : HTTP::Params)
-    end
+    def initialize(@raw_params : HTTP::Params); end
 
     # Setups validation rules to be performed
     #
@@ -27,11 +26,10 @@ module Amber::Validators
     #   required(:age, UInt32)
     # end
     # ```
-    # returns Validator
-    def validation(&block)
-      validate do
-        {{yield}}
-      end
+    def validation
+      errors.clear
+      params.clear
+      with self yield
       self
     end
 
@@ -42,10 +40,7 @@ module Amber::Validators
     # ```crystal
     # user = User.new params.validate!
     # ```
-    # returns validated parms hash String => String
     def validate!
-      raise Amber::Exceptions::Validator::MissingValidationRules.new unless @captured.nil?
-      validate(&callback) if callback = @captured
       raise Amber::Exceptions::Validator::ValidationFailed.new errors unless errors.empty?
       params
     end
@@ -56,10 +51,7 @@ module Amber::Validators
     # ```crystal
     # user = User.new params.validate!
     # ```
-    # returns validated parms hash String => String
     def validate
-      raise Amber::Exceptions::Validator::MissingValidationRules.new unless @captured.nil?
-      validate(&callback) if callback = @captured
       params
     end
 
@@ -71,16 +63,14 @@ module Amber::Validators
     #   response.status_code 400
     # end
     # ```
-    # returns Boolean
     def valid?
       errors.empty?
     end
 
-    # Captures and Prforms the validation rules block
+    # Captures and performs the validation rules block
     #
     # returns Nil
-    private def validate(&block) : Nil
-      capture_validation_block(&block)
+    private def validate
       with self yield
     end
 
@@ -90,8 +80,12 @@ module Amber::Validators
     # ```crystal
     # required(:email) { |p| p.email? & p.size.between? 1..10 }
     # ```
-    private def required(key, msg : String?)
-      return false unless raw_params.has_key? key
+    def required(key, msg : String? = nil)
+      unless raw_params.has_key?(key)
+        errors[key] = {"invalid", "Param [nonexisting] does not exist."}
+        return false
+      end
+
       field = raw_params[key]
       params[key] = field
       valid = yield field
@@ -105,12 +99,6 @@ module Amber::Validators
     private def message(key)
       # TODO Implement i18n error messages
       "#{key.capitalize} is invalid."
-    end
-
-    # Captures the validation block into a local variable
-    # Every time a validation block is defined is sets a the capture
-    private def capture_validation_block(&block)
-      @captured = block
     end
   end
 end

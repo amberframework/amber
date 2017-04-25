@@ -19,15 +19,9 @@ module Amber
     end
 
     module Validator
-      class MissingValidationRules < Exception
-        def initialize
-          super("No validation rules defined for this validator.")
-        end
-      end
-
       class ValidationFailed < Exception
         def initialize(errors)
-          super("Validation failed. #{errors}s")
+          super("Validation failed. #{errors}")
         end
       end
     end
