@@ -24,6 +24,12 @@ module Amber
           super("Validation failed. #{errors}")
         end
       end
+
+      class InvalidParam < Exception
+        def initialize(param)
+          super("The #{param} param was not found, make sure is typed correctly.")
+        end
+      end
     end
   end
 end
