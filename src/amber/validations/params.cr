@@ -1,19 +1,7 @@
-require "../support/predicates"
-
-# We are patching the String class and Number struct to extend the predicates
-# available this will allow to add friendlier methods for validation cases.
-class String
-  include Amber::Support::Predicates::String
-end
-
-abstract struct Number
-  include Amber::Support::Predicates::Number
-end
-
 module Amber::Validators
-  class Params
+  struct Params
     getter raw_params : HTTP::Params = HTTP::Params.parse("t=t")
-    getter errors = {} of String => {String, String}
+    getter errors = {} of String => {String | Nil, String}
     getter params = {} of String => String
 
     def initialize(@raw_params : HTTP::Params); end
@@ -69,8 +57,7 @@ module Amber::Validators
 
     # Captures and performs the validation rules block
     #
-    # returns Nil
-    private def validate
+    private def validate : Nil
       with self yield
     end
 
@@ -82,7 +69,7 @@ module Amber::Validators
     # ```
     def required(key, msg : String? = nil)
       unless raw_params.has_key?(key)
-        errors[key] = {"invalid", "Param [nonexisting] does not exist."}
+        errors[key] = {nil, "Param [#{key}] does not exist."}
         return false
       end
 
