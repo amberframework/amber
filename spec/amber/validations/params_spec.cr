@@ -8,11 +8,12 @@ module Amber
         validator = Validators::Params.new(http_params)
 
         result = validator.validation do
-          required("name") { |v| v.str? & !v.empty? }
+          required(:name) { |v| v.str? & !v.empty? }
           required("last_name") { |v| v.str? & !v.empty? }
         end
 
-        result.valid?.should be_true
+        validator.errors.size.should eq 0
+        validator.valid?.should be_true
       end
     end
 
@@ -38,8 +39,9 @@ module Amber
           required("nonexisting") { |v| v.str? & !v.empty? }
         end
 
-        validator.errors.should eq result
-        validator.valid?.should be_false
+        expect_raises Exceptions::Validator::InvalidParam do
+          validator.valid?
+        end
       end
 
       it "returns true with valid fields" do
