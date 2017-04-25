@@ -12,7 +12,7 @@ module Amber
           required("last_name") { |v| v.str? & !v.empty? }
         end
 
-        result.valid?.should eq true
+        result.valid?.should be_true
       end
     end
 
@@ -26,20 +26,20 @@ module Amber
           required("last_name") { |v| v.str? & !v.empty? }
         end
 
-        validator.valid?.should eq false
+        validator.valid?.should be_false
       end
 
       it "returns false when key does not exist" do
         http_params = HTTP::Params.parse("name=elias")
         validator = Validators::Params.new(http_params)
-        result : Hash(String, Tuple(String, String)) = {"nonexisting" => {"invalid", "Param [nonexisting] does not exist."}}
+        result = {"nonexisting" => {nil, "Param [nonexisting] does not exist."}}
 
         validator.validation do
           required("nonexisting") { |v| v.str? & !v.empty? }
         end
 
         validator.errors.should eq result
-        validator.valid?.should eq false
+        validator.valid?.should be_false
       end
 
       it "returns true with valid fields" do
@@ -51,7 +51,7 @@ module Amber
           required("last_name") { |v| v.str? & !v.empty? }
         end
 
-        validator.valid?.should eq true
+        validator.valid?.should be_true
       end
     end
 
