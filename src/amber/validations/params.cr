@@ -1,8 +1,49 @@
 module Amber::Validators
-  struct Params
+
+  # Holds a validation error message
+  record Error, param : String, value : String | Nil, message : String
+
+  # This struct holds the validation rules to be performed
+  struct BaseRule
+    getter predicate : (String -> Bool)
+    getter field : String
+    getter value : String?
+
+    def initialize(field : String | Symbol, @msg : String?, &block : String -> Bool)
+      @field = field.to_s
+      @predicate = block
+    end
+
+    def apply(params : HTTP::Params)
+      raise Exceptions::Validator::InvalidParam.new(@field) unless params.has_key? @field
+      @value = params[@field]
+      @predicate.call params[@field] unless @predicate.nil?
+    end
+
+    def error
+      Error.new @field, @value, error_message
+    end
+
+    def error_message
+      @msg || "Field #{@field.to_s} is required"
+    end
+  end
+
+  record ValidationBuilder, _validator : Params do
+    def required(param : String | Symbol, msg : String? = nil)
+      _validator.add_rule BaseRule.new(param, msg)
+    end
+
+    def required(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
+      _validator.add_rule BaseRule.new(param, msg, &b)
+    end
+  end
+
+  class Params
     getter raw_params : HTTP::Params = HTTP::Params.parse("t=t")
-    getter errors = {} of String => {String | Nil, String}
-    getter params = {} of String => String
+    getter errors = [] of Error
+    getter rules = [] of BaseRule
+    getter params = {} of String => String | Nil
 
     def initialize(@raw_params : HTTP::Params); end
 
@@ -15,9 +56,7 @@ module Amber::Validators
     # end
     # ```
     def validation
-      errors.clear
-      params.clear
-      with self yield
+      with ValidationBuilder.new(self) yield
       self
     end
 
@@ -29,18 +68,8 @@ module Amber::Validators
     # user = User.new params.validate!
     # ```
     def validate!
-      raise Amber::Exceptions::Validator::ValidationFailed.new errors unless errors.empty?
-      params
-    end
-
-    # Validates the inputs, does not raise errors and returns the validated
-    # params
-    #
-    # ```crystal
-    # user = User.new params.validate!
-    # ```
-    def validate
-      params
+      return params if valid?
+      raise Amber::Exceptions::Validator::ValidationFailed.new errors
     end
 
     # Returns True or false wether the validation passed
@@ -52,6 +81,17 @@ module Amber::Validators
     # end
     # ```
     def valid?
+      @errors.clear
+      @params.clear
+
+      @rules.each do |rule|
+        unless rule.apply(raw_params)
+          @errors << rule.error
+        end
+
+        @params[rule.field] = rule.value
+      end
+
       errors.empty?
     end
 
@@ -67,19 +107,8 @@ module Amber::Validators
     # ```crystal
     # required(:email) { |p| p.email? & p.size.between? 1..10 }
     # ```
-    def required(key, msg : String? = nil)
-      unless raw_params.has_key?(key)
-        errors[key] = {nil, "Param [#{key}] does not exist."}
-        return false
-      end
-
-      field = raw_params[key]
-      params[key] = field
-      valid = yield field
-      unless valid
-        errors[key] = {params[key], msg || "#{message(key)}"}
-      end
-      valid
+    def add_rule(rule : BaseRule)
+      @rules << rule
     end
 
     # Builds a message for given key if
