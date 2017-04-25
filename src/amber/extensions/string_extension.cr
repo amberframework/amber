@@ -47,7 +47,7 @@ module Amber
 
       # alpha characters validation
       def alpha?(locale = "en-US")
-        !!self.match(ALPHA[locale])
+        !!self.match(Support::LocaleFormat::ALPHA[locale])
       end
 
       # numeric characters validation
@@ -57,7 +57,7 @@ module Amber
 
       # alpha numeric characters validation
       def alphanum?(locale = "en-US")
-        !!self.match(ALPHA_NUM[locale])
+        !!self.match(Support::LocaleFormat::ALPHA_NUM[locale])
       end
 
       # md5 validation
@@ -92,7 +92,7 @@ module Amber
 
       # phone number validation
       def phone?(locale = "en-US")
-        !!self.match(PHONE_FORMAT[locale])
+        !!self.match(Support::LocaleFormat::PHONE_FORMAT[locale])
       end
 
       def excludes?(value)
