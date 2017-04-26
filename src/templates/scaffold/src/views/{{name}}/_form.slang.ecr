@@ -20,6 +20,13 @@ form action="#{ action }" method="post"
           input type="checkbox" name="<%= field.name %>" value="true" checked="true" <%= field.name.capitalize %>
         - else
           input type="checkbox" name="<%= field.name %>" value="true" <%= field.name.capitalize %>
+<% when "bool_as_int" -%>
+    div.checkbox
+      label
+        - if <%= @name %>.<%= field.name %> == 1
+          input type="checkbox" name="<%= field.name %>" value="true" checked="true" <%= field.name.capitalize %>
+        - else
+          input type="checkbox" name="<%= field.name %>" value="true" <%= field.name.capitalize %>
 <% else -%>
     input.form-control type="text" name="<%= field.name %>" placeholder="<%= field.name.capitalize %>" value="#{ <%= @name %>.<%= field.name %> }"
 <% end -%>
