@@ -31,7 +31,8 @@ module Kemalyst::Generator
         bool: ["bool_as_int", "Int64","BOOL"],
         boolean: ["bool_as_int", "Int64","BOOL"],
         date: ["date_as_var", "String","DATE"],
-        time: ["time_as_var", "String","TIMESTAMP"]
+        time: ["time_as_var", "String","TIMESTAMP"],
+        timestamp: ["time_as_var", "String","TIMESTAMP"]
       }
     }
 
