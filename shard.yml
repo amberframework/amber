@@ -3,7 +3,9 @@ version: 0.1.0
 
 authors:
   - Elias Perez <<eliasjpr@gmail.com>>
-
+  - Nick Franken <<shnick@gmail.com>>
+  - Isaac Sloan <<isaac@isaacsloan.com>>
+  - Benoit de Chezelles <<benoit.dechezelles@gmail.com>>
 crystal: 0.21.1
 
 license: MIT
