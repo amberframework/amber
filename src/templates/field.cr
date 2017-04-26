@@ -1,9 +1,38 @@
 module Kemalyst::Generator
   class Field
     TYPE_MAPPING = {
+      common: {
+        string: ["string", "String", "VARCHAR"],
+        text: ["text", "String", "TEXT"],
+        int: ["integer", "Int32","INT"],
+        int32: ["integer", "Int32","INT"],
+        integer: ["integer", "Int32","INT"],
+        int64: ["bigint", "Int64","BIGINT"],
+        bigint: ["bigint", "Int64","BIGINT"],
+        float: ["float", "Float32","FLOAT"],
+        real: ["real", "Float64","REAL"],
+        bool: ["boolean", "Bool","BOOL"],
+        boolean: ["boolean", "Bool","BOOL"],
+        date: ["date", "Time","DATE"],
+        time: ["time", "Time","TIMESTAMP"],
+        timestamp: ["time", "Time","TIMESTAMP"]
+      },
       mysql: {
-        TIMESTAMP: "TIMESTAMP NULL",
-        VARCHAR: "VARCHAR(255)"
+        string: ["string", "String", "VARCHAR(255)"],
+        time: ["time", "Time","TIMESTAMP NULL"],
+        timestamp: ["time", "Time","TIMESTAMP NULL"]
+      },
+      sqlite: {
+        int: ["bigint", "Int64","INT"],
+        int32: ["bigint", "Int64","INT"],
+        integer: ["bigint", "Int64","INT"],
+        int64: ["bigint", "Int64","INT"],
+        bigint: ["bigint", "Int64","INT"],
+        bool: ["bool_as_int", "Int64","BOOL"],
+        boolean: ["bool_as_int", "Int64","BOOL"],
+        date: ["date_as_var", "String","DATE"],
+        time: ["time_as_var", "String","TIMESTAMP"],
+        timestamp: ["time_as_var", "String","TIMESTAMP"]
       }
     }
 
@@ -12,46 +41,27 @@ module Kemalyst::Generator
     property cr_type : String
     property db_type : String
     property hidden : Bool
-    @database : String
+    property database : String
 
     def initialize(field, hidden = false, database = "pg")
       field = "#{field}:string" unless field.includes? ":"
       @name, @type = field.split(":")
-      @cr_type, @db_type = cr_db_type(@type)
-      @hidden = hidden
       @database = database
+      @type, @cr_type, @db_type = type_mapping(@type.downcase)
+      @hidden = hidden
     end
 
-    def cr_db_type(type = "string")
-      @type = type.downcase
-      case @type
-      when "text"
-        ["String", "TEXT"]
-      when "int", "integer"
-        @type = "integer"
-        ["Int32", "INT"]
-      when "float"
-        ["Float32", "FLOAT"]
-      when "real"
-        ["Float64", "REAL"]
-      when "bool", "boolean"
-        @type = "boolean"
-        ["Bool", "BOOL"]
-      when "date"
-        ["Time", "DATE"]
-      when "time", "timestamp"
-        @type = "time"
-        ["Time", "TIMESTAMP"]
-      else
-        ["String", "VARCHAR"]
+    def type_mapping(type = "string")
+      if type_mapping = TYPE_MAPPING[@database]?
+        if mapping = type_mapping[@type]?
+          return mapping
+        end
       end
-    end
-
-    def db_mapped_type
-      if (tm = TYPE_MAPPING[@database]?)
-        tm[@db_type]? || @db_type
+      
+      if mapping = TYPE_MAPPING["common"][@type]?
+        return mapping
       else
-        @db_type
+        raise "type #{@type} not available"
       end
     end
   end
