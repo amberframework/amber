@@ -47,6 +47,10 @@ module Amber::Validators
 
     def initialize(@raw_params : HTTP::Params); end
 
+    # This will allow params to respond to HTTP::Params methods.
+    # For example: [], []?, add, delete, each, fetch, etc.
+    forward_missing_to @raw_params
+
     # Setups validation rules to be performed
     #
     # ```crystal
@@ -95,12 +99,6 @@ module Amber::Validators
       errors.empty?
     end
 
-    # Captures and performs the validation rules block
-    #
-    private def validate : Nil
-      with self yield
-    end
-
     # Validates each field with a given set of predicates returns true if the
     # field is valid otherwise returns false
     #
@@ -109,12 +107,6 @@ module Amber::Validators
     # ```
     def add_rule(rule : BaseRule)
       @rules << rule
-    end
-
-    # Builds a message for given key if
-    private def message(key)
-      # TODO Implement i18n error messages
-      "#{key.capitalize} is invalid."
     end
   end
 end
