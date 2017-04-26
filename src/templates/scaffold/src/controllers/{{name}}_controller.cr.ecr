@@ -29,6 +29,8 @@ module <%= @name.capitalize %>Controller
 <% case field.type
 when "integer" -%>
     <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_i32)
+<% when "bigint" -%>
+    <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_i64)
 <% when "float" -%>
     <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_f32)
 <% when "real" -%>
@@ -38,6 +40,8 @@ when "integer" -%>
     <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X") if value
 <% when "boolean" -%>
     <%= @name %>.<%= field.name %> = (params["<%= field.name %>"]? != nil)
+<% when "bool_as_int" -%>
+      <%= @name %>.<%= field.name %> = params["<%= field.name %>"]? != nil ? 1.to_i64 : 0.to_i64
 <% else -%>
     <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?
 <% end -%>
@@ -69,6 +73,8 @@ when "integer" -%>
 <% case field.type
 when "integer" -%>
       <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_i32)
+<% when "bigint" -%>
+    <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_i64)
 <% when "float" -%>
       <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_f32)
 <% when "real" -%>
@@ -78,6 +84,8 @@ when "integer" -%>
       <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X") if value
 <% when "boolean" -%>
       <%= @name %>.<%= field.name %> = (params["<%= field.name %>"]? != nil)
+<% when "bool_as_int" -%>
+      <%= @name %>.<%= field.name %> = params["<%= field.name %>"]? != nil ? 1.to_i64 : 0.to_i64
 <% else -%>
       <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?
 <% end -%>

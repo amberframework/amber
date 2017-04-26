@@ -1,7 +1,7 @@
 -- +micrate Up
 CREATE TABLE <%= @name %>s (
   <%= @primary_key %>,
-  <%= @fields.map{ |field| "#{field.name} #{field.db_mapped_type}" }.join(",\n  ") %>
+  <%= @fields.map{ |field| "#{field.name} #{field.db_type}" }.join(",\n  ") %>
 );
 
 -- +micrate Down
