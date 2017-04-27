@@ -61,6 +61,17 @@ require "./amber"
 
 # This line simply makes a Amber Server instance that will be use for your
 # entire application
+
+class HelloController < Amber::Controller::Base
+  def world
+    "Hello World"
+  end
+
+  def template_demo
+    render "template_demo.slang" # renders views/hello/template_demo.slang with layout views/layouts/application.slang
+  end
+end
+
 MyAwesomeApp = Amber::Server.instance
 
 # This line represents how you will define your application configuration.
@@ -88,6 +99,14 @@ MyAwesomeApp.config do
     plug Amber::Pipe::Session.instance
   end
 
+  # All web content will run this pipeline
+  pipeline :web do
+    plug Amber::Pipe::Params.instance
+    plug Amber::Pipe::Logger.instance
+    plug Amber::Pipe::Error.instance
+    plug Amber::Pipe::Session.instance
+  end
+
   # All static content will run these transformations
   pipeline :static do
     plug Amber::Pipe::Params.instance
@@ -107,6 +126,7 @@ MyAwesomeApp.config do
     get "/", :hello, :world, :api
     get "/hello", :hello, :world, :api
     get "/hello/:planet", :hello, :world, :api
+    get "/hello/template_demo/:name", HelloController, :template_demo, :web
   end
 end
 
