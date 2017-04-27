@@ -19,11 +19,7 @@ module Amber
         @check_methods = CHECK_METHODS
       end
 
-<<<<<<< HEAD:src/amber/router/pipe/csrf.cr
-      def call(context : HTTP::Server::Context)
-=======
       def call(context)
->>>>>>> Adds CSRF specs to validate requests:src/amber/pipe/csrf.cr
         if !check_methods.includes?(context.request.method) || valid_token?(context)
           call_next(context)
         else
