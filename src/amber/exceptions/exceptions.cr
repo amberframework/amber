@@ -18,6 +18,14 @@ module Amber
       end
     end
 
+    module Controller
+      class Redirect < Exception
+        def initialize(location)
+          super("Cannot redirect to this location: #{location}")
+        end
+      end
+    end
+
     module Validator
       class ValidationFailed < Exception
         def initialize(errors)

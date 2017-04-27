@@ -13,7 +13,7 @@ class HelloController < Amber::Controller::Base
   end
 
   def template
-    render "hello.slang" 
+    render "hello.slang"
   end
 end
 
