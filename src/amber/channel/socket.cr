@@ -1,6 +1,6 @@
 module Amber
   module WebSockets
-    class ClientSocket
+    abstract class ClientSocket
 
       property id
 
@@ -10,6 +10,10 @@ module Amber
         CLOSING
         CLOSED
       end
+
+      abstract def on_connect
+      abstract def on_message
+      abstract def on_close
       
     end
   end
