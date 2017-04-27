@@ -1,4 +1,4 @@
-require "../spec_helper"
+require "../../spec_helper"
 
 class TestController < Amber::Controller::Base
   def render_template_page
