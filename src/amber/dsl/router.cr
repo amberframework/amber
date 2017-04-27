@@ -1,4 +1,4 @@
-module Amber::Support::DSL
+module Amber::DSL
   record Pipeline, pipeline : Pipe::Pipeline do
     def plug(pipe)
       pipeline.plug pipe
