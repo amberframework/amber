@@ -43,6 +43,8 @@ module Amber
 
       server = HTTP::Server.new(host, port, handler)
 
+      Websockets::Server.set_context(server.context)
+
       Signal::INT.trap do
         puts "Shutting down Amber"
         server.close
