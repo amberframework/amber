@@ -26,7 +26,7 @@ module Amber
 
       # This registers all the routes for the application
       def draw
-        with Support::DSL::Router.new(self) yield
+        with DSL::Router.new(self) yield
       end
 
       def add(route : Route)
