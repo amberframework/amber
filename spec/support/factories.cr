@@ -22,4 +22,3 @@ class TestController < Amber::Controller::Base
     render("test.slang", "layout.slang", "spec/sample/views", "./")
   end
 end
-

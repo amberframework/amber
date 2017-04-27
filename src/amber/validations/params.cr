@@ -1,5 +1,4 @@
 module Amber::Validators
-
   # Holds a validation error message
   record Error, param : String, value : String | Nil, message : String
 
