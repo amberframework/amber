@@ -43,8 +43,6 @@ module Amber
 
       server = HTTP::Server.new(host, port, handler)
 
-      Websockets::Server.set_context(server.context)
-
       Signal::INT.trap do
         puts "Shutting down Amber"
         server.close
@@ -67,12 +65,7 @@ module Amber
     end
 
     def socket_endpoint(path, app_socket)
-      spawn do
-        WebSockets::Server::Handler.new(path) do |socket, ctx|
-          instance = app_socket.new
-          instance.on_connect
-        end
-      end
+      WebSockets::Server.create_endpoint(path, app_socket)
     end
 
     macro pipeline(valve)
