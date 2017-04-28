@@ -14,3 +14,11 @@ dependencies:
   radix:
     github: luislavena/radix
     branch: master
+
+  kilt:
+    github: jeromegn/kilt
+    version: ~> 0.3.3
+
+  slang:
+    github: jeromegn/slang
+    branch: master

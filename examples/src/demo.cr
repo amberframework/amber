@@ -5,11 +5,15 @@
 # this one:
 
 # The first line requires the framework library.
-require "../src/amber"
+require "amber"
 
 class HelloController < Amber::Controller::Base
   def world
-    "Server Running!"
+    "Hello World"
+  end
+
+  def template
+    render "hello.slang" 
   end
 end
 
@@ -36,6 +40,10 @@ MY_APP_SERVER.config do |app|
     # A plug accepts an instance of HTTP::Handler
   end
 
+  pipeline :web do
+    plug Amber::Pipe::Params.new
+  end
+
   # All static content will run these transformations
   pipeline :static do
     plug HTTP::StaticFileHandler.new "examples/public", true
@@ -53,6 +61,7 @@ MY_APP_SERVER.config do |app|
     get "/*", HelloController, :world, :static
     get "/hello", HelloController, :world, :api
     get "/hello/:planet", HelloController, :world, :api
+    get "/hello/template", HelloController, :template, :web
   end
 end
 

@@ -2,6 +2,8 @@ require "http"
 
 module Amber::Controller
   class Base
+    include Amber::DSL::ControllerActions
+
     property request : HTTP::Request?
     property response : HTTP::Server::Response?
     property raw_params : HTTP::Params?
