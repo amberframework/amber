@@ -19,7 +19,7 @@ module Amber
         @check_methods = CHECK_METHODS
       end
 
-      def call(context)
+      def call(context : HTTP::Server::Context)
         if !check_methods.includes?(context.request.method) || valid_token?(context)
           call_next(context)
         else
