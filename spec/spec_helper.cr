@@ -1,4 +1,5 @@
 require "http"
 require "spec"
-require "./support/*"
 require "../src/amber"
+require "./support/*"
+require "./amber/controller/*"
