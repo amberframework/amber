@@ -33,3 +33,9 @@ def build_controller(referer)
   hello_controller.set_context(context)
   hello_controller
 end
+
+def create_user_socket
+  ws = HTTP::WebSocket.new(STDOUT)
+  client_socket = UserSocket.new(ws)
+  return ws, client_socket
+end

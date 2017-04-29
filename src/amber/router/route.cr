@@ -15,10 +15,10 @@ module Amber
       @valve = valve
     end
 
-    def initialize(@resource : String, @handler : WebSockets::Server::Handler)
-      @verb = :get
-      @controller = Controller::Base.new
-      @valve = :web
-    end
+    # def initialize(@resource : String, @handler : WebSockets::Server::Handler)
+    #   @verb = :get
+    #   @controller = Controller::Base.new
+    #   @valve = :web
+    # end
   end
 end
