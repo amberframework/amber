@@ -1,12 +1,11 @@
 module Amber
   module WebSockets
-    class Channel
+    abstract class Channel
       property name : String
 
       def initialize(@name);end
 
-      def self.subscribe(channel_name)
-      end
+      abstract def joined
     end
   end
 end
