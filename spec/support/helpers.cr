@@ -24,3 +24,9 @@ def create_context(request)
   response = HTTP::Server::Response.new(io)
   HTTP::Server::Context.new(request, response)
 end
+
+def create_user_socket
+  ws = HTTP::WebSocket.new(STDOUT)
+  client_socket = UserSocket.new(ws)
+  return ws, client_socket
+end
