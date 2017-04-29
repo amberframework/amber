@@ -21,6 +21,7 @@ module Amber
 
       property id : UInt64
       property socket : HTTP::WebSocket
+      property subscriptions : Subscriptions?
 
       # Add a channel for this socket to listen, publish to
       def self.channel(channel_path, ch)
@@ -44,11 +45,25 @@ module Amber
 
       # Sends ping opcode to client : https://tools.ietf.org/html/rfc6455#section-5.5.2
       def beat
+        # TODO: implement heartbeat
         puts "do beat"
       end
 
       protected def authorized?
         on_connect
+      end
+
+      protected def on_message(message)
+        if @socket.closed?
+          Amber::Server.instance.log.error "Ignoring message sent to closed socket"
+        else
+          @subscriptions.not_nil!.execute_command decode(message)
+        end
+      end
+
+      protected def decode(message)
+        # TODO: implement different decoders
+        JSON.parse(message)
       end
       
     end

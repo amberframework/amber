@@ -9,11 +9,11 @@ module Amber
           Handler.new(path) do |socket|
             instance = app_socket.new(socket)
             socket.close && next unless instance.authorized?
-            
+
             ClientSockets.add_client_socket(instance)
 
             socket.on_message do |message|
-              
+              instance.on_message(message)
             end
 
             socket.on_close do
