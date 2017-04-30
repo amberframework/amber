@@ -3,7 +3,7 @@ require "./*"
 
 module Amber::Controller
   class Base
-    include DSL::ControllerActions
+    include Render
     include Redirect
 
     protected getter request = HTTP::Request.new("GET", "/")
