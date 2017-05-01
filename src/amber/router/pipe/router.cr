@@ -17,8 +17,7 @@ module Amber
         raise Exceptions::RouteNotFound.new(context.request) if !route_defined?(context.request)
         route_node = match_by_request(context.request)
         merge_params(route_node.params, context)
-        route_node.payload.controller.set_context(context)
-        content = route_node.payload.handler.call
+        content = route_node.payload.call(context)
       ensure
         context.response.print(content)
         context

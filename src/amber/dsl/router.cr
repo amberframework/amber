@@ -10,7 +10,7 @@ module Amber::DSL
       %ctrl = {{controller.id}}.new
       %action = ->%ctrl.{{handler.id}}
       %verb = {{verb.upcase.id.stringify}}
-      %route = Amber::Route.new(%verb, {{resource}}, %ctrl, %action, {{pipeline}})
+      %route = Amber::Route.new(%verb, {{resource}}, %ctrl, %action, {{handler}}, {{pipeline}})
 
       router.add(%route)
     end
