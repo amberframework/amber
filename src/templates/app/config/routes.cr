@@ -35,5 +35,5 @@ get "/", HomeController::Index
 # patch "/demo", DemoController::Update
 # delete "/demo", DemoController::Delete
 
-# resources Demo
+# resource Demo
 
