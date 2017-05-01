@@ -1,14 +1,18 @@
 module Amber::DSL
   module Callbacks
     macro before_action
-      protected def before_filters
-        filters.register :before { {{yield}} }
+      def before_filters : Nil
+        filters.register :before do
+          {{yield}}
+        end
       end
     end
 
     macro after_action
-      protected def after_filters
-        filters.register :after { {{yield}} }
+      def after_filters : Nil
+        filters.register :after do
+          {{yield}}
+        end
       end
     end
   end

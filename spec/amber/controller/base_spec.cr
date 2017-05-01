@@ -2,7 +2,6 @@ require "../../../spec_helper"
 
 module Amber::Controller
   describe Base do
-
     describe "#render" do
       it "renders html from slang template" do
         html_output = <<-HTML
@@ -29,22 +28,41 @@ module Amber::Controller
       end
     end
 
-
     describe "#before_action" do
+      context "registering action filters" do
+        it "registers a before action" do
+          controller = build_controller("")
+          controller.before_filters
 
-      it "registers a before action" do
-        controller = build_controller("")
-        # controller.run_actions(:show)
+          before_filters = controller.filters[:before]
 
-        # puts controller.filters
-        controller.run_actions(:before, :index)
-        # controller.run_actions(:world)
+          before_filters.size.should eq 4
+        end
+
+        it "registers a after action" do
+          controller = build_controller("")
+          controller.after_filters
+
+          after_filters = controller.filters[:after]
+
+          after_filters.size.should eq 2
+        end
       end
 
-      it "runs filters" do
-        controller = build_controller("")
-        # filters = controller.register_before_actions
-        # controller.run_actions(:index)
+      context "running filters" do
+        it "runs before filters" do
+          controller = build_controller("")
+          controller.run_before_filter(:index)
+
+          controller.total.should eq 4
+        end
+
+        it "runs after filters" do
+          controller = build_controller("")
+          controller.run_after_filter(:index)
+
+          controller.total.should eq 2
+        end
       end
     end
 

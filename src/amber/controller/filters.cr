@@ -1,31 +1,32 @@
 module Amber::Controller
-
   module Callbacks
     macro included
       include Amber::DSL::Callbacks
-      protected property filters : Callbacks = Callbacks.new
+      protected property filters : Filters = Filters.new
 
-      protected def run_actions(precedence : Symbol, action : Symbol)
-        case precedence
-        when :before
-          before_filters
-        when :after
-          after_filters
+      protected def run_before_filter(action)
+        if self.responds_to? :before_filters
+          self.before_filters
+          @filters.run(:before, action)
         end
-        @filters.run(precedence, action)
+      end
+
+      protected def run_after_filter(action)
+        if self.responds_to? :after_filters
+          self.after_filters
+          @filters.run(:after, action)
+        end
       end
     end
   end
 
-
-  record Filter, precedence :  Symbol, action : Symbol, blk : ->String | Nil do
+  record Filter, precedence : Symbol, action : Symbol, blk : -> Nil do
   end
-
 
   # Builds a BeforeAction filter.
   #
-  # The yielded object has an `add` method that accepts two arguments,
-  # a key (`Symbol`) and a block ->(`String` or `Nil`).
+  # The yielded object has an `only` method that accepts two arguments,
+  # a key (`Symbol`) and a block ->`Nil`.
   #
   # ```
   # FilterChainBuilder.build do |b|
@@ -34,23 +35,25 @@ module Amber::Controller
   # end
   # ```
   record FilterBuilder, filters : Filters, precedence : Symbol do
-    def only(action : Symbol, &blk : ->String | Nil )
-      add(action, blk
+    def only(action : Symbol, &block : -> Nil)
+      add(action, &block)
     end
 
-    def only(actions : Array(Symbol), &block : ->String | Nil)
-      actions.each { |action| add(action, blk) }
+    def only(actions : Array(Symbol), &block : -> Nil)
+      actions.each { |action| add(action, &block) }
     end
 
-    def add(action, block : ->String | Nil)
-      callbacks.add Filter.new(precedence, action, block)
+    def add(action, &block : -> Nil)
+      filters.add Filter.new(precedence, action, block)
     end
   end
 
   class Filters
+    include Enumerable({Symbol, Array(Filter)})
+
     property filters = {} of Symbol => Array(Filter)
 
-    def register(precedence : Symbol)
+    def register(precedence : Symbol) : Nil
       with FilterBuilder.new(self, precedence) yield
     end
 
@@ -63,6 +66,18 @@ module Amber::Controller
       filters[precedence].each do |filter|
         filter.blk.call if filter.action == action
       end
+    end
+
+    def [](name)
+      filters[name]
+    end
+
+    def []?(name)
+      fetch(name) { nil }
+    end
+
+    def fetch(name)
+      filters.fetch(name)
     end
   end
 end

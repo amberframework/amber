@@ -2,15 +2,16 @@ require "../../src/amber/*"
 require "../../src/amber/**"
 
 class HelloController < Amber::Controller::Base
+  @total : Int32 = 0
 
   before_action do
-    only [:index] { say_hello }
+    only [:index, :world, :show] { increment(3) }
+    only :index { increment(1) }
   end
 
   after_action do
-    only [:index] { say_something }
+    only [:index, :world] { increment(2) }
   end
-
 
   def index; end
 
@@ -22,10 +23,13 @@ class HelloController < Amber::Controller::Base
     "Hello Amber!"
   end
 
-  def say_something(say)
-    puts say
+  def increment(n)
+    @total = @total + n
   end
 
+  def total
+    @total
+  end
 end
 
 class TestController < Amber::Controller::Base
