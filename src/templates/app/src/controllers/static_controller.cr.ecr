@@ -1,8 +1,0 @@
-module StaticController
-  class Index < Kemalyst::Controller
-    def call(context)
-      render "static/index.<%= @language %>", "main.<%= @language %>"
-    end
-  end
-end
-
