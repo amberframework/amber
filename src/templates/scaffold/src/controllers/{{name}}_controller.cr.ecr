@@ -5,13 +5,13 @@ module <%= @name.capitalize %>Controller
 
   action Index do
     <%= @name %>s = <%= @name.capitalize %>.all
-    render "<%= @name %>/index.<%= @language %>", "main.<%= @language %>"
+    html render("<%= @name %>/index.<%= @language %>", "main.<%= @language %>")
   end
 
   action Show do
     id = context.params["id"]
     if <%= @name %> = <%= @name.capitalize %>.find id
-      render "<%= @name %>/show.<%= @language %>", "main.<%= @language %>"
+      html render("<%= @name %>/show.<%= @language %>", "main.<%= @language %>")
     else
       context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
       redirect "/<%= @name %>s"
@@ -20,7 +20,7 @@ module <%= @name.capitalize %>Controller
 
   action New do
     <%= @name %> = <%= @name.capitalize %>.new
-    render "<%= @name %>/new.<%= @language %>", "main.<%= @language %>"
+    html render("<%= @name %>/new.<%= @language %>", "main.<%= @language %>")
   end
 
   action Create do
@@ -48,14 +48,14 @@ when "integer" -%>
       redirect "/<%= @name %>s"
     else
       context.flash["danger"] = "Could not create <%= @name.capitalize %>!"
-      render "<%= @name %>/new.<%= @language %>", "main.<%= @language %>"
+      html render("<%= @name %>/new.<%= @language %>", "main.<%= @language %>")
     end
   end
 
   action Edit do
     id = context.params["id"]
     if <%= @name %> = <%= @name.capitalize %>.find id
-      render "<%= @name %>/edit.<%= @language %>", "main.<%= @language %>"
+      html render("<%= @name %>/edit.<%= @language %>", "main.<%= @language %>")
     else
       context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
       redirect "/<%= @name %>s"
@@ -88,7 +88,7 @@ when "integer" -%>
         redirect "/<%= @name %>s"
       else
         context.flash["danger"] = "Could not update <%= @name.capitalize %>!"
-        render "<%= @name %>/edit.<%= @language %>", "main.<%= @language %>"
+        html render("<%= @name %>/edit.<%= @language %>", "main.<%= @language %>")
       end
     else
       context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
