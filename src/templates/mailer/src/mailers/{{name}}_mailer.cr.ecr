@@ -6,7 +6,9 @@ class <%= @name.capitalize %>Mailer < Kemalyst::Mailer
     @name = "User Name"
     from "from@example.com"
     to "to@example.com"
+    cc "cc@example.com"
+    bcc "bcc@example.com"
     subject "Example Subject"
-    render("mailers/<%= @name %>_mailer.<%= @language %>", "mailer.<%= @language %>")
+    body render("mailers/<%= @name %>_mailer.<%= @language %>", "mailer.<%= @language %>")
   end
 end
