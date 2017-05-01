@@ -30,6 +30,24 @@ module Amber::Controller
     end
 
 
+    describe "#before_action" do
+
+      it "registers a before action" do
+        controller = build_controller("")
+        # controller.run_actions(:show)
+
+        # puts controller.filters
+        controller.run_actions(:before, :index)
+        # controller.run_actions(:world)
+      end
+
+      it "runs filters" do
+        controller = build_controller("")
+        # filters = controller.register_before_actions
+        # controller.run_actions(:index)
+      end
+    end
+
     describe "#redirect_to" do
       context "when location is a string" do
         ["www.amberio.com", "/world"].each do |location|
