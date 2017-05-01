@@ -5,7 +5,7 @@ module Amber::Controller
   class Base
     include Render
     include Redirect
-    include FilterHelper
+    include Callbacks
 
     protected getter request = HTTP::Request.new("GET", "/")
     protected getter response = HTTP::Server::Response.new(IO::Memory.new)
