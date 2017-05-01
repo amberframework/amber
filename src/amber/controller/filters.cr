@@ -1,34 +1,17 @@
 module Amber::Controller
 
-  module FilterHelper
+  module Callbacks
     macro included
+      include Amber::DSL::Callbacks
       protected property filters : Callbacks = Callbacks.new
 
-      macro before_action
-        protected def before_filters
-          filters.register :before do
-            {{yield}}
-          end
-        end
-      end
-
-      macro after_action
-        protected def after_filters
-          filters.register :after do
-            {{yield}}
-          end
-        end
-      end
-
       protected def run_actions(precedence : Symbol, action : Symbol)
-
         case precedence
         when :before
           before_filters
         when :after
           after_filters
         end
-
         @filters.run(precedence, action)
       end
     end
@@ -50,7 +33,7 @@ module Amber::Controller
   #   filter :delete { }
   # end
   # ```
-  record FilterBuilder, callbacks : Callbacks, precedence : Symbol do
+  record FilterBuilder, filters : Filters, precedence : Symbol do
     def only(action : Symbol, &blk : ->String | Nil )
       add(action, blk
     end
@@ -64,9 +47,8 @@ module Amber::Controller
     end
   end
 
-  class Callbacks
+  class Filters
     property filters = {} of Symbol => Array(Filter)
-    # include Enumerable(Symbol, Array(Filter))
 
     def register(precedence : Symbol)
       with FilterBuilder.new(self, precedence) yield
