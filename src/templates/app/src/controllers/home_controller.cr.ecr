@@ -1,7 +1,7 @@
 module HomeController
   class Index < Kemalyst::Controller
     def call(context)
-      render "home/index.<%= @language %>", "main.<%= @language %>"
+      html render("home/index.<%= @language %>", "main.<%= @language %>")
     end
   end
 end

@@ -3,7 +3,7 @@ module <%= @name.capitalize %>Controller
 
 <% @fields.each do |field| -%>
   action <%= field.name %> do
-  render "<%= @name %>/<%= field.name %>.<%= @language %>", "main.<%= @language %>"
+  html render("<%= @name %>/<%= field.name %>.<%= @language %>", "main.<%= @language %>")
   end
 <% end -%>
 end
