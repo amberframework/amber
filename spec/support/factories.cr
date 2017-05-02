@@ -7,6 +7,7 @@ class HelloController < Amber::Controller::Base
   before_action do
     only [:index, :world, :show] { increment(3) }
     only :index { increment(1) }
+    all { say_hello }
   end
 
   after_action do
