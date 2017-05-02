@@ -36,7 +36,7 @@ module Amber::Controller
 
           before_filters = controller.filters[:before]
 
-          before_filters.size.should eq 4
+          before_filters.size.should eq 5
         end
 
         it "registers a after action" do
