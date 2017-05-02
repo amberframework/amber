@@ -113,7 +113,7 @@ MyAwesomeApp.config do
     plug Amber::Pipe::Logger.instance
     plug Amber::Pipe::Error.instance
     plug Amber::Pipe::Session.instance
-  en
+  end
 
   # This is how you define the routes for your application
   # HTTP methods supported [GET, PATCH, POST, PUT, DELETE, OPTIONS]
