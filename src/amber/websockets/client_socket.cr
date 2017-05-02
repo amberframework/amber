@@ -35,6 +35,9 @@ module Amber
       def initialize(@socket)
         @id = @socket.object_id
         @subscriptions = Subscriptions.new(self.socket)
+        @socket.on_pong do |msg|
+          puts "on pong #{msg}"
+        end
         self.on_connect
       end
 
@@ -45,8 +48,7 @@ module Amber
 
       # Sends ping opcode to client : https://tools.ietf.org/html/rfc6455#section-5.5.2
       def beat
-        # TODO: implement heartbeat
-        puts "do beat"
+        spawn { @socket.ping }
       end
 
       protected def authorized?

@@ -20,19 +20,17 @@ module Amber
               ClientSockets.remove_client_socket(instance)
             end
           end
-        end
 
-        ClientSockets.setup_heartbeat
+          ClientSockets.setup_heartbeat
+        end
       end
 
       class Handler < HTTP::WebSocketHandler
         def initialize(@path : String, &@proc : HTTP::WebSocket, HTTP::Server::Context -> Void)
-          # route = Route.new(path, self)
-          # Pipe::Router.instance.add(route)
+          Pipe::Router.instance.add_socket_route(@path, self)
         end
 
         def call(context)
-          puts "socket call"
           super
         end
       end
