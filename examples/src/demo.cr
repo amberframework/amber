@@ -8,12 +8,34 @@
 require "amber"
 
 class HelloController < Amber::Controller::Base
+
+  # Filters are methods that are run "before", "after" a controller action.
+  before_action do
+    only [:index, :world, :show] { increment(3) }
+    only :index { increment(1) }
+  end
+
+  after_action do
+    only [:index, :world] { increment(2) }
+  end
+
   def world
-    "Hello World"
+    if params.valid?
+      "Welcome to planet #{params[:planet]}"
+    else
+      "There is no world defined!"
+      redirect_to :template
+    end
   end
 
   def template
     render "hello.slang"
+  end
+
+  def hello_params
+    params.validation do
+      required(:planet) { |w| !w.empty? && }
+    end
   end
 end
 
