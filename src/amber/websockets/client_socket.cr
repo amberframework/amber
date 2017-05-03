@@ -17,7 +17,7 @@ module Amber
     #   end
     # ```
     abstract struct ClientSocket
-      @@channels = [] of NamedTuple(path: String, channel: Channel.class)
+      @@channels = [] of NamedTuple(path: String, channel: Channel)
 
       property id : UInt64
       property socket : HTTP::WebSocket
@@ -25,7 +25,7 @@ module Amber
 
       # Add a channel for this socket to listen, publish to
       def self.channel(channel_path, ch)
-        @@channels.push({path: channel_path, channel: ch})
+        @@channels.push({path: channel_path, channel: ch.new})
       end
 
       def self.channels
@@ -34,9 +34,9 @@ module Amber
 
       def initialize(@socket)
         @id = @socket.object_id
-        @subscriptions = Subscriptions.new(self.socket)
+        @subscriptions = Subscriptions.new
         @socket.on_pong do |msg|
-          puts "on pong #{msg}"
+          # TODO: setup heartbeat
         end
         self.on_connect
       end
@@ -59,7 +59,7 @@ module Amber
         if @socket.closed?
           Amber::Server.instance.log.error "Ignoring message sent to closed socket"
         else
-          @subscriptions.not_nil!.execute_command decode(message)
+          @subscriptions.not_nil!.dispatch self, decode(message)
         end
       end
 
