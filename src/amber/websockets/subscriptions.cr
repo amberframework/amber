@@ -1,5 +1,7 @@
 module Amber
   module WebSockets
+    # `Subscriptions` manages the list of channel subscriptions for the socket connection.
+    # Also handles dispatching actions (messages) to the appropriate channel.
     struct Subscriptions
       property subscriptions = Hash(String, Channel).new
 

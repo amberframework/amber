@@ -1,5 +1,7 @@
 module Amber
   module WebSockets
+    # Sockets subscribe to Channel's, where the communication log is handled.  The channel provides funcionality
+    # to handle socket join `handle_joined` and socket messages `handle_message(msg)`.
     abstract class Channel
       def initialize; end
 
@@ -14,6 +16,7 @@ module Amber
         handle_message(msg)
       end
 
+      # Rebroadcast this message to all subscribers of the channel
       protected def rebroadcast!(msg)
         subscribers = ClientSockets.get_subscribers(msg["channel"])
         subscribers.map(&.socket.send(msg.to_s))

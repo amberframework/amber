@@ -1,5 +1,8 @@
 module Amber
   module WebSockets
+    #
+    # Manages the entire collection of ClientSocket's.  Manages periodic timers for socket connections (heartbeat).
+    #
     module ClientSockets
       extend self
       @@client_sockets = {} of UInt64 => ClientSocket
