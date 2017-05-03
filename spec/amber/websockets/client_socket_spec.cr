@@ -4,7 +4,8 @@ module Amber
   describe WebSockets::ClientSocket do
     describe "#channel" do
       it "should add channels" do
-        UserSocket.channels.should eq [{path: "user_room/*", channel: UserChannel}]
+        UserSocket.channels[0][:path].should eq "user_room/*"
+        UserSocket.channels[0][:channel].should be_a UserChannel
       end
     end
 
