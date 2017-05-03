@@ -28,5 +28,7 @@ struct UserSocket < Amber::WebSockets::ClientSocket
 end
 
 class UserChannel < Amber::WebSockets::Channel
-  def joined; end
+  def handle_joined; end
+
+  def handle_message(msg); end
 end
