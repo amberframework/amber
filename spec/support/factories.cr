@@ -28,5 +28,5 @@ struct UserSocket < Amber::WebSockets::ClientSocket
 end
 
 class UserChannel < Amber::WebSockets::Channel
-  def joined;end
+  def joined; end
 end

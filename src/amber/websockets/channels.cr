@@ -5,7 +5,7 @@ module Amber
       @@channels = [] of Channel
 
       def add_channel(channel)
-        @@channels << channel unless @@channels.select{|ch| ch.name === channel.name }.any?
+        @@channels << channel unless @@channels.select { |ch| ch.name === channel.name }.any?
       end
     end
   end

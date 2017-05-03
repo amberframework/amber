@@ -18,7 +18,7 @@ module Amber
       end
     end
 
-    describe "#on_connect" do 
+    describe "#on_connect" do
       it "should default to true" do
         ws, client_socket = create_user_socket
         client_socket.on_connect.should eq true

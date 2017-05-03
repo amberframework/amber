@@ -7,14 +7,14 @@ module Amber
     # Example:
     #
     # ```crystal
-    #   struct UserSocket < Amber::Websockets::ClientSocket
-    #     channel "user_channel/*", UserChannel
-    #     channel "room_channel/*", RoomChannel
+    # struct UserSocket < Amber::Websockets::ClientSocket
+    #   channel "user_channel/*", UserChannel
+    #   channel "room_channel/*", RoomChannel
     #
-    #     def on_connect
-    #       return some_auth_method!
-    #     end
+    #   def on_connect
+    #     return some_auth_method!
     #   end
+    # end
     # ```
     abstract struct ClientSocket
       @@channels = [] of NamedTuple(path: String, channel: Channel)
@@ -67,7 +67,6 @@ module Amber
         # TODO: implement different decoders
         JSON.parse(message)
       end
-      
     end
   end
 end

@@ -1,12 +1,22 @@
 module Amber
   module WebSockets
     abstract class Channel
-      def initialize();end
+      def initialize; end
 
-      abstract def joined
+      abstract def handle_joined
+      abstract def handle_message(msg)
 
-      def subscribe_to_channel
-        joined
+      protected def subscribe_to_channel
+        handle_joined
+      end
+
+      protected def dispatch(msg)
+        handle_message(msg)
+      end
+
+      protected def rebroadcast!(msg)
+        subscribers = ClientSockets.get_subscribers(msg["channel"])
+        subscribers.map(&.socket.send(msg.to_s))
       end
     end
   end
