@@ -2,7 +2,7 @@ name: amber_demo
 version: 0.1.0
 
 authors:
-  - Elias Perez <<eliasjpr@gmail.com>>
+  - Amber - Crystal Framework
 
 crystal: 0.21.1
 
@@ -10,4 +10,4 @@ license: MIT
 
 dependencies:
   amber:
-    path: ../ 
+    path: ../

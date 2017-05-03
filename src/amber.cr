@@ -36,7 +36,6 @@ module Amber
     end
 
     def run
-      puts port
       time = Time.now
       host = "127.0.0.1"
 

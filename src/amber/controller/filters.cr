@@ -7,16 +7,16 @@ module Amber::Controller
       protected def run_before_filter(action)
         if self.responds_to? :before_filters
           self.before_filters
-          @filters.run(:before, :all)
           @filters.run(:before, action)
+          @filters.run(:before, :all)
         end
       end
 
       protected def run_after_filter(action)
         if self.responds_to? :after_filters
           self.after_filters
-          @filters.run(:after, :all)
           @filters.run(:after, action)
+          @filters.run(:after, :all)
         end
       end
     end
