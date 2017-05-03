@@ -6,16 +6,8 @@
 
 # The first line requires the framework library.
 require "amber"
-
-class HelloController < Amber::Controller::Base
-  def world
-    "Hello World"
-  end
-
-  def template
-    render "hello.slang"
-  end
-end
+require "./**"
+require "./*"
 
 MY_APP_SERVER = Amber::Server.instance
 
@@ -35,18 +27,15 @@ MY_APP_SERVER.config do |app|
   # of which transformation to run for each of the app requests.
 
   # All api scoped routes will run these transformations
-  pipeline :api do
+  pipeline :web do
     # Plug is the method to use connect a pipe (middleware)
     # A plug accepts an instance of HTTP::Handler
-  end
-
-  pipeline :web do
     plug Amber::Pipe::Params.new
   end
 
   # All static content will run these transformations
   pipeline :static do
-    plug HTTP::StaticFileHandler.new "examples/public", true
+    plug HTTP::StaticFileHandler.new "../examples/public", true
     plug HTTP::CompressHandler.new
   end
 
@@ -58,9 +47,9 @@ MY_APP_SERVER.config do |app|
     # Each route is defined as follow
     # verb, resources : String, controller : Symbol, action : Symbol,
     # pipeline : Symbol
-    get "/*", HelloController, :world, :static
-    get "/hello", HelloController, :world, :api
-    get "/hello/:planet", HelloController, :world, :api
+    get "/*", StaticController, :index, :static
+    get "/hello", HelloController, :index, :web
+    get "/hello/:planet", HelloController, :world, :web
     get "/hello/template", HelloController, :template, :web
   end
 end
