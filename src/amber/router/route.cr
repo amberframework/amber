@@ -1,13 +1,22 @@
 module Amber
   class Route
-    property :controller, :handler, :action, :verb, :resource, :valve, :params
+    property :controller, :handler, :action, :verb, :resource, :valve, :params,:scope
 
     def initialize(@verb : String,
                    @resource : String,
                    @controller = Controller::Base.new,
                    @handler : Proc(String) = ->{ "500" },
                    @action : Symbol = :index,
-                   @valve : Symbol = :web)
+                   @valve : Symbol = :web,
+                   @scope : String = "")
+    end
+
+    def trail
+      "#{verb.to_s.downcase}#{scope}#{resource}"
+    end
+
+    def trail_head
+      "head#{scope}#{resource}"
     end
 
     def call(context)

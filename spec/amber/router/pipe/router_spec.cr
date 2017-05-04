@@ -17,8 +17,8 @@ module Amber
           router = Router.instance
           request = HTTP::Request.new("GET", "/index/elias")
 
-          router.draw do
-            get "/index/:name", HelloController, :world, :web
+          router.draw :web do
+            get "/index/:name", HelloController, :world
           end
 
           response = create_request_and_return_io(router, request)
@@ -50,8 +50,8 @@ module Amber
           router = Router.instance
           request = HTTP::Request.new("GET", "/checkout/elias")
 
-          router.draw do
-            get "/checkout/:name", HelloController, :world, :web
+          router.draw :web do
+            get "/checkout/:name", HelloController, :world
           end
 
           route = Router.instance.match_by_request(request)

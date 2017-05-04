@@ -24,13 +24,17 @@ module Amber
       end
 
       # This registers all the routes for the application
-      def draw
-        with DSL::Router.new(self) yield
+      def draw(valve : Symbol)
+        with DSL::Router.new(self, valve, "") yield
+      end
+
+      def draw(valve : Symbol, scope : String)
+        with DSL::Router.new(self, valve, scope) yield
       end
 
       def add(route : Route)
         trail = build_node(route.verb, route.resource)
-        node = @routes.add(trail, route)
+        node = @routes.add(route.trail, route)
         add_head(route) if route.verb == :GET
         node
       rescue Radix::Tree::DuplicateError
@@ -58,8 +62,7 @@ module Amber
       end
 
       private def add_head(route)
-        trail = build_node(:HEAD, route.resource)
-        @routes.add(trail, route)
+        @routes.add(route.trail_head, route)
       end
     end
   end
