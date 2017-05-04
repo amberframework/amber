@@ -14,23 +14,23 @@ describe Amber do
         secret = "some secret key"
 
         pipeline :api do
-          plug Amber::Pipe::Params.instance
-          plug Amber::Pipe::Logger.instance
-          plug Amber::Pipe::Error.instance
-          plug Amber::Pipe::Session.instance
+          plug Amber::Pipe::Params.new
+          plug Amber::Pipe::Logger.new
+          plug Amber::Pipe::Error.new
+          plug Amber::Pipe::Session.new
         end
 
         pipeline :static do
-          plug Amber::Pipe::Params.instance
-          plug Amber::Pipe::Logger.instance
-          plug Amber::Pipe::Error.instance
-          plug Amber::Pipe::Session.instance
+          plug Amber::Pipe::Params.new
+          plug Amber::Pipe::Logger.new
+          plug Amber::Pipe::Error.new
+          plug Amber::Pipe::Session.new
         end
 
-        routes do
-          get "/", HelloController, :world, :api
-          get "/hello", HelloController, :world, :api
-          get "/hello/:role", HelloController, :world, :api
+        routes :api do
+          get "/", HelloController, :world
+          get "/hello", HelloController, :world
+          get "/hello/:role", HelloController, :world
         end
       end
     end

@@ -43,14 +43,17 @@ MY_APP_SERVER.config do |app|
   # HTTP methods supported [GET, PATCH, POST, PUT, DELETE, OPTIONS]
   # Read more about HTTP methods here
   # (HTTP METHODS)[https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html]
-  routes do
+  routes :static do
     # Each route is defined as follow
     # verb, resources : String, controller : Symbol, action : Symbol,
     # pipeline : Symbol
-    get "/*", StaticController, :index, :static
-    get "/hello", HelloController, :index, :web
-    get "/hello/:planet", HelloController, :world, :web
-    get "/hello/template", HelloController, :template, :web
+    get "/*", StaticController, :index
+  end
+
+  routes :web, "/v2" do
+    get "/hello", HelloController, :index
+    get "/hello/:planet", HelloController, :world
+    get "/hello/template", HelloController, :template
   end
 end
 

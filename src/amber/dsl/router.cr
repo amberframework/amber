@@ -5,12 +5,12 @@ module Amber::DSL
     end
   end
 
-  record Router, router : Pipe::Router do
-    macro route(verb, resource, controller, action, pipeline)
+  record Router, router : Pipe::Router, valve : Symbol, scope : String do
+    macro route(verb, resource, controller, action)
       %controller = {{controller.id}}.new
       %handler = ->%controller.{{action.id}}
       %verb = {{verb.upcase.id.stringify}}
-      %route = Amber::Route.new(%verb, {{resource}}, %controller, %handler, {{action}}, {{pipeline}})
+      %route = Amber::Route.new(%verb, {{resource}}, %controller, %handler, {{action}}, valve, scope)
 
       router.add(%route)
     end
