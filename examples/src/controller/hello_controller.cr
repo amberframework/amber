@@ -17,8 +17,7 @@ class HelloController < Amber::Controller::Base
 
   def world
     if params.valid?
-      # "Welcome to planet: #{params["planet"]}!"
-      "Valid!"
+      "Welcome to planet: #{params["planet"]}!"
     else
       "There is no world defined!"
     end

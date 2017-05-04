@@ -61,8 +61,8 @@ module Amber
       with self yield self
     end
 
-    macro routes
-      router.draw do
+    macro routes(valve, scope = "")
+      router.draw {{valve}}, {{scope}} do
         {{yield}}
       end
     end
