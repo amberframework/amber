@@ -35,7 +35,7 @@ MY_APP_SERVER.config do |app|
 
   # All static content will run these transformations
   pipeline :static do
-    plug HTTP::StaticFileHandler.new "../examples/public", true
+    plug HTTP::StaticFileHandler.new "../examples/public", false
     plug HTTP::CompressHandler.new
   end
 
@@ -45,14 +45,30 @@ MY_APP_SERVER.config do |app|
   # (HTTP METHODS)[https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html]
   routes :static do
     # Each route is defined as follow
-    # verb, resources : String, controller : Symbol, action : Symbol,
-    # pipeline : Symbol
-    get "/*", StaticController, :index
+    # verb resource : String, controller : Symbol, action : Symbol
+    get "/index.html", StaticController, :index
   end
 
+  # Routes accepts a pipeline name and a scope a pipeline represents a stach of
+  # http handlers that will process the current request
   routes :web, "/v2" do
-    get "/hello", HelloController, :index
-    get "/hello/:planet", HelloController, :world
+    # You can also define all resources at once with the resources macro.
+    # This will define the following routes
+    # resoources path, controller, actions
+    # resources "/user", UserController, [:index, :show]
+    # resources "/user", UserController, actions: [:index, :show]
+    #
+    # GET     /users          UserController  :index
+    # GET     /users/:id/edit UserController  :edit
+    # GET     /users/new      UserController  :new
+    # GET     /users/:id      UserController  :show
+    # POST    /users          UserController  :create
+    # PATCH   /users/:id      UserController  :update
+    # PUT     /users/:id      UserController  :update
+    # DELETE  /users/:id      UserController  :delete
+
+    resources "/hello", HelloController, [:index, :show]
+    get "/hello/world/:planet", HelloController, :world
     get "/hello/template", HelloController, :template
   end
 end

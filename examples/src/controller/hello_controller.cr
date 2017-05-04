@@ -15,6 +15,30 @@ class HelloController < Amber::Controller::Base
     "Hello from no where, Increment result: #{@num}"
   end
 
+  def edit
+    "Edit Action"
+  end
+
+  def new
+    "New Action"
+  end
+
+  def show
+    "Show Action"
+  end
+
+  def create
+    "Create Action"
+  end
+
+  def update
+    "Update Action"
+  end
+
+  def delete
+    "Delete Action"
+  end
+
   def world
     if params.valid?
       "Welcome to planet: #{params["planet"]}!"
