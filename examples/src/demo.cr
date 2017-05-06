@@ -54,7 +54,7 @@ MY_APP_SERVER.config do |app|
   routes :web, "/v2" do
     # You can also define all resources at once with the resources macro.
     # This will define the following routes
-    # resoources path, controller, actions
+    # resources path, controller, actions
     # resources "/user", UserController, [:index, :show]
     # resources "/user", UserController, actions: [:index, :show]
     #
