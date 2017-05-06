@@ -1,10 +1,10 @@
-FROM drujensen/crystal:0.22.0
+FROM drujensen/crystal:0.22.0-1
 
-ENV KGEN_VERSION 0.4.2
+ENV KGEN_VERSION 0.4.3
 
-RUN curl -L https://github.com/TechMagister/kemalyst-generator/archive/v$KGEN_VERSION.tar.gz | tar xvz -C /app/. && cd /app/kemalyst-generator-$KGEN_VERSION && crystal deps && make
+RUN curl -L https://github.com/TechMagister/kemalyst-generator/archive/v$KGEN_VERSION.tar.gz | tar xvz -C /usr/local/share/. && cd /usr/local/share/kemalyst-generator-$KGEN_VERSION && crystal deps && make
 
-RUN ln -s /app/kemalyst-generator-$KGEN_VERSION/bin/kgen /usr/local/bin/kgen
+RUN ln -s /usr/local/share/kemalyst-generator-$KGEN_VERSION/bin/kgen /usr/local/bin/kgen
 
 WORKDIR /app/user
 
