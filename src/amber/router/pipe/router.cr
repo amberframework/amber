@@ -18,8 +18,7 @@ module Amber
         raise Exceptions::RouteNotFound.new(context.request) if !route_defined?(context.request)
         route_node = match_by_request(context.request)
         merge_params(route_node.params, context)
-        route_node.payload.controller.set_context(context)
-        content = route_node.payload.handler.call
+        content = route_node.payload.call(context)
       ensure
         context.response.print(content)
         context
@@ -31,13 +30,17 @@ module Amber
       end
 
       # This registers all the routes for the application
-      def draw
-        with DSL::Router.new(self) yield
+      def draw(valve : Symbol)
+        with DSL::Router.new(self, valve, "") yield
+      end
+
+      def draw(valve : Symbol, scope : String)
+        with DSL::Router.new(self, valve, scope) yield
       end
 
       def add(route : Route)
         trail = build_node(route.verb, route.resource)
-        node = @routes.add(trail, route)
+        node = @routes.add(route.trail, route)
         add_head(route) if route.verb == :GET
         node
       rescue Radix::Tree::DuplicateError
@@ -73,8 +76,7 @@ module Amber
       end
 
       private def add_head(route)
-        trail = build_node(:HEAD, route.resource)
-        @routes.add(trail, route)
+        @routes.add(route.trail_head, route)
       end
     end
   end

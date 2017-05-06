@@ -3,14 +3,15 @@ require "./*"
 
 module Amber::Controller
   class Base
-    include DSL::ControllerActions
+    include Render
     include Redirect
+    include Callbacks
 
     protected getter request = HTTP::Request.new("GET", "/")
     protected getter response = HTTP::Server::Response.new(IO::Memory.new)
     protected getter raw_params = HTTP::Params.parse("")
     protected getter context : HTTP::Server::Context?
-    protected getter params : Amber::Validators::Params?
+    protected getter params : Amber::Validators::Params = Amber::Validators::Params.new(HTTP::Params.parse("t=t"))
 
     def set_context(@context : HTTP::Server::Context)
       @request = context.request

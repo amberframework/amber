@@ -36,7 +36,6 @@ module Amber
     end
 
     def run
-      puts port
       time = Time.now
       host = "127.0.0.1"
 
@@ -62,8 +61,8 @@ module Amber
       with self yield self
     end
 
-    macro routes
-      router.draw do
+    macro routes(valve, scope = "")
+      router.draw {{valve}}, {{scope}} do
         {{yield}}
       end
     end

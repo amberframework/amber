@@ -5,42 +5,39 @@ module Amber::DSL
     end
   end
 
-  record Router, router : Pipe::Router do
-    macro route(verb, resource, controller, handler, pipeline)
-      %ctrl = {{controller.id}}.new
-      %action = ->%ctrl.{{handler.id}}
+  record Router, router : Pipe::Router, valve : Symbol, scope : String do
+    RESOURCES = [:get, :post, :put, :patch, :delete, :options, :head, :trace, :connect]
+
+
+    macro route(verb, resource, controller, action)
+
+      puts "{{verb.id}}  {{resource.id}}   {{controller.id}}   {{action.id}}"
+      %controller = {{controller.id}}.new
+      %handler = ->%controller.{{action.id}}
       %verb = {{verb.upcase.id.stringify}}
-      %route = Amber::Route.new(%verb, {{resource}}, %ctrl, %action, {{pipeline}})
+      %route = Amber::Route.new(%verb, {{resource}}, %controller, %handler, {{action}}, valve, scope)
 
       router.add(%route)
     end
 
-    {% for verb in {:get, :post, :put, :delete, :options, :head, :trace, :connect} %}
+    {% for verb in RESOURCES %}
 
       macro {{verb.id}}(*args)
         route {{verb}}, \{{*args}}
       end
 
     {% end %}
-  end
 
-  module ControllerActions
-    macro render_both(filename, layout)
-      content = render_template("{{filename.id}}")
-      render_template("{{layout.id}}")
-    end
-
-    # helper to render a template.  The view name is relative to `src/views` directory.
-    macro render_template(filename, *args)
-      {% if filename.id.split("/").size > 2 %}
-        Kilt.render("{{filename.id}}", {{*args}})
-      {% else %}
-        Kilt.render("src/views/{{filename.id}}", {{*args}})
-      {% end %}
-    end
-
-    macro render(filename, layout = "layouts/application.slang", path = "src/views", folder = __FILE__)
-      render_both "#{{{path}}}/#{{{folder.split("/").last.gsub(/\_controller\.cr|\.cr/, "")}}}/#{{{filename}}}", "#{{{path}}}/#{{{layout}}}"
+    # TODO Clean this up
+    macro resources(path, controller, actions = [:index, :edit, :new, :show, :create, :update, :put, :delete])
+      get "{{path.id}}", {{controller}}, :index if {{actions}}.includes?(:index)
+      get "{{path.id}}/:id/edit", {{controller}}, :edit  if {{actions}}.includes?(:edit)
+      get "{{path.id}}/new", {{controller}}, :new if {{actions}}.includes?(:new)
+      get "{{path.id}}/:id", {{controller}}, :show if {{actions}}.includes?(:show)
+      post "{{path.id}}", {{controller}}, :create if {{actions}}.includes?(:create)
+      patch "{{path.id}}/:id", {{controller}}, :update if {{actions}}.includes?(:update)
+      put "{{path.id}}/:id", {{controller}}, :update if {{actions}}.includes?(:update)
+      delete "{{path.id}}/:id", {{controller}}, :delete if {{actions}}.includes?(:delete)
     end
   end
 end
