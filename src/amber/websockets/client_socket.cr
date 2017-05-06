@@ -21,7 +21,7 @@ module Amber
 
       property id : UInt64
       property socket : HTTP::WebSocket
-      property subscriptions : Subscriptions?
+      property subscription_manager : SubscriptionManager = SubscriptionManager.new
 
       # Add a channel for this socket to listen, publish to
       def self.channel(channel_path, ch)
@@ -32,9 +32,13 @@ module Amber
         @@channels
       end
 
+      def self.get_channel_from_topic(topic)
+        topic_channels = channels.select { |ch| ch[:path].split(":")[0] == topic }
+        return topic_channels[0][:channel] if topic_channels.any?
+      end
+
       def initialize(@socket)
         @id = @socket.object_id
-        @subscriptions = Subscriptions.new
         @socket.on_pong do |msg|
           # TODO: setup heartbeat
         end
@@ -59,7 +63,7 @@ module Amber
         if @socket.closed?
           Amber::Server.instance.log.error "Ignoring message sent to closed socket"
         else
-          @subscriptions.not_nil!.dispatch self, decode(message)
+          @subscription_manager.dispatch self, decode(message)
         end
       end
 

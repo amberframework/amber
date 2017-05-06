@@ -29,7 +29,7 @@ module Amber
 
       def get_subscribers(channel_name)
         @@client_sockets.values.select do |cs|
-          cs.subscriptions.not_nil!.subscriptions.keys.includes?(channel_name.to_s)
+          cs.subscription_manager.subscriptions.keys.includes?(channel_name.to_s)
         end
       end
 

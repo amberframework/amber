@@ -1,8 +1,8 @@
 module Amber
   module WebSockets
-    # `Subscriptions` manages the list of channel subscriptions for the socket connection.
+    # `SubscriptionManager` manages the list of channel subscriptions for the socket connection.
     # Also handles dispatching actions (messages) to the appropriate channel.
-    struct Subscriptions
+    struct SubscriptionManager
       property subscriptions = Hash(String, Channel).new
 
       def dispatch(client_socket, message)
@@ -21,9 +21,10 @@ module Amber
       def join(client_socket, message)
         return if subscriptions[message["channel"]]?
         topic = message["channel"].as_s.split(":")[0]
-        channel = client_socket.class.channels.select { |ch| ch[:path].split(":")[0] == topic }[0][:channel]
-        channel.subscribe_to_channel
-        subscriptions[message["channel"].as_s] = channel
+        if channel = client_socket.class.get_channel_from_topic(topic)
+          channel.subscribe_to_channel
+          subscriptions[message["channel"].as_s] = channel
+        end
       end
 
       def message(client_socket, message)
