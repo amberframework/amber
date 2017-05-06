@@ -19,23 +19,23 @@ module Amber
       end
 
       def join(client_socket, message)
-        return if subscriptions[message["channel"]]?
-        topic = message["channel"].as_s.split(":")[0]
+        return if subscriptions[message["topic"]]?
+        topic = message["topic"].as_s.split(":")[0]
         if channel = client_socket.class.get_topic_channel(topic)
           channel.subscribe_to_channel
-          subscriptions[message["channel"].as_s] = channel
+          subscriptions[message["topic"].as_s] = channel
         end
       end
 
       def message(client_socket, message)
-        if channel = subscriptions[message["channel"].as_s]?
+        if channel = subscriptions[message["topic"].as_s]?
           channel.dispatch(message)
         end
       end
 
       def unsubscribe(client_socket, message)
-        if channel = subscriptions[message["channel"].as_s]?
-          subscriptions.delete(message["channel"].as_s)
+        if channel = subscriptions[message["topic"].as_s]?
+          subscriptions.delete(message["topic"].as_s)
         end
       end
     end

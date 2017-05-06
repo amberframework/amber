@@ -18,7 +18,7 @@ module Amber
 
       # Rebroadcast this message to all subscribers of the channel
       protected def rebroadcast!(msg)
-        subscribers = ClientSockets.get_subscribers(msg["channel"])
+        subscribers = ClientSockets.get_subscribers_for_topic(msg["topic"])
         subscribers.each_value(&.socket.send(msg.to_json))
       end
     end

@@ -21,13 +21,16 @@ module Amber
       end
     end
 
-    describe "#get_subscribers" do
-      ws, client_socket1 = create_user_socket
-      ws, client_socket2 = create_user_socket
-      client_socket1.on_message({event: "join", channel: "user_room:123"}.to_json)
-      client_socket2.on_message({event: "join", channel: "user_room:123"}.to_json)
-      puts WebSockets::ClientSockets.get_subscribers("user_room:123")
-      # WebSockets::ClientSockets.get_subscribers("user_room:123").should eq [client_socket1, client_socket2]
+    describe "#get_subscribers_for_topic" do
+      it "should return all of the subscribers for the topic" do
+        ws, client_socket1 = create_user_socket
+        ws, client_socket2 = create_user_socket
+        WebSockets::ClientSockets.add_client_socket(client_socket1)
+        WebSockets::ClientSockets.add_client_socket(client_socket2)
+        client_socket1.on_message({event: "join", topic: "user_room:123"}.to_json)
+        client_socket2.on_message({event: "join", topic: "user_room:123"}.to_json)
+        WebSockets::ClientSockets.get_subscribers_for_topic("user_room:123").values.should eq [client_socket1, client_socket2]
+      end
     end
   end
 end

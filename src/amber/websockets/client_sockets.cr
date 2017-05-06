@@ -27,9 +27,9 @@ module Amber
         heartbeat
       end
 
-      def get_subscribers(channel_name)
+      def get_subscribers_for_topic(topic)
         @@client_sockets.select do |k, client_socket|
-          client_socket.subscribed_to_channel?(channel_name.to_s)
+          client_socket.subscribed_to_topic?(topic.to_s)
         end
       end
 

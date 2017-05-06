@@ -32,7 +32,7 @@ module Amber
       end
 
       def self.get_topic_channel(topic)
-        topic_channels = channels.select { |ch| ch[:path].split(":")[0] == topic }
+        topic_channels = @@channels.select { |ch| ch[:path].split(":")[0] == topic }
         return topic_channels[0][:channel] if topic_channels.any?
       end
 
@@ -55,8 +55,8 @@ module Amber
         spawn { @socket.ping }
       end
 
-      def subscribed_to_channel?(channel_name)
-        @subscription_manager.subscriptions.keys.includes?(channel_name.to_s)
+      def subscribed_to_topic?(topic)
+        @subscription_manager.subscriptions.keys.includes?(topic.to_s)
       end
 
       protected def authorized?

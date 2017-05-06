@@ -36,19 +36,19 @@ module Amber
       describe "join event" do
         it "should add a subscription" do
           ws, client_socket = create_user_socket
-          client_socket.subscribed_to_channel?("user_room:123").should be_false
-          client_socket.on_message({event: "join", channel: "user_room:123"}.to_json)
-          client_socket.subscribed_to_channel?("user_room:123").should be_true
+          client_socket.subscribed_to_topic?("user_room:123").should be_false
+          client_socket.on_message({event: "join", topic: "user_room:123"}.to_json)
+          client_socket.subscribed_to_topic?("user_room:123").should be_true
         end
       end
 
       describe "leave event" do
         it "should remove the subscription" do
           ws, client_socket = create_user_socket
-          client_socket.on_message({event: "join", channel: "user_room:123"}.to_json)
-          client_socket.subscribed_to_channel?("user_room:123").should be_true
-          client_socket.on_message({event: "leave", channel: "user_room:123"}.to_json)
-          client_socket.subscribed_to_channel?("user_room:123").should be_false
+          client_socket.on_message({event: "join", topic: "user_room:123"}.to_json)
+          client_socket.subscribed_to_topic?("user_room:123").should be_true
+          client_socket.on_message({event: "leave", topic: "user_room:123"}.to_json)
+          client_socket.subscribed_to_topic?("user_room:123").should be_false
         end
       end
     end
