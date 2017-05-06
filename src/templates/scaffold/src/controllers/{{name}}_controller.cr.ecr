@@ -9,11 +9,10 @@ module <%= @name.capitalize %>Controller
   end
 
   action Show do
-    id = context.params["id"]
-    if <%= @name %> = <%= @name.capitalize %>.find id
+    if <%= @name %> = <%= @name.capitalize %>.find params["id"]
       html render("<%= @name %>/show.<%= @language %>", "main.<%= @language %>")
     else
-      context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
+      context.flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
       redirect "/<%= @name %>s"
     end
   end
@@ -24,28 +23,7 @@ module <%= @name.capitalize %>Controller
   end
 
   action Create do
-    <%= @name %> = <%= @name.capitalize %>.new
-<% @fields.reject{|f| f.hidden }.each do |field| -%>
-<% case field.type
-when "integer" -%>
-    <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_i32)
-<% when "bigint" -%>
-    <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_i64)
-<% when "float" -%>
-    <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_f32)
-<% when "real" -%>
-    <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_f64)
-<% when "date", "time" -%>
-    value = params.fetch("<%= field.name %>", nil)
-    <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X") if value
-<% when "boolean" -%>
-    <%= @name %>.<%= field.name %> = (params["<%= field.name %>"]? != nil)
-<% when "bool_as_int" -%>
-      <%= @name %>.<%= field.name %> = params["<%= field.name %>"]? != nil ? 1.to_i64 : 0.to_i64
-<% else -%>
-    <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?
-<% end -%>
-<% end -%>
+    <%= @name %> = <%= @name.capitalize %>.new(params.to_h.select(<%= @fields.reject{|f| f.hidden }.map(&.name) %>))
 
     if <%= @name %>.valid? && <%= @name %>.save
       context.flash["success"] = "Created <%= @name.capitalize %> successfully."
@@ -57,40 +35,17 @@ when "integer" -%>
   end
 
   action Edit do
-    id = context.params["id"]
-    if <%= @name %> = <%= @name.capitalize %>.find id
+    if <%= @name %> = <%= @name.capitalize %>.find params["id"]
       html render("<%= @name %>/edit.<%= @language %>", "main.<%= @language %>")
     else
-      context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
+      context.flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
       redirect "/<%= @name %>s"
     end
   end
 
   action Update do
-    id = context.params["id"]
-    if <%= @name %> = <%= @name.capitalize %>.find id
-<% @fields.reject{|f| f.hidden }.each do |field| -%>
-<% case field.type
-when "integer" -%>
-      <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_i32)
-<% when "bigint" -%>
-    <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_i64)
-<% when "float" -%>
-      <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_f32)
-<% when "real" -%>
-      <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?.try(&.to_f64)
-<% when "date", "time" -%>
-      value = params.fetch("<%= field.name %>", nil)
-      <%= @name %>.<%= field.name %> = Time.parse(value, "%F %X") if value
-<% when "boolean" -%>
-      <%= @name %>.<%= field.name %> = (params["<%= field.name %>"]? != nil)
-<% when "bool_as_int" -%>
-      <%= @name %>.<%= field.name %> = params["<%= field.name %>"]? != nil ? 1.to_i64 : 0.to_i64
-<% else -%>
-      <%= @name %>.<%= field.name %> = params["<%= field.name %>"]?
-<% end -%>
-<% end -%>
-
+    if <%= @name %> = <%= @name.capitalize %>.find(params["id"])
+      <%= @name %>.set_attributes(params.to_h.select(<%= @fields.reject{|f| f.hidden }.map(&.name) %>)) 
       if <%= @name %>.valid? && <%= @name %>.save
         context.flash["success"] = "Updated <%= @name.capitalize %> successfully."
         redirect "/<%= @name %>s"
@@ -99,17 +54,16 @@ when "integer" -%>
         html render("<%= @name %>/edit.<%= @language %>", "main.<%= @language %>")
       end
     else
-      context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
+      context.flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
       redirect "/<%= @name %>s"
     end
   end
 
   action Delete do
-    id = context.params["id"]
-    if <%= @name %> = <%= @name.capitalize %>.find id
+    if <%= @name %> = <%= @name.capitalize %>.find params["id"]
       <%= @name %>.destroy
     else
-      context.flash["warning"] = "<%= @name.capitalize %> with ID #{id} Not Found"
+      context.flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
     end
     redirect "/<%= @name %>s"
   end
