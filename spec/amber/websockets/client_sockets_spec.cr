@@ -20,5 +20,14 @@ module Amber
         WebSockets::ClientSockets.client_sockets[client_socket.id]?.should be_nil
       end
     end
+
+    describe "#get_subscribers" do
+      ws, client_socket1 = create_user_socket
+      ws, client_socket2 = create_user_socket
+      client_socket1.on_message({event: "join", channel: "user_room:123"}.to_json)
+      client_socket2.on_message({event: "join", channel: "user_room:123"}.to_json)
+      puts WebSockets::ClientSockets.get_subscribers("user_room:123")
+      # WebSockets::ClientSockets.get_subscribers("user_room:123").should eq [client_socket1, client_socket2]
+    end
   end
 end

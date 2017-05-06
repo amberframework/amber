@@ -10,9 +10,9 @@ module Amber
         return unless event
 
         case event
-        when "join"        then join client_socket, message
-        when "message"     then message client_socket, message
-        when "unsubscribe" then unsubscribe client_socket, message
+        when "join"    then join client_socket, message
+        when "message" then message client_socket, message
+        when "leave"   then unsubscribe client_socket, message
         else
           Amber::Server.instance.log.error "Uncaptured event #{event}"
         end
@@ -21,7 +21,7 @@ module Amber
       def join(client_socket, message)
         return if subscriptions[message["channel"]]?
         topic = message["channel"].as_s.split(":")[0]
-        if channel = client_socket.class.get_channel_from_topic(topic)
+        if channel = client_socket.class.get_topic_channel(topic)
           channel.subscribe_to_channel
           subscriptions[message["channel"].as_s] = channel
         end
@@ -34,7 +34,9 @@ module Amber
       end
 
       def unsubscribe(client_socket, message)
-        puts "unsubscribe #{message}"
+        if channel = subscriptions[message["channel"].as_s]?
+          subscriptions.delete(message["channel"].as_s)
+        end
       end
     end
   end

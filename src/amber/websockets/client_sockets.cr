@@ -5,7 +5,7 @@ module Amber
     #
     module ClientSockets
       extend self
-      @@client_sockets = {} of UInt64 => ClientSocket
+      @@client_sockets = Hash(UInt64, ClientSocket).new
       @@heartbeat_started = false
       BEAT_INTERVAL = 3.seconds
 
@@ -28,15 +28,15 @@ module Amber
       end
 
       def get_subscribers(channel_name)
-        @@client_sockets.values.select do |cs|
-          cs.subscription_manager.subscriptions.keys.includes?(channel_name.to_s)
+        @@client_sockets.select do |k, client_socket|
+          client_socket.subscribed_to_channel?(channel_name.to_s)
         end
       end
 
       private def heartbeat
         spawn do
           @@heartbeat_started = true
-          @@client_sockets.values.map(&.beat)
+          @@client_sockets.each_value(&.beat)
           sleep BEAT_INTERVAL
           heartbeat
         end

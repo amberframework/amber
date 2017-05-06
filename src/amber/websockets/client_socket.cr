@@ -21,7 +21,6 @@ module Amber
 
       property id : UInt64
       property socket : HTTP::WebSocket
-      property subscription_manager : SubscriptionManager = SubscriptionManager.new
 
       # Add a channel for this socket to listen, publish to
       def self.channel(channel_path, ch)
@@ -32,13 +31,14 @@ module Amber
         @@channels
       end
 
-      def self.get_channel_from_topic(topic)
+      def self.get_topic_channel(topic)
         topic_channels = channels.select { |ch| ch[:path].split(":")[0] == topic }
         return topic_channels[0][:channel] if topic_channels.any?
       end
 
       def initialize(@socket)
         @id = @socket.object_id
+        @subscription_manager = SubscriptionManager.new
         @socket.on_pong do |msg|
           # TODO: setup heartbeat
         end
@@ -53,6 +53,10 @@ module Amber
       # Sends ping opcode to client : https://tools.ietf.org/html/rfc6455#section-5.5.2
       def beat
         spawn { @socket.ping }
+      end
+
+      def subscribed_to_channel?(channel_name)
+        @subscription_manager.subscriptions.keys.includes?(channel_name.to_s)
       end
 
       protected def authorized?

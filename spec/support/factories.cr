@@ -24,7 +24,7 @@ class TestController < Amber::Controller::Base
 end
 
 struct UserSocket < Amber::WebSockets::ClientSocket
-  channel "user_room/*", UserChannel
+  channel "user_room:*", UserChannel
 end
 
 class UserChannel < Amber::WebSockets::Channel
