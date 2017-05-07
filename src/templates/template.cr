@@ -5,6 +5,7 @@ require "./model"
 require "./controller"
 require "./mailer"
 require "./migration"
+require "./job"
 
 module Kemalyst::Generator
   class Template
@@ -53,6 +54,9 @@ module Kemalyst::Generator
       when "migration"
         puts "Rendering Migration #{name}"
         Migration.new(name, fields).render(directory, list: true, color: true)
+      when "job"
+        puts "Rendering Job #{name}"
+        Job.new(name, fields).render(directory, list: true, color: true)
       else
         raise "Template not found"
       end

@@ -21,10 +21,15 @@ module Kemalyst::Generator
       @primary_key = primary_key
     end
 
+    DATABASE_YML = "config/database.yml"
     def database
-      yaml_file = File.read("config/database.yml")
-      yaml = YAML.parse(yaml_file)
-      yaml.first.to_s
+      if File.exists?(DATABASE_YML) &&
+        (yaml = YAML.parse(File.read DATABASE_YML)) &&
+        (database = yaml.first)
+        database.to_s
+      else
+        return "pg"
+      end
     end
 
     def primary_key
