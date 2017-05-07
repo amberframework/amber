@@ -38,7 +38,12 @@ module Amber
         it "returns true when route exists" do
           router = Router.instance
           request = HTTP::Request.new("GET", "/hello/world")
-          route = Route.new("GET", "/hello/world")
+
+          handler = ->(context : HTTP::Server::Context, action : Symbol){
+            "hey world"
+          }
+
+          route = Route.new("GET", "/hello/world", handler)
           router.add(route)
 
           router.route_defined?(request).should eq true
@@ -57,16 +62,17 @@ module Amber
           route = Router.instance.match_by_request(request)
           route.found?.should eq true
           route.payload.verb.should eq "GET"
-          route.payload.controller.class.should eq HelloController
         end
       end
 
       describe "#add" do
         it "register a GET route" do
           router = Router.new
-          instance = HelloController.new
-          world = ->instance.world
-          route = Route.new("GET", "/some/joe", instance, world)
+          handler = ->(context : HTTP::Server::Context, action : Symbol){
+            "hey world"
+          }
+
+          route = Route.new("GET", "/some/joe", handler)
 
           node = router.add(route)
 
@@ -75,9 +81,10 @@ module Amber
 
         it "raises Amber::Exceptions::DuplicateRouteError on duplicate" do
           router = Router.new
-          instance = HelloController.new
-          world = ->instance.world
-          route = Route.new("GET", "/some/joe", instance, world)
+          handler = ->(context : HTTP::Server::Context, action : Symbol){
+            "hey world"
+          }
+          route = Route.new("GET", "/some/joe", handler)
 
           router.add(route)
 
