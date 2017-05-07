@@ -4,7 +4,7 @@ module Kemalyst::Generator
 
     class Generate < Cli::Command
       class Options
-        arg "type", desc: "scaffold, model, controller, mailer, migration", required: true
+        arg "type", desc: "scaffold, model, controller, mailer, migration, job", required: true
         arg "name", desc: "name of resource", required: true
         arg_array "fields", desc: "name:string body:text age:integer draft:bool"
       end
