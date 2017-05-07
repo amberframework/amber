@@ -14,11 +14,15 @@ module Kemalyst::Generator
       @fields = fields.map {|field| Field.new(field)}
     end
 
+    KGEN_YML = ".kgen.yml"
     def language
-      return "slang" unless File.exists? ".kgen.yml"
-      yaml_file = File.read(".kgen.yml")
-      yaml = YAML.parse(yaml_file)
-      yaml["language"].to_s
+      if File.exists?(KGEN_YML) &&
+        (yaml = YAML.parse(File.read KGEN_YML)) &&
+        (language = yaml["language"]?)
+        language.to_s
+      else
+        return "slang"
+      end
     end
   end
 end
