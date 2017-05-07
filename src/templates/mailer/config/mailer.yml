@@ -1,3 +1,2 @@
 smtp:
-  host: localhost
-  port: 25
+  url: localhost:25
