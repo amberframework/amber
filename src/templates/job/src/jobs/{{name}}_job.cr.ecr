@@ -3,6 +3,8 @@ require "sidekiq"
 class <%= @name.capitalize %>Job
   include Sidekiq::Worker
 
-  def perform(<%= @fields.map{|f| "#{f.name} : #{f.cr_type}"}.join(",") %>)
+  def perform(<%= @fields.map{|f| "#{f.name} : #{f.cr_type}"}.join(", ") %>)
   end
 end
+
+# To execute: <%= @name.capitalize %>Job.async.perform(<%= @fields.map(&.name).join(", ") %>)
