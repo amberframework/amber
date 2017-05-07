@@ -53,7 +53,7 @@ module Amber
         params.each { |k, v| context.params.add(k.to_s, v) }
       end
 
-      private def match(http_verb, resource) : Radix::Result(Amber::Route)
+      def match(http_verb, resource) : Radix::Result(Amber::Route)
         @routes.find build_node(http_verb, resource)
       end
 

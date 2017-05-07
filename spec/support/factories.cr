@@ -14,7 +14,33 @@ class HelloController < Amber::Controller::Base
     only [:index, :world] { increment(2) }
   end
 
-  def index; end
+  def index
+    "Index"
+  end
+
+  def show
+    "Show"
+  end
+
+  def new
+    "New"
+  end
+
+  def edit
+    "Edit"
+  end
+
+  def update
+    "Update"
+  end
+
+  def create
+    "Create"
+  end
+
+  def destroy
+    "Destroy"
+  end
 
   def world
     "Hello World!"

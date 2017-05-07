@@ -9,7 +9,6 @@ module Amber::DSL
     RESOURCES = [:get, :post, :put, :patch, :delete, :options, :head, :trace, :connect]
 
     macro route(verb, resource, controller, action)
-      puts "{{verb.id}}  {{resource.id}}   {{controller.id}}   {{action.id}}"
       %handler = ->(context : HTTP::Server::Context, action : Symbol){
         controller = {{controller.id}}.new(context)
         controller.run_before_filter(:all)
@@ -29,32 +28,40 @@ module Amber::DSL
       macro {{verb.id}}(*args)
         route {{verb}}, \{{*args}}
       end
-
     {% end %}
 
-    # TODO Clean this up
-    macro resources(path, controller, actions = [:index, :edit, :new, :show, :create, :update, :delete])
-      {% if actions.includes?(:index) %}
+    macro resources(resource, controller, only = nil, except = nil)
+      {% actions = [:index, :new, :create, :show, :edit, :update, :destroy] %}
+
+      {% if only %}
+        {% actions = only %}
+      {% elsif except %}
+        {% actions = actions.reject { |i| except.includes? i } %}
+      {% end %}
+
+      {% for action in actions %}
+        define_action({{resource}}, {{controller}}, {{action}})
+      {% end %}
+    end
+
+    macro define_action(path, controller, action)
+      {% if action == :index %}
         get "{{path.id}}", {{controller}}, :index
-      {% end %}
-      {% if actions.includes?(:edit) %}
-        get "{{path.id}}/:id/edit", {{controller}}, :edit
-      {% end %}
-      {% if actions.includes?(:new) %}
-        get "{{path.id}}/new", {{controller}}, :new
-      {% end %}
-      {% if actions.includes?(:show) %}
+      {% elsif action == :show %}
         get "{{path.id}}/:id", {{controller}}, :show
-      {% end %}
-      {% if actions.includes?(:create) %}
+      {% elsif action == :new %}
+        get "{{path.id}}/:id/new", {{controller}}, :new
+      {% elsif action == :edit %}
+        get "{{path.id}}/:id/edit", {{controller}}, :edit
+      {% elsif action == :create %}
         post "{{path.id}}", {{controller}}, :create
-      {% end %}
-      {% if actions.includes?(:update) %}
-        patch "{{path.id}}/:id", {{controller}}, :update
+      {% elsif action == :update %}
         put "{{path.id}}/:id", {{controller}}, :update
-      {% end %}
-      {% if actions.includes?(:delete) %}
-        delete "{{path.id}}/:id", {{controller}}, :delete
+        patch "{{path.id}}/:id", {{controller}}, :update
+      {% elsif action == :destroy %}
+        delete "{{path.id}}/:id", {{controller}}, :destroy
+      {% else %}
+        {% raise "Invalid route action '#{action}'" %}
       {% end %}
     end
   end
