@@ -35,7 +35,7 @@ class HelloController < Amber::Controller::Base
     "Update Action"
   end
 
-  def delete
+  def destroy
     "Delete Action"
   end
 

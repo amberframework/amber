@@ -51,12 +51,12 @@ MY_APP_SERVER.config do |app|
 
   # Routes accepts a pipeline name and a scope a pipeline represents a stach of
   # http handlers that will process the current request
-  routes :web, "/v2" do
+  routes :web do
     # You can also define all resources at once with the resources macro.
     # This will define the following routes
     # resources path, controller, actions
-    # resources "/user", UserController, [:index, :show]
-    # resources "/user", UserController, actions: [:index, :show]
+    # resources "/user", UserController, only: [:index, :show]
+    # resources "/user", UserController, except: [:index, :show]
     #
     # GET     /users          UserController  :index
     # GET     /users/:id/edit UserController  :edit
@@ -67,7 +67,7 @@ MY_APP_SERVER.config do |app|
     # PUT     /users/:id      UserController  :update
     # DELETE  /users/:id      UserController  :delete
 
-    resources "/hello", HelloController, [:index, :show]
+    resources "/hello", HelloController
     get "/hello/world/:planet", HelloController, :world
     get "/hello/template", HelloController, :template
   end
