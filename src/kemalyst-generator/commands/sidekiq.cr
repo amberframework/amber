@@ -2,18 +2,22 @@ require "cli"
 require "sentry/sentry_command"
 
 module Kemalyst::Generator
-
   class MainCommand < Cli::Supercommand
-    command "w", aliased: "watch"
+    command "s", aliased: "sidekiq"
 
-    class Watch < Sentry::SentryCommand
-      command_name "watch"
+    class Sidekiq < Sentry::SentryCommand
+      command_name "sidekiq"
 
       def run
         options.watch << "./config/**/*.cr"
-        options.watch << "./src/views/**/*.slang"
         super
       end
     end
+  end
+end
+
+class Sentry::SentryCommand::Options
+  def self.get_name
+    "sidekiq"
   end
 end
