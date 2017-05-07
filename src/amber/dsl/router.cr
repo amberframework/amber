@@ -21,7 +21,6 @@ module Amber::DSL
     end
 
     {% for verb in RESOURCES %}
-
       macro {{verb.id}}(*args)
         route {{verb}}, \{{*args}}
       end
@@ -29,15 +28,30 @@ module Amber::DSL
     {% end %}
 
     # TODO Clean this up
-    macro resources(path, controller, actions = [:index, :edit, :new, :show, :create, :update, :put, :delete])
-      get "{{path.id}}", {{controller}}, :index if {{actions}}.includes?(:index)
-      get "{{path.id}}/:id/edit", {{controller}}, :edit  if {{actions}}.includes?(:edit)
-      get "{{path.id}}/new", {{controller}}, :new if {{actions}}.includes?(:new)
-      get "{{path.id}}/:id", {{controller}}, :show if {{actions}}.includes?(:show)
-      post "{{path.id}}", {{controller}}, :create if {{actions}}.includes?(:create)
-      patch "{{path.id}}/:id", {{controller}}, :update if {{actions}}.includes?(:update)
-      put "{{path.id}}/:id", {{controller}}, :update if {{actions}}.includes?(:update)
-      delete "{{path.id}}/:id", {{controller}}, :delete if {{actions}}.includes?(:delete)
+    macro resources(path, controller, actions = [:index, :edit, :new, :show, :create, :update, :delete])
+      {% if actions.includes?(:index) %}
+      get "{{path.id}}", {{controller}}, :index
+      {% end %}
+      {% if actions.includes?(:edit) %}
+      get "{{path.id}}/:id/edit", {{controller}}, :edit
+      {% end %}
+      {% if actions.includes?(:new) %}
+      get "{{path.id}}/new", {{controller}}, :new
+      {% end %}
+      {% if actions.includes?(:show) %}
+      get "{{path.id}}/:id", {{controller}}, :show
+      {% end %}
+      {% if actions.includes?(:create) %}
+      post "{{path.id}}", {{controller}}, :create
+      {% end %}
+      {% if actions.includes?(:update) %}
+      patch "{{path.id}}/:id", {{controller}}, :update
+      put "{{path.id}}/:id", {{controller}}, :update
+      {% end %}
+      {% if actions.includes?(:delete) %}
+      delete "{{path.id}}/:id", {{controller}}, :delete
+      {% end %}
     end
+    
   end
 end
