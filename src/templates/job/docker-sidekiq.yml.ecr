@@ -17,17 +17,38 @@ services:
     environment:
       DATABASE_URL: <%= @db_url %>
       SMTP_URL: mail:1025
+      REDIS_PROVIDER: REDIS_URL
+      REDIS_URL: redis://redis:6379
     ports:
       - '3000:3000'
     depends_on:
       - db
+      - redis
+      - mail
+    volumes:
+      - '.:/app/user'
+
+  sidekiq:
+    build: .
+    image: <%= @name %>
+    command: 'kgen sidekiq'
+    working_dir: /app/user
+    environment:
+      DATABASE_URL: <%= @db_url %>
+      SMTP_URL: mail:1025
+      REDIS_PROVIDER: REDIS_URL
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - db
+      - redis
       - mail
     volumes:
       - '.:/app/user'
 
   migrate:
+    build: .
     image: <%= @name %>
-    command: bash -c 'while ! nc -q 1 db 5432 </dev/null; do sleep 1; done && kgen migrate up'
+    command: bash -c 'while ! nc -q 1 db 3306 </dev/null; do sleep 1; done && kgen migrate up'
     working_dir: /app/user
     environment:
       DATABASE_URL: <%= @db_url %>
@@ -36,11 +57,29 @@ services:
     depends_on:
       - db
 
+  sidekiqweb:
+    image: drujensen/sidekiqweb:latest
+    environment:
+      REDIS_PROVIDER: REDIS_URL
+      REDIS_URL: redis://redis:6379
+    ports:
+      - '3001:3000'
+    depends_on:
+      - redis
+
   mail:
     image: drujensen/mailcatcher:latest
     ports:
       - '1025:1025'
       - '1080:1080'
+
+  redis:
+    image: redis:3.2-alpine
+    command: redis-server
+    ports:
+      - '6379:6379'
+    volumes:
+      - 'redis:/var/lib/redis/data'
 
 <% if @database == "pg" -%>
   db:
@@ -66,6 +105,7 @@ services:
 <% end -%>
 
 volumes:
+  redis:
 <% if @database == "pg" || @database == "mysql"  -%>
   db:
 <% end -%>
