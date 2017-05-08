@@ -3,9 +3,9 @@ module Amber::Controller
   module Callbacks
     macro included
       include Amber::DSL::Callbacks
-      protected property filters : Filters = Filters.new
-
-      protected def run_before_filter(action)
+       property filters : Filters = Filters.new
+       #TODO: Find a way to make these protected again.
+       def run_before_filter(action)
         if self.responds_to? :before_filters
           self.before_filters
           @filters.run(:before, action)
@@ -13,7 +13,7 @@ module Amber::Controller
         end
       end
 
-      protected def run_after_filter(action)
+       def run_after_filter(action)
         if self.responds_to? :after_filters
           self.after_filters
           @filters.run(:after, action)
