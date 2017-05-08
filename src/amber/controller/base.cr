@@ -7,13 +7,13 @@ module Amber::Controller
     include Redirect
     include Callbacks
 
-    protected getter request = HTTP::Request.new("GET", "/")
-    protected getter response = HTTP::Server::Response.new(IO::Memory.new)
-    protected getter raw_params = HTTP::Params.parse("")
-    protected getter context : HTTP::Server::Context?
-    protected getter params : Amber::Validators::Params = Amber::Validators::Params.new(HTTP::Params.parse("t=t"))
-
-    def set_context(@context : HTTP::Server::Context)
+    protected getter request : HTTP::Request
+    protected getter response : HTTP::Server::Response
+    protected getter raw_params : HTTP::Params
+    protected getter context : HTTP::Server::Context
+    protected getter params : Amber::Validators::Params
+    
+    def initialize(@context : HTTP::Server::Context)
       @request = context.request
       @response = context.response
       @raw_params = context.params
