@@ -10,14 +10,19 @@ module Kemalyst::Generator
 
       def run
         options.watch << "./config/**/*.cr"
-        super
+        
+        process_runner = Sentry::ProcessRunner.new(
+          process_name: "sidekiq",
+          build_command: "crystal build src/sidekiq.cr",
+          run_command: "./sidekiq",
+          build_args: [] of String,
+          run_args: [] of String,
+          should_build: !options.no_build?,
+          files: options.watch
+        )
+
+        process_runner.run
       end
     end
-  end
-end
-
-class Sentry::SentryCommand::Options
-  def self.get_name
-    "sidekiq"
   end
 end
