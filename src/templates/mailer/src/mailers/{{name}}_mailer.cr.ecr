@@ -1,14 +1,13 @@
 class <%= @name.capitalize %>Mailer < Kemalyst::Mailer
-  property name : String
-
   def initialize
     super
-    @name = "User Name"
     from "from@example.com"
+  end
+
+  def deliver(<%= @fields.map{|f| "#{f.name} : #{f.cr_type}"}.join(", ") %>)
     to "to@example.com"
-    cc "cc@example.com"
-    bcc "bcc@example.com"
     subject "Example Subject"
     body render("mailers/<%= @name %>_mailer.<%= @language %>", "mailer.<%= @language %>")
+    super()
   end
 end
