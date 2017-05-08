@@ -6,8 +6,10 @@ module Kemalyst::Generator
 
     @name : String
     @database : String
+    @db_url : String
 
     def initialize(@name, @database = "pg", @language = "slang")
+      @db_url = ""
     end
 
     def filter(entries)
