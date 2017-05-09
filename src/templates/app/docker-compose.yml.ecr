@@ -1,9 +1,12 @@
 <% if @database == "pg"
      @db_url = "postgres://admin:password@db:5432/#{@name}_development"
+     @wait_for = "while ! nc -q 1 db 5432 </dev/null; do sleep 1; done && "
    elsif @database == "mysql"
      @db_url = "mysql://admin:password@db:3306/#{@name}_development"
+     @wait_for = "while ! nc -q 1 db 3306 </dev/null; do sleep 1; done && "
    else
      @db_url = "sqlite3:./db/#{@name}_development.db"
+     @wait_for = ""
    end
 -%>
 version: '2'
@@ -27,7 +30,7 @@ services:
 
   migrate:
     image: <%= @name %>
-    command: bash -c 'while ! nc -q 1 db 5432 </dev/null; do sleep 1; done && kgen migrate up'
+    command: bash -c '<%= @wait_for %>kgen migrate up'
     working_dir: /app/user
     environment:
       DATABASE_URL: <%= @db_url %>

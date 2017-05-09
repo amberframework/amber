@@ -7,9 +7,11 @@ module Kemalyst::Generator
     @name : String
     @database : String
     @db_url : String
+    @wait_for : String
 
     def initialize(@name, @database = "pg", @language = "slang")
       @db_url = ""
+      @wait_for = ""
     end
 
     def filter(entries)
