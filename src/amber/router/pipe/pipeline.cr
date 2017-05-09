@@ -18,9 +18,16 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
-        valve = @router.match_by_request(context.request).payload.valve
-        pipe = proccess_pipeline(@pipeline[valve])
-        pipe.call(context)
+        Amber::Pipe::Params.instance.call(context)
+        if (method = context.params["_method"]?) && %w(patch put delete).includes?(method)
+          context.request.method = method  
+        end
+        route_node = @router.match_by_request(context.request)
+        route_node.params.each { |k, v| context.params.add(k.to_s, v) }
+        valve = route_node.payload.valve
+        pipe = proccess_pipeline(@pipeline[valve], -> (context : HTTP::Server::Context){context})
+        pipe.call(context) if pipe
+        context.response.print(route_node.payload.call(context))
         context
       end
 
@@ -35,12 +42,14 @@ module Amber
         @pipeline[@valve] << pipe
       end
 
-      def proccess_pipeline(pipes, last_pipe : (Context ->)? = nil)
-        pipes << Router.instance unless pipes.includes? Router.instance
-        raise ArgumentError.new "You must specify at least one pipeline." if pipes.empty?
-        0.upto(pipes.size - 2) { |i| pipes[i].next = pipes[i + 1] }
-        pipes.last.next = last_pipe if last_pipe
-        pipes.first
+      def proccess_pipeline(pipes, last_pipe : (HTTP::Server::Context ->)? = nil)
+        if pipes.any?
+          0.upto(pipes.size - 2) { |i| pipes[i].next = pipes[i + 1] }
+          pipes.last.next = last_pipe if last_pipe
+          pipes.first
+        elsif last_pipe
+          last_pipe
+        end
       end
     end
   end
