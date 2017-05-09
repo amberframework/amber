@@ -9,10 +9,12 @@ module Kemalyst::Generator
     @fields : Array(Field)
     @database : String
     @db_url : String
+    @wait_for : String
 
     def initialize(@name, fields)
       @database = database
       @db_url = ""
+      @wait_for = ""
       @fields = fields.map {|field| Field.new(field)}
     end
 
