@@ -65,6 +65,10 @@ module Amber
       end
     end
 
+    def socket_endpoint(path, app_socket)
+      WebSockets::Server.create_endpoint(path, app_socket)
+    end
+
     macro pipeline(valve)
       handler.build {{valve}} do
         {{yield}}
