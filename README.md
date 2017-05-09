@@ -21,7 +21,6 @@ It's not enough to be brilliant when you're alone in your programming lair. You 
 **RESPECT** You genuinely care about others you work with. You treat them as human beings and appreciate their abilities and accomplishments.
 
 **TRUST** You believe others are competent and will do the right thing, and you are OK with letting them drive when appropriate.
-appropiate.
 
 ## Become a Contributor
 
