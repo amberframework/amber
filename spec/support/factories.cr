@@ -46,3 +46,13 @@ class TestController < Amber::Controller::Base
     render("test.slang", "layout.slang", "spec/sample/views", "./")
   end
 end
+
+struct UserSocket < Amber::WebSockets::ClientSocket
+  channel "user_room:*", UserChannel
+end
+
+class UserChannel < Amber::WebSockets::Channel
+  def handle_joined; end
+
+  def handle_message(msg); end
+end

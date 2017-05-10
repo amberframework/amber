@@ -18,10 +18,14 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
-        valve = @router.match_by_request(context.request).payload.valve
-        pipe = proccess_pipeline(@pipeline[valve])
-        pipe.call(context)
-        context
+        if context.request.headers["Upgrade"]? == "websocket"
+          @router.get_socket_handler(context.request).call(context)
+        else
+          valve = @router.match_by_request(context.request).payload.valve
+          pipe = proccess_pipeline(@pipeline[valve])
+          pipe.call(context)
+          context
+        end
       end
 
       # Connects pipes to a pipeline to process requests
