@@ -21,7 +21,6 @@ module Amber
       def call(context)
         context.clear_params
         parse(context)
-        call_next(context)
       end
 
       def parse(context)
