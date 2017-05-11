@@ -29,6 +29,7 @@ services:
       - '.:/app/user'
 
   migrate:
+    build: .
     image: <%= @name %>
     command: bash -c '<%= @wait_for %>kgen migrate up'
     working_dir: /app/user
