@@ -20,16 +20,18 @@
 <% when "boolean" -%>
     <div class="checkbox">
       <label>
+        <input type="hidden" name="published" value="false" />
         <%="<"%>%- if <%= @name %>.<%= field.name %> %>
-          <input type="checkbox" name="<%= field.name %>" value="true" checked="true"><%= field.name.capitalize %>
+          <input type="checkbox" name="<%= field.name %>" value="true" checked="true" /><%= field.name.capitalize %>
         <%="<"%>%- else %>
-          <input type="checkbox" name="<%= field.name %>" value="true"> <%= field.name.capitalize %>
+          <input type="checkbox" name="<%= field.name %>" value="true" /> <%= field.name.capitalize %>
         <%="<"%>%- end %>
       </label>
     </div>
 <% when "bool_as_int" -%>
     <div class="checkbox">
       <label>
+        <input type="hidden" name="published" value="false" />
         <%="<"%>%- if <%= @name %>.<%= field.name %> == 1%>
           <input type="checkbox" name="<%= field.name %>" value="true" checked="true"><%= field.name.capitalize %>
         <%="<"%>%- else %>

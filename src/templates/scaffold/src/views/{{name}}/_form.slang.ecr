@@ -16,6 +16,7 @@ form action="#{ action }" method="post"
 <% when "boolean" -%>
     div.checkbox
       label
+        input type="hidden" name="published" value="false"
         - if <%= @name %>.<%= field.name %>
           input type="checkbox" name="<%= field.name %>" value="true" checked="true" <%= field.name.capitalize %>
         - else
@@ -23,6 +24,7 @@ form action="#{ action }" method="post"
 <% when "bool_as_int" -%>
     div.checkbox
       label
+        input type="hidden" name="published" value="false"
         - if <%= @name %>.<%= field.name %> == 1
           input type="checkbox" name="<%= field.name %>" value="true" checked="true" <%= field.name.capitalize %>
         - else
