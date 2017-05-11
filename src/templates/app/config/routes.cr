@@ -2,15 +2,6 @@ require "../src/controllers/*"
 
 include Kemalyst::Handler
 
-# This is an example of how to configure the Basic Authentication handler for
-# a path.  In this example, Basic Authentication is configured for the whole
-# site.  You could also have added this to the application.cr instead.
-# all    "/*",                Kemalyst::Handler::BasicAuth.instance("admin", "password")
-
-post "/*", CSRF
-put  "/*", CSRF
-patch  "/*", CSRF
-
 # This is how to setup the root path:
 get "/", HomeController::Index
 
