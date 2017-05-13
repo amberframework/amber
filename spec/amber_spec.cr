@@ -14,14 +14,12 @@ describe Amber do
         secret = "some secret key"
 
         pipeline :api do
-          plug Amber::Pipe::Params.new
           plug Amber::Pipe::Logger.new
           plug Amber::Pipe::Error.new
           plug Amber::Pipe::Session.new
         end
 
         pipeline :static do
-          plug Amber::Pipe::Params.new
           plug Amber::Pipe::Logger.new
           plug Amber::Pipe::Error.new
           plug Amber::Pipe::Session.new
@@ -29,7 +27,7 @@ describe Amber do
 
         routes :api do
           get "/", HelloController, :world
-          get "/hello", HelloController, :world
+          get "/hello/index", HelloController, :world
           get "/hello/:role", HelloController, :world
         end
       end

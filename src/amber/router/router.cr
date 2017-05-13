@@ -1,8 +1,10 @@
 require "radix"
 
 module Amber
-  module Pipe
-    class Router < Base
+  module Router
+    # This is the main application handler all routers should finally hit this
+    # handler.
+    class Router
       property :routes
 
       def self.instance
@@ -11,16 +13,6 @@ module Amber
 
       def initialize
         @routes = Radix::Tree(Route).new
-      end
-
-      def call(context : HTTP::Server::Context)
-        raise Exceptions::RouteNotFound.new(context.request) if !route_defined?(context.request)
-        route_node = match_by_request(context.request)
-        merge_params(route_node.params, context)
-        content = route_node.payload.call(context)
-      ensure
-        context.response.print(content)
-        context
       end
 
       # This registers all the routes for the application
