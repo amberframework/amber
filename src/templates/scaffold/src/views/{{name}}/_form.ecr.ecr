@@ -10,7 +10,7 @@
 <form action="<%="<"%>%= action %>" method="post">
   <%="<"%>%= csrf_tag(context) %>
   <%="<"%>%- if <%= @name %>.id %>
-  <input type="hidden" name="_method" value="put" />
+  <input type="hidden" name="_method" value="patch" />
   <%="<"%>%- end %>
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
   <div class="form-group">

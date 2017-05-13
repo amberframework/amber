@@ -2,29 +2,25 @@ require "../src/controllers/*"
 
 include Kemalyst::Handler
 
-# This is how to setup the root path:
-get "/", HomeController::Index
+get "/", home, index
 
 # the `resources` macro will create these 7 routes for you:
-# get "/demos", DemoController::Index
-# get "/demos/new", DemoController::New
-# post "/demos", DemoController::Create
-# get "/demos/:id", DemoController::Show
-# get "/demos/:id/edit", DemoController::Edit
-# put "/demos/:id", DemoController::Update
-# patch "/demos/:id", DemoController::Update
-# delete "/demos/:id", DemoController::Delete
+# get "/demos", demo, index
+# get "/demos/new", demo, new
+# post "/demos", demo, create
+# get "/demos/:id", demo, show
+# get "/demos/:id/edit", demo, edit
+# patch "/demos/:id", demo, patch
+# delete "/demos/:id", demo, delete
 
 # resources Demo
 
 # the `resource` macro will create the following routes for you
-# get "/demo/new", DemoController::New
-# post "/demo", DemoController::Create
-# get "/demo", DemoController::Show
-# get "/demo/edit", DemoController::Edit
-# put "/demo", DemoController::Update
-# patch "/demo", DemoController::Update
-# delete "/demo", DemoController::Delete
+# get "/demo/new", demo, new
+# post "/demo", demo, create
+# get "/demo", demo, show
+# get "/demo/edit", demo, edit
+# patch "/demo", demo, update
+# delete "/demo", demo, delete
 
 # resource Demo
-

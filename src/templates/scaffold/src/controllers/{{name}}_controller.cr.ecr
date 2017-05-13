@@ -1,14 +1,12 @@
 require "../models/<%= @name %>"
 
-module <%= @name.capitalize %>Controller
-  include ActionHelper
-
-  action Index do
+class <%= @name.capitalize %>Controller < Kemalyst::Controller
+  action index do
     <%= @name %>s = <%= @name.capitalize %>.all
     html render("<%= @name %>/index.<%= @language %>", "main.<%= @language %>")
   end
 
-  action Show do
+  action show do
     if <%= @name %> = <%= @name.capitalize %>.find params["id"]
       html render("<%= @name %>/show.<%= @language %>", "main.<%= @language %>")
     else
@@ -17,12 +15,12 @@ module <%= @name.capitalize %>Controller
     end
   end
 
-  action New do
+  action new do
     <%= @name %> = <%= @name.capitalize %>.new
     html render("<%= @name %>/new.<%= @language %>", "main.<%= @language %>")
   end
 
-  action Create do
+  action create do
     <%= @name %> = <%= @name.capitalize %>.new(params.to_h.select(<%= @fields.reject{|f| f.hidden }.map(&.name) %>))
 
     if <%= @name %>.valid? && <%= @name %>.save
@@ -34,7 +32,7 @@ module <%= @name.capitalize %>Controller
     end
   end
 
-  action Edit do
+  action edit do
     if <%= @name %> = <%= @name.capitalize %>.find params["id"]
       html render("<%= @name %>/edit.<%= @language %>", "main.<%= @language %>")
     else
@@ -43,9 +41,9 @@ module <%= @name.capitalize %>Controller
     end
   end
 
-  action Update do
+  action update do
     if <%= @name %> = <%= @name.capitalize %>.find(params["id"])
-      <%= @name %>.set_attributes(params.to_h.select(<%= @fields.reject{|f| f.hidden }.map(&.name) %>)) 
+      <%= @name %>.set_attributes(params.to_h.select(<%= @fields.reject{|f| f.hidden }.map(&.name) %>))
       if <%= @name %>.valid? && <%= @name %>.save
         context.flash["success"] = "Updated <%= @name.capitalize %> successfully."
         redirect "/<%= @name %>s"
@@ -59,7 +57,7 @@ module <%= @name.capitalize %>Controller
     end
   end
 
-  action Delete do
+  action delete do
     if <%= @name %> = <%= @name.capitalize %>.find params["id"]
       <%= @name %>.destroy
     else
