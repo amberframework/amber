@@ -5,30 +5,30 @@ module Amber
     class Pipeline < Base
       getter pipeline
       getter valve : Symbol
+      getter router
 
       def self.instance
         @@instance ||= new
       end
 
       def initialize
-        @router = Pipe::Router.instance
+        @router = Router::Router.instance
         @valve = :web
         @pipeline = {} of Symbol => Array(HTTP::Handler)
         @pipeline[@valve] = [] of HTTP::Handler
       end
 
       def call(context : HTTP::Server::Context)
-        Amber::Pipe::Params.instance.call(context)
-        if (method = context.params["_method"]?) && %w(patch put delete).includes?(method)
-          context.request.method = method  
-        end
-        route_node = @router.match_by_request(context.request)
-        route_node.params.each { |k, v| context.params.add(k.to_s, v) }
-        valve = route_node.payload.valve
-        pipe = proccess_pipeline(@pipeline[valve], -> (context : HTTP::Server::Context){context})
+        raise Exceptions::RouteNotFound.new(context.request) if validate_route(context)
+        route = context.route.payload
+        pipe = proccess_pipeline(@pipeline[route.valve], -> (context : HTTP::Server::Context){context})
         pipe.call(context) if pipe
-        context.response.print(route_node.payload.call(context))
+        context.response.print(route.call(context))
         context
+      end
+
+      def validate_route(context)
+        !router.route_defined?(context.request)
       end
 
       # Connects pipes to a pipeline to process requests

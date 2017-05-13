@@ -30,11 +30,14 @@ MY_APP_SERVER.config do |app|
   pipeline :web do
     # Plug is the method to use connect a pipe (middleware)
     # A plug accepts an instance of HTTP::Handler
-    plug Amber::Pipe::Params.new
+    plug Amber::Pipe::Logger.new
+    plug HTTP::StaticFileHandler.new "../examples/public", false
+    plug HTTP::CompressHandler.new
   end
 
   # All static content will run these transformations
   pipeline :static do
+    plug Amber::Pipe::Logger.new
     plug HTTP::StaticFileHandler.new "../examples/public", false
     plug HTTP::CompressHandler.new
   end
@@ -46,7 +49,7 @@ MY_APP_SERVER.config do |app|
   routes :static do
     # Each route is defined as follow
     # verb resource : String, controller : Symbol, action : Symbol
-    get "/index.html", StaticController, :index
+    get "/*", StaticController, :index
   end
 
   # Routes accepts a pipeline name and a scope a pipeline represents a stach of
