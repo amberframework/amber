@@ -12,7 +12,7 @@ module Amber::Controller
     protected getter raw_params : HTTP::Params
     protected getter context : HTTP::Server::Context
     protected getter params : Amber::Validators::Params
-    
+
     def initialize(@context : HTTP::Server::Context)
       @request = context.request
       @response = context.response

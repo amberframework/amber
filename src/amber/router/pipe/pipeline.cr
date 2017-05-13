@@ -21,7 +21,7 @@ module Amber
       def call(context : HTTP::Server::Context)
         raise Exceptions::RouteNotFound.new(context.request) if validate_route(context)
         route = context.route.payload
-        pipe = proccess_pipeline(@pipeline[route.valve], -> (context : HTTP::Server::Context){context})
+        pipe = proccess_pipeline(@pipeline[route.valve], ->(context : HTTP::Server::Context) { context })
         pipe.call(context) if pipe
         context.response.print(route.call(context))
         context

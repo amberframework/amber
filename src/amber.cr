@@ -72,11 +72,11 @@ module Amber
     end
 
     def handler
-      @pipe = Pipe::Pipeline.instance
+      @pipe ||= Pipe::Pipeline.instance
     end
 
     private def router
-      @router = Router::Router.instance
+      @router ||= Router::Router.instance
     end
   end
 end

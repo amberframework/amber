@@ -1,9 +1,8 @@
-require "../../../../spec_helper"
+require "../../../spec_helper"
 
 module Amber
   module Router
     describe Router do
-
       describe "#resources" do
         it "defines all resources" do
           router = Router.new
@@ -69,7 +68,7 @@ module Amber
           router = Router.new
           request = HTTP::Request.new("GET", "/hello/world")
 
-          handler = ->(context : HTTP::Server::Context, action : Symbol){
+          handler = ->(context : HTTP::Server::Context, action : Symbol) {
             "hey world"
           }
 
@@ -98,7 +97,7 @@ module Amber
       describe "#add" do
         it "register a GET route" do
           router = Router.new
-          handler = ->(context : HTTP::Server::Context, action : Symbol){
+          handler = ->(context : HTTP::Server::Context, action : Symbol) {
             "hey world"
           }
 
@@ -111,7 +110,7 @@ module Amber
 
         it "raises Amber::Exceptions::DuplicateRouteError on duplicate" do
           router = Router.new
-          handler = ->(context : HTTP::Server::Context, action : Symbol){
+          handler = ->(context : HTTP::Server::Context, action : Symbol) {
             "hey world"
           }
           route = Route.new("GET", "/some/joe", handler)

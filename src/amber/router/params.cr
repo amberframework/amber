@@ -12,7 +12,9 @@ module Amber::Router
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     MULTIPART_FORM   = "multipart/form-data"
     APPLICATION_JSON = "application/json"
-    METHOD = "_method"
+    METHOD           = "_method"
+    OVERRIDE_METHODS = %w(patch put delete)
+
     alias ParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
 
     # clear the params.
@@ -22,7 +24,6 @@ module Amber::Router
 
     def parse_params
       parse_part(request.query)
-      merge_params
       if content_type = request.headers["Content-Type"]?
         parse_multipart if content_type.try(&.starts_with?(MULTIPART_FORM))
         parse_part(request.body) if content_type.try(&.starts_with?(URL_ENCODED_FORM))
@@ -33,11 +34,11 @@ module Amber::Router
     def upgrade_request_method!
       if params[METHOD]?
         method = params[METHOD]
-        request.method = method if %w(patch put delete).includes?(method)
+        request.method = method.upcase if OVERRIDE_METHODS.includes?(method)
       end
     end
 
-    def merge_params
+    def merge_route_params
       route_params.each { |k, v| params.add(k.to_s, v) }
     end
 
@@ -74,13 +75,13 @@ module Amber::Router
 
     private def parse_part(part)
       values = case part
-                when IO
-                  part.gets_to_end
-                when String
-                  part.to_s
-                else
-                  ""
-                end
+               when IO
+                 part.gets_to_end
+               when String
+                 part.to_s
+               else
+                 ""
+               end
 
       HTTP::Params.parse(values) do |key, value|
         params.add(key, value)
