@@ -1,5 +1,6 @@
 require "tempfile"
 require "./*"
+
 # The Context holds the request and the response objects.  The context is
 # passed to each handler that will read from the request object and build a
 # response object.  Params and Session hash can be accessed from the Context.
@@ -13,8 +14,9 @@ class HTTP::Server::Context
 
   def initialize(@request : HTTP::Request, @response : HTTP::Server::Response)
     router = Amber::Router::Router.instance
-    @route = router.match_by_request(@request)
     parse_params
     upgrade_request_method!
+    @route = router.match_by_request(@request)
+    merge_route_params
   end
 end

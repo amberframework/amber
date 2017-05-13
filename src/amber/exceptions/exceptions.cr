@@ -8,7 +8,7 @@ module Amber
 
     class RouteNotFound < Exception
       def initialize(request)
-        super("The request was not found.")
+        super("The request was not found. #{request.method} - #{request.path}")
       end
     end
 

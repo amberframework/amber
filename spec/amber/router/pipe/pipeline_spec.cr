@@ -14,7 +14,6 @@ module Amber
         pipeline.pipeline[:api].size.should eq 2
       end
 
-
       describe "#call" do
         it "raises exception when route not found" do
           pipeline = Pipeline.new
@@ -47,7 +46,7 @@ module Amber
         it "perform GET request" do
           request = HTTP::Request.new("GET", "/hello")
           pipeline = Pipeline.new
-          pipeline.router.draw :web { get "/hello", HelloController, :index}
+          pipeline.router.draw :web { get "/hello", HelloController, :index }
 
           response = create_request_and_return_io(pipeline, request)
 
