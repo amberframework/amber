@@ -18,21 +18,21 @@ describe Kemalyst::Generator do
 
       rel_dirs.sort.should eq rel_gen_dirs.sort
       File.read_lines("#{TESTING_APP}/config/database.yml").first.should eq "pg:"
-      File.read_lines("#{TESTING_APP}/shard.yml")[13]?.should eq "  pg:"
+      File.read_lines("#{TESTING_APP}/shard.yml")[22]?.should eq "  pg:"
       `rm -rf #{TESTING_APP}`
     end
 
     it "should create app with mysql settings" do
       Kemalyst::Generator::MainCommand.run ["init", "app", TESTING_APP, "-d", "mysql"]
       File.read_lines("#{TESTING_APP}/config/database.yml").first.should eq "mysql:"
-      File.read_lines("#{TESTING_APP}/shard.yml")[13]?.should eq "  mysql:"
+      File.read_lines("#{TESTING_APP}/shard.yml")[22]?.should eq "  mysql:"
       `rm -rf #{TESTING_APP}`
     end
 
     it "should create app with sqlite settings" do
       Kemalyst::Generator::MainCommand.run ["init", "app", TESTING_APP, "-d", "sqlite"]
       File.read_lines("#{TESTING_APP}/config/database.yml").first.should eq "sqlite:"
-      File.read_lines("#{TESTING_APP}/shard.yml")[13]?.should eq "  sqlite3:"
+      File.read_lines("#{TESTING_APP}/shard.yml")[22]?.should eq "  sqlite3:"
       `rm -rf #{TESTING_APP}`
     end
 
