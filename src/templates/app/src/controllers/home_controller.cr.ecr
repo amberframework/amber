@@ -1,4 +1,4 @@
-module HomeController < Kemalyst::Controller
+class HomeController < Kemalyst::Controller
   action index do
     html render("home/index.<%= @language %>", "main.<%= @language %>")
   end
