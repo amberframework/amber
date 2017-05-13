@@ -1,6 +1,6 @@
 module Amber
   class Route
-    property :handler, :action, :verb, :resource, :valve, :params,:scope
+    property :handler, :action, :verb, :resource, :valve, :params, :scope
 
     def initialize(@verb : String,
                    @resource : String,
