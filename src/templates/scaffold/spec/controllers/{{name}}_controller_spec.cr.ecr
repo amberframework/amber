@@ -55,7 +55,7 @@ describe <%= @name.capitalize %>Controller do
   describe <%= @name.capitalize %>Controller::Update do
     it "updates a <%= @name %>" do
       subject = create_subject
-      put "/<%= @name %>s/#{subject.id}", body: "<%= field_name %>=test2"
+      patch "/<%= @name %>s/#{subject.id}", body: "<%= field_name %>=test2"
       result = <%= @name.capitalize %>.find(subject.id).not_nil!
       result.<%= field_name %>.should eq "test2"
     end
