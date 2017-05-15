@@ -66,7 +66,7 @@ end
 # this one:
 
 # The first line requires the framework library.
-require "./amber"
+require "amber"
 # requires all of your controllers, models, etc.
 require "./**"
 
