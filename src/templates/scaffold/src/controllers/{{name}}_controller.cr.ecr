@@ -1,12 +1,12 @@
 require "../models/<%= @name %>"
 
 class <%= @name.capitalize %>Controller < Kemalyst::Controller
-  action index do
+  action Index do
     <%= @name %>s = <%= @name.capitalize %>.all
     html render("<%= @name %>/index.<%= @language %>", "main.<%= @language %>")
   end
 
-  action show do
+  action Show do
     if <%= @name %> = <%= @name.capitalize %>.find params["id"]
       html render("<%= @name %>/show.<%= @language %>", "main.<%= @language %>")
     else
@@ -15,12 +15,12 @@ class <%= @name.capitalize %>Controller < Kemalyst::Controller
     end
   end
 
-  action new do
+  action New do
     <%= @name %> = <%= @name.capitalize %>.new
     html render("<%= @name %>/new.<%= @language %>", "main.<%= @language %>")
   end
 
-  action create do
+  action Create do
     <%= @name %> = <%= @name.capitalize %>.new(params.to_h.select(<%= @fields.reject{|f| f.hidden }.map(&.name) %>))
 
     if <%= @name %>.valid? && <%= @name %>.save
@@ -32,7 +32,7 @@ class <%= @name.capitalize %>Controller < Kemalyst::Controller
     end
   end
 
-  action edit do
+  action Edit do
     if <%= @name %> = <%= @name.capitalize %>.find params["id"]
       html render("<%= @name %>/edit.<%= @language %>", "main.<%= @language %>")
     else
@@ -41,7 +41,7 @@ class <%= @name.capitalize %>Controller < Kemalyst::Controller
     end
   end
 
-  action update do
+  action Update do
     if <%= @name %> = <%= @name.capitalize %>.find(params["id"])
       <%= @name %>.set_attributes(params.to_h.select(<%= @fields.reject{|f| f.hidden }.map(&.name) %>))
       if <%= @name %>.valid? && <%= @name %>.save
@@ -57,7 +57,7 @@ class <%= @name.capitalize %>Controller < Kemalyst::Controller
     end
   end
 
-  action delete do
+  action Delete do
     if <%= @name %> = <%= @name.capitalize %>.find params["id"]
       <%= @name %>.destroy
     else
