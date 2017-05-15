@@ -45,21 +45,7 @@ dependencies:
 ## Usage
 
 ```crystal
-require "amber"
-```
-
-```crystal
-# Location for your initialization code
-# {YourApp}/src/config/app.cr
-
-# The config file that Amber generates, web/router.cr, will look something like
-# this one:
-
-# The first line requires the framework library.
-require "./amber"
-
-# This line simply makes a Amber Server instance that will be use for your
-# entire application
+# src/controllers/hello_controller.cr
 
 class HelloController < Amber::Controller::Base
   def world
@@ -70,6 +56,23 @@ class HelloController < Amber::Controller::Base
     render "template_demo.slang" # renders views/hello/template_demo.slang with layout views/layouts/application.slang
   end
 end
+```
+
+```crystal
+# Location for your initialization code
+# {YourApp}/src/config/app.cr
+
+# The config file that Amber generates, web/router.cr, will look something like
+# this one:
+
+# The first line requires the framework library.
+require "amber"
+# requires all of your controllers, models, etc.
+require "./**"
+
+# This line simply makes a Amber Server instance that will be use for your
+# entire application
+
 
 MyAwesomeApp = Amber::Server.instance
 
@@ -89,42 +92,40 @@ MyAwesomeApp.config do
   # of which transformation to run for each of the app requests.
 
   # All api scoped routes will run these transformations
-  pipeline :api do
+
+  pipeline :web do
     # Plug is the method to use connect a pipe (middleware)
     # A plug accepts an instance of HTTP::Handler
-    plug Amber::Pipe::Params.instance
-    plug Amber::Pipe::Logger.instance
-    plug Amber::Pipe::Error.instance
-    plug Amber::Pipe::Session.instance
-  end
 
-  # All web content will run this pipeline
-  pipeline :web do
-    plug Amber::Pipe::Params.instance
-    plug Amber::Pipe::Logger.instance
-    plug Amber::Pipe::Error.instance
-    plug Amber::Pipe::Session.instance
+    plug Amber::Pipe::Logger.new
+    plug Amber::Pipe::Flash.new
+    plug Amber::Pipe::Session.new
+    plug Amber::Pipe::CSRF.new
   end
 
   # All static content will run these transformations
   pipeline :static do
-    plug Amber::Pipe::Params.instance
-    plug Amber::Pipe::Logger.instance
-    plug Amber::Pipe::Error.instance
-    plug Amber::Pipe::Session.instance
+    plug HTTP::StaticFileHandler.new("./public")
+    plug HTTP::CompressHandler.new
+  end
+
+  routes :static do
+    # Each route is defined as follow
+    # verb resource : String, controller : Symbol, action : Symbol
+    get "/*", StaticController, :index
   end
 
   # This is how you define the routes for your application
   # HTTP methods supported [GET, PATCH, POST, PUT, DELETE, OPTIONS]
   # Read more about HTTP methods here
   # (HTTP METHODS)[https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html]
-  routes do
+  routes :web do
     # Each route is defined as follow
     # verb, resources : String, controller : Symbol, action : Symbol,
     # pipeline : Symbol
-    get "/", :hello, :world, :api
-    get "/hello", :hello, :world, :api
-    get "/hello/:planet", :hello, :world, :api
+    get "/", HelloController, :world, :api
+    get "/hello", HelloController, :world, :api
+    get "/hello/:planet", HelloController, :world, :api
     get "/hello/template_demo/:name", HelloController, :template_demo, :web
   end
 end
