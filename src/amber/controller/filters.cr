@@ -1,4 +1,5 @@
 require "../dsl/*"
+
 module Amber::Controller
   module Callbacks
     macro included
