@@ -11,6 +11,7 @@ module Amber::Controller
     def redirect_to(location : String | Symbol, status = 302)
       response.headers.add "Location", parse_redirect(location)
       response.status_code = status
+      "redirecting..."
     end
 
     private def parse_redirect(location)
