@@ -1,60 +1,8 @@
-require "../../../../spec_helper"
+require "../../../spec_helper"
 
 module Amber
-  module Pipe
+  module Router
     describe Router do
-      describe "http requests" do
-        it "perform GET request" do
-          request = HTTP::Request.new("GET", "/hello")
-          router = Router.new
-          router.draw :web { get "/hello", HelloController, :index}
-
-          response = make_router_call(router, request)
-
-          response.should eq "Index"
-        end
-
-        it "perform PUT request" do
-          request = HTTP::Request.new("PUT", "/hello/1")
-          router = Router.new
-          router.draw :web { put "/hello/:id", HelloController, :update }
-
-          response = make_router_call(router, request)
-
-          response.should eq "Update"
-        end
-
-        it "perform PATCH request" do
-          request = HTTP::Request.new("PATCH", "/hello/1")
-          router = Router.new
-          router.draw :web { patch "/hello/:id", HelloController, :update }
-
-          response = make_router_call(router, request)
-
-          response.should eq "Update"
-        end
-
-        it "perform POST request" do
-          request = HTTP::Request.new("POST", "/hello")
-          router = Router.new
-          router.draw :web { post "/hello", HelloController, :create }
-
-          response = make_router_call(router, request)
-
-          response.should eq "Create"
-        end
-
-        it "perform DELETE request" do
-          request = HTTP::Request.new("DELETE", "/hello/1")
-          router = Router.new
-          router.draw :web { delete "/hello/:id", HelloController, :destroy }
-
-          response = make_router_call(router, request)
-
-          response.should eq "Destroy"
-        end
-      end
-
       describe "#resources" do
         it "defines all resources" do
           router = Router.new
@@ -108,30 +56,6 @@ module Amber
         end
       end
 
-      describe "#call" do
-        it "raises exception when route not found" do
-          router = Router.new
-          request = HTTP::Request.new("GET", "/bad/route")
-
-          expect_raises Exceptions::RouteNotFound do
-            create_request_and_return_io(router, request)
-          end
-        end
-
-        it "routes" do
-          router = Router.new
-          request = HTTP::Request.new("GET", "/index/elias")
-
-          router.draw :web do
-            get "/index/:name", HelloController, :world
-          end
-
-          response = create_request_and_return_io(router, request)
-
-          response.body.should eq "Hello World!"
-        end
-      end
-
       describe "#route_defined?" do
         it "returns false when route is not drawn" do
           router = Router.new
@@ -144,7 +68,7 @@ module Amber
           router = Router.new
           request = HTTP::Request.new("GET", "/hello/world")
 
-          handler = ->(context : HTTP::Server::Context, action : Symbol){
+          handler = ->(context : HTTP::Server::Context, action : Symbol) {
             "hey world"
           }
 
@@ -173,7 +97,7 @@ module Amber
       describe "#add" do
         it "register a GET route" do
           router = Router.new
-          handler = ->(context : HTTP::Server::Context, action : Symbol){
+          handler = ->(context : HTTP::Server::Context, action : Symbol) {
             "hey world"
           }
 
@@ -186,7 +110,7 @@ module Amber
 
         it "raises Amber::Exceptions::DuplicateRouteError on duplicate" do
           router = Router.new
-          handler = ->(context : HTTP::Server::Context, action : Symbol){
+          handler = ->(context : HTTP::Server::Context, action : Symbol) {
             "hey world"
           }
           route = Route.new("GET", "/some/joe", handler)
