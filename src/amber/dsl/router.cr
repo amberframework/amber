@@ -50,7 +50,7 @@ module Amber::DSL
       {% elsif action == :show %}
         get "{{path.id}}/:id", {{controller}}, :show
       {% elsif action == :new %}
-        get "{{path.id}}/:id/new", {{controller}}, :new
+        get "{{path.id}}/new", {{controller}}, :new
       {% elsif action == :edit %}
         get "{{path.id}}/:id/edit", {{controller}}, :edit
       {% elsif action == :create %}
