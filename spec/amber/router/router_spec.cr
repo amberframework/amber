@@ -13,7 +13,7 @@ module Amber
 
           router.match("GET", "/hello").key.should eq "get/hello"
           router.match("GET", "/hello/2").key.should eq "get/hello/:id"
-          router.match("GET", "/hello/2/new").key.should eq "get/hello/:id/new"
+          router.match("GET", "/hello/new").key.should eq "get/hello/new"
           router.match("GET", "/hello/2/edit").key.should eq "get/hello/:id/edit"
           router.match("PUT", "/hello/1").key.should eq "get/helloput/hello/:id"
           router.match("PATCH", "/hello/1").key.should eq "get/hellopatch/hello/:id"
@@ -31,7 +31,7 @@ module Amber
 
             router.match("GET", "/hello").key.should eq "get/hello"
             router.match("GET", "/hello/2").key.should eq ""
-            router.match("GET", "/hello/2/new").key.should eq ""
+            router.match("GET", "/hello/new").key.should eq ""
             router.match("GET", "/hello/2/edit").key.should eq ""
             router.match("PUT", "/hello/1").key.should eq "get/helloput/hello/:id"
             router.match("PATCH", "/hello/1").key.should eq "get/hellopatch/hello/:id"
@@ -45,13 +45,13 @@ module Amber
               resources "/hello", HelloController, except: [:index, :update]
             end
 
-            router.match("GET", "/hello").key.should eq ""
+            router.match("GET", "/hello").key.should eq "get/hello/"
             router.match("GET", "/hello/2").key.should eq "get/hello/:id"
-            router.match("GET", "/hello/2/new").key.should eq "get/hello/:id/new"
+            router.match("GET", "/hello/new").key.should eq "get/hello/new"
             router.match("GET", "/hello/2/edit").key.should eq "get/hello/:id/edit"
-            router.match("PUT", "/hello/1").key.should eq ""
-            router.match("PATCH", "/hello/1").key.should eq ""
-            router.match("DELETE", "/hello/1").key.should eq "get/hello/:iddelete/hello/:id"
+            router.match("PUT", "/hello/1").key.should eq "get/hello/:id"
+            router.match("PATCH", "/hello/1").key.should eq "get/hello/:id"
+            router.match("DELETE", "/hello/1").key.should eq "get/hello/delete/hello/:id"
           end
         end
       end
