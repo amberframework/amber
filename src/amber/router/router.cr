@@ -13,6 +13,12 @@ module Amber
 
       def initialize
         @routes = Radix::Tree(Route).new
+        @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new
+      end
+
+      def get_socket_handler(request)
+        raise Exceptions::RouteNotFound.new(request) unless socket_route_defined?(request)
+        @socket_routes.select { |sr| sr[:path] == request.path }.first.[:handler]
       end
 
       # This registers all the routes for the application
@@ -33,8 +39,16 @@ module Amber
         raise Amber::Exceptions::DuplicateRouteError.new(route)
       end
 
+      def add_socket_route(route, handler : WebSockets::Server::Handler)
+        @socket_routes.push({path: route, handler: handler})
+      end
+
       def route_defined?(request)
         match_by_request(request).found?
+      end
+
+      def socket_route_defined?(request)
+        @socket_routes.map(&.[:path]).includes?(request.path)
       end
 
       def match_by_request(request)
