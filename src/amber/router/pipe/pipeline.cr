@@ -19,12 +19,16 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
-        raise Exceptions::RouteNotFound.new(context.request) if validate_route(context)
-        route = context.route.payload
-        pipe = proccess_pipeline(@pipeline[route.valve], ->(context : HTTP::Server::Context) { context })
-        pipe.call(context) if pipe
-        context.response.print(route.call(context))
-        context
+        if context.request.headers["Upgrade"]? === "websocket"
+          @router.get_socket_handler(context.request).call(context)
+        else
+          raise Exceptions::RouteNotFound.new(context.request) if validate_route(context)
+          route = context.route.payload
+          pipe = proccess_pipeline(@pipeline[route.valve], ->(context : HTTP::Server::Context) { context })
+          pipe.call(context) if pipe
+          context.response.print(route.call(context))
+          context
+        end
       end
 
       def validate_route(context)
