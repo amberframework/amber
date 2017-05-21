@@ -1,5 +1,5 @@
 # kemalyst-generator
-[![Build Status](https://travis-ci.org/TechMagister/kemalyst-generator.svg?branch=master)](https://travis-ci.org/TechMagister/kemalyst-generator)
+[![Build Status](https://travis-ci.org/kemalyst/kemalyst-generator.svg?branch=master)](https://travis-ci.org/kemalyst/kemalyst-generator)
 
 Rails like command line for kemalyst
 
@@ -7,7 +7,7 @@ Rails like command line for kemalyst
 
 You can build the `kgen` tool from source:
 ```shellsession
-$ git clone git@github.com:TechMagister/kemalyst-generator.git
+$ git clone git@github.com:kemalyst/kemalyst-generator.git
 $ cd kemalyst-generator/
 $ shards install
 $ make
@@ -22,7 +22,7 @@ You can symlink this to a more global location like /usr/local/bin to make it ea
 Optionally, you can use homebrew to install.
 
 ```shellsession
-$ brew tap drujensen/kgen
+$ brew tap kemalyst/kgen
 $ brew install kgen
 ```
 
@@ -111,7 +111,7 @@ See opened issues.
 
 ## Contributing
 
-1. Fork it ( https://github.com/TechMagister/kemalyst-generator/fork )
+1. Fork it ( https://github.com/kemalyst/kemalyst-generator/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
