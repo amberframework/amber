@@ -21,20 +21,21 @@ Kemalyst::Application.config do |config|
   #   io << severity.rjust(5) << ": " << message
   # end
 
-  # Specify custom HTTP::Handlers.  Handlers are chained together in a link
+  # Specify custom HTTP::Handler chain.  Handlers are chained together in a link
   # list and each will call the next after processing the context.  The
   # context holds the request and response objects.  Each handler may have
   # their own config file to override default settings.  For example, the
   # Session Handler requires that you change the `secret` in the config/session.cr
   # file.
 
-  # config.handlers = [
-  #   Kemalyst::Handler::Logger.instance,
-  #   Kemalyst::Handler::Error.instance,
-  #   Kemalyst::Handler::Static.instance,
-  #   Kemalyst::Handler::Session.instance,
-  #   Kemalyst::Handler::Flash.instance,
-  #   Kemalyst::Handler::Params.instance,
-  #   Kemalyst::Handler::Router.instance
-  # ]
+  # config.handlers = [] of HTTP::Handler
+  # config.handlers << Crack::Handler::Logger.instance(config.logger)
+  # config.handlers << Crack::Handler::Error.instance
+  # config.handlers << Crack::Handler::Static.instance
+  # config.handlers << Crack::Handler::Session.instance
+  # config.handlers << Crack::Handler::Flash.instance
+  # config.handlers << Crack::Handler::Params.instance
+  # config.handlers << Crack::Handler::Method.instance
+  # config.handlers << Crack::Handler::CSRF.instance
+  # config.handlers << Kemalyst::Handler::Router.instance
 end
