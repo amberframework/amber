@@ -1,0 +1,8 @@
+class <%= @name.capitalize %>Controller < Amber::Controller::Base
+<% @fields.each do |field| -%>
+
+  def <%= field.name %> do
+    render("<%= field.name %>.<%= @language %>")
+  end
+<% end -%>
+end

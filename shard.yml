@@ -1,0 +1,47 @@
+name: amber_cmd
+version: 0.1.1
+
+authors:
+  - Isaac Sloan <isaac@isaacsloan.com>
+  - Arnaud Fernandés <arnaud.fernandes@tech-magister.com>
+  - Dru Jensen <drujensen@gmail.com>
+
+targets:
+  amber_cmd:
+    main: src/amber_cmd.cr
+
+crystal: 0.22.0
+
+license: MIT
+
+dependencies:
+  cli:
+    github: mosop/cli
+    version: ~> 0.5.1
+
+  teeplate:
+    github: mosop/teeplate
+    version: ~> 0.4.4
+
+  icr:
+    github: TechMagister/crystal-icr
+    branch: master
+
+  sentry:
+    github: TechMagister/sentry
+    branch: change_cli
+
+  micrate:
+    github: juanedi/micrate
+
+  pg:
+    github: will/crystal-pg
+
+  mysql:
+    github: crystal-lang/crystal-mysql
+
+  sqlite3:
+    github: crystal-lang/crystal-sqlite3
+
+scripts:
+  postinstall: make build

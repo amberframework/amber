@@ -1,0 +1,41 @@
+name: <%= @name %>
+version: 0.1.0
+
+authors:
+  - Amber <contact@ambercr.io>
+
+crystal: 0.22.0
+
+license: MIT
+
+dependencies:
+  amber:
+    github: Amber-Crystal/amber 
+
+  granite_orm:
+    github: kemalyst/granite-orm
+    version: ~> 0.6.0
+
+<% case @database when "pg" %>
+  pg:
+    github: will/crystal-pg
+<% when "mysql" %>
+  mysql:
+    github: crystal-lang/crystal-mysql
+<% when "sqlite" %>
+  sqlite3:
+    github: crystal-lang/crystal-sqlite3
+<% end %>
+
+#  mysql:
+#    github: crystal-lang/crystal-mysql
+#  pg:
+#    github: will/crystal-pg
+#  sqlite3:
+#    github: crystal-lang/crystal-sqlite3
+
+development_dependencies:
+  expect:
+    github: dukex/expect.cr
+  mocks:
+    github: waterlink/mocks.cr

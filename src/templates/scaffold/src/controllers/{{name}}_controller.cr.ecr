@@ -1,0 +1,71 @@
+class <%= @name.capitalize %>Controller < Amber::Controller::Base
+  def index
+    <%= @name %>s = <%= @name.capitalize %>.all
+    # context = context.not_nil!
+    render("index.slang")
+  end
+
+  def show
+    if <%= @name %> = <%= @name.capitalize %>.find params["id"]
+      render("show.slang")
+    else
+      context.flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      redirect_to "/<%= @name %>s"
+    end
+  end
+
+  def new
+    <%= @name %> = <%= @name.capitalize %>.new
+    render("new.slang")
+  end
+
+  def create
+    <%= @name %> = <%= @name.capitalize %>.new(params.to_h.select(["title", "content"]))
+
+    if <%= @name %>.valid? && <%= @name %>.save
+      context.flash["success"] = "Created <%= @name.capitalize %> successfully."
+      redirect_to "/<%= @name %>s"
+    else
+      context.flash["danger"] = "Could not create <%= @name.capitalize %>!"
+      render("new.slang")
+    end
+  end
+
+  def edit
+    if <%= @name %> = <%= @name.capitalize %>.find params["id"]
+      render("edit.slang")
+    else
+      context.flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      redirect_to "/<%= @name %>s"
+    end
+  end
+
+  def update
+    if <%= @name %> = <%= @name.capitalize %>.find(params["id"])
+      puts "inside update block"
+      <%= @name %>.set_attributes(params.to_h.select(["title", "content"])) 
+      if <%= @name %>.valid? && <%= @name %>.save
+        puts "it was valid"
+        context.flash["success"] = "Updated <%= @name.capitalize %> successfully."
+        redirect_to "/<%= @name %>s"
+      else
+        puts "it wasn't valid"
+        context.flash["danger"] = "Could not update <%= @name.capitalize %>!"
+        render("edit.slang")
+      end
+    else
+      puts "not inside block"
+      context.flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      redirect_to "/<%= @name %>s"
+    end
+  end
+
+  def destroy
+    if <%= @name %> = <%= @name.capitalize %>.find params["id"]
+      <%= @name %>.destroy
+    else
+      context.flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+    end
+    redirect_to "/<%= @name %>s"
+  end
+end
