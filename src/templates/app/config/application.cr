@@ -8,6 +8,9 @@ Kemalyst::Application.config do |config|
   # Set the environment. Defaults to development.
   # config.env = "development"
 
+  # Set the reuse_port option. Defaults to false.
+  # config.reuse_port = false
+
   # By default, Logging will be sent to STDOUT.  You can create a file logger and
   # assign it to the Application.
   # log = File.new("logs/#{config.env}.log", "a")
@@ -28,14 +31,14 @@ Kemalyst::Application.config do |config|
   # Session Handler requires that you change the `secret` in the config/session.cr
   # file.
 
-  # config.handlers = [] of HTTP::Handler
+  # config.handlers.clear
   # config.handlers << Crack::Handler::Logger.instance(config.logger)
   # config.handlers << Crack::Handler::Error.instance
   # config.handlers << Crack::Handler::Static.instance
   # config.handlers << Crack::Handler::Session.instance
   # config.handlers << Crack::Handler::Flash.instance
   # config.handlers << Crack::Handler::Params.instance
-  # config.handlers << Crack::Handler::Method.instance
   # config.handlers << Crack::Handler::CSRF.instance
+  # config.handlers << Crack::Handler::Method.instance
   # config.handlers << Kemalyst::Handler::Router.instance
 end

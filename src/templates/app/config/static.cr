@@ -1,4 +1,5 @@
 Crack::Handler::Static.config do |config|
-  # set the public folder. Defaults to `/public`
-  # config.public_folder = "./public"
+  # The directory where static assets are stored.
+  #
+  config.public_folder = "./public"
 end
