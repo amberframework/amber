@@ -4,3 +4,4 @@
 /bin/
 /.shards/
 .DS_Store
+/testapp/

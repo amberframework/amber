@@ -7,29 +7,25 @@ Rails like command line for Amber
 
 You can build the `amber` tool from source:
 ```shellsession
-$ git clone git@github.com:TechMagister/amber_cmd.git
+$ git clone git@github.com:amber-crystal/amber_cmd.git
 $ cd amber_cmd/
 $ shards install
 $ make
 ```
 
-You should now have a bin/amber file to run.
+You should now be able to run `amber` in the command line.
 
-You can symlink this to a more global location like /usr/local/bin to make it easier to use:
-
-`$ ln -sf $(pwd)/bin/amber /usr/local/bin/amber`
 
 Optionally, you can use homebrew to install.
 
 ```shellsession
-$ brew tap drujensen/amber
-$ brew install amber
+#make this work
 ```
 
 ## Commands
 
 ``` shell
-$ ./bin/amber --help
+$ amber --help
 amber [OPTIONS] SUBCOMMAND
 
 Amber Cmd
@@ -111,13 +107,17 @@ See opened issues.
 
 ## Contributing
 
-1. Fork it ( https://github.com/TechMagister/amber_cmd/fork )
+1. Fork it ( https://github.com/amber-crystal/amber_cmd/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
 5. Create a new Pull Request
 
 ## Contributors
-
-- [TechMagister](https://github.com/TechMagister) Arnaud Fernandés - creator, maintainer
+- [elorest](https://github.com/elorest) Isaac Sloan - Creator, Maintainer
+- [eliasjpr](https://github.com/eliasjpr) Elias Perez - Maintainer
+- [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
+- [phoffer](https://github.com/phoffer) Paul Hoffer - Maintainer
+- [bew](https://github.com/fridgerator) Benoit de Chezelles - Member
+- [TechMagister](https://github.com/TechMagister) Arnaud Fernandés - Initial Creator of some borrowed code.
 - [drujensen](https://github.com/drujensen) Dru Jensen - contributor

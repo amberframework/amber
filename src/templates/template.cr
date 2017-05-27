@@ -3,7 +3,6 @@ require "./app"
 require "./scaffold"
 require "./model"
 require "./controller"
-require "./mailer"
 require "./migration"
 require "./job"
 
@@ -48,9 +47,6 @@ module Amber::CMD
       when "controller"
         puts "Rendering Controller #{name}"
         Controller.new(name, fields).render(directory, list: true, color: true)
-      when "mailer"
-        puts "Rendering Mailer #{name}"
-        Mailer.new(name, fields).render(directory, list: true, color: true)
       when "migration"
         puts "Rendering Migration #{name}"
         Migration.new(name, fields).render(directory, list: true, color: true)
