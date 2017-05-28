@@ -13,14 +13,15 @@ module Amber::Controller
         TestController.new(context).render_template_page.should eq html_output
       end
 
-      it "renders html and layout from slang template" do
+      it "renders partial without layout" do
         request = HTTP::Request.new("GET", "/?test=test")
         context = create_context(request)
         html_output = <<-HTML
-        <html>\n  <body>\n    <h1>Hello World</h1>\n<p>I am glad you came</p>\n  </body>\n</html>
+        <h1>Hello World</h1>
+        <p>I am glad you came</p>
         HTML
 
-        TestController.new(context).render_layout_too.should eq html_output
+        TestController.new(context).render_partial.should eq html_output
       end
 
       it "renders html and layout from slang template" do
@@ -30,7 +31,7 @@ module Amber::Controller
         <html>\n  <body>\n    <h1>Hello World</h1>\n<p>I am glad you came</p>\n  </body>\n</html>
         HTML
 
-        TestController.new(context).render_both_inferred.should eq html_output
+        TestController.new(context).render_with_layout.should eq html_output
       end
     end
 
