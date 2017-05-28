@@ -16,16 +16,16 @@ dependencies:
     github: kemalyst/granite-orm
     version: ~> 0.6.0
 
-<% case @database when "pg" %>
+<% case @database when "pg" -%>
   pg:
     github: will/crystal-pg
-<% when "mysql" %>
+<% when "mysql" -%>
   mysql:
     github: crystal-lang/crystal-mysql
-<% when "sqlite" %>
+<% when "sqlite" -%>
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-<% end %>
+<% end -%>
 
 #  mysql:
 #    github: crystal-lang/crystal-mysql
