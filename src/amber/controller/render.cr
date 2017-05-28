@@ -1,21 +1,31 @@
 module Amber::Controller
   module Render
-    macro render_both(filename, layout)
-      content = render_template("{{filename.id}}")
-      render_template("{{layout.id}}")
+    LAYOUT = "application.slang"
+
+    macro set_layout(filename)
+      LAYOUT = {{filename}}
     end
 
-    # helper to render a template.  The view name is relative to `src/views` directory.
-    macro render_template(filename, *args)
+    macro render_template(filename, path = "src/views")
       {% if filename.id.split("/").size > 2 %}
-        Kilt.render("{{filename.id}}", {{*args}})
+        Kilt.render("{{filename.id}}")
       {% else %}
-        Kilt.render("src/views/{{filename.id}}", {{*args}})
+        Kilt.render("#{{{path}}}/{{filename.id}}")
       {% end %}
     end
 
-    macro render(filename, layout = "layouts/application.slang", path = "src/views", folder = __FILE__)
-      render_both "#{{{path}}}/#{{{folder.split("/").last.gsub(/\_controller\.cr|\.cr/, "")}}}/#{{{filename}}}", "#{{{path}}}/#{{{layout}}}"
+    macro render(filename, layout = true, path = "src/views", folder = __FILE__)
+      {% if filename.id.split("/").size > 1 %}
+        content = render_template("#{{{filename}}}", {{path}})
+      {% else %}
+        content = render_template("#{{{folder.split("/").last.gsub(/\_controller\.cr|\.cr/, "")}}}/#{{{filename}}}", {{path}})
+      {% end %}
+
+      {% if layout && !filename.id.split("/").last.starts_with?("_") %}
+        content = render_template("layouts/#{{{layout.class_name == "StringLiteral" ? layout : LAYOUT}}}", {{path}})
+      {% end %}
+      content
     end
   end
 end
+
