@@ -5,6 +5,8 @@
 # this one:
 
 # The first line requires the framework library.
+AMBER_ENV = ARGV[0]? || ENV["AMBER_ENV"]? || "development"
+
 require "amber"
 require "./**"
 require "./*"
