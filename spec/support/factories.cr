@@ -61,15 +61,15 @@ end
 
 class TestController < Amber::Controller::Base
   def render_template_page
-    render_template("spec/sample/views/test.slang")
+    render("spec/sample/views/test/test.slang", layout: false)
   end
 
-  def render_layout_too
-    render_both("spec/sample/views/test.slang", "spec/sample/views/layout.slang")
+  def render_partial
+    render("spec/sample/views/test/_test.slang")
   end
 
-  def render_both_inferred
-    render("test.slang", "layout.slang", "spec/sample/views", "./")
+  def render_with_layout
+    render("test/test.slang", "layout.slang", "spec/sample/views", "./")
   end
 end
 
