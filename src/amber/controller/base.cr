@@ -4,7 +4,7 @@ require "./*"
 module Amber::Controller
   class Base
     include Render
-    include Redirect
+    include RedirectFactory
     include Callbacks
 
     protected getter request : HTTP::Request

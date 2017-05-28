@@ -72,51 +72,87 @@ module Amber::Controller
       end
     end
 
+    describe "#redirect_back" do
+      context "and has a valid referer" do
+        it "sets the correct response headers" do
+          hello_controller = build_controller("/world")
+
+          hello_controller.redirect_back
+          response = hello_controller.response
+
+          response.headers["Location"].should eq "/world"
+        end
+      end
+
+      context "and does not have a referer" do
+        it "raisees an error" do
+          hello_controller = build_controller("")
+
+          expect_raises Exceptions::Controller::Redirect do
+            hello_controller.redirect_back
+          end
+        end
+      end
+    end
+
     describe "#redirect_to" do
-      context "when location is a string" do
+      context "with url params" do
+        it "sets the url params to path" do
+          hello_controller = build_controller("/world")
+          hello_controller.redirect_to(:world,  302, { "hello" => "world"})
+
+          response = hello_controller.response
+
+          response.headers["Location"].should eq "/hello/world?hello=world"
+        end
+      end
+
+
+      context "when redirecting to url or path" do
         ["www.amberio.com", "/world"].each do |location|
-          it "sets the correct response headers" do
+          it "sets the location to #{location}" do
             hello_controller = build_controller("")
-            hello_controller.redirect_to location
+            hello_controller.redirect_to(location, 301)
 
             response = hello_controller.response
 
             response.headers["Location"].should eq location
+            response.status_code.should eq 301
           end
         end
       end
 
-      context "when location is a Symbol" do
-        context "when is :back" do
-          context "and has a valid referer" do
-            it "sets the correct response headers" do
-              hello_controller = build_controller("/world")
-              hello_controller.redirect_to :back
+      context "with invalid url or path" do
+        it "raises redirect error" do
+          hello_controller = build_controller("")
 
-              response = hello_controller.response
-
-              response.headers["Location"].should eq "/world"
-            end
-          end
-
-          context "and does not have a referer" do
-            it "raisees an error" do
-              hello_controller = build_controller("")
-
-              expect_raises Exceptions::Controller::Redirect do
-                hello_controller.redirect_to :back
-              end
-            end
+          expect_raises Exceptions::Controller::Redirect do
+            hello_controller.redirect_to "saasd"
           end
         end
+      end
 
-        context "when is an action" do
-          hello_controller = build_controller("/world")
-          hello_controller.redirect_to :world
+      context "when redirecting to controller action" do
+        it "sets the controller and action" do
+          hello_controller = build_controller("")
+          hello_controller.redirect_to :world, 301
 
           response = hello_controller.response
 
-          response.headers["Location"].should eq "/world"
+          response.headers["Location"].should eq "/hello/world"
+            response.status_code.should eq 301
+        end
+      end
+
+      context "when redirector to different controller" do
+        it "sets new controller and action" do
+          hello_controller = build_controller("")
+          hello_controller.redirect_to :hello, :index, 301
+
+          response = hello_controller.response
+
+          response.headers["Location"].should eq "/hello/index"
+          response.status_code.should eq 301
         end
       end
     end

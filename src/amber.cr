@@ -59,6 +59,10 @@ module Amber
       with self yield self
     end
 
+    def socket_endpoint(path, app_socket)
+      WebSockets::Server.create_endpoint(path, app_socket)
+    end
+
     macro routes(valve, scope = "")
       router.draw {{valve}}, {{scope}} do
         {{yield}}
