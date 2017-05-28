@@ -14,10 +14,10 @@ module Amber::CMD
       @fields = fields.map {|field| Field.new(field)}
     end
 
-    KGEN_YML = ".amber.yml"
+    AMBER_YML = ".amber.yml"
     def language
-      if File.exists?(KGEN_YML) &&
-        (yaml = YAML.parse(File.read KGEN_YML)) &&
+      if File.exists?(AMBER_YML) &&
+        (yaml = YAML.parse(File.read AMBER_YML)) &&
         (language = yaml["language"]?)
         language.to_s
       else
