@@ -13,6 +13,7 @@ module Amber::CMD
       @language = language
       @fields = fields.map {|field| Field.new(field)}
       add_route
+      add_views
     end
 
     AMBER_YML = ".amber.yml"
@@ -28,12 +29,18 @@ module Amber::CMD
 
     def add_route
       routes = File.read("./config/routes.cr")
-      @fields.map(&.name).map{|f| %Q(get "/#{@name}/#{f}", #{@name.capitalize}Controller, :#{f})}.join("\n    ")
       replacement = <<-ROUTE
       routes :web do
-          #{@fields.map(&.name).map{|f| %Q(get "/#{@name}/#{f}/", #{@name.capitalize}Controller, :#{f})}.join("\n    ") }
+          #{@fields.map(&.name).map{|f| %Q(get "/#{@name}/#{f}", #{@name.capitalize}Controller, :#{f})}.join("\n    ") }
       ROUTE
       File.write("./config/routes.cr", routes.gsub("routes :web do", replacement))
+    end
+
+    def add_views
+      @fields.each do |f|
+        `mkdir -p src/views/#{@name}`
+        `touch src/views/#{@name}/#{f.name}.#{language}`
+      end
     end
   end
 end
