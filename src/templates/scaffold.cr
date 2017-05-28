@@ -67,7 +67,7 @@ module Amber::CMD
       routes = File.read("./config/routes.cr")
       replacement = <<-ROUTE
       routes :web do
-          resources "/#{@name}", #{@name.capitalize}Controller
+          resources "/#{@name}s", #{@name.capitalize}Controller
       ROUTE
       File.write("./config/routes.cr", routes.gsub("routes :web do", replacement))
     end
