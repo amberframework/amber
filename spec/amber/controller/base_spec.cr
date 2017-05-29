@@ -33,6 +33,26 @@ module Amber::Controller
 
         TestController.new(context).render_with_layout.should eq html_output
       end
+
+      it "renders a form with a csrf tag" do
+        request = HTTP::Request.new("GET", "/?test=test")
+        context = create_context(request)
+        html_output = <<-HTML
+        <form action="/posts" method="post">
+          <input type="hidden" name="_csrf" value="#{Amber::Pipe::CSRF.instance.token(context)}" />
+          <div class="form-group">
+            <input class="form-control" type="text" name="title" placeholder="Title" value="hey you">
+          </div>
+          <div class="form-group">
+            <textarea class="form-control" rows="10" name="content" placeholder="Content">out there in the cold</textarea>
+          </div>
+          <button class="btn btn-primary btn-xs" type="submit">Submit</button>
+          <a class="btn btn-default btn-xs" href="/posts">back</a>
+        </form>
+        HTML
+
+        TestController.new(context).render_with_csrf.should eq html_output
+      end
     end
 
     describe "#before_action" do
