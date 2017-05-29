@@ -10,6 +10,7 @@ module Amber::CMD
 
     class Migrate < Cli::Command
       command_name "migrate"
+
       class Options
         arg "command", desc: "up, down, redo, status, dbversion", required: true
       end
@@ -65,4 +66,3 @@ module Amber::CMD
     end
   end
 end
-

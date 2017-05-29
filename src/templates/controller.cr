@@ -11,16 +11,15 @@ module Amber::CMD
 
     def initialize(@name, fields)
       @language = language
-      @fields = fields.map {|field| Field.new(field)}
+      @fields = fields.map { |field| Field.new(field) }
       add_route
       add_views
     end
 
-    AMBER_YML = ".amber.yml"
     def language
       if File.exists?(AMBER_YML) &&
-        (yaml = YAML.parse(File.read AMBER_YML)) &&
-        (language = yaml["language"]?)
+         (yaml = YAML.parse(File.read AMBER_YML)) &&
+         (language = yaml["language"]?)
         language.to_s
       else
         return "slang"
@@ -31,7 +30,7 @@ module Amber::CMD
       routes = File.read("./config/routes.cr")
       replacement = <<-ROUTE
       routes :web do
-          #{@fields.map(&.name).map{|f| %Q(get "/#{@name}/#{f}", #{@name.capitalize}Controller, :#{f})}.join("\n    ") }
+          #{@fields.map(&.name).map { |f| %Q(get "/#{@name}/#{f}", #{@name.capitalize}Controller, :#{f}) }.join("\n    ")}
       ROUTE
       File.write("./config/routes.cr", routes.gsub("routes :web do", replacement))
     end

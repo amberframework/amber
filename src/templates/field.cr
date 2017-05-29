@@ -2,38 +2,38 @@ module Amber::CMD
   class Field
     TYPE_MAPPING = {
       common: {
-        string: ["string", "String", "VARCHAR"],
-        text: ["text", "String", "TEXT"],
-        int: ["integer", "Int32","INT"],
-        int32: ["integer", "Int32","INT"],
-        integer: ["integer", "Int32","INT"],
-        int64: ["bigint", "Int64","BIGINT"],
-        bigint: ["bigint", "Int64","BIGINT"],
-        float: ["float", "Float32","FLOAT"],
-        real: ["real", "Float64","REAL"],
-        bool: ["boolean", "Bool","BOOL"],
-        boolean: ["boolean", "Bool","BOOL"],
-        date: ["date", "Time","DATE"],
-        time: ["time", "Time","TIMESTAMP"],
-        timestamp: ["time", "Time","TIMESTAMP"]
+        string:    ["string", "String", "VARCHAR"],
+        text:      ["text", "String", "TEXT"],
+        int:       ["integer", "Int32", "INT"],
+        int32:     ["integer", "Int32", "INT"],
+        integer:   ["integer", "Int32", "INT"],
+        int64:     ["bigint", "Int64", "BIGINT"],
+        bigint:    ["bigint", "Int64", "BIGINT"],
+        float:     ["float", "Float32", "FLOAT"],
+        real:      ["real", "Float64", "REAL"],
+        bool:      ["boolean", "Bool", "BOOL"],
+        boolean:   ["boolean", "Bool", "BOOL"],
+        date:      ["date", "Time", "DATE"],
+        time:      ["time", "Time", "TIMESTAMP"],
+        timestamp: ["time", "Time", "TIMESTAMP"],
       },
       mysql: {
-        string: ["string", "String", "VARCHAR(255)"],
-        time: ["time", "Time","TIMESTAMP NULL"],
-        timestamp: ["time", "Time","TIMESTAMP NULL"]
+        string:    ["string", "String", "VARCHAR(255)"],
+        time:      ["time", "Time", "TIMESTAMP NULL"],
+        timestamp: ["time", "Time", "TIMESTAMP NULL"],
       },
       sqlite: {
-        int: ["bigint", "Int64","INT"],
-        int32: ["bigint", "Int64","INT"],
-        integer: ["bigint", "Int64","INT"],
-        int64: ["bigint", "Int64","INT"],
-        bigint: ["bigint", "Int64","INT"],
-        bool: ["bool_as_int", "Int64","BOOL"],
-        boolean: ["bool_as_int", "Int64","BOOL"],
-        date: ["date_as_var", "String","DATE"],
-        time: ["time_as_var", "String","TIMESTAMP"],
-        timestamp: ["time_as_var", "String","TIMESTAMP"]
-      }
+        int:       ["bigint", "Int64", "INT"],
+        int32:     ["bigint", "Int64", "INT"],
+        integer:   ["bigint", "Int64", "INT"],
+        int64:     ["bigint", "Int64", "INT"],
+        bigint:    ["bigint", "Int64", "INT"],
+        bool:      ["bool_as_int", "Int64", "BOOL"],
+        boolean:   ["bool_as_int", "Int64", "BOOL"],
+        date:      ["date_as_var", "String", "DATE"],
+        time:      ["time_as_var", "String", "TIMESTAMP"],
+        timestamp: ["time_as_var", "String", "TIMESTAMP"],
+      },
     }
 
     property name : String
@@ -57,7 +57,6 @@ module Amber::CMD
           return mapping
         end
       end
-      
       if mapping = TYPE_MAPPING["common"][@type]?
         return mapping
       else

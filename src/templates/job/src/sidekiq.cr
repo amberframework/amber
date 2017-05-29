@@ -9,4 +9,3 @@ server = cli.configure do |config|
 end
 
 cli.run(server)
-

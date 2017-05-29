@@ -15,7 +15,7 @@ module Amber::CMD
     def initialize(@name, fields)
       @database = database
       @language = language
-      @fields = fields.map {|field| Field.new(field, database: @database)}
+      @fields = fields.map { |field| Field.new(field, database: @database) }
       @fields += %w(created_at:time updated_at:time).map do |f|
         Field.new(f, hidden: true, database: @database)
       end
@@ -24,22 +24,20 @@ module Amber::CMD
       add_route
     end
 
-    DATABASE_YML = "config/database.yml"
     def database
       if File.exists?(DATABASE_YML) &&
-        (yaml = YAML.parse(File.read DATABASE_YML)) &&
-        (database = yaml.first)
+         (yaml = YAML.parse(File.read DATABASE_YML)) &&
+         (database = yaml.first)
         database.to_s
       else
         return "pg"
       end
     end
 
-    AMBER_YML = ".amber.yml"
     def language
       if File.exists?(AMBER_YML) &&
-        (yaml = YAML.parse(File.read AMBER_YML)) &&
-        (language = yaml["language"]?)
+         (yaml = YAML.parse(File.read AMBER_YML)) &&
+         (language = yaml["language"]?)
         language.to_s
       else
         return "slang"
@@ -60,7 +58,7 @@ module Amber::CMD
     end
 
     def filter(entries)
-      entries.reject{|entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }
+      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }
     end
 
     def add_route

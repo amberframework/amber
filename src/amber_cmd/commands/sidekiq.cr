@@ -10,7 +10,6 @@ module Amber::CMD
 
       def run
         options.watch << "./config/**/*.cr"
-        
         process_runner = Sentry::ProcessRunner.new(
           process_name: "sidekiq",
           build_command: "crystal build src/sidekiq.cr",

@@ -8,19 +8,18 @@ module Amber::CMD
     @name : String
     @fields : Array(Field)
     @database : String
-    @timestamp: String
+    @timestamp : String
 
     def initialize(@name, fields)
-      @fields = fields.map {|field| Field.new(field)}
+      @fields = fields.map { |field| Field.new(field) }
       @database = database
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S")
     end
 
-    DATABASE_YML = "config/database.yml"
     def database
       if File.exists?(DATABASE_YML) &&
-        (yaml = YAML.parse(File.read DATABASE_YML)) &&
-        (database = yaml.first)
+         (yaml = YAML.parse(File.read DATABASE_YML)) &&
+         (database = yaml.first)
         database.to_s
       else
         return "pg"
@@ -28,4 +27,3 @@ module Amber::CMD
     end
   end
 end
-

@@ -71,10 +71,10 @@ class Teeplate::RenderingEntry
 
   def local_path
     @local_path ||= if appends?
-      @data.path.gsub("+","")
-    else
-      @data.path
-    end
+                      @data.path.gsub("+", "")
+                    else
+                      @data.path
+                    end
   end
 end
 
@@ -96,4 +96,3 @@ module Teeplate
     end
   end
 end
-

@@ -2,7 +2,6 @@ require "cli"
 require "sentry/sentry_command"
 
 module Amber::CMD
-
   class MainCommand < Cli::Supercommand
     command "w", aliased: "watch"
 
