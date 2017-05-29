@@ -1,11 +1,12 @@
 require "http"
-require "./*"
+require "./**"
 
 module Amber::Controller
   class Base
     include Render
     include RedirectFactory
     include Callbacks
+    include Helpers::Tag
 
     protected getter request : HTTP::Request
     protected getter response : HTTP::Server::Response

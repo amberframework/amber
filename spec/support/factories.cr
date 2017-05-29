@@ -71,6 +71,10 @@ class TestController < Amber::Controller::Base
   def render_with_layout
     render("test/test.slang", "layout.slang", "spec/sample/views", "./")
   end
+
+  def render_with_csrf
+    render("spec/sample/views/test/_form.slang", layout: false)
+  end
 end
 
 struct UserSocket < Amber::WebSockets::ClientSocket
