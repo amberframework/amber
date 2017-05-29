@@ -1,3 +1,6 @@
+AMBER_YML    = ".amber.yml"
+DATABASE_YML = "config/database.yml"
+
 require "./version"
 require "./commands/*"
 
