@@ -14,6 +14,7 @@ module Amber
     property env : String
     property log : Logger
     property secret : String
+    property host : String = "0.0.0.0"
 
     def self.instance
       @@instance ||= new
@@ -31,11 +32,11 @@ module Amber
       @log = ::Logger.new(STDOUT)
       @log.level = ::Logger::INFO
       @secret = SecureRandom.hex
+      @host = "0.0.0.0"
     end
 
     def run
       time = Time.now
-      host = "127.0.0.1"
 
       str_host = "http://#{host}:#{port}".colorize(:light_cyan).underline
       version = "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
