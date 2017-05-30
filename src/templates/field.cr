@@ -1,13 +1,3 @@
-class Array
-  def visible
-    if T.class.to_s == "Field" 
-      self.reject{|f| f.hidden }
-    else
-      self
-    end
-  end
-end
-
 module Amber::CMD
   class Field
     TYPE_MAPPING = {
@@ -63,15 +53,16 @@ module Amber::CMD
 
     def type_mapping(type = "string")
       if type_mapping = TYPE_MAPPING[@database]?
-          if mapping = type_mapping[@type]?
+        if mapping = type_mapping[@type]?
           return mapping
-      end
+        end
       end
       if mapping = TYPE_MAPPING["common"][@type]?
-          return mapping
+        return mapping
       else
         raise "type #{@type} not available"
       end
     end
+
   end
 end

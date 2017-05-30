@@ -20,7 +20,7 @@ class <%= @name.capitalize %>Controller < Amber::Controller::Base
   end
 
   def create
-    <%= @name %> = <%= @name.capitalize %>.new(params.to_h.select([<%= @fields.visible.map(&.name).map{|f| %Q("#{f}")}.join(", ") %>]))
+  <%= @name %> = <%= @name.capitalize %>.new(params.to_h.select([<%= @visible_fields.map{|f| %Q("#{f}")}.join(", ") %>]))
 
     if <%= @name %>.valid? && <%= @name %>.save
       context.flash["success"] = "Created <%= @name.capitalize %> successfully."
@@ -43,7 +43,7 @@ class <%= @name.capitalize %>Controller < Amber::Controller::Base
   def update
     if <%= @name %> = <%= @name.capitalize %>.find(params["id"])
       puts "inside update block"
-      <%= @name %>.set_attributes(params.to_h.select([<%= @fields.visible.map(&.name).map{|f| %Q("#{f}")}.join(", ") %>])) 
+      <%= @name %>.set_attributes(params.to_h.select([<%= @visible_fields.map{|f| %Q("#{f}")}.join(", ") %>])) 
       if <%= @name %>.valid? && <%= @name %>.save
         puts "it was valid"
         context.flash["success"] = "Updated <%= @name.capitalize %> successfully."

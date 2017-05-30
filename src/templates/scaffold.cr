@@ -7,6 +7,7 @@ module Amber::CMD
 
     @name : String
     @fields : Array(Field)
+    @visible_fields : Array(String)
     @database : String
     @language : String
     @timestamp : String
@@ -21,6 +22,7 @@ module Amber::CMD
       end
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S")
       @primary_key = primary_key
+      @visible_fields = @fields.reject(&.hidden).map(&.name)
       add_route
     end
 
