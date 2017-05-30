@@ -44,40 +44,22 @@ dependencies:
 
 ## Usage
 
-```crystal
-# src/controllers/hello_controller.cr
-
-class HelloController < Amber::Controller::Base
-  def world
-    "Hello World"
-  end
-
-  def template_demo
-    render "template_demo.slang" # renders views/hello/template_demo.slang with layout views/layouts/application.slang
-  end
-end
-```
-
-```crystal
-# Location for your initialization code
-# {YourApp}/src/config/app.cr
-
-# The config file that Amber generates, web/router.cr, will look something like
-# this one:
-
+*src/yourapp.cr*
+```cr
 # The first line requires the framework library.
 require "amber"
 # requires all of your controllers, models, etc.
 require "./**"
+require "../config/*"
 
-# This line simply makes a Amber Server instance that will be use for your
-# entire application
+# Finally this is how you will bootup the server.
+Amber::Server.instance.run
+```
 
-
-MyAwesomeApp = Amber::Server.instance
-
+*config/application.cr*
+```crystal
 # This line represents how you will define your application configuration.
-MyAwesomeApp.config do
+Amber::Server.instance do
   # Server options
   app_path = __FILE__ # Do not change unless you understand what you are doing.
   name = "Hello World App" # A descriptive name for your app
@@ -85,7 +67,12 @@ MyAwesomeApp.config do
   env = "development".colorize(:yellow).to_s
   log = ::Logger.new(STDOUT)
   log.level = ::Logger::INFO
+end
+```
 
+*config/routes.cr*
+```cr
+Amber::Server.instance do
   # Every Amber application needs to define a pipeline set of pipes
   # each pipeline allow a set of middleware transformations to be applied to
   # different sets of route, this give you granular control and explicitness
@@ -122,18 +109,42 @@ MyAwesomeApp.config do
   routes :web do
     # Each route is defined as follow
     # verb, resources : String, controller : Symbol, action : Symbol,
-    # pipeline : Symbol
-    get "/", HelloController, :world, :api
-    get "/hello", HelloController, :world, :api
-    get "/hello/:planet", HelloController, :world, :api
-    get "/hello/template_demo/:name", HelloController, :template_demo, :web
+    get "/", HelloController, :world
+    get "/hello", HelloController, :world
+    get "/hello/:planet", HelloController, :world
+    get "/hello/template_demo/:name", HelloController, :template_demo
   end
 end
-
-# Finally this is how you will bootup the server.
-MyAwesomeApp.run
 ```
 
+*src/controllers/hello_controller.cr*
+```cr
+class HelloController < Amber::Controller::Base
+  def world
+    "Hello World"
+  end
+
+  def template_demo
+    render "template_demo.slang" # renders views/hello/template_demo.slang with layout views/layouts/application.slang
+  end
+end
+```
+
+*src/views/hello/template_demo.slang*
+```slim
+h1 Hey You!
+p
+  | Welcome to the Machine.
+```
+
+*src/views/layouts/application.slang*
+```slim
+html
+  head
+    title A New Machine (Part 1)
+  body
+    == content
+```
 ## Contributing
 
 1. Fork it (https://github.com/Amber-Crystal/amber)
