@@ -11,6 +11,10 @@ class HelloController < Amber::Controller::Base
     only [:index, :world] { increment(1) }
   end
 
+  def hello_world
+    "Hello World! Running filters? #{@num}"
+  end
+
   def index
     "Hello from no where, Increment result: #{@num}"
   end
