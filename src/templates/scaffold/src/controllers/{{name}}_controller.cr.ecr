@@ -1,7 +1,6 @@
 class <%= @name.capitalize %>Controller < Amber::Controller::Base
   def index
     <%= @name %>s = <%= @name.capitalize %>.all
-    # context = context.not_nil!
     render("index.slang")
   end
 

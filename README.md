@@ -35,8 +35,8 @@ Subcommands:
   console
   g         alias for generate
   generate
-  i         alias for init
-  init
+  n         alias for new
+  new
   m         alias for migrate
   migrate
   w         alias for watch
@@ -50,7 +50,7 @@ Options:
 ## Usage
 
 ```sh
-amber init app [your_app] -d [pg | mysql | sqlite] -t [slang | ecr] --deps 
+amber new [your_app] -d [pg | mysql | sqlite] -t [slang | ecr] --deps 
 cd [your_app]
 ```
 options: `-d` defaults to pg. `-t` defaults to slang. `--deps` will run `crystal deps` for you.
