@@ -15,6 +15,7 @@ module Amber
     property log : Logger
     property secret : String
     property host : String = "0.0.0.0"
+    property port_reuse : Bool = false
 
     def self.instance
       @@instance ||= new
@@ -33,15 +34,31 @@ module Amber
       @log.level = ::Logger::INFO
       @secret = SecureRandom.hex
       @host = "0.0.0.0"
+      @port_reuse = true
     end
 
     def run
-      time = Time.now
+      ENV["THREAD_COUNT"] ||= "1"
+      thread_count = ENV["THREAD_COUNT"].to_i
+      if Cluster.master?
+        while(thread_count > 0)
+          Cluster.fork ({"id" => thread_count.to_s})
+          thread_count -= 1
+        end
+        sleep
+      else
+        start
+      end
+    end
 
+    def start
+      time = Time.now
       str_host = "http://#{host}:#{port}".colorize(:light_cyan).underline
       version = "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
-
       log.info "#{version} serving application \"#{name}\" at #{str_host}".to_s
+
+      # prepare pipelines for processing and memoize them to gain a little performance
+      handler.prepare_pipelines
 
       server = HTTP::Server.new(host, port, handler)
 
@@ -53,7 +70,7 @@ module Amber
 
       log.info "Server started in #{env}.".to_s
       log.info "Startup Time #{Time.now - time}\n\n".colorize(:white).to_s
-      server.listen
+      server.listen(port_reuse)
     end
 
     def config(&block)
@@ -77,11 +94,29 @@ module Amber
     end
 
     def handler
-      @pipe ||= Pipe::Pipeline.instance
+      @handler ||= Pipe::Pipeline.instance
     end
 
     private def router
       @router ||= Router::Router.instance
     end
   end
+
+  class Cluster
+
+    def self.fork (env : Hash)
+        env["FORKED"] = "1"
+        Process.fork { Process.run(PROGRAM_NAME, nil, env, true, false, true, true, true, nil ) }
+    end
+
+    def self.master?
+     (ENV["FORKED"]? || "0") == "0"
+    end
+
+    def self.worker?
+     (ENV["FORKED"]? || "0") == "1"
+    end
+
+  end
+
 end

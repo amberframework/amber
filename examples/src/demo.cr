@@ -20,6 +20,7 @@ MY_APP_SERVER.config do |app|
   app.env = "development".colorize(:yellow).to_s
   app.log = ::Logger.new(STDOUT)
   app.log.level = ::Logger::INFO
+  app.port_reuse = true
 
   # Every Amber application needs to define a pipeline set of pipes
   # each pipeline allow a set of middleware transformations to be applied to
@@ -31,7 +32,6 @@ MY_APP_SERVER.config do |app|
     # Plug is the method to use connect a pipe (middleware)
     # A plug accepts an instance of HTTP::Handler
     plug Amber::Pipe::Logger.new
-    plug HTTP::StaticFileHandler.new "../examples/public", false
     plug HTTP::CompressHandler.new
   end
 
@@ -73,6 +73,7 @@ MY_APP_SERVER.config do |app|
     resources "/hello", HelloController
     get "/hello/world/:planet", HelloController, :world
     get "/hello/template", HelloController, :template
+    get "/hello/hello_world", HelloController, :hello_world
   end
 end
 
