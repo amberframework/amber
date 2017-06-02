@@ -11,8 +11,9 @@ module Amber::Router
 
       def initialize(upload)
         @filename = upload.filename
-        @file = Tempfile.open(@filename) do |file|
-          IO.copy(upload.body, file)
+        @file = Tempfile.new(filename)
+        ::File.open(@file.path, "w") do |f|
+          ::IO.copy(upload.body, f)
         end
         @headers = upload.headers
         @creation_time = upload.creation_time
@@ -31,3 +32,4 @@ module Amber::Router
     end
   end
 end
+
