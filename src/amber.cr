@@ -40,7 +40,7 @@ module Amber
     def run
       ENV["THREAD_COUNT"] ||= "1"
       thread_count = ENV["THREAD_COUNT"].to_i
-      if Cluster.master?
+      if Cluster.master? && thread_count > 1
         while(thread_count > 0)
           Cluster.fork ({"id" => thread_count.to_s})
           thread_count -= 1
