@@ -35,6 +35,7 @@ module Amber
       @secret = SecureRandom.hex
       @host = "0.0.0.0"
       @port_reuse = true
+      Dir.mkdir_p("/tmp/ambercr/")
     end
 
     def run
