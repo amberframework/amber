@@ -14,7 +14,7 @@ module Amber
         @valve = :web
         @pipeline = {} of Symbol => Array(HTTP::Handler)
         @pipeline[@valve] = [] of HTTP::Handler
-        @drain = {} of Symbol => HTTP::Handler
+        @drain = {} of Symbol => (HTTP::Handler | (HTTP::Server::Context ->))
       end
 
       def call(context : HTTP::Server::Context)
@@ -42,20 +42,24 @@ module Amber
 
       def prepare_pipelines
         pipeline.keys.each do |valve|
-           @drain[valve] ||= build_pipeline(
+          @drain[valve] ||= build_pipeline(
             pipeline[valve],
             ->(context : HTTP::Server::Context) {
               context.response.print(context.process_request)
-          })
+            })
         end
       end
 
-      def build_pipeline(pipes, last_pipe : (HTTP::Server::Context ->)? = nil)
-        raise ArgumentError.new "You must specify at least one HTTP Handler." if pipes.empty?
-        0.upto(pipes.size - 2) { |i| pipes[i].next = pipes[i + 1] }
-        pipes.last.next = last_pipe if last_pipe
-        pipes.first
+      def build_pipeline(pipes, last_pipe : (HTTP::Server::Context ->))
+        if pipes.empty?
+          last_pipe
+        else
+          0.upto(pipes.size - 2) { |i| pipes[i].next = pipes[i + 1] }
+          pipes.last.next = last_pipe if last_pipe
+          pipes.first
+        end
       end
     end
   end
 end
+
