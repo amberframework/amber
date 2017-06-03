@@ -19,6 +19,7 @@ module Amber
 
       def call(context : HTTP::Server::Context)
         if !CHECK_METHODS.includes?(context.request.method) || valid_token?(context)
+          context.session.delete(session_key)
           call_next(context)
         else
           raise Amber::Exceptions::Forbidden.new("CSRF check failed.")
@@ -26,12 +27,7 @@ module Amber
       end
 
       def valid_token?(context)
-        if context.params[param_key]? == token(context) || context.request.headers[header_key]? == token(context)
-          context.session.delete(session_key)
-          true
-        else
-          false
-        end
+        (context.params[param_key]? || context.request.headers[header_key]?) == token(context)
       rescue
         false
       end
