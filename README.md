@@ -159,7 +159,7 @@ html
 - [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
 - [elorest](https://github.com/elorest) Isaac Sloan - Maintainer
 - [drujensen](https://github.com/drujensen) Dru Jensen - Maintainer
-- [bew](https://github.com/fridgerator) Benoit de Chezelles - Member
+- [bew](https://github.com/bew) Benoit de Chezelles - Member
 
 ## License
 
