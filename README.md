@@ -1,11 +1,16 @@
-# amber_cmd
+# Amber::CMD
+
 [![Build Status](https://travis-ci.org/Amber-Crystal/amber_cmd.svg?branch=master)](https://travis-ci.org/Amber-Crystal/amber_cmd)
 
-Rails like command line for Amber
+This section provides an introduction into Amber command-line interface. 
+
+Amber provides a CLI client that makes interfacing with your file system and applications much smoother. The Amber console provides a framework for creating shell scripts. The Console uses a dispatcher-type setup to load a shell or task, and provide its parameters.
+
 
 ## Installation
 
 You can build the `amber` tool from source:
+
 ```shellsession
 $ git clone git@github.com:amber-crystal/amber_cmd.git
 $ cd amber_cmd/
@@ -24,27 +29,44 @@ Optionally, you can use homebrew to install.
 
 ## Commands
 
-``` shell
+```shell
 $ amber --help
 amber [OPTIONS] SUBCOMMAND
 
-Amber Cmd
+Amber::CMD
 
-Subcommands:
-  c         alias for console
-  console
-  g         alias for generate
-  generate
-  n         alias for new
-  new
-  m         alias for migrate
-  migrate
-  w         alias for watch
-  watch
+The `amber new` command creates a new Rails application with a default
+directory structure and configuration at the path you specify.
 
+You can specify extra command-line arguments to be used every time
+`amber new` runs in the .amber.yml configuration file in your project 
+root directory
+
+Note that the arguments specified in the .amber.yml file does not affect the
+defaults values shown above in this help message.
+
+Usage:
+amber new [app_name] -d [pg | mysql | sqlite] -t [slang | ecr] --deps 
+
+Commands:
+  amber c console                 # Starts a amber console   
+  amber g generate [SUBCOMMAND]   # Generate hanami classes
+  amber n new                     # Generate a new amber project
+  amber m migrate [SUBCOMMAND]    # Performs database migrations tasks
+  amber w watch                   # Starts amber server and rebuilds on file changes
+  amber r routes                  # Prints the routes (In Development)
+  amber b build [OPTION]          # Compiles and builds your project. Options: [release] (In Development)
+  
 Options:
-  -h, --help     show this help
-  -v, --version  show version
+  -t, --template [name]           # Preconfigure for selected template engine. Options: slang | ecr 
+  -d, --database [name]           # Preconfigure for selected database. Options: pg | mysql | sqlite
+  -h, --help                      # Describe available commands and usages
+  -v, --version                   # Prints Amber version
+  --deps                          # Installs project dependencies
+  
+Example:
+  amber new ~/Code/Projects/weblog
+  This generates a skeletal Amber installation in ~/Code/Projects/weblog.
 ```
 
 ## Usage
@@ -56,13 +78,13 @@ cd [your_app]
 options: `-d` defaults to pg. `-t` defaults to slang. `--deps` will run `crystal deps` for you.
 
 This will generate a traditional web application:
- - /config - Application and HTTP::Handler config's goes here.  The database.yml and routes.cr are here.
- - /lib - shards are installed here.
- - /public - Default location for html/css/js files.  The static handler points to this directory.
- - /spec - all the crystal specs go here.
- - /src - all the source code goes here.
+ - **/config** - Application and HTTP::Handler config's goes here.  The database.yml and routes.cr are here.
+ - **/lib** - shards are installed here.
+ - **/public** - Default location for html/css/js files.  The static handler points to this directory.
+ - **/spec** - all the crystal specs go here.
+ - **/src** - all the source code goes here.
 
-
+## Scaffolding
 Generate scaffolding for a resource:
 ```sh
 amber generate scaffold Post name:string body:text draft:bool
@@ -78,16 +100,16 @@ This will generate scaffolding for a Post:
  - appends route to config/routes.cr
  - appends navigation to src/layouts/_nav.slang
 
-### Run Locally
-To test the demo app locally:
+## Running App Locally
+To test the generated App locally:
 
 1. Create a new Postgres or Mysql database called `[your_app]_development`
-2. Configure your database with one of the following ways.
+2. Configure your database in one of the following ways.
   * Add it in `config/database.yml`
-  * Run `export DATABASE_URL=postgres://[username]:[password]@localhost:5432/[your_app]_development` which overrides the `config/database.yml`.
-3. Migrate the database: `amber migrate up`. You should see output like `
-Migrating db, current version: 0, target: [datetimestamp]
-OK   [datetimestamp]_create_shop.sql`
+  * Run `export DATABASE_URL=postgres://[username]:[password]@localhost:5432/[your_app]_development` 
+    which overrides the `config/database.yml`.
+3. Migrate the database: `amber migrate up`. You should see output like 
+    `Migrating db, current version: 0, target: [datetimestamp]OK   [datetimestamp]_create_shop.sql`
 4. Run the specs: `crystal spec`
 5. Start your app: `amber watch`
 6. Then visit `http://0.0.0.0:3000/`
