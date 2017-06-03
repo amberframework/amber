@@ -13,8 +13,8 @@ module Amber
     end
 
     class Forbidden < Exception
-      def initialize(message)
-        super("The request was not found.")
+      def initialize(message : String?)
+        super(message || "Action is Forbidden.")
       end
     end
 

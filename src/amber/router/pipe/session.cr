@@ -16,7 +16,7 @@ module Amber::Pipe
     end
 
     def initialize
-      @key = "#{Server.settings.name.gsub(" ", "_")}.session"
+      @key = "#{Server.settings.name.gsub(" ", "_").downcase}.session"
       @secret = Server.settings.secret
     end
 

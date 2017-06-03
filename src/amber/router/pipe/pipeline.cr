@@ -23,7 +23,20 @@ module Amber
         if context.websocket?
           context.process_websocket_request
         else
-          @drain[context.valve].call(context) if @drain[context.valve]
+          begin
+            @drain[context.valve].call(context) if @drain[context.valve]
+          rescue e
+            context.response.headers["Content-Type"] = "text/plain"
+            context.response.print e.message
+            case e
+            when Amber::Exceptions::Forbidden
+              context.response.status_code = 403
+            when Amber::Exceptions::RouteNotFound
+              context.response.status_code = 404
+            else
+              context.response.status_code = 500
+            end
+          end
         end
 
         context
@@ -62,4 +75,3 @@ module Amber
     end
   end
 end
-
