@@ -19,7 +19,7 @@ module Amber
         context.session["authorized"] = "true"
         session.call(context)
         cookie = context.response.headers["set-cookie"]
-        cookie.should eq "amber.session=8a45be69c9e296834650a6e73c50f931a60d6cf8--eyJhdXRob3JpemVkIjoidHJ1ZSJ9%0A; path=/"
+        cookie.should eq "#{Amber::Server.settings.project_name}.session=404f0c34f1efcb0d96e0c801fbc0fed13db667b0--LS0tCmF1dGhvcml6ZWQ6IHRydWUK%0A; path=/"
       end
 
       it "uses a secret" do
@@ -30,7 +30,7 @@ module Amber
         context.session["authorized"] = "true"
         session.call(context)
         cookie = context.response.headers["set-cookie"]
-        cookie.should eq "amber.session=8a45be69c9e296834650a6e73c50f931a60d6cf8--eyJhdXRob3JpemVkIjoidHJ1ZSJ9%0A; path=/"
+        cookie.should eq "#{Amber::Server.settings.project_name}.session=404f0c34f1efcb0d96e0c801fbc0fed13db667b0--LS0tCmF1dGhvcml6ZWQ6IHRydWUK%0A; path=/"
       end
     end
   end

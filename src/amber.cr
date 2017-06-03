@@ -11,11 +11,16 @@ module Amber
   class Server
     property port : Int32
     property name : String
+    setter   project_name : String?
     property env : String
     property log : Logger
     property secret : String
     property host : String = "0.0.0.0"
     property port_reuse : Bool = false
+
+    def project_name
+      @project_name ||= @name.gsub(/\W/, "_").downcase
+    end
 
     def self.instance
       @@instance ||= new
@@ -27,7 +32,7 @@ module Amber
 
     def initialize
       @app_path = __FILE__
-      @name = "My Awesome App"
+      @name = "amber_project"
       @port = 8080
       @env = "development".colorize(:yellow).to_s
       @log = ::Logger.new(STDOUT)

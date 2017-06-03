@@ -1,6 +1,6 @@
 require "http/cookie"
 require "base64"
-require "json"
+require "yaml"
 require "openssl/hmac"
 
 module Amber::Pipe
@@ -16,7 +16,7 @@ module Amber::Pipe
     end
 
     def initialize
-      @key = "#{Server.settings.name.gsub(" ", "_")}.session"
+      @key = "#{Server.settings.project_name}.session"
       @secret = Server.settings.secret
     end
 
@@ -34,8 +34,7 @@ module Amber::Pipe
     private def decode(session, data)
       sha1, data = data.split("--", 2)
       if sha1 == OpenSSL::HMAC.hexdigest(:sha1, @secret, data)
-        json = Base64.decode_string(data)
-        values = JSON.parse(json)
+        values = YAML.parse(Base64.decode_string(data))
         values.each do |key, value|
           session[key.to_s] = value.to_s
         end
@@ -43,7 +42,7 @@ module Amber::Pipe
     end
 
     private def encode(session)
-      data = Base64.encode(session.to_json)
+      data = Base64.encode(session.to_yaml)
       sha1 = OpenSSL::HMAC.hexdigest(:sha1, @secret, data)
       "#{sha1}--#{data}"
     end

@@ -4,9 +4,8 @@ module Amber
   module Pipe
     # The CSRF Handler adds support for Cross Site Request Forgery.
     class CSRF < Base
-      property session_key, header_key, param_key, check_methods
-
       CHECK_METHODS = %w(PUT POST PATCH DELETE)
+      property session_key, header_key, param_key, check_methods
 
       def self.instance
         @@instance ||= new
@@ -16,11 +15,11 @@ module Amber
         @session_key = "csrf.token"
         @header_key = "HTTP_X_CSRF_TOKEN"
         @param_key = "_csrf"
-        @check_methods = CHECK_METHODS
       end
 
       def call(context : HTTP::Server::Context)
-        if !check_methods.includes?(context.request.method) || valid_token?(context)
+        if !CHECK_METHODS.includes?(context.request.method) || valid_token?(context)
+          context.session.delete(session_key)
           call_next(context)
         else
           raise Amber::Exceptions::Forbidden.new("CSRF check failed.")
@@ -28,8 +27,7 @@ module Amber
       end
 
       def valid_token?(context)
-        context.params.fetch(param_key, nil) == token(context) ||
-          context.request.headers.fetch(header_key, nil) == token(context)
+        (context.params[param_key]? || context.request.headers[header_key]?) == token(context)
       rescue
         false
       end
