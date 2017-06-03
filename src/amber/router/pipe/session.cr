@@ -16,7 +16,7 @@ module Amber::Pipe
     end
 
     def initialize
-      @key = "amber.session"
+      @key = "#{Server.settings.name.gsub(" ", "_")}.session"
       @secret = Server.settings.secret
     end
 
@@ -25,7 +25,7 @@ module Amber::Pipe
       decode(context.session, cookies[@key].value) if cookies.has_key?(@key)
       call_next(context)
       value = encode(context.session)
-      cookies = HTTP::Cookies.from_headers(context.response.headers)
+      cookies = context.response.cookies
       cookies << HTTP::Cookie.new(@key, value)
       cookies.add_response_headers(context.response.headers)
       context
