@@ -20,10 +20,7 @@ module Amber
           request = HTTP::Request.new("GET", "/bad/route")
           pipeline.build :web { plug Amber::Pipe::Logger.new }
           Router::Router.instance.draw :web { get "/valid/route", HelloController, :world }
-
-          expect_raises Exceptions::RouteNotFound do
-            create_request_and_return_io(pipeline, request)
-          end
+          create_request_and_return_io(pipeline, request).status_code.should eq 404
         end
 
         it "routes" do

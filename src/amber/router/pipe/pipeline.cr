@@ -18,15 +18,15 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
-        raise Exceptions::RouteNotFound.new(context.request) if context.invalid_route?
+        raise Amber::Exceptions::RouteNotFound.new(context.request) if context.invalid_route?
 
         if context.websocket?
           context.process_websocket_request
         else
           @drain[context.valve].call(context) if @drain[context.valve]
         end
-
-        context
+      rescue e : Amber::Exceptions::Base
+        e.set_response(context.response)
       end
 
       # Connects pipes to a pipeline to process requests
@@ -62,4 +62,3 @@ module Amber
     end
   end
 end
-
