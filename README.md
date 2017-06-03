@@ -50,7 +50,7 @@ amber new [app_name] -d [pg | mysql | sqlite] -t [slang | ecr] --deps
 
 Commands:
   amber c console                 # Starts a amber console   
-  amber g generate [SUBCOMMAND]   # Generate hanami classes
+  amber g generate [SUBCOMMAND]   # Generate Amber classes
   amber n new                     # Generate a new amber project
   amber m migrate [SUBCOMMAND]    # Performs database migrations tasks
   amber w watch                   # Starts amber server and rebuilds on file changes
