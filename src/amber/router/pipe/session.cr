@@ -54,7 +54,7 @@ module Amber
     module Session
       # clear the session.  You can call this to logout a user.
       def clear_session
-        @session = {} of String => String
+        @session = SessionHash.new 
       end
 
       # Holds a hash of session variables.  This can be used to hold data between
@@ -62,7 +62,19 @@ module Amber
       # session since this is held in a cookie.  Also avoid putting more than 4k
       # worth of data in the session to avoid slow pageload times.
       def session
-        @session ||= {} of String => String
+        @session ||= SessionHash.new 
+      end
+
+      class SessionHash < Hash(String, String)
+        def []=(key : String | Symbol, value : V)
+          super(key.to_s, value)
+        end
+
+        def [](key : Symbol | String)
+          key = key.to_s
+          @read << key
+          fetch(key, nil)
+        end
       end
     end
   end

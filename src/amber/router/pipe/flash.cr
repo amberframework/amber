@@ -1,5 +1,5 @@
 require "base64"
-require "json"
+require "yaml"
 require "openssl/hmac"
 
 module Amber
@@ -29,15 +29,15 @@ module Amber
       end
 
       private def decode(flash, data)
-        json = Base64.decode_string(data)
-        values = JSON.parse(json)
+        yaml = Base64.decode_string(data)
+        values = YAML.parse(yaml)
         values.each do |key, value|
           flash[key.to_s] = value.to_s
         end
       end
 
       private def encode(flash)
-        data = Base64.encode(flash.to_json)
+        data = Base64.encode(flash.to_yaml)
         return data
       end
     end
@@ -63,9 +63,18 @@ module Amber
           super
         end
 
-        def fetch(key)
+        def read 
+          @read
+        end
+
+        def []=(key : String | Symbol, value : V)
+          super(key.to_s, value)
+        end
+
+        def [](key : Symbol | String)
+          key = key.to_s
           @read << key
-          super
+          fetch(key, nil)
         end
 
         def each
@@ -79,7 +88,8 @@ module Amber
         end
 
         def unread
-          reject { |key, _| !@read.includes? key }
+          #TODO: unread marks them as read. Maybe fix this. It shouldn't actually matter since it get's reloaded next request.
+          reject { |key, _| @read.includes? key }
         end
       end
     end

@@ -1,4 +1,5 @@
 require "../../../../spec_helper"
+require "json"
 
 module Amber
   module Pipe
@@ -25,25 +26,18 @@ module Amber
       end
 
       it "returns a list of flash messages that have not been read" do
-        flash = Flash.instance
         request = HTTP::Request.new("GET", "/")
         context = create_context(request)
         context.flash["error"] = "There was a problem"
-
-        flash.call(context)
-
-        context.flash.unread["error"].should eq "There was a problem"
+        context.flash.unread["error"]?.should eq "There was a problem"
       end
 
       it "does not return read messages" do
-        flash = Flash.instance
         request = HTTP::Request.new("GET", "/")
         context = create_context(request)
         context.flash["error"] = "There was a problem"
-
-        flash.call(context)
-
-        context.flash.unread["error"].should eq "There was a problem"
+        context.flash[:error]
+        context.flash.unread["error"]?.should_not eq "There was a problem"
       end
 
       it "supports enumerable" do
