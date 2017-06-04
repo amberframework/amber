@@ -47,17 +47,17 @@ module Amber
     module Flash
       # clear the flash messages.
       def clear_flash
-        @flash = FlashHash.new
+        @flash = Hash.new
       end
 
       # Holds a hash of flash variables.  This can be used to hold data between
       # requests. Once a flash message is read, it is marked for removal.
       def flash
-        @flash ||= FlashHash.new
+        @flash ||= Hash.new
       end
 
       # A hash that keeps track if its been accessed
-      class FlashHash < Hash(String, String)
+      class Hash < Hash(String, String)
         def initialize
           @read = [] of String
           super
