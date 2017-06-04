@@ -4,7 +4,7 @@
 
 This section provides an introduction into Amber command-line interface. 
 
-Amber provides a CLI client that makes interfacing with your file system and applications much smoother. The Amber console provides a framework for creating shell scripts. The Console uses a dispatcher-type setup to load a shell or task, and provide its parameters.
+Amber provides a CLI client that makes interfacing with your file system and applications much smoother. The Amber console provides a framework for creating, generating, saffolding and running your Amber project.
 
 
 ## Installation
@@ -35,7 +35,7 @@ amber [OPTIONS] SUBCOMMAND
 
 Amber::CMD
 
-The `amber new` command creates a new Rails application with a default
+The `amber new` command creates a new Amber application with a default
 directory structure and configuration at the path you specify.
 
 You can specify extra command-line arguments to be used every time
@@ -50,7 +50,7 @@ amber new [app_name] -d [pg | mysql | sqlite] -t [slang | ecr] --deps
 
 Commands:
   amber c console                 # Starts a amber console   
-  amber g generate [SUBCOMMAND]   # Generate hanami classes
+  amber g generate [SUBCOMMAND]   # Generate Amber classes
   amber n new                     # Generate a new amber project
   amber m migrate [SUBCOMMAND]    # Performs database migrations tasks
   amber w watch                   # Starts amber server and rebuilds on file changes
