@@ -26,7 +26,6 @@ module Amber
         decode(context.session, cookies[@key].value) if cookies.has_key?(@key)
         call_next(context)
         value = encode(context.session.as(Hash))
-        pp value
         cookies = context.response.cookies
         cookies << HTTP::Cookie.new(@key, value)
         cookies.add_response_headers(context.response.headers)
@@ -34,20 +33,16 @@ module Amber
       end
 
       private def decode(session, data)
-        pp data
         sha1, data = data.split("--", 2)
         if sha1 == OpenSSL::HMAC.hexdigest(:sha1, @secret, data)
           values = YAML.parse(Base64.decode_string(data))
-          pp values
           values.each do |key, value|
             session[key.to_s] = value.to_s
           end
-          pp session
         end
       end
 
       private def encode(session)
-        puts session
         data = Base64.encode(session.to_yaml)
         sha1 = OpenSSL::HMAC.hexdigest(:sha1, @secret, data)
         "#{sha1}--#{data}"
