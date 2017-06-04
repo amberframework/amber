@@ -71,9 +71,7 @@ module Amber
         end
 
         def [](key : Symbol | String)
-          key = key.to_s
-          @read << key
-          fetch(key, nil)
+          fetch(key.to_s, nil)
         end
       end
     end
