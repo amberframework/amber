@@ -155,11 +155,11 @@ html
 
 ## Contributors
 
-- [eliasjpr](https://github.com/eliasjpr) Elias Perez - creator, maintainer
+- [eliasjpr](https://github.com/eliasjpr) Elias Perez - Maintainer
 - [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
 - [elorest](https://github.com/elorest) Isaac Sloan - Maintainer
-- [phoffer](https://github.com/phoffer) Paul Hoffer - Maintainer
-- [bew](https://github.com/fridgerator) Benoit de Chezelles - Member
+- [drujensen](https://github.com/drujensen) Dru Jensen - Maintainer
+- [bew](https://github.com/bew) Benoit de Chezelles - Member
 
 ## License
 
