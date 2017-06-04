@@ -43,8 +43,8 @@ module Amber
     end
 
     def run
-      ENV["THREAD_COUNT"] ||= "1"
-      thread_count = ENV["THREAD_COUNT"].to_i
+      ENV["PROCESS_COUNT"] ||= "1"
+      thread_count = ENV["PROCESS_COUNT"].to_i
       if Cluster.master? && thread_count > 1
         while(thread_count > 0)
           Cluster.fork ({"id" => thread_count.to_s})
