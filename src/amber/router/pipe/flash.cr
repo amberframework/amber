@@ -14,7 +14,7 @@ module Amber
       end
 
       def initialize
-        @key = "amber.flash"
+        @key = "#{Server.settings.project_name}.flash"
       end
 
       def call(context : HTTP::Server::Context)
@@ -47,17 +47,17 @@ module Amber
     module Flash
       # clear the flash messages.
       def clear_flash
-        @flash = Hash.new
+        @flash = Params.new
       end
 
       # Holds a hash of flash variables.  This can be used to hold data between
       # requests. Once a flash message is read, it is marked for removal.
       def flash
-        @flash ||= Hash.new
+        @flash ||= Params.new
       end
 
       # A hash that keeps track if its been accessed
-      class Hash < Hash(String, String)
+      class Params < Hash(String, String)
         def initialize
           @read = [] of String
           super
@@ -71,12 +71,11 @@ module Amber
           super(key.to_s, value)
         end
 
-        def [](key : Symbol | String)
-          key = key.to_s
-          @read << key
+        def [](key)
           fetch(key, nil)
         end
 
+        #TODO: Refactor this soon.
         def each
           current = @first
           while current
@@ -90,6 +89,12 @@ module Amber
         def unread
           #TODO: unread marks them as read. Maybe fix this. It shouldn't actually matter since it get's reloaded next request.
           reject { |key, _| @read.includes? key }
+        end
+
+        def find_entry(key)
+          key = key.to_s
+          @read << key
+          super(key)
         end
       end
     end

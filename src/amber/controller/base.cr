@@ -13,8 +13,8 @@ module Amber::Controller
     protected getter raw_params : HTTP::Params
     protected getter context : HTTP::Server::Context
     protected getter params : Amber::Validators::Params
-    protected getter flash : Amber::Router::Flash::Hash
-    protected getter session : Amber::Router::Session::Hash
+    protected getter flash : Amber::Router::Flash::Params
+    protected getter session : Amber::Router::Session::Params
 
     def initialize(@context : HTTP::Server::Context)
       @request = context.request

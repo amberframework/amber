@@ -28,8 +28,9 @@ module Amber
       it "returns a list of flash messages that have not been read" do
         request = HTTP::Request.new("GET", "/")
         context = create_context(request)
-        context.flash["error"] = "There was a problem"
-        context.flash.unread["error"]?.should eq "There was a problem"
+        context.flash[:error] = "There was a problem"
+        unread = context.flash.unread
+        unread["error"]?.should eq "There was a problem"
       end
 
       it "does not return read messages" do

@@ -25,7 +25,8 @@ module Amber
         cookies = context.request.cookies
         decode(context.session, cookies[@key].value) if cookies.has_key?(@key)
         call_next(context)
-        value = encode(context.session)
+        value = encode(context.session.as(Hash))
+        pp value
         cookies = context.response.cookies
         cookies << HTTP::Cookie.new(@key, value)
         cookies.add_response_headers(context.response.headers)
@@ -33,16 +34,20 @@ module Amber
       end
 
       private def decode(session, data)
+        pp data
         sha1, data = data.split("--", 2)
         if sha1 == OpenSSL::HMAC.hexdigest(:sha1, @secret, data)
           values = YAML.parse(Base64.decode_string(data))
+          pp values
           values.each do |key, value|
             session[key.to_s] = value.to_s
           end
+          pp session
         end
       end
 
       private def encode(session)
+        puts session
         data = Base64.encode(session.to_yaml)
         sha1 = OpenSSL::HMAC.hexdigest(:sha1, @secret, data)
         "#{sha1}--#{data}"
@@ -54,7 +59,7 @@ module Amber
     module Session
       # clear the session.  You can call this to logout a user.
       def clear_session
-        @session = Hash.new 
+        @session = Params.new 
       end
 
       # Holds a hash of session variables.  This can be used to hold data between
@@ -62,16 +67,20 @@ module Amber
       # session since this is held in a cookie.  Also avoid putting more than 4k
       # worth of data in the session to avoid slow pageload times.
       def session
-        @session ||= Hash.new 
+        @session ||= Params.new 
       end
 
-      class Hash < Hash(String, String)
+      class Params < Hash(String, String)
         def []=(key : String | Symbol, value : V)
           super(key.to_s, value)
         end
 
-        def [](key : Symbol | String)
-          fetch(key.to_s, nil)
+        def [](key)
+          fetch(key, nil)
+        end
+
+        def find_entry(key)
+          super(key.to_s)
         end
       end
     end
