@@ -5,10 +5,6 @@ module Amber
       property allow_origin, allow_headers, allow_methods, allow_credentials,
         max_age
 
-      def self.instance
-        @@instance ||= new
-      end
-
       def initialize
         @allow_origin = "*"
         @allow_headers = "Accept, Content-Type"
