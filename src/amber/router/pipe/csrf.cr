@@ -7,10 +7,6 @@ module Amber
       CHECK_METHODS = %w(PUT POST PATCH DELETE)
       property session_key, header_key, param_key, check_methods
 
-      def self.instance
-        @@instance ||= new
-      end
-
       def initialize
         @session_key = "csrf.token"
         @header_key = "HTTP_X_CSRF_TOKEN"

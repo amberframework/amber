@@ -1,7 +1,7 @@
 module Amber::Controller::Helpers
   module Tag
     def csrf_tag
-      Amber::Pipe::CSRF.instance.tag(context)
+      Amber::Pipe::CSRF.new.tag(context)
     end
   end
 end
