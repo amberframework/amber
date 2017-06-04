@@ -6,10 +6,6 @@ module Amber
       getter pipeline
       getter valve : Symbol
 
-      def self.instance
-        @@instance ||= new
-      end
-
       def initialize
         @valve = :web
         @pipeline = {} of Symbol => Array(HTTP::Handler)

@@ -8,16 +8,14 @@ module Amber::Pipe
   # encode and decode the cookie and provide the hash in the context that can
   # be used to maintain data across requests.
   class Session < Base
-    property :key
     property secret : String
+    property key : String
+    property store : Symbol
 
-    def self.instance
-      @@instance ||= new
-    end
-
-    def initialize
-      @key = "#{Server.settings.project_name}.session"
-      @secret = Server.settings.secret
+    def initialize(
+      @key : String = "#{Server.settings.project_name}.session",
+      @secret : String = Server.settings.secret,
+      @store : Symbol = :cookie)
     end
 
     def call(context : HTTP::Server::Context)
@@ -36,6 +34,7 @@ module Amber::Pipe
       if sha1 == OpenSSL::HMAC.hexdigest(:sha1, @secret, data)
         values = YAML.parse(Base64.decode_string(data))
         values.each do |key, value|
+          # TODO provide a session store other than in memory
           session[key.to_s] = value.to_s
         end
       end

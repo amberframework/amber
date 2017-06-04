@@ -9,10 +9,6 @@ module Amber
     class Flash < Base
       property :key
 
-      def self.instance
-        @@instance ||= new
-      end
-
       def initialize
         @key = "amber.flash"
       end
