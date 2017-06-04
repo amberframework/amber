@@ -6,10 +6,16 @@ module Amber::CMD
     command "c", aliased: "console"
 
     class Console < Cli::Command
+      command_name "console"
+
       def run
         libs = ["require \"amber\"", "require \"./config/*\""] of String
         code = libs.join ';'
         Icr::Console.new(true).start(code)
+      end
+
+      class Help
+        caption "# Starts a Amber console"
       end
     end
   end

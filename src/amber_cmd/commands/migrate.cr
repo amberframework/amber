@@ -15,6 +15,10 @@ module Amber::CMD
         arg "command", desc: "up, down, redo, status, dbversion", required: true
       end
 
+      class Help
+        caption "# Performs database migrations tasks"
+      end
+
       def run
         Micrate::Cli.setup_logger
         Micrate::DB.connection_url = database_url

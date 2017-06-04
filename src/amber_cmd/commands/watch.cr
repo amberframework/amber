@@ -8,6 +8,10 @@ module Amber::CMD
     class Watch < Sentry::SentryCommand
       command_name "watch"
 
+      class Help
+        caption "# Starts amber server and rebuilds on file changes"
+      end
+
       def run
         options.watch << "./config/**/*.cr"
         options.watch << "./src/views/**/*.slang"

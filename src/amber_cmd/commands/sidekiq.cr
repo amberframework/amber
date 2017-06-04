@@ -8,6 +8,10 @@ module Amber::CMD
     class Sidekiq < Sentry::SentryCommand
       command_name "sidekiq"
 
+      class Help
+        caption "# Prints the routes (In Development)"
+      end
+
       def run
         options.watch << "./config/**/*.cr"
         process_runner = Sentry::ProcessRunner.new(

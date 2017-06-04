@@ -13,6 +13,10 @@ module Amber::CMD
         template = Template.new(args.name.downcase, ".", args.fields)
         template.generate args.type
       end
+
+      class Help
+        caption "# Generate Amber classes"
+      end
     end
   end
 end

@@ -12,6 +12,10 @@ module Amber::CMD
         bool "--deps", desc: "installs deps, (shards update)", default: false
       end
 
+      class Help
+        caption "# Generates a new Amber project"
+      end
+
       def run
         name = File.basename(args.name)
         template = Template.new(name, "./#{args.name}")
