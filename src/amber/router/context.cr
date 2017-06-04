@@ -1,5 +1,4 @@
-require "tempfile"
-require "./*"
+require "./**"
 
 # The Context holds the request and the response objects.  The context is
 # passed to each handler that will read from the request object and build a
