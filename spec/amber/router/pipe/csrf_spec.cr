@@ -6,7 +6,7 @@ module Amber
       context "when requests have HTTP methods" do
         CSRF::CHECK_METHODS.each do |method|
           it "raises forbbiden error for PUT request" do
-            csrf = CSRF.instance
+            csrf = CSRF.new
             request = HTTP::Request.new(method, "/")
           expect_raises Exceptions::Forbidden do
             make_router_call(csrf, request)
@@ -18,7 +18,7 @@ module Amber
       context "when requests have allowed HTTP methods" do
         %w(GET HEAD OPTIONS TRACE CONNECT).each do |method|
           it "accepts requests for GET methods" do
-            csrf = CSRF.instance
+            csrf = CSRF.new
             request = HTTP::Request.new(method, "/")
 
             response = make_router_call(csrf, request)
@@ -30,7 +30,7 @@ module Amber
 
       context "when tokens match" do
         it "accepts requests params token" do
-          csrf = CSRF.instance
+          csrf = CSRF.new
           valid_token = "good_token"
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
@@ -44,7 +44,7 @@ module Amber
         end
 
         it "accepts requests for header token" do
-          csrf = CSRF.instance
+          csrf = CSRF.new
           valid_token = "good_token"
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
@@ -60,7 +60,7 @@ module Amber
 
       context "when tokens don't match" do
         it "raises a forbbiden error for params token" do
-          csrf = CSRF.instance
+          csrf = CSRF.new
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
 
@@ -73,7 +73,7 @@ module Amber
         end
 
         it "raises a forbbiden error for header token" do
-          csrf = CSRF.instance
+          csrf = CSRF.new
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
 

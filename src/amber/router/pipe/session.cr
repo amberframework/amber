@@ -9,16 +9,13 @@ module Amber
     # encode and decode the cookie and provide the hash in the context that can
     # be used to maintain data across requests.
     class Session < Base
-      property :key
       property secret : String
+      property key : String
+      property store : Symbol
 
-      def self.instance
-        @@instance ||= new
-      end
-
-      def initialize
-        @key = "#{Server.settings.project_name}.session"
-        @secret = Server.settings.secret
+      def initialize(@key : String = "#{Server.settings.project_name}.session",
+                     @secret : String = Server.settings.secret,
+                     @store : Symbol = :cookie)
       end
 
       def call(context : HTTP::Server::Context)
@@ -54,7 +51,7 @@ module Amber
     module Session
       # clear the session.  You can call this to logout a user.
       def clear_session
-        @session = Params.new 
+        @session = Params.new
       end
 
       # Holds a hash of session variables.  This can be used to hold data between
@@ -62,7 +59,7 @@ module Amber
       # session since this is held in a cookie.  Also avoid putting more than 4k
       # worth of data in the session to avoid slow pageload times.
       def session
-        @session ||= Params.new 
+        @session ||= Params.new
       end
 
       class Params < Hash(String, String)

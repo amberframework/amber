@@ -4,7 +4,7 @@ module Amber
   module Pipe
     describe Error do
       it "returns status code 404 when route not found" do
-        router = Error.instance
+        router = Error.new
         request = HTTP::Request.new("GET", "/")
 
         response = create_request_and_return_io(router, request)
@@ -13,7 +13,7 @@ module Amber
       end
 
       it "returns status code 500 for all other exceptions" do
-        error = Error.instance
+        error = Error.new
         request = HTTP::Request.new("GET", "/")
         error.next = ->(context : HTTP::Server::Context) { raise "Oops!" }
 

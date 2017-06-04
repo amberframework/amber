@@ -5,7 +5,7 @@ module Amber
   module Pipe
     describe Flash do
       it "sets a cookie" do
-        flash = Flash.instance
+        flash = Flash.new
         request = HTTP::Request.new("GET", "/")
         context = create_context(request)
 
@@ -15,7 +15,7 @@ module Amber
       end
 
       it "sets a flash message" do
-        flash = Flash.instance
+        flash = Flash.new
         request = HTTP::Request.new("GET", "/")
         context = create_context(request)
         context.flash["error"] = "There was a problem"
@@ -42,7 +42,7 @@ module Amber
       end
 
       it "supports enumerable" do
-        flash = Flash.instance
+        flash = Flash.new
         request = HTTP::Request.new("GET", "/")
         context = create_context(request)
         context.flash["error"] = "There was a problem"

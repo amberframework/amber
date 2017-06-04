@@ -39,7 +39,7 @@ module Amber::Controller
         context = create_context(request)
         html_output = <<-HTML
         <form action="/posts" method="post">
-          <input type="hidden" name="_csrf" value="#{Amber::Pipe::CSRF.instance.token(context)}" />
+          <input type="hidden" name="_csrf" value="#{Amber::Pipe::CSRF.new.token(context)}" />
           <div class="form-group">
             <input class="form-control" type="text" name="title" placeholder="Title" value="hey you">
           </div>
