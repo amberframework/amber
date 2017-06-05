@@ -65,7 +65,7 @@ module Amber::Router
       HTTP::FormData.parse(request) do |upload|
         next unless upload
         filename = upload.filename
-        if !filename.nil?
+        if filename.is_a?(String) && !filename.empty?
           files[upload.name] = Files::File.new(upload: upload)
         else
           params.add(upload.name, upload.body.gets_to_end)
