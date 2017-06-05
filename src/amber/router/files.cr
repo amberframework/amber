@@ -1,3 +1,5 @@
+require "tempfile"
+
 module Amber::Router
   module Files
     struct File
