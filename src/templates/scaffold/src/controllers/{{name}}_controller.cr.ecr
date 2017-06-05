@@ -8,7 +8,7 @@ class <%= @name.capitalize %>Controller < Amber::Controller::Base
     if <%= @name %> = <%= @name.capitalize %>.find params["id"]
       render("show.slang")
     else
-      context.flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
       redirect_to "/<%= @name %>s"
     end
   end
@@ -22,10 +22,10 @@ class <%= @name.capitalize %>Controller < Amber::Controller::Base
   <%= @name %> = <%= @name.capitalize %>.new(params.to_h.select(<%= @visible_fields %>))
 
     if <%= @name %>.valid? && <%= @name %>.save
-      context.flash["success"] = "Created <%= @name.capitalize %> successfully."
+      flash["success"] = "Created <%= @name.capitalize %> successfully."
       redirect_to "/<%= @name %>s"
     else
-      context.flash["danger"] = "Could not create <%= @name.capitalize %>!"
+      flash["danger"] = "Could not create <%= @name.capitalize %>!"
       render("new.slang")
     end
   end
@@ -34,7 +34,7 @@ class <%= @name.capitalize %>Controller < Amber::Controller::Base
     if <%= @name %> = <%= @name.capitalize %>.find params["id"]
       render("edit.slang")
     else
-      context.flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
       redirect_to "/<%= @name %>s"
     end
   end
@@ -43,14 +43,14 @@ class <%= @name.capitalize %>Controller < Amber::Controller::Base
     if <%= @name %> = <%= @name.capitalize %>.find(params["id"])
       <%= @name %>.set_attributes(params.to_h.select(<%= @visible_fields %>)) 
       if <%= @name %>.valid? && <%= @name %>.save
-        context.flash["success"] = "Updated <%= @name.capitalize %> successfully."
+        flash["success"] = "Updated <%= @name.capitalize %> successfully."
         redirect_to "/<%= @name %>s"
       else
-        context.flash["danger"] = "Could not update <%= @name.capitalize %>!"
+        flash["danger"] = "Could not update <%= @name.capitalize %>!"
         render("edit.slang")
       end
     else
-      context.flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
       redirect_to "/<%= @name %>s"
     end
   end
@@ -59,7 +59,7 @@ class <%= @name.capitalize %>Controller < Amber::Controller::Base
     if <%= @name %> = <%= @name.capitalize %>.find params["id"]
       <%= @name %>.destroy
     else
-      context.flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
     end
     redirect_to "/<%= @name %>s"
   end
