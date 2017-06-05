@@ -16,9 +16,9 @@ html
           == render_template "layouts/_nav.slang"
     div.container
       div.row
-      - context.flash.each do |key, value|
+      - flash.each do |key, value|
         div class="alert alert-#{ key }"
-          p = value
+          p = flash[key]
       div.row
         div.col-sm-12.main
           == content

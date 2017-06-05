@@ -20,9 +20,9 @@
 
     <div class="container">
       <div class="row">
-        <%="<"%>%- context.flash.each do |key, value| %>
+        <%="<"%>%- flash.each do |key, value| %>
           <div class="alert alert-<%="<"%>%= key %>">
-            <p><%="<"%>%= value %></p>
+            <p><%="<"%>%= flash[key] %></p>
           </div>
         <%="<"%>%- end %>
       </div>
