@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Amber-Crystal/Amber-Cmd.svg?branch=master)](https://travis-ci.org/Amber-Crystal/Amber-Cmd)
+[![Build Status](https://travis-ci.org/Amber-Crystal/amber_cmd.svg?branch=master)](https://travis-ci.org/Amber-Crystal/amber_cmd)
 # Amber::CMD
 This section provides an introduction into Amber command-line interface. 
 
