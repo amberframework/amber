@@ -5,35 +5,41 @@ module Amber
     # The CSRF Handler adds support for Cross Site Request Forgery.
     class CSRF < Base
       CHECK_METHODS = %w(PUT POST PATCH DELETE)
-      property session_key, header_key, param_key, check_methods
-
-      def initialize
-        @session_key = "csrf.token"
-        @header_key = "HTTP_X_CSRF_TOKEN"
-        @param_key = "_csrf"
-      end
+      HEADER_KEY    = "X-CSRF-TOKEN"
+      PARAM_KEY     = "_csrf"
+      CSRF_KEY      = "csrf.token"
 
       def call(context : HTTP::Server::Context)
-        if !CHECK_METHODS.includes?(context.request.method) || valid_token?(context)
-          context.session.delete(session_key)
+        if valid_http_method?(context) || valid_token?(context)
+          context.session.delete(CSRF_KEY)
           call_next(context)
         else
           raise Amber::Exceptions::Forbidden.new("CSRF check failed.")
+          context.response.status_code = 403
+          context.response.content_type = "text/plain"
+          context.response.print("CSRF check failed.")
         end
       end
 
+      def valid_http_method?(context)
+        !CHECK_METHODS.includes?(context.request.method)
+      end
+
       def valid_token?(context)
-        (context.params[param_key]? || context.request.headers[header_key]?) == token(context)
-      rescue
-        false
+        (context.params[PARAM_KEY]? || context.request.headers[HEADER_KEY]?) == self.class.token(context)
       end
 
-      def token(context)
-        context.session[session_key] ||= SecureRandom.urlsafe_base64(32)
+      def self.token(context)
+        context.session[CSRF_KEY] ||= SecureRandom.urlsafe_base64(32)
+        context.session[CSRF_KEY]
       end
 
-      def tag(context)
-        %Q(<input type="hidden" name="#{param_key}" value="#{token(context)}" />)
+      def self.tag(context)
+        %Q(<input type="hidden" name="#{PARAM_KEY}" value="#{token(context)}" />)
+      end
+
+      def self.metatag(context)
+        %Q(<meta name="#{HEADER_KEY}" content="#{token(context)}" />)
       end
     end
   end

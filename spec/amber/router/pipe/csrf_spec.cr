@@ -7,7 +7,9 @@ module Amber
         CSRF::CHECK_METHODS.each do |method|
           it "raises forbbiden error for PUT request" do
             csrf = CSRF.new
+
             request = HTTP::Request.new(method, "/")
+
             expect_raises Exceptions::Forbidden do
               make_router_call(csrf, request)
             end
@@ -31,12 +33,10 @@ module Amber
       context "when tokens match" do
         it "accepts requests params token" do
           csrf = CSRF.new
-          valid_token = "good_token"
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
-
-          context.session["csrf.token"] = valid_token
-          context.params["_csrf"] = valid_token
+          token = CSRF.token(context)
+          context.params[Amber::Pipe::CSRF::PARAM_KEY] = token.to_s
 
           result = csrf.call(context)
 
@@ -45,12 +45,10 @@ module Amber
 
         it "accepts requests for header token" do
           csrf = CSRF.new
-          valid_token = "good_token"
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
-
-          context.session["csrf.token"] = valid_token
-          context.request.headers["HTTP_X_CSRF_TOKEN"] = valid_token
+          token = CSRF.token(context)
+          context.request.headers[Amber::Pipe::CSRF::HEADER_KEY] = token.to_s
 
           result = csrf.call(context)
 

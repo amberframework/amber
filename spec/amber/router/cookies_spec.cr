@@ -1,19 +1,4 @@
 require "../../spec_helper"
-KEY_GENERATOR = Amber::Support::CachingKeyGenerator.new(
-  Amber::Support::KeyGenerator.new("secret", 1)
-)
-
-def new_cookie_store(headers = HTTP::Headers.new)
-  cookies = Amber::Router::Cookies::Store.new(KEY_GENERATOR)
-  cookies.update(Amber::Router::Cookies::Store.from_headers(headers))
-  cookies
-end
-
-def cookie_header(cookies)
-  http_headers = HTTP::Headers.new
-  cookies.write(http_headers)
-  http_headers["Set-Cookie"]
-end
 
 module Amber::Router
   describe Cookies::Store do

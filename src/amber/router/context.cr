@@ -11,8 +11,8 @@ class HTTP::Server::Context
 
   property route : Radix::Result(Amber::Route)
   getter router : Amber::Router::Router
-
-  @cookies : Amber::Router::Cookies::Store?
+  setter cookies : Amber::Router::Cookies::Store?
+  setter session : Amber::Router::Session::AbstractStore?
 
   def initialize(@request : HTTP::Request, @response : HTTP::Server::Response)
     @router = Amber::Router::Router.instance
@@ -26,6 +26,10 @@ class HTTP::Server::Context
     @cookies ||= Amber::Router::Cookies::Store.build(
       request, Amber::Server.key_generator
     )
+  end
+
+  def session
+    @session ||= Amber::Router::SessionFactory.new(cookies).build
   end
 
   def invalid_route?
