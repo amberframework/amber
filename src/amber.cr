@@ -5,6 +5,7 @@ require "colorize"
 require "secure_random"
 require "kilt"
 require "kilt/slang"
+require "redis"
 require "./amber/**"
 
 module Amber
@@ -34,6 +35,8 @@ module Amber
     property host : String = "0.0.0.0"
     property port_reuse : Bool = false
     getter key_generator : Amber::Support::CachingKeyGenerator
+    property pubsub_adapter : WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
+    property redis_url : String
 
     def initialize
       @app_path = __FILE__
@@ -48,6 +51,8 @@ module Amber
       @key_generator = Amber::Support::CachingKeyGenerator.new(
         Amber::Support::KeyGenerator.new(secret, 1000)
       )
+      @pubsub_adapter = WebSockets::Adapters::MemoryAdapter
+      @redis_url = "redis://localhost:6379"
     end
 
     def project_name

@@ -8,8 +8,13 @@ export class Socket {
   }
 
   connect (params) {
-    this.ws = new WebSocket(`ws://localhost:8080${this.endpoint}`)
-    this.ws.onmessage = (msg) => { this.handleMessage(msg) }
+    return new Promise((resolve, reject) => {
+      let location = window.location.hostname
+      if (window.location.port) location += `:${window.location.port}`
+      this.ws = new WebSocket(`ws://${location}${this.endpoint}`)
+      this.ws.onmessage = (msg) => { this.handleMessage(msg) }
+      this.ws.onopen = () => resolve()
+    })
   }
 
   channel (topic) {
