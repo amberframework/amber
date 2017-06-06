@@ -1,5 +1,4 @@
 require "./**"
-
 # The Context holds the request and the response objects.  The context is
 # passed to each handler that will read from the request object and build a
 # response object.  Params and Session hash can be accessed from the Context.
