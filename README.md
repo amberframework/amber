@@ -1,6 +1,6 @@
 ![Amber Crystal Framework](https://github.com/Amber-Crystal/amber/blob/master/media/amber.png)
 
-[![Build Status](https://travis-ci.org/Amber-Crystal/Amber.svg?branch=master)](https://travis-ci.org/Amber-Crystal/Amber)
+[![Build Status](https://travis-ci.org/Amber-Crystal/Amber.svg?branch=master)](https://travis-ci.org/Amber-Crystal/amber)
 [![Code Triagers Badge](https://www.codetriage.com/amber-crystal/amber/badges/users.svg)](https://www.codetriage.com/amber-crystal/amber)
 # Welcome to Amber
 
