@@ -10,6 +10,28 @@ module Amber::Controller
       end
     end
 
+    describe "#session" do
+      it "responds to cookies" do
+        controller = build_controller("")
+
+        controller.responds_to?(:session).should eq true
+      end
+
+      it "sets a session value" do
+        controller = build_controller("")
+
+        controller.session["name"] = "David"
+
+        controller.session["name"].should eq "David"
+      end
+
+      it "has a session id" do
+        controller = build_controller("")
+
+        controller.session.id.not_nil!.size.should eq 36
+      end
+    end
+
     describe "#render" do
       it "renders html from slang template" do
         request = HTTP::Request.new("GET", "/?test=test")
@@ -45,9 +67,10 @@ module Amber::Controller
       it "renders a form with a csrf tag" do
         request = HTTP::Request.new("GET", "/?test=test")
         context = create_context(request)
+        csrf_token = Amber::Pipe::CSRF.token(context)
         html_output = <<-HTML
         <form action="/posts" method="post">
-          <input type="hidden" name="_csrf" value="#{Amber::Pipe::CSRF.new.token(context)}" />
+          <input type="hidden" name="_csrf" value="#{csrf_token}" />
           <div class="form-group">
             <input class="form-control" type="text" name="title" placeholder="Title" value="hey you">
           </div>

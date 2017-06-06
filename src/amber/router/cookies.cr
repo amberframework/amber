@@ -47,6 +47,15 @@ module Amber::Router
             end
           end
         end
+
+        if values = headers.get?("Set-Cookie")
+          values.each do |header|
+            HTTP::Cookie::Parser.parse_cookies(header) do |cookie|
+              cookies[cookie.name] = cookie
+            end
+          end
+        end
+
         cookies
       end
 
@@ -54,7 +63,6 @@ module Amber::Router
         headers = request.headers
         host = request.host
         secure = (headers["HTTPS"]? == "on")
-
         new(key_generator, host, secure).tap do |store|
           store.update(from_headers(headers))
         end

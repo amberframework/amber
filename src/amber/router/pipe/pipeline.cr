@@ -15,7 +15,6 @@ module Amber
 
       def call(context : HTTP::Server::Context)
         raise Amber::Exceptions::RouteNotFound.new(context.request) if context.invalid_route?
-
         if context.websocket?
           context.process_websocket_request
         else
