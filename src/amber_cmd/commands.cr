@@ -3,6 +3,7 @@ DATABASE_YML = "config/database.yml"
 
 require "./version"
 require "./commands/*"
+require "./docker/*"
 
 module Amber::CMD
   class MainCommand < Cli::Supercommand
