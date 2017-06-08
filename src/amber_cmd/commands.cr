@@ -37,7 +37,7 @@ module Amber::CMD
     class Options
       version desc: "# Prints Amber version"
       help desc: "# Describe available commands and usages"
-      string ["-t", "--template"] , desc: "# Preconfigure for selected template engine. Options: slang | ecr", default: "slang"
+      string ["-t", "--template"], desc: "# Preconfigure for selected template engine. Options: slang | ecr", default: "slang"
       string ["-d", "--database"], desc: "# Preconfigure for selected database. Options: pg | mysql | sqlite", default: "pg"
     end
   end
