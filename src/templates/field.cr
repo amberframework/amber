@@ -63,6 +63,5 @@ module Amber::CMD
         raise "type #{@type} not available"
       end
     end
-
   end
 end

@@ -58,7 +58,7 @@ module Amber::CMD
 
       class Options
         help
-        string %w(-v --version),desc: "# New project version Eg. 1.2.0", required: true
+        string %w(-v --version), desc: "# New project version Eg. 1.2.0", required: true
         arg "msg", desc: "# Short release description", required: true
         string %w(-d --deploy), desc: "# Deploy to cloud service: digitalocean | heroku | aws | azure"
       end
@@ -99,14 +99,14 @@ module Amber::CMD
 
       def bump_version(name, current_version, new_version)
         files = {
-            "shard.yml" => "version: #{current_version}",
-            "src/#{name}/version.cr" => %Q(  VERSION = "#{current_version})
+          "shard.yml"              => "version: #{current_version}",
+          "src/#{name}/version.cr" => %Q(  VERSION = "#{current_version}),
         }
 
         files.each do |filename, version_str|
-            file_string = File.read(filename).gsub(version_str, version_str.gsub(current_version, new_version))
-            File.write(filename, file_string)
-            show "Version number updated in #{filename}.", :green
+          file_string = File.read(filename).gsub(version_str, version_str.gsub(current_version, new_version))
+          File.write(filename, file_string)
+          show "Version number updated in #{filename}.", :green
         end
       end
 

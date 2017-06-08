@@ -2,7 +2,6 @@ require "../spec_helper"
 
 module Amber::CMD::Docker::Machine
   describe Command do
-
     it "define machine for DigitalOcean" do
       command = Command.new("digitalocean", "spec/seeds/config.yml")
 
