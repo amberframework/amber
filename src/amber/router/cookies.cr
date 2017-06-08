@@ -1,5 +1,6 @@
 require "http"
 require "../support/*"
+
 module Amber::Router
   class Cookies
     module ChainedStore

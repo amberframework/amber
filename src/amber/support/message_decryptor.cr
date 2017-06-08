@@ -4,7 +4,6 @@ require "crypto/subtle"
 
 module Amber::Support
   class MessageVerifier
-
     def initialize(@secret : Bytes, @digest = :sha1)
     end
 

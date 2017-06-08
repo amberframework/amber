@@ -1,4 +1,3 @@
-
 require "openssl/pkcs5"
 
 module Amber::Support
