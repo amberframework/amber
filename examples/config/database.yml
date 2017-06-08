@@ -1,0 +1,2 @@
+pg:
+  database: postgres://postgres:@pg:5432/blog_development
