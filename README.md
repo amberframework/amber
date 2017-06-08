@@ -1,7 +1,5 @@
-# Amber::CMD
-
 [![Build Status](https://travis-ci.org/Amber-Crystal/amber_cmd.svg?branch=master)](https://travis-ci.org/Amber-Crystal/amber_cmd)
-
+# Amber::CMD
 This section provides an introduction into Amber command-line interface. 
 
 Amber provides a CLI client that makes interfacing with your file system and applications much smoother. The Amber console provides a framework for creating, generating, saffolding and running your Amber project.

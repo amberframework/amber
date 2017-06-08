@@ -7,3 +7,4 @@ ADD . /app/user
 RUN crystal deps
 
 CMD ["crystal", "spec"]
+
