@@ -55,6 +55,19 @@ module Amber
         match(request.method, request.path)
       end
 
+      def all
+        all_routes = {} of String => String
+        add_children(@routes.root, all_routes)
+        all_routes
+      end
+
+      def add_children(node, accomulator = {} of String => String)
+        node.children.each do |c|
+          accomulator[c.payload.resource] = c.payload.to_json if c.payload?
+          add_children(c, accomulator)
+        end
+      end
+
       private def merge_params(params, context)
         params.each { |k, v| context.params.add(k.to_s, v) }
       end

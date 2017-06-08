@@ -26,6 +26,10 @@ module Amber
       @@instance ||= new
     end
 
+    def self.routes
+      instance.all_routes
+    end
+
     def self.settings
       instance
     end
@@ -100,6 +104,10 @@ module Amber
 
     def handler
       @handler ||= Pipe::Pipeline.new
+    end
+
+    def all_routes
+      router.all
     end
 
     private def router
