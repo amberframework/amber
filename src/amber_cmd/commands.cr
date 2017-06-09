@@ -8,7 +8,7 @@ require "./docker/*"
 module Amber::CMD
   class MainCommand < Cli::Supercommand
     command_name "amber"
-    version VERSION
+    version "Amber CMD (ambercr.io) - v#{VERSION}"
 
     class Help
       title "\nAmber - Command Line Interface"
