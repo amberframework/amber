@@ -17,8 +17,8 @@ module Amber
           json.field "verb", verb
           json.field "controller", controller
           json.field "action", action.to_s
-          json.field "scope", scope
           json.field "valve", valve.to_s
+          json.field "scope", scope
           json.field "resource", resource
         end
       end
