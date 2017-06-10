@@ -139,7 +139,6 @@ module Amber
             resources "/comments", HelloController
           end
 
-          # Since we start from the root it doesnt count
           router.all.size.should eq 14
         end
       end
