@@ -63,7 +63,9 @@ module Amber
 
       def add_children(node, accomulator = {} of String => String)
         node.children.each do |c|
-          accomulator[c.payload.resource] = c.payload.to_json if c.payload?
+          if c.payload?
+            accomulator[c.payload.verb + c.payload.resource] = c.payload.to_json
+          end
           add_children(c, accomulator)
         end
       end
