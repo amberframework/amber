@@ -140,7 +140,7 @@ module Amber
           end
 
           # Since we start from the root it doesnt count
-          router.all.size.should eq 13
+          router.all.size.should eq 14
         end
       end
     end
