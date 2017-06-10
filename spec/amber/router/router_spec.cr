@@ -133,11 +133,14 @@ module Amber
                     Route.new("PUT", "/b/c", handler),
                     Route.new("POST", "/b/c/d", handler),
                     Route.new("GET", "/e/f", handler) ]
-
           routes.each { |r| router.add r }
 
+          router.draw :web do
+            resources "/comments", HelloController
+          end
+
           # Since we start from the root it doesnt count
-          router.all.size.should eq routes.size - 1
+          router.all.size.should eq 13
         end
       end
     end
