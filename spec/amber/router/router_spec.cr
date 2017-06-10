@@ -122,6 +122,26 @@ module Amber
           end
         end
       end
+
+      describe "#all" do
+        it "gets all routes defined" do
+          router = Router.new
+          handler = ->(context : HTTP::Server::Context, action : Symbol) { "hey" }
+          routes = [Route.new("GET", "/", handler),
+                    Route.new("GET", "/a", handler),
+                    Route.new("DELETE", "/b", handler),
+                    Route.new("PUT", "/b/c", handler),
+                    Route.new("POST", "/b/c/d", handler),
+                    Route.new("GET", "/e/f", handler) ]
+          routes.each { |r| router.add r }
+
+          router.draw :web do
+            resources "/comments", HelloController
+          end
+
+          router.all.size.should eq 14
+        end
+      end
     end
   end
 end
