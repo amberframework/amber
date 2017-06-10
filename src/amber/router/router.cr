@@ -56,8 +56,10 @@ module Amber
       end
 
       def all
+        root_node = @routes.root
         all_routes = {} of String => String
-        add_children(@routes.root, all_routes)
+        all_routes[root_node.payload.verb + root_node.payload.resource] = root_node.payload.to_json
+        add_children(root_node, all_routes)
         all_routes
       end
 
