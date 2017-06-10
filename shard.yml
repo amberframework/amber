@@ -43,5 +43,9 @@ dependencies:
   sqlite3:
     github: crystal-lang/crystal-sqlite3
 
+  shell-table:
+    github: jwaldrip/shell-table.cr
+    version: ~> 0.9.1
+
 scripts:
   postinstall: make build
