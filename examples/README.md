@@ -1,15 +1,20 @@
 ## Static Site Example
 
+Install dependencies
+
+```crystal
+shards
+
 Build the project
 
 ```crystal
-crystal build --release ./examples/demo.cr
+crystal build --release ./src/demo.cr
 ```
 Run your new Amber server
 ```crystal
-./demo.cr
+./demo
 ```
 Visit
 ```crystal
-http://localhost:4000/index.html
+http://0.0.0.0:4000/index.html
 ```
