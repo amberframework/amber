@@ -15,7 +15,7 @@ module Amber::CMD
       end
 
       class Help
-        caption "# Starts a Amber console"
+        caption "# Starts Amber console"
       end
     end
   end
