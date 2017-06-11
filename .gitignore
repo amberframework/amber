@@ -8,8 +8,6 @@
 lib/
 .shards/
 ./amber
-./examples/demo
-./examples/amber
 
 # Libraries don't need dependency lock
 # Dependencies will be locked in application that uses them
