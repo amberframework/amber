@@ -1,7 +1,6 @@
 ![Amber Crystal Framework](https://github.com/Amber-Crystal/amber/blob/master/media/amber.png)
 
-[![Build Status](https://travis-ci.org/Amber-Crystal/Amber.svg?branch=master)](https://travis-ci.org/Amber-Crystal/amber)
-[![Code Triagers Badge](https://www.codetriage.com/amber-crystal/amber/badges/users.svg)](https://www.codetriage.com/amber-crystal/amber)
+[![Gitter](https://img.shields.io/gitter/room/Amber-Crystal/Lobby.svg)](https://gitter.im/Amber-Crystal/Lobby)  [![Travis](https://img.shields.io/travis/Amber-Crystal/amber.svg)](https://travis-ci.org/Amber-Crystal/amber) [![license](https://img.shields.io/github/license/Amber-Crystal/amber.svg)](https://github.com/Amber-Crystal/amber/blob/master/LICENSE)  [![GitHub tag](https://img.shields.io/github/tag/Amber-Crystal/amber.svg)](https://github.com/Amber-Crystal/amber/releases/tag)  [![Github Releases](https://img.shields.io/github/downloads/Amber-Crystal/amber/latest/total.svg)](https://github.com/Amber-Crystal/amber)  [![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](http://awesome-crystal.com/#awesome-crystal-web-frameworks) 
 # Welcome to Amber
 
 **Amber** is a web application framework written in [Crystal](http://www.crystal-lang.org) inspired by Kemal, Rails, Phoenix and other popular application frameworks.
@@ -31,6 +30,14 @@ Amber is a community effort and we want You to be part of ours [Join Amber Commu
 ## Code of Conduct
 
 We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](CODE_OF_CONDUCT.md) guidelines for Amber.
+
+## Have a Amber based project?
+
+Use Amber badge ![Amber Framework](https://img.shields.io/badge/using-amber%20framework-orange.svg)
+
+```markdown
+[![Amber Framework](https://img.shields.io/badge/using-amber%20framework-orange.svg)](Your project url)
+```
 
 ## Installation
 
