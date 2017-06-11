@@ -28,4 +28,3 @@ module Amber::Controller
     end
   end
 end
-

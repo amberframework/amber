@@ -59,7 +59,7 @@ module Amber
           super
         end
 
-        def read 
+        def read
           @read
         end
 
@@ -71,7 +71,7 @@ module Amber
           fetch(key, nil)
         end
 
-        #TODO: Refactor this soon.
+        # TODO: Refactor this soon.
         def each
           current = @first
           while current
@@ -83,7 +83,7 @@ module Amber
         end
 
         def unread
-          #TODO: unread marks them as read. Maybe fix this. It shouldn't actually matter since it get's reloaded next request.
+          # TODO: unread marks them as read. Maybe fix this. It shouldn't actually matter since it get's reloaded next request.
           reject { |key, _| @read.includes? key }
         end
 

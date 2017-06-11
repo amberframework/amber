@@ -120,14 +120,13 @@ module Amber::Controller
       context "with url params" do
         it "sets the url params to path" do
           hello_controller = build_controller("/world")
-          hello_controller.redirect_to(:world,  302, { "hello" => "world"})
+          hello_controller.redirect_to(:world, 302, {"hello" => "world"})
 
           response = hello_controller.response
 
           response.headers["Location"].should eq "/hello/world?hello=world"
         end
       end
-
 
       context "when redirecting to url or path" do
         ["www.amberio.com", "/world"].each do |location|
@@ -161,7 +160,7 @@ module Amber::Controller
           response = hello_controller.response
 
           response.headers["Location"].should eq "/hello/world"
-            response.status_code.should eq 301
+          response.status_code.should eq 301
         end
       end
 
