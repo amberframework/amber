@@ -3,7 +3,6 @@ require "colorize"
 module Amber
   module Pipe
     class Logger < Base
-
       def initialize(io : IO = STDOUT)
         @io = io
       end

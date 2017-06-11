@@ -8,9 +8,9 @@ module Amber
           it "raises forbbiden error for PUT request" do
             csrf = CSRF.new
             request = HTTP::Request.new(method, "/")
-          expect_raises Exceptions::Forbidden do
-            make_router_call(csrf, request)
-          end
+            expect_raises Exceptions::Forbidden do
+              make_router_call(csrf, request)
+            end
           end
         end
       end
