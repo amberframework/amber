@@ -34,4 +34,3 @@ module Amber::Router
     end
   end
 end
-
