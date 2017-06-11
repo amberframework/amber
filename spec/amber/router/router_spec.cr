@@ -132,7 +132,7 @@ module Amber
                     Route.new("DELETE", "/b", handler),
                     Route.new("PUT", "/b/c", handler),
                     Route.new("POST", "/b/c/d", handler),
-                    Route.new("GET", "/e/f", handler) ]
+                    Route.new("GET", "/e/f", handler)]
           routes.each { |r| router.add r }
 
           router.draw :web do
