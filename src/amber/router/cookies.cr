@@ -51,8 +51,8 @@ module Amber::Router
         host = request.host
         secure = request.ssl?
 
-        new(key_generator, host, secure).tap do |jar|
-          jar.update(from_headers(headers))
+        new(key_generator, host, secure).tap do |store|
+          store.update(from_headers(headers))
         end
       end
 
