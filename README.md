@@ -39,6 +39,24 @@ Use Amber badge ![Amber Framework](https://img.shields.io/badge/using-amber%20fr
 [![Amber Framework](https://img.shields.io/badge/using-amber%20framework-orange.svg)](Your project url)
 ```
 
+## Benchmark
+
+Latest Results **968,824.35 requests per second: 32 cores at 2.7Ghz**
+
+```bash
+ubuntu@ip-172-31-0-70:~/bench⟫ wrk -d 60 -t 20 -c 1015 http://localhost:3000                                      
+Running 1m test @ http://localhost:3000
+  20 threads and 1015 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.86ms    2.88ms  56.61ms   87.54%
+    Req/Sec    48.73k     6.01k   88.40k    68.28%
+  58225168 requests in 1.00m, 4.01GB read
+Requests/sec: 968824.35
+Transfer/sec:     68.37MB
+```
+
+> Disclaimer: We share these benchmark results with the understanding they may vary depending on configurations and environment settings and by no means we are making any comparison claims with other web application frameworks.
+
 ## Installation
 
 Add this to your application's `shard.yml`:
@@ -152,6 +170,7 @@ html
   body
     == content
 ```
+
 ## Contributing
 
 1. Fork it (https://github.com/Amber-Crystal/amber)
