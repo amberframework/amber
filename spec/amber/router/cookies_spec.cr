@@ -62,7 +62,7 @@ module Amber::Router
 
       cookies.set "user_name", "david", expires: Time.new(2017, 6, 7, 9)
 
-      cookie_header(cookies).should eq "user_name=david; path=/; expires=Wed, 07 Jun 2017 09:00:00 GMT"
+      cookie_header(cookies).should eq "user_name=david; path=/; expires=#{HTTP.rfc1123_date(Time.new(2017, 6, 7, 9))}"
     end
 
     it "sets the cookie with http_only" do
@@ -107,7 +107,7 @@ module Amber::Router
       cookies.set "login", "XJ-122"
 
       cookies.size.should eq 2
-      cookie_header(cookies).should eq "user_name=david; path=/; expires=Wed, 07 Jun 2017 09:00:00 GMT,login=XJ-122; path=/"
+      cookie_header(cookies).should eq "user_name=david; path=/; expires=#{HTTP.rfc1123_date(Time.new(2017, 6, 7, 9))},login=XJ-122; path=/"
     end
 
     it "sets an encrypted cookie" do
@@ -121,9 +121,7 @@ module Amber::Router
 
     it "gets an encrypted cookie" do
       cookies = new_cookie_store
-      cookie = HTTP::Cookie::Parser.parse_cookies("user_name=YVpKaXlJN29vZUlwUnNuR3JzOVFPdEFwazFGWWNrYlpIUzhqU21YWWJDbz0tLVAvUldZaFZCQklLOW44ZGJLMDAramc9PQ%3D%3D--cead74d6b7a64512a499fef31483fd21d9e89b85378a3eaa440c7ac7f9cd6b94; path=/").first
-
-      puts cookies[cookie.name]
+      cookie = HTTP::Cookie::Parser.parse_cookies("user_name=V2dOdEU0dzhQSWJ3V0RsOHVJOFdaSnJER2VEa1hxMTJtQ09LOFZkTm9xMD0tLU1hUDQ4dWpSWXhndEU1RU5yNDRXRlE9PQ==--4b887ed5ce9e000fa21b00bf9a474e17b8e662dc195f3db83fc424cd3d8b891d; path=/").first
 
       cookies[cookie.name] = cookie
 
