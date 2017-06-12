@@ -11,9 +11,11 @@ class HTTP::Server::Context
 
   property route : Radix::Result(Amber::Route)
   getter router : Amber::Router::Router
+  getter cookies : Amber::Router::Cookies::Store
 
   def initialize(@request : HTTP::Request, @response : HTTP::Server::Response)
     @router = Amber::Router::Router.instance
+    @cookies = Amber::Router::Cookies::Store.build(request, Amber::Server.key_generator)
     parse_params
     upgrade_request_method!
     @route = router.match_by_request(@request)

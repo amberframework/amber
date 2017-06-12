@@ -10,6 +10,16 @@ module Amber
       end
     end
 
+    # Raised when storing more than 4K of session data.
+    class CookieOverflow < Base
+    end
+
+    class InvalidSignature < Base
+    end
+
+    class InvalidMessage < Base
+    end
+
     class DuplicateRouteError < Base
       def initialize(route : Route)
         super("Route: #{route.verb} #{route.resource} is duplicated.")
