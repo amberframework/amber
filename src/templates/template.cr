@@ -5,6 +5,7 @@ require "./model"
 require "./controller"
 require "./migration"
 require "./job"
+require "./mailer"
 
 module Amber::CMD
   class Template
@@ -53,6 +54,9 @@ module Amber::CMD
       when "job"
         puts "Rendering Job #{name}"
         Job.new(name, fields).render(directory, list: true, color: true)
+      when "mailer"
+        puts "Rendering Mailer #{name}"
+        Mailer.new(name, fields).render(directory, list: true, color: true)
       else
         raise "Template not found"
       end
