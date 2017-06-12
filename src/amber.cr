@@ -9,7 +9,6 @@ require "./amber/**"
 
 module Amber
   class Server
-
     def self.instance
       @@instance ||= new
     end
@@ -71,8 +70,8 @@ module Amber
 
     def start
       time = Time.now
-      str_host  = "http://#{host}:#{port}".colorize(:light_cyan).underline
-      version   = "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
+      str_host = "http://#{host}:#{port}".colorize(:light_cyan).underline
+      version = "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
       log.info "#{version} serving application \"#{name}\" at #{str_host}".to_s
 
       # prepare pipelines for processing and memoize them to gain a little performance

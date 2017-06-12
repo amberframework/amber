@@ -29,8 +29,7 @@ def build_controller(referer)
   request = HTTP::Request.new("GET", "/")
   request.headers.add("Referer", referer)
   context = create_context(request)
-  hello_controller = HelloController.new(context)
-  hello_controller
+  HelloController.new(context)
 end
 
 def create_user_socket

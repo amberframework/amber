@@ -18,11 +18,11 @@ describe HTTP::Server::Context do
   end
 
   it "responds to cookies" do
-     request = HTTP::Request.new("GET", "/?test=test&test2=test2")
+    request = HTTP::Request.new("GET", "/?test=test&test2=test2")
 
-     context = create_context(request)
+    context = create_context(request)
 
-     context.responds_to?(:cookies).should eq true
+    context.responds_to?(:cookies).should eq true
   end
 
   it "parses body params" do
