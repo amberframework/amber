@@ -2,6 +2,11 @@ require "../../../spec_helper"
 
 module Amber::Controller
   describe Base do
+
+    describe "#cookies" do
+
+    end
+
     describe "#render" do
       it "renders html from slang template" do
         request = HTTP::Request.new("GET", "/?test=test")

@@ -49,7 +49,7 @@ module Amber::Router
       def self.build(request, key_generator = Support::KeyGenerator.new("secret"))
         headers = request.headers
         host = request.host
-        secure = request.ssl?
+        secure = (request.headers["HTTPS"]? == "on") # Todo implement request ssl? method
 
         new(key_generator, host, secure).tap do |store|
           store.update(from_headers(headers))
