@@ -1,6 +1,5 @@
 require "../../../spec_helper"
 
-
 module Amber::Controller
   describe Base do
     describe "#cookies" do
