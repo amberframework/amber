@@ -24,6 +24,9 @@ module Amber::CMD
       end
     end
 
+    def filter(entries)
+      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }
+    end
   end
 end
 
