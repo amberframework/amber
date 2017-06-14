@@ -1,12 +1,12 @@
 class <%= @name.capitalize %>Controller < Amber::Controller::Base
   def index
     <%= @name %>s = <%= @name.capitalize %>.all
-    render("index.slang")
+    render("index.<%= @language %>")
   end
 
   def show
     if <%= @name %> = <%= @name.capitalize %>.find params["id"]
-      render("show.slang")
+      render("show.<%= @language %>")
     else
       flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
       redirect_to "/<%= @name %>s"
@@ -15,7 +15,7 @@ class <%= @name.capitalize %>Controller < Amber::Controller::Base
 
   def new
     <%= @name %> = <%= @name.capitalize %>.new
-    render("new.slang")
+    render("new.<%= @language %>")
   end
 
   def create
@@ -26,13 +26,13 @@ class <%= @name.capitalize %>Controller < Amber::Controller::Base
       redirect_to "/<%= @name %>s"
     else
       flash["danger"] = "Could not create <%= @name.capitalize %>!"
-      render("new.slang")
+      render("new.<%= @language %>")
     end
   end
 
   def edit
     if <%= @name %> = <%= @name.capitalize %>.find params["id"]
-      render("edit.slang")
+      render("edit.<%= @language %>")
     else
       flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
       redirect_to "/<%= @name %>s"
@@ -41,13 +41,13 @@ class <%= @name.capitalize %>Controller < Amber::Controller::Base
 
   def update
     if <%= @name %> = <%= @name.capitalize %>.find(params["id"])
-      <%= @name %>.set_attributes(params.to_h.select(<%= @visible_fields %>)) 
+      <%= @name %>.set_attributes(params.to_h.select(<%= @visible_fields %>))
       if <%= @name %>.valid? && <%= @name %>.save
         flash["success"] = "Updated <%= @name.capitalize %> successfully."
         redirect_to "/<%= @name %>s"
       else
         flash["danger"] = "Could not update <%= @name.capitalize %>!"
-        render("edit.slang")
+        render("edit.<%= @language %>")
       end
     else
       flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
