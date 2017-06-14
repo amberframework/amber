@@ -23,8 +23,11 @@ module Amber::Controller
       @raw_params = context.params
       @flash = context.flash
       @session = context.session
-      @cookies = context.cookies
       @params = Amber::Validators::Params.new(@raw_params)
+    end
+
+    def cookies
+      @cookies ||= context.cookies
     end
   end
 end
