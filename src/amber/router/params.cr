@@ -37,9 +37,7 @@ module Amber::Router
     # - *_method* can be passed as a form or url param
     #
     # HTTP Headers supported:
-    # - *X-HTTP-Method* (Microsoft)
     # - *X-HTTP-Method-Override* (Google/GData)
-    # - *X-METHOD-OVERRIDE* (IBM)
     #
     # The convention has been established that the GET and HEAD methods SHOULD NOT
     # have the significance of taking an action other than retrieval.
