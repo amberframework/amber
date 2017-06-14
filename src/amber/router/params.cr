@@ -12,8 +12,6 @@ module Amber::Router
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     MULTIPART_FORM   = "multipart/form-data"
     APPLICATION_JSON = "application/json"
-    METHOD           = "_method"
-    OVERRIDE_METHODS = %w(patch put delete)
 
     alias ParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
 
@@ -28,13 +26,6 @@ module Amber::Router
         parse_multipart if content_type.try(&.starts_with?(MULTIPART_FORM))
         parse_part(request.body) if content_type.try(&.starts_with?(URL_ENCODED_FORM))
         parse_json if content_type == APPLICATION_JSON
-      end
-    end
-
-    def upgrade_request_method!
-      if params[METHOD]?
-        method = params[METHOD]
-        request.method = method.upcase if OVERRIDE_METHODS.includes?(method)
       end
     end
 
