@@ -12,12 +12,20 @@ class HTTP::Server::Context
   property route : Radix::Result(Amber::Route)
   getter router : Amber::Router::Router
 
+  @cookies : Amber::Router::Cookies::Store?
+
   def initialize(@request : HTTP::Request, @response : HTTP::Server::Response)
     @router = Amber::Router::Router.instance
     parse_params
     override_request_method!
     @route = router.match_by_request(@request)
     merge_route_params
+  end
+
+  def cookies
+    @cookies ||= Amber::Router::Cookies::Store.build(
+      request, Amber::Server.key_generator
+    )
   end
 
   def invalid_route?
