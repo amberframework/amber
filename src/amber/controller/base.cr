@@ -15,6 +15,7 @@ module Amber::Controller
     protected getter params : Amber::Validators::Params
     protected getter flash : Amber::Router::Flash::Params
     protected getter session : Amber::Router::Session::Params
+    protected getter cookies : Amber::Router::Cookies::Store?
 
     def initialize(@context : HTTP::Server::Context)
       @request = context.request
@@ -23,6 +24,10 @@ module Amber::Controller
       @flash = context.flash
       @session = context.session
       @params = Amber::Validators::Params.new(@raw_params)
+    end
+
+    def cookies
+      @cookies ||= context.cookies
     end
   end
 end

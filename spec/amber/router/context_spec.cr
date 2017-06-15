@@ -94,6 +94,14 @@ describe HTTP::Server::Context do
     context.params["test2"].should eq "test2"
   end
 
+  it "responds to cookies" do
+    request = HTTP::Request.new("GET", "/?test=test&test2=test2")
+
+    context = create_context(request)
+
+    context.responds_to?(:cookies).should eq true
+  end
+
   it "parses body params" do
     headers = HTTP::Headers.new
     headers["Content-Type"] = "application/x-www-form-urlencoded"
