@@ -22,7 +22,6 @@ class HTTP::Server::Context
     merge_route_params
   end
 
-  # Only enable advance cookies store if the Amber::Server.cookie_enabled?
   def cookies
     @cookies ||= Amber::Router::Cookies::Store.build(
       request, Amber::Server.key_generator
