@@ -9,13 +9,13 @@ module Amber::CMD
       command_name "console"
 
       def run
-        libs = ["require \"amber\"", "require \"./config/*\""] of String
+        libs = ["require \"amber\"", "require \"./src/controllers/*\"", "require \"./src/models/*\"", "require \"./src/jobs/*\"", "require \"./src/mailers/*\"", "require \"./src/views/*\"", "require \"./config/*\""] of String
         code = libs.join ';'
         Icr::Console.new(true).start(code)
       end
 
       class Help
-        caption "# Starts a Amber console"
+        caption "# Starts Amber console"
       end
     end
   end

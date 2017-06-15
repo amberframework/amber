@@ -1,5 +1,5 @@
 name: amber_cmd
-version: 0.1.13
+version: 0.1.14
 
 authors:
   - Isaac Sloan <isaac@isaacsloan.com>
@@ -42,6 +42,10 @@ dependencies:
 
   sqlite3:
     github: crystal-lang/crystal-sqlite3
+
+  shell-table:
+    github: jwaldrip/shell-table.cr
+    version: ~> 0.9.1
 
 scripts:
   postinstall: make build

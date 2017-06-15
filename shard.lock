@@ -36,6 +36,10 @@ shards:
     github: TechMagister/sentry
     commit: a78129ec1e66aa24c91b93199ea187e4793c8d58
 
+  shell-table:
+    github: jwaldrip/shell-table.cr
+    version: 0.9.1
+
   sqlite3:
     github: crystal-lang/crystal-sqlite3
     version: 0.8.2

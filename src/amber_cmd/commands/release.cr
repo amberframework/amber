@@ -7,7 +7,7 @@ module Amber::CMD
   class MainCommand < Cli::Supercommand
     command "r", aliased: "release"
 
-    class Console < Cli::Command
+    class Release < Cli::Command
       command_name "release"
 
       def run

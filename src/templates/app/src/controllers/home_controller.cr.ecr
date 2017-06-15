@@ -1,6 +1,6 @@
-class HomeController < Amber::Controller::Base
+class HomeController < ApplicationController 
   def index
-    render("index.slang")
+    render("index.<%= @language %>")
   end
 end
 
