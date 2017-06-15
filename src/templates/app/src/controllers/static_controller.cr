@@ -1,4 +1,4 @@
-class StaticController < Amber::Controller::Base
+class StaticController < ApplicationController 
   def index
     "do nothing"
   end

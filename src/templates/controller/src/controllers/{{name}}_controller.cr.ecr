@@ -1,4 +1,4 @@
-class <%= @name.capitalize %>Controller < Amber::Controller::Base
+class <%= @name.capitalize %>Controller < ApplicationController 
 <% @fields.each do |field| -%>
 
   def <%= field.name %> do

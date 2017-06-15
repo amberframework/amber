@@ -1,4 +1,4 @@
-class <%= @name.capitalize %>Controller < Amber::Controller::Base
+class <%= @name.capitalize %>Controller < ApplicationController 
   def index
     <%= @name %>s = <%= @name.capitalize %>.all
     render("index.<%= @language %>")
