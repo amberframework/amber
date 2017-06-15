@@ -13,7 +13,8 @@ module Amber::Router
     MULTIPART_FORM   = "multipart/form-data"
     APPLICATION_JSON = "application/json"
     METHOD           = "_method"
-    OVERRIDE_METHODS = %w(patch put delete)
+    OVERRIDE_HEADER  = "X-HTTP-Method-Override"
+    OVERRIDE_METHODS = %w(PATCH PUT DELETE)
 
     alias ParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
 
@@ -31,11 +32,37 @@ module Amber::Router
       end
     end
 
-    def upgrade_request_method!
-      if params[METHOD]?
-        method = params[METHOD]
-        request.method = method.upcase if OVERRIDE_METHODS.includes?(method)
-      end
+    # Adds Request Method Override support to the framework.
+    # Param supported
+    # - *_method* can be passed as a form or url param
+    #
+    # HTTP Headers supported:
+    # - *X-HTTP-Method-Override* (Google/GData)
+    #
+    # The convention has been established that the GET and HEAD methods SHOULD NOT
+    # have the significance of taking an action other than retrieval.
+    #
+    # These methods ought to be considered "safe". This allows user agents to
+    # represent other methods, such as POST, PUT and DELETE, in a special way,
+    # so that the user is made aware of the fact that a possibly unsafe action
+    # is being requested.
+    #
+    # Read RFC 2616 - HTTP 1.1 section 9.1.1
+    # (https://tools.ietf.org/html/rfc2616#section-9.1)
+    #
+    # In other words, if you are tempted to use a GET to simulate a PUT or DELETE,
+    # don't do it. Use a POST instead.
+    def override_request_method!
+      # If the current request method is not GET or POST it means that it was
+      # already overrided
+      return unless %(GET POST).includes? request.method
+      method = params[METHOD]? || override_header?
+      request.method = method if method && OVERRIDE_METHODS.includes? method
+    end
+
+    # Determines the existence of HTTP Request Method Override in headers
+    def override_header?
+      request.headers[OVERRIDE_HEADER]?
     end
 
     def merge_route_params

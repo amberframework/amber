@@ -15,7 +15,7 @@ class HTTP::Server::Context
   def initialize(@request : HTTP::Request, @response : HTTP::Server::Response)
     @router = Amber::Router::Router.instance
     parse_params
-    upgrade_request_method!
+    override_request_method!
     @route = router.match_by_request(@request)
     merge_route_params
   end

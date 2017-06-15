@@ -30,7 +30,7 @@ module Amber
         context = create_context(request)
         session = Session.new("key.session", "some-secret-key")
         session.secret =
-        context.session["authorized"] = "true"
+          context.session["authorized"] = "true"
 
         session.call(context)
         cookie = context.response.headers["set-cookie"]

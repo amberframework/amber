@@ -11,7 +11,7 @@ module Amber
   class Server
     property port : Int32
     property name : String
-    setter   project_name : String?
+    setter project_name : String?
     property env : String
     property log : Logger
     property secret : String
@@ -50,7 +50,7 @@ module Amber
       ENV["PROCESS_COUNT"] ||= "1"
       thread_count = ENV["PROCESS_COUNT"].to_i
       if Cluster.master? && thread_count > 1
-        while(thread_count > 0)
+        while (thread_count > 0)
           Cluster.fork ({"id" => thread_count.to_s})
           thread_count -= 1
         end
@@ -116,20 +116,17 @@ module Amber
   end
 
   class Cluster
-
-    def self.fork (env : Hash)
-        env["FORKED"] = "1"
-        Process.fork { Process.run(PROGRAM_NAME, nil, env, true, false, true, true, true, nil ) }
+    def self.fork(env : Hash)
+      env["FORKED"] = "1"
+      Process.fork { Process.run(PROGRAM_NAME, nil, env, true, false, true, true, true, nil) }
     end
 
     def self.master?
-     (ENV["FORKED"]? || "0") == "0"
+      (ENV["FORKED"]? || "0") == "0"
     end
 
     def self.worker?
-     (ENV["FORKED"]? || "0") == "1"
+      (ENV["FORKED"]? || "0") == "1"
     end
-
   end
-
 end

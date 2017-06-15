@@ -4,7 +4,6 @@ module Amber
     # response based on the `Accepts` header as JSON or HTML.  It also catches
     # any runtime Exceptions and returns a backtrace in text/plain format.
     class Error < Base
-
       def call(context : HTTP::Server::Context)
         begin
           call_next(context)

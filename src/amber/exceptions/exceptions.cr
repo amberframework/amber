@@ -2,7 +2,7 @@ module Amber
   module Exceptions
     class Base < Exception
       getter status_code : Int32 = 500
- 
+
       def set_response(response)
         response.headers["Content-Type"] = "text/plain"
         response.print message
