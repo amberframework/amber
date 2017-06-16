@@ -57,7 +57,7 @@ module Amber::Router
       # already overrided
       return unless %(GET POST).includes? request.method
       method = params[METHOD]? || override_header?
-      request.method = method if method && OVERRIDE_METHODS.includes? method
+      request.method = method if method && OVERRIDE_METHODS.includes? method.upcase
     end
 
     # Determines the existence of HTTP Request Method Override in headers
