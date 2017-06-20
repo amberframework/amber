@@ -29,7 +29,7 @@ class HTTP::Server::Context
   end
 
   def invalid_route?
-    !route.payload?
+    !route.payload? && !router.socket_route_defined?(@request)
   end
 
   def websocket?

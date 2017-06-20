@@ -82,7 +82,17 @@ struct UserSocket < Amber::WebSockets::ClientSocket
 end
 
 class UserChannel < Amber::WebSockets::Channel
-  def handle_joined; end
+  property test_field = Array(String).new
 
-  def handle_message(msg); end
+  def handle_leave(client_socket)
+    test_field.push("handle leave #{client_socket.id}")
+  end
+
+  def handle_joined(client_socket)
+    test_field.push("handle joined #{client_socket.id}")
+  end
+
+  def handle_message(msg)
+    test_field.push(msg["payload"]["message"].as_s)
+  end
 end
