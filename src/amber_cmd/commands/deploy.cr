@@ -26,7 +26,7 @@ module Amber::CMD
       end
 
       class Help
-        caption "# Starts a Amber console"
+        caption "# Provisions server and deploys project."
       end
 
       class Options
@@ -34,7 +34,7 @@ module Amber::CMD
         arg "server_suffix", desc: "# Name of server.", default: "production"
         string ["-s", "--service"], desc: "# Deploy to cloud service: digitalocean | heroku | aws | azure", default: "digitalocean"
         string ["-k", "--key"], desc: "# API Key for service"
-        string ["-t", "--tag"], desc: "# Tag to use. Default master."
+        string ["-t", "--tag"], desc: "# Tag to use. Overrides branch."
         string ["-b", "--branch"], desc: "# Branch to use. Default master.", default: "master"
       end
 
@@ -70,10 +70,8 @@ module Amber::CMD
       end
 
       def getsecret(prompt : (String | Nil) = nil)
-        puts "#{prompt}:"
-        puts
+        puts "#{prompt}"
         password = STDIN.noecho(&.gets).try(&.chomp)
-        puts
         password
       end
 
