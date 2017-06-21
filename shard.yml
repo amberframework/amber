@@ -1,5 +1,5 @@
 name: amber_cmd
-version: 0.1.14
+version: 0.1.15
 
 authors:
   - Isaac Sloan <isaac@isaacsloan.com>
@@ -46,6 +46,8 @@ dependencies:
   shell-table:
     github: jwaldrip/shell-table.cr
     version: ~> 0.9.1
+  spinner:
+    github: elorest/spinner
 
 scripts:
   postinstall: make build
