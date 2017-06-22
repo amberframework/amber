@@ -1,13 +1,13 @@
 module Amber
   module WebSockets
     #
-    # Manages the entire collection of ClientSocket's.  Manages periodic timers for socket connections (heartbeat).
+    # Manages the entire collection of ClientSockets.  Manages periodic timers for socket connections (heartbeat).
     #
     module ClientSockets
       extend self
       @@client_sockets = Hash(UInt64, ClientSocket).new
       @@heartbeat_started = false
-      BEAT_INTERVAL = 3.seconds
+      BEAT_INTERVAL = 1.minute
 
       def add_client_socket(client_socket)
         @@client_sockets[client_socket.id] = client_socket
@@ -36,8 +36,8 @@ module Amber
       private def heartbeat
         spawn do
           @@heartbeat_started = true
-          @@client_sockets.each_value(&.beat)
           sleep BEAT_INTERVAL
+          @@client_sockets.each_value(&.beat)
           heartbeat
         end
       end

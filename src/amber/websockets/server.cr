@@ -35,5 +35,10 @@ module Amber
         end
       end
     end
+
+    # Helper method to get the path of a topic
+    def self.topic_path(topic)
+      topic.to_s.split(":")[0..-2].join(":")
+    end
   end
 end

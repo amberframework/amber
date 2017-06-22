@@ -8,8 +8,8 @@ module Amber
     #
     # ```crystal
     # struct UserSocket < Amber::Websockets::ClientSocket
-    #   channel "user_channel/*", UserChannel
-    #   channel "room_channel/*", RoomChannel
+    #   channel "user_channel:*", UserChannel
+    #   channel "room_channel:*", RoomChannel
     #
     #   def on_connect
     #     return some_auth_method!
@@ -24,15 +24,15 @@ module Amber
 
       # Add a channel for this socket to listen, publish to
       def self.channel(channel_path, ch)
-        @@channels.push({path: channel_path, channel: ch.new})
+        @@channels.push({path: channel_path, channel: ch.new(WebSockets.topic_path(channel_path))})
       end
 
       def self.channels
         @@channels
       end
 
-      def self.get_topic_channel(topic)
-        topic_channels = @@channels.select { |ch| ch[:path].split(":")[0] == topic }
+      def self.get_topic_channel(topic_path)
+        topic_channels = @@channels.select { |ch| WebSockets.topic_path(ch[:path]) == topic_path }
         return topic_channels[0][:channel] if topic_channels.any?
       end
 
@@ -42,7 +42,6 @@ module Amber
         @socket.on_pong do |msg|
           # TODO: setup heartbeat
         end
-        self.on_connect
       end
 
       # Authentication and authorization shuould happen here
