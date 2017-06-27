@@ -1,6 +1,6 @@
 require "http/cookie"
 require "base64"
-require "yaml"
+require "json"
 require "openssl/hmac"
 
 module Amber
@@ -22,25 +22,27 @@ module Amber
         cookies = context.request.cookies
         decode(context.session, cookies[@key].value) if cookies.has_key?(@key)
         call_next(context)
-        value = encode(context.session.as(Hash))
-        cookies = context.response.cookies
-        cookies << HTTP::Cookie.new(@key, value)
-        cookies.add_response_headers(context.response.headers)
-        context
+        if context.session.changed
+          cookies = context.response.cookies
+          value = encode(context.session.as(Hash))
+          cookies << HTTP::Cookie.new(@key, value)
+          cookies.add_response_headers(context.response.headers)
+        end
       end
 
       private def decode(session, data)
         sha1, data = data.split("--", 2)
         if sha1 == OpenSSL::HMAC.hexdigest(:sha1, @secret, data)
-          values = YAML.parse(Base64.decode_string(data))
+          values = JSON.parse(Base64.decode_string(data))
           values.each do |key, value|
             session[key.to_s] = value.to_s
           end
+          session.changed = false
         end
       end
 
       private def encode(session)
-        data = Base64.encode(session.to_yaml)
+        data = Base64.encode(session.to_json)
         sha1 = OpenSSL::HMAC.hexdigest(:sha1, @secret, data)
         "#{sha1}--#{data}"
       end
@@ -63,8 +65,12 @@ module Amber
       end
 
       class Params < Hash(String, String)
+        property changed = false
+
         def []=(key : String | Symbol, value : V)
-          super(key.to_s, value)
+          if @changed = (value != fetch(key, nil))
+            super(key.to_s, value)
+          end
         end
 
         def [](key)
