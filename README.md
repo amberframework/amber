@@ -69,6 +69,8 @@ dependencies:
 
 ## Usage
 
+Please see [Installing Amber CLI from the Amber Book](https://amber-crystal.gitbooks.io/amber/content/getting-started/installation/heroku.html)
+
 *src/yourapp.cr*
 ```cr
 # The first line requires the framework library.
