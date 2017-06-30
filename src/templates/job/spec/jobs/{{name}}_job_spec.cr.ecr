@@ -1,8 +1,0 @@
-require "./spec_helper"
-
-describe <%= @name.capitalize %>Job do
-  it "performs async job" do
-    <%= @name.capitalize %>Job.async.perform(<%= @fields.map{|f| "\"#{f.name}\""}.join(", ") %>)
-  end
-end
-
