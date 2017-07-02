@@ -2,7 +2,7 @@
 # Amber::CMD
 This section provides an introduction into Amber command-line interface. 
 
-Amber provides a CLI client that makes interfacing with your file system and applications much smoother. The Amber console provides a framework for creating, generating, saffolding and running your Amber project.
+Amber provides a CLI client that makes interfacing with your file system and applications much smoother. The Amber console provides a framework for creating, generating, scaffolding and running your Amber project.
 
 
 ## Installation
