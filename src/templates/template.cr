@@ -6,6 +6,7 @@ require "./controller"
 require "./migration"
 require "./mailer"
 require "./socket"
+require "./channel"
 
 module Amber::CMD
   class Template
@@ -57,6 +58,9 @@ module Amber::CMD
       when "socket"
         puts "Rendering Socket #{name}"
         WebSocket.new(name).render(directory, list: true, color: true)
+      when "channel"
+        puts "Rendering Channel #{name}"
+        WebSocketChannel.new(name).render(directory, list: true, color: true)
       else
         raise "Template not found"
       end
