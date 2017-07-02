@@ -4,7 +4,7 @@ module Amber::CMD
 
     class Generate < Cli::Command
       class Options
-        arg "type", desc: "scaffold, model, controller, migration, mailer", required: true
+        arg "type", desc: "scaffold, model, controller, migration, mailer, socket, channel", required: true
         arg "name", desc: "name of resource", required: true
         arg_array "fields", desc: "name:string body:text age:integer published:bool"
       end
