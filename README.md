@@ -139,6 +139,7 @@ See opened issues.
 - [eliasjpr](https://github.com/eliasjpr) Elias Perez - Maintainer
 - [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
 - [phoffer](https://github.com/phoffer) Paul Hoffer - Maintainer
-- [bew](https://github.com/fridgerator) Benoit de Chezelles - Member
+- [bew](https://github.com/bew) Benoit de Chezelles - Member
+- [mixflame](https://github.com/mixflame) Jonathan Silverman - Member
 - [TechMagister](https://github.com/TechMagister) Arnaud Fernandés - Initial Creator of some borrowed code.
 - [drujensen](https://github.com/drujensen) Dru Jensen - contributor
