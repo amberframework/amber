@@ -1,15 +1,14 @@
 require "teeplate"
-# require "./field.cr"
 
 module Amber::CMD
   class WebSocket < Teeplate::FileTree
     directory "#{__DIR__}/socket"
 
     @name : String
+    @fields : Array(String)
 
-    def initialize(@name)
+    def initialize(@name, @fields)
 
     end
-
   end
 end
