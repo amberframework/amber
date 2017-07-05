@@ -5,11 +5,12 @@ module Amber
     class Static < HTTP::StaticFileHandler
       property default_file, public_dir
 
-      def initialize(public_dir : String, fallthrough = true)
+      def initialize(public_dir : String, directory_liting = false, fallthrough = true)
         @public_dir = File.expand_path public_dir
         @fallthrough = !!fallthrough
         @default_file = "index.html"
         @static_config = {"dir_listing" => false, "gzip" => true}
+        @directory_listing = directory_listing
       end
 
       def initialize
