@@ -13,13 +13,6 @@ module Amber
         @directory_listing = directory_listing
       end
 
-      def initialize
-        @public_dir = File.expand_path "./public"
-        @default_file = "index.html"
-        @fallthrough = true
-        @static_config = {"dir_listing" => false, "gzip" => true}
-      end
-
       def call(context : HTTP::Server::Context)
         return call_next(context) if context.request.path.not_nil! == "/"
 
