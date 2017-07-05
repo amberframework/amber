@@ -3,15 +3,9 @@ require "zlib"
 module Amber
   module Pipe
     class Static < HTTP::StaticFileHandler
-      property default_file, public_dir
 
-      def initialize(public_dir : String, directory_listing = false, fallthrough = true)
-        @public_dir = File.expand_path public_dir
-        @fallthrough = !!fallthrough
-        @default_file = "index.html"
-        @static_config = {"dir_listing" => false, "gzip" => true}
-        @directory_listing = directory_listing
-      end
+      @directory_listing = false
+      @fallthrough = false
 
       def call(context : HTTP::Server::Context)
         return call_next(context) if context.request.path.not_nil! == "/"
@@ -26,7 +20,7 @@ module Amber
           return
         end
 
-        config = @static_config
+        config = static_config
         original_path = context.request.path.not_nil!
         is_dir_path = original_path.ends_with? "/"
         request_path = URI.unescape(original_path)
@@ -66,6 +60,10 @@ module Amber
         end
       end
 
+      private def static_config
+        { "dir_listing" => @directory_listing, "gzip" => true }
+      end
+
       private def etag(context, file_path)
         etag = %{W/"#{File.lstat(file_path).mtime.epoch.to_s}"}
         context.response.headers["ETag"] = etag
@@ -81,7 +79,7 @@ module Amber
       end
 
       private def serve_file(env, path : String, mime_type : String? = nil)
-        config = @static_config
+        config = static_config
         file_path = File.expand_path(path, Dir.current)
         mime_type ||= mime_type(file_path)
         env.response.content_type = mime_type
@@ -162,5 +160,7 @@ module Amber
         end
       end
     end
+
+
   end
 end
