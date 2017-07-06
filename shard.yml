@@ -10,7 +10,7 @@ targets:
   amber_cmd:
     main: src/amber_cmd.cr
 
-crystal: 0.22.0
+crystal: 0.23.0
 
 license: MIT
 
