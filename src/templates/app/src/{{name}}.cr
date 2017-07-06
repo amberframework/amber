@@ -1,6 +1,5 @@
 require "amber"
 require "./controllers/**"
-require "./jobs/**"
 require "./mailers/**"
 require "./models/**"
 require "./views/**"
