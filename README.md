@@ -135,7 +135,7 @@ See opened issues.
 5. Create a new Pull Request
 
 ## Contributors
-- [elorest](https://github.com/elorest) Isaac Sloan - Creator, Maintainer
+- [elorest](https://github.com/elorest) Isaac Sloan - Maintainer
 - [eliasjpr](https://github.com/eliasjpr) Elias Perez - Maintainer
 - [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
 - [phoffer](https://github.com/phoffer) Paul Hoffer - Maintainer
