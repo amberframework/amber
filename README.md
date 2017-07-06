@@ -80,7 +80,6 @@ Please see [Installing Amber CLI from the Amber Book](https://amber-crystal.gitb
  
 require "amber"
 require "./controllers/**"
-require "./jobs/**"
 require "./mailers/**"
 require "./models/**"
 require "./views/**"
