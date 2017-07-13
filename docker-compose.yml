@@ -5,5 +5,3 @@ services:
     command: 'bash -c "cd /app/user && crystal spec"'
     working_dir: /app/user
     tmpfs: /app/testing
-    volumes:
-      - '.:/app/user'

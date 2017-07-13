@@ -2,7 +2,7 @@
 # Amber::CMD
 This section provides an introduction into Amber command-line interface. 
 
-Amber provides a CLI client that makes interfacing with your file system and applications much smoother. The Amber console provides a framework for creating, generating, saffolding and running your Amber project.
+Amber provides a CLI client that makes interfacing with your file system and applications much smoother. The Amber console provides a framework for creating, generating, scaffolding and running your Amber project.
 
 
 ## Installation
@@ -135,10 +135,11 @@ See opened issues.
 5. Create a new Pull Request
 
 ## Contributors
-- [elorest](https://github.com/elorest) Isaac Sloan - Creator, Maintainer
+- [elorest](https://github.com/elorest) Isaac Sloan - Maintainer
 - [eliasjpr](https://github.com/eliasjpr) Elias Perez - Maintainer
 - [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
 - [phoffer](https://github.com/phoffer) Paul Hoffer - Maintainer
-- [bew](https://github.com/fridgerator) Benoit de Chezelles - Member
+- [bew](https://github.com/bew) Benoit de Chezelles - Member
+- [mixflame](https://github.com/mixflame) Jonathan Silverman - Member
 - [TechMagister](https://github.com/TechMagister) Arnaud Fernandés - Initial Creator of some borrowed code.
 - [drujensen](https://github.com/drujensen) Dru Jensen - contributor
