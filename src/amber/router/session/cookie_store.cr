@@ -43,6 +43,10 @@ module Amber::Router::Session
       session.clear
     end
 
+    def []=(key, value)
+      session[key.to_s] = value
+    end
+
     def update(hash : Hash(String | Symbol, String))
       hash.each { |key, value| session[key.to_s] = value }
       session
