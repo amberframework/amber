@@ -11,6 +11,7 @@ module Amber
         session = context.session
         flash = context.flash.not_nil!
         session["_flash"] = flash.to_session
+        context.cookies.write(context.response.headers)
       end
     end
   end
@@ -64,7 +65,9 @@ module Amber
         end
 
         def each(&block : T -> _)
-          @flashes.each(&block)
+          @flashes.each do |k, v|
+            block.call(k, v)
+          end
         end
 
         def initialize
@@ -130,7 +133,7 @@ module Amber
 
         def discard(key = nil)
           keys = key ? [key] : self.keys
-          @discard.merge keys
+          @discard.concat keys.to_set
           key ? self[key] : self
         end
 

@@ -9,7 +9,7 @@ module Amber
 
         Session.new.call(context)
 
-        context.response.headers.has_key?("set-cookie").should be_true
+        context.response.headers.has_key?("Set-Cookie").should be_true
       end
 
       context "session persist across different requests" do

@@ -18,10 +18,10 @@ module Amber::Controller
     protected getter session : Amber::Router::Session::AbstractStore?
 
     def initialize(@context : HTTP::Server::Context)
-      @request    = context.request
-      @response   = context.response
+      @request = context.request
+      @response = context.response
       @raw_params = context.params
-      @params     = Amber::Validators::Params.new(@raw_params)
+      @params = Amber::Validators::Params.new(@raw_params)
     end
 
     def cookies
