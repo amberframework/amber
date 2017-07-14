@@ -1,8 +1,8 @@
 require "amber"
-require "./controllers/**"
-require "./mailers/**"
-require "./models/**"
-require "./views/**"
 require "../config/*"
+require "./models/**"
+require "./mailers/**"
+require "./controllers/application_controller"
+require "./controllers/**"
 
 Amber::Server.instance.run
