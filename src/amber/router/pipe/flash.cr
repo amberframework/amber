@@ -64,11 +64,7 @@ module Amber
           new
         end
 
-        def each(&block : T -> _)
-          @flashes.each do |k, v|
-            block.call(k, v)
-          end
-        end
+        delegate :each, to: :flashes
 
         def initialize
           @flashes = Hash(String, String).new
