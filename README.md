@@ -72,18 +72,19 @@ dependencies:
 Please see [Installing Amber CLI from the Amber Book](https://amber-crystal.gitbooks.io/amber/content/getting-started/installation/heroku.html)
 
 ## App Layout
-### This is how an amber app is laid out. Manually building everything is not recommended however.
+
+This is how an amber app is laid out. Manually building everything is not recommended however!
 
 *src/yourapp.cr*
 ```cr
 # Require your file structure.
  
 require "amber"
-require "./controllers/**"
-require "./mailers/**"
-require "./models/**"
-require "./views/**"
 require "../config/*"
+require "./models/**"
+require "./mailers/**"
+require "./controllers/**"
+
 
 # Finally this is how you will bootup the server.
 Amber::Server.instance.run
