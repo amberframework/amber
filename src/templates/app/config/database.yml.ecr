@@ -1,5 +1,5 @@
 <%= @database %>:
-<% case @database 
+<% case @database
    when "mysql" -%>
   database: mysql://root@localhost:3306/<%= "#{@name}_development" %>
 <% when "pg" -%>
