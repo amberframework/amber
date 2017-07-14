@@ -27,7 +27,8 @@ module Amber
 
       abstract def handle_message(msg)
 
-      def handle_joined(client_socket); end
+      # Authorization can happen here
+      def handle_joined(client_socket, message); end
 
       def handle_leave(client_socket); end
 
@@ -45,8 +46,8 @@ module Amber
       end
 
       # Called when a socket subscribes to a channel
-      protected def subscribe_to_channel(client_socket)
-        handle_joined(client_socket)
+      protected def subscribe_to_channel(client_socket, message)
+        handle_joined(client_socket, message)
       end
 
       # Called when a socket unsubscribes from a channel
