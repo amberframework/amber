@@ -75,6 +75,11 @@ class TestController < Amber::Controller::Base
   def render_with_csrf
     render("spec/sample/views/test/_form.slang", layout: false)
   end
+
+  def render_with_flash
+    flash["error"] = "Displays error Message!"
+    render("spec/sample/views/test/flash.slang", false)
+  end
 end
 
 struct UserSocket < Amber::WebSockets::ClientSocket

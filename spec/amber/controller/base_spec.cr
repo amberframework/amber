@@ -54,6 +54,15 @@ module Amber::Controller
         TestController.new(context).render_partial.should eq html_output
       end
 
+      it "renders flash message" do
+        request = HTTP::Request.new("GET", "/")
+        context = create_context(request)
+
+        controller = TestController.new(context)
+
+        controller.render_with_flash
+      end
+
       it "renders html and layout from slang template" do
         request = HTTP::Request.new("GET", "/?test=test")
         context = create_context(request)

@@ -14,6 +14,19 @@ module Amber
         context.response.headers.has_key?("Set-Cookie").should be_true
       end
 
+      context "between requests" do
+        it "displays flash message" do
+          flash = Flash.new
+          request = HTTP::Request.new("GET", "/")
+          context = create_context(request)
+
+          context.flash["error"] = "Some error message"
+          context2 = flash.call(context)
+
+          context2.flash["error"].should eq "Some error message"
+        end
+      end
+
       it "sets a flash message" do
         flash = Flash.new
         request = HTTP::Request.new("GET", "/")

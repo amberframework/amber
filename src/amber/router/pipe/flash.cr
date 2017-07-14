@@ -7,11 +7,11 @@ module Amber
     class Flash < Base
       def call(context)
         call_next(context)
-      ensure
         session = context.session
         flash = context.flash.not_nil!
         session["_flash"] = flash.to_session
         context.cookies.write(context.response.headers)
+        context
       end
     end
   end
