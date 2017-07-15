@@ -53,7 +53,11 @@ module Amber::Router::Session
     end
 
     def set_session
-      store.encrypted.set(key, session.to_json, expires: (Time.now + expires.seconds), http_only: true)
+      store.encrypted.set(key, session.to_json, expires: expires_at, http_only: true)
+    end
+
+    def expires_at
+        (Time.now + expires.seconds) if @expires > 0
     end
 
     def current_session

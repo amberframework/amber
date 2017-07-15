@@ -71,7 +71,7 @@ module Amber::Router::Session
     end
 
     def set_session
-      cookies.encrypted.set(key, session_id, expires: (Time.now + expires.seconds), http_only: true)
+      cookies.encrypted.set(key, session_id, http_only: true)
 
       store.pipelined do |pipeline|
         pipeline.hset(session_id, key, session_id)
