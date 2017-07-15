@@ -9,10 +9,4 @@ notifications:
     on_start: never     # options: [always|never|change] default: always
 
 services:
-    - docker
-
-before_install:
-    - docker build -t spec .
-
-script:
-    - docker run spec
+    - redis-server
