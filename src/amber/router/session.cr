@@ -1,7 +1,7 @@
 module Amber::Router
   module Session
     class Store
-      property session : Hash(Symbol, Symbol | Int32 | String)
+      property session : Hash(Symbol, Symbol | Int32 | String | Nil)
       property cookies : Cookies::Store
       getter session_store : Session::AbstractStore?
 
