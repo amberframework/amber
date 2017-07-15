@@ -67,7 +67,7 @@ module Amber
         delegate :each, to: :flashes
 
         def initialize
-          @flashes = Hash(String, String).new
+          @flashes = Hash(String | Symbol, String).new
           @discard = Set(String).new
         end
 
