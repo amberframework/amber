@@ -1,8 +1,3 @@
-require "http/cookie"
-require "base64"
-require "json"
-require "openssl/hmac"
-
 module Amber
   module Pipe
     # The session handler provides a cookie based session.  The handler will

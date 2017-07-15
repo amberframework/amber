@@ -30,11 +30,11 @@ class HTTP::Server::Context
   end
 
   def session
-    @session ||= Amber::Router::SessionFactory.new(cookies).build
+      @session ||= Amber::Router::Session::Store.new(cookies).build
   end
 
   def flash
-      @flash ||= Amber::Router::Flash.from_session_value(session.fetch(Amber::Pipe::Flash::KEY, "{}"))
+      @flash ||= Amber::Router::Flash.from_session_value(session.fetch(Amber::Pipe::Flash::PARAM_KEY, "{}"))
   end
 
   def invalid_route?

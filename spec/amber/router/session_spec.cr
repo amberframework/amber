@@ -1,7 +1,7 @@
 require "../../../spec_helper"
 
 module Amber::Router
-  describe SessionFactory do
+  describe Session::Store do
     it "creates a cookie session store" do
       cookies = new_cookie_store
       Amber::Server.instance.session = {
@@ -11,7 +11,7 @@ module Amber::Router
         :secret  => "secret",
       }
 
-      store = SessionFactory.new(cookies)
+      store = Session::Store.new(cookies)
 
       store.build.should be_a Session::CookieStore
     end
@@ -26,7 +26,7 @@ module Amber::Router
         :redis_url => "redis://localhost:6379",
       }
 
-      store = SessionFactory.new(cookies)
+      store = Session::Store.new(cookies)
 
       store.build.should be_a Session::RedisStore
     end
