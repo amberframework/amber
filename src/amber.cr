@@ -42,7 +42,7 @@ module Amber
     getter key_generator : Amber::Support::CachingKeyGenerator
     property pubsub_adapter : WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
     property redis_url : String
-    property session : Hash(Symbol, Symbol | Int32 | String)
+    property session : Hash(Symbol, Symbol | Int32 | String | Nil)
 
     def initialize
       @app_path = __FILE__
