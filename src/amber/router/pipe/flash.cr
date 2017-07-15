@@ -5,12 +5,13 @@ require "openssl/hmac"
 module Amber
   module Pipe
     class Flash < Base
+        KEY = "_flash"
       def call(context)
         call_next(context)
       ensure
         session = context.session
         flash = context.flash.not_nil!
-        session["_flash"] = flash.to_session
+        session[KEY] = flash.to_session
       end
     end
   end

@@ -34,7 +34,7 @@ class HTTP::Server::Context
   end
 
   def flash
-    @flash ||= Amber::Router::Flash.from_session_value(session.fetch("_flash", "{}"))
+      @flash ||= Amber::Router::Flash.from_session_value(session.fetch(Amber::Pipe::Flash::KEY, "{}"))
   end
 
   def invalid_route?

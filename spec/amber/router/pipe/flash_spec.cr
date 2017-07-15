@@ -9,8 +9,8 @@ module Amber
   end
   module Router
     describe Flash::FlashStore do
-        describe ".from_session_value" do 
-            it "it sweeps the flash store after accessed" do 
+        describe ".from_session_value" do
+            it "sweeps the flash store when accessed" do
                 discard = ["some_key"].to_set
                 flashes = { "some_key" => "some_value" }
                 json = { "flashes" => flashes, "discard" => discard }.to_json
@@ -19,7 +19,7 @@ module Amber
                 flash_store["some_key"].should be_nil
                 flash_store[:some_key].should be_nil
                 flash_store.has_key?("some_key").should be_falsey
-            end 
+            end
         end
     end
   end
