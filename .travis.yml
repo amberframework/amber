@@ -1,4 +1,4 @@
-language: generic
+language: crystal
 
 notifications:
   webhooks:
@@ -10,10 +10,4 @@ notifications:
 
 services:
   - redis-server
-  - docker
 
-before_install:
-  - docker build -t spec .
-
-script:
-  - docker run spec
