@@ -7,11 +7,10 @@ module Amber
     class Flash < Base
       def call(context)
         call_next(context)
+      ensure
         session = context.session
         flash = context.flash.not_nil!
         session["_flash"] = flash.to_session
-        context.cookies.write(context.response.headers)
-        context
       end
     end
   end
@@ -76,12 +75,13 @@ module Amber
         end
 
         def []=(key, value)
-          discard.delete key.to_s
-          @flashes[key.to_s] = value
+          k = key.to_s
+          @discard.delete k
+          @flashes[k] = value
         end
 
         def [](key)
-            @flashes[key.to_s]?
+          @flashes[key.to_s]?
         end
 
         def update(hash : Hash(String, String)) # :nodoc:
@@ -95,12 +95,12 @@ module Amber
         end
 
         def has_key?(key)
-            @flashes.has_key?(key.to_s)
+          @flashes.has_key?(key.to_s)
         end
 
         def delete(key)
-            @discard.delete key.to_s
-            @flashes.delete key.to_s
+          @discard.delete key.to_s
+          @flashes.delete key.to_s
           self
         end
 
@@ -122,21 +122,20 @@ module Amber
         end
 
         def keep(key = nil)
-          key = key.to_s if key
-          @discard.subtract key
-          key ? self[key] : self
+          k = key.to_s if key
+          @discard.subtract k
+          k ? self[k] : self
         end
 
         def discard(key = nil)
-            keys = key ? [key.to_s] : self.keys
-          @discard.concat keys.to_set
-          key ? self[key] : self
+          k = key ? [key.to_s] : self.keys.map(&.to_s)
+          @discard.concat k.to_set
+          k ? self[k] : self
         end
 
         def sweep
           @discard.each { |k| @flashes.delete k }
-          @discard.clear
-          @discard | @flashes.keys.to_set
+          @discard = @discard.map(&.to_s).to_set | @flashes.keys.map(&.to_s).to_set
         end
 
         def alert

@@ -4,52 +4,23 @@ require "json"
 module Amber
   module Pipe
     describe Flash do
-      it "sets a cookie" do
-        flash = Flash.new
-        request = HTTP::Request.new("GET", "/")
-        context = create_context(request)
+    end
 
-        response = flash.call(context)
+  end
+  module Router
+    describe Flash::FlashStore do
+        describe ".from_session_value" do 
+            it "it sweeps the flash store after accessed" do 
+                discard = ["some_key"].to_set
+                flashes = { "some_key" => "some_value" }
+                json = { "flashes" => flashes, "discard" => discard }.to_json
+                flash_store = Flash::FlashStore.from_session_value json
 
-        context.response.headers.has_key?("Set-Cookie").should be_true
-      end
-
-      context "between requests" do
-        it "displays flash message" do
-          flash = Flash.new
-          request = HTTP::Request.new("GET", "/")
-          context = create_context(request)
-
-          context.flash["error"] = "Some error message"
-          context2 = flash.call(context)
-
-          context2.flash["error"].should eq "Some error message"
+                flash_store["some_key"].should be_nil
+                flash_store[:some_key].should be_nil
+                flash_store.has_key?("some_key").should be_falsey
+            end 
         end
-      end
-
-      it "sets a flash message" do
-        flash = Flash.new
-        request = HTTP::Request.new("GET", "/")
-        context = create_context(request)
-        context.flash["error"] = "There was a problem"
-
-        flash.call(context)
-
-        context.flash["error"].should eq "There was a problem"
-      end
-
-      it "supports enumerable" do
-        flash = Flash.new
-        request = HTTP::Request.new("GET", "/")
-        context = create_context(request)
-        context.flash["error"] = "There was a problem"
-        context.flash["notice"] = "This is important"
-
-        flash.call(context)
-
-        context.flash["error"].should eq "There was a problem"
-        context.flash["notice"].should eq "This is important"
-      end
     end
   end
 end
