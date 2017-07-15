@@ -54,7 +54,7 @@ module Amber
         include Enumerable(String)
 
         JSON.mapping({
-          flashes: Hash(String, String),
+          flashes: Hash(String | Symbol, String),
           discard: Set(String),
         })
 
@@ -76,12 +76,12 @@ module Amber
         end
 
         def []=(key, value)
-          discard.delete key
-          @flashes[key] = value
+          discard.delete key.to_s
+          @flashes[key.to_s] = value
         end
 
         def [](key)
-          @flashes[key]?
+            @flashes[key.to_s]?
         end
 
         def update(hash : Hash(String, String)) # :nodoc:
@@ -95,12 +95,12 @@ module Amber
         end
 
         def has_key?(key)
-          @flashes.has_key?(key)
+            @flashes.has_key?(key.to_s)
         end
 
         def delete(key)
-          @discard.delete key
-          @flashes.delete key
+            @discard.delete key.to_s
+            @flashes.delete key.to_s
           self
         end
 
@@ -128,7 +128,7 @@ module Amber
         end
 
         def discard(key = nil)
-          keys = key ? [key] : self.keys
+            keys = key ? [key.to_s] : self.keys
           @discard.concat keys.to_set
           key ? self[key] : self
         end
