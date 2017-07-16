@@ -9,5 +9,4 @@ notifications:
     on_start: never     # options: [always|never|change] default: always
 
 services:
-  - redis-server
-
+    - redis-server
