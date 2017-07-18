@@ -8,10 +8,14 @@ module Amber::CMD
     class Console < Cli::Command
       command_name "console"
 
+      class Options
+        bool ["-d", "--debug"], desc: "# Runs console in debug mode.", default: false
+      end
+
       def run
         libs = ["require \"amber\"", "require \"./src/controllers/*\"", "require \"./src/models/*\"", "require \"./src/mailers/*\"", "require \"./src/views/*\"", "require \"./config/*\""] of String
         code = libs.join ';'
-        Icr::Console.new(true).start(code)
+        Icr::Console.new(options.d?).start(code)
       end
 
       class Help
