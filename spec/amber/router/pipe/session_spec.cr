@@ -6,35 +6,52 @@ module Amber
       it "sets a cookie" do
         request = HTTP::Request.new("GET", "/")
         context = create_context(request)
-        session = Session.new
-        session.next = -> (context : HTTP::Server::Context){context.session["test"] = "test"}
-        session.call(context)
 
-        context.response.headers.has_key?("set-cookie").should be_true
+        Session.new.call(context)
+
+        context.response.headers.has_key?("Set-Cookie").should be_true
       end
 
-      it "encodes the session data" do
-        request = HTTP::Request.new("GET", "/")
-        context = create_context(request)
-        session = Session.new("key.session", "some-secret-key")
-        context.session["authorized"] = "true"
+      context "session persist across different requests" do
+        context "Cookies Store" do
+          it "sets session value in controller" do
+            request1 = HTTP::Request.new("GET", "/")
+            request_1 = create_context(request1)
+            request_1.session["name"] = "david"
+            Session.new.call(request_1)
 
-        session.call(context)
-        cookie = context.response.headers["set-cookie"]
+            request2 = HTTP::Request.new("GET", "/", request_1.response.headers)
+            request_2 = create_context(request2)
+            Session.new.call(request_2)
 
-        cookie.should eq "key.session=8a45be69c9e296834650a6e73c50f931a60d6cf8--eyJhdXRob3JpemVkIjoidHJ1ZSJ9%0A; path=/"
-      end
+            request_2.session["name"].should eq "david"
+          end
+        end
 
-      it "uses a secret" do
-        request = HTTP::Request.new("GET", "/")
-        context = create_context(request)
-        session = Session.new("key.session", "some-secret-key")
-        context.session["authorized"] = "true"
+        context "Redis Store" do
+          it "sets session value in controller" do
+            Amber::Server.instance.session = {
+              :key       => "session_id",
+              :store     => :redis,
+              :expires   => 120,
+              :secret    => "secret",
+              :redis_url => "redis://127.0.0.1:6379",
+            }
 
-        session.call(context)
-        cookie = context.response.headers["set-cookie"]
+            request1 = HTTP::Request.new("GET", "/")
+            request_1 = create_context(request1)
+            request_1.session["name"] = "david"
+            request_1.session["last"] = "akward"
+            Session.new.call(request_1)
 
-        cookie.should eq "key.session=8a45be69c9e296834650a6e73c50f931a60d6cf8--eyJhdXRob3JpemVkIjoidHJ1ZSJ9%0A; path=/"
+            request2 = HTTP::Request.new("GET", "/", request_1.response.headers)
+            request_2 = create_context(request2)
+            Session.new.call(request_2)
+
+            request_2.session["name"].should eq "david"
+            request_2.session["last"].should eq "akward"
+          end
+        end
       end
     end
   end

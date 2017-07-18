@@ -3,7 +3,6 @@ require "zlib"
 module Amber
   module Pipe
     class Static < HTTP::StaticFileHandler
-
       @directory_listing = false
       @fallthrough = false
 
@@ -61,7 +60,7 @@ module Amber
       end
 
       private def static_config
-        { "dir_listing" => @directory_listing, "gzip" => true }
+        {"dir_listing" => @directory_listing, "gzip" => true}
       end
 
       private def etag(context, file_path)
@@ -160,7 +159,5 @@ module Amber
         end
       end
     end
-
-
   end
 end

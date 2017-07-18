@@ -26,9 +26,14 @@ module Amber
       instance.key_generator
     end
 
+    def self.session
+      instance.session
+    end
+
+    setter project_name : String?
+    getter key_generator : Amber::Support::CachingKeyGenerator
     property port : Int32
     property name : String
-    setter project_name : String?
     property env : String
     property log : Logger
     property secret : String
@@ -37,6 +42,7 @@ module Amber
     getter key_generator : Amber::Support::CachingKeyGenerator
     property pubsub_adapter : WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
     property redis_url : String
+    property session : Hash(Symbol, Symbol | Int32 | String )
 
     def initialize
       @app_path = __FILE__
@@ -49,10 +55,17 @@ module Amber
       @host = "0.0.0.0"
       @port_reuse = true
       @key_generator = Amber::Support::CachingKeyGenerator.new(
-        Amber::Support::KeyGenerator.new(secret, 1000)
+        Amber::Support::KeyGenerator.new(secret, 5)
       )
       @pubsub_adapter = WebSockets::Adapters::MemoryAdapter
       @redis_url = "redis://localhost:6379"
+      @session = {
+        :key       => "session_id",
+        :store     => :cookie,
+        :expires   => 0,
+        :secret    => secret,
+        :redis_url => "redis://localhost:6379",
+      }
     end
 
     def project_name

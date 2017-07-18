@@ -7,7 +7,9 @@ module Amber
         CSRF::CHECK_METHODS.each do |method|
           it "raises forbbiden error for PUT request" do
             csrf = CSRF.new
+
             request = HTTP::Request.new(method, "/")
+
             expect_raises Exceptions::Forbidden do
               make_router_call(csrf, request)
             end
@@ -31,12 +33,10 @@ module Amber
       context "when tokens match" do
         it "accepts requests params token" do
           csrf = CSRF.new
-          valid_token = "good_token"
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
-
-          context.session["csrf.token"] = valid_token
-          context.params["_csrf"] = valid_token
+          token = CSRF.token(context)
+          context.params[Amber::Pipe::CSRF::PARAM_KEY] = token.to_s
 
           result = csrf.call(context)
 
@@ -45,16 +45,34 @@ module Amber
 
         it "accepts requests for header token" do
           csrf = CSRF.new
-          valid_token = "good_token"
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
-
-          context.session["csrf.token"] = valid_token
-          context.request.headers["HTTP_X_CSRF_TOKEN"] = valid_token
+          token = CSRF.token(context)
+          context.request.headers[Amber::Pipe::CSRF::HEADER_KEY] = token.to_s
 
           result = csrf.call(context)
 
           result.should be_nil
+        end
+      end
+
+      context "across requests" do
+        it "is valid across request" do
+          csrf = CSRF.new
+          request = HTTP::Request.new("GET", "/")
+          context = create_context(request)
+
+          token = CSRF.token(context)
+          Session.new.call(context)
+
+          context.response.headers["content-type"] = "application/x-www-form-urlencoded"
+
+          request2 = HTTP::Request.new("post", "/?_csrf=#{token}", context.response.headers)
+          context2 = create_context(request2)
+
+          context2.params["_csrf"].should eq token
+          context2.session["csrf.token"].should eq token
+          CSRF.new.valid_token?(context2).should eq true
         end
       end
 
