@@ -4,54 +4,22 @@ require "json"
 module Amber
   module Pipe
     describe Flash do
-      it "sets a cookie" do
-        flash = Flash.new
-        request = HTTP::Request.new("GET", "/")
-        context = create_context(request)
+    end
+  end
 
-        response = flash.call(context)
+  module Router
+    describe Flash::FlashStore do
+      describe ".from_session_value" do
+        it "sweeps the flash store when accessed" do
+          discard = ["some_key"].to_set
+          flashes = {"some_key" => "some_value"}
+          json = {"flashes" => flashes, "discard" => discard}.to_json
+          flash_store = Flash::FlashStore.from_session_value json
 
-        context.response.headers.has_key?("set-cookie").should be_true
-      end
-
-      it "sets a flash message" do
-        flash = Flash.new
-        request = HTTP::Request.new("GET", "/")
-        context = create_context(request)
-        context.flash["error"] = "There was a problem"
-
-        flash.call(context)
-
-        context.flash["error"].should eq "There was a problem"
-      end
-
-      it "returns a list of flash messages that have not been read" do
-        request = HTTP::Request.new("GET", "/")
-        context = create_context(request)
-        context.flash[:error] = "There was a problem"
-        unread = context.flash.unread
-        unread["error"]?.should eq "There was a problem"
-      end
-
-      it "does not return read messages" do
-        request = HTTP::Request.new("GET", "/")
-        context = create_context(request)
-        context.flash["error"] = "There was a problem"
-        context.flash[:error]
-        context.flash.unread["error"]?.should_not eq "There was a problem"
-      end
-
-      it "supports enumerable" do
-        flash = Flash.new
-        request = HTTP::Request.new("GET", "/")
-        context = create_context(request)
-        context.flash["error"] = "There was a problem"
-        context.flash["notice"] = "This is important"
-
-        flash.call(context)
-
-        context.flash["error"].should eq "There was a problem"
-        context.flash["notice"].should eq "This is important"
+          flash_store["some_key"].should be_nil
+          flash_store[:some_key].should be_nil
+          flash_store.has_key?("some_key").should be_falsey
+        end
       end
     end
   end

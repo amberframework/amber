@@ -4,93 +4,160 @@ require "openssl/hmac"
 
 module Amber
   module Pipe
-    # The flash handler provides a mechanism to pass flash message between
-    # requests.
     class Flash < Base
-      property :key
+      PARAM_KEY = "_flash"
 
-      def initialize
-        @key = "#{Server.settings.project_name}.flash"
-      end
-
-      def call(context : HTTP::Server::Context)
-        cookies = context.request.cookies
-        decode(context.flash, cookies[@key].value) if cookies.has_key?(@key)
+      def call(context)
         call_next(context)
-        value = encode(context.flash.unread)
-        cookies = context.response.cookies
-        cookies << HTTP::Cookie.new(@key, value)
-        cookies.add_response_headers(context.response.headers)
-        context
-      end
-
-      private def decode(flash, data)
-        yaml = Base64.decode_string(data)
-        values = YAML.parse(yaml)
-        values.each do |key, value|
-          flash[key.to_s] = value.to_s
-        end
-      end
-
-      private def encode(flash)
-        data = Base64.encode(flash.to_yaml)
-        return data
+      ensure
+        session = context.session
+        flash = context.flash.not_nil!
+        session[PARAM_KEY] = flash.to_session
       end
     end
   end
 
   module Router
     module Flash
-      # clear the flash messages.
-      def clear_flash
-        @flash = Params.new
+      def self.from_session_value(flash_content)
+        FlashStore.from_session_value(flash_content)
       end
 
-      # Holds a hash of flash variables.  This can be used to hold data between
-      # requests. Once a flash message is read, it is marked for removal.
-      def flash
-        @flash ||= Params.new
+      class FlashNow
+        property :flash
+
+        def initialize(flash)
+          @flash = flash
+        end
+
+        def []=(key, value)
+          @flash[key] = value
+          @flash.discard(key)
+          value
+        end
+
+        def [](k)
+          @flash[k.to_s]
+        end
+
+        # Convenience accessor for <tt>flash.now["alert"]=</tt>.
+        def alert=(message)
+          self["alert"] = message
+        end
+
+        # Convenience accessor for <tt>flash.now["notice"]=</tt>.
+        def notice=(message)
+          self["notice"] = message
+        end
       end
 
-      # A hash that keeps track if its been accessed
-      class Params < Hash(String, String)
+      class FlashStore
+        include Enumerable(String)
+
+        JSON.mapping({
+          flashes: Hash(String | Symbol, String),
+          discard: Set(String),
+        })
+
+        def self.from_session_value(json)
+          from_json(json).tap(&.sweep)
+        rescue e : JSON::ParseException
+          new
+        end
+
+        delegate :each, to: :flashes
+
         def initialize
-          @read = [] of String
-          super
+          @flashes = Hash(String | Symbol, String).new
+          @discard = Set(String).new
         end
 
-        def read
-          @read
+        def discard=(value : Array(String))
+          @discard = value.to_set
         end
 
-        def []=(key : String | Symbol, value : V)
-          super(key.to_s, value)
+        def []=(key, value)
+          k = key.to_s
+          @discard.delete k
+          @flashes[k] = value
         end
 
         def [](key)
-          fetch(key, nil)
+          @flashes[key.to_s]?
         end
 
-        # TODO: Refactor this soon.
-        def each
-          current = @first
-          while current
-            yield({current.key, current.value})
-            @read << current.key
-            current = current.fore
-          end
+        def update(hash : Hash(String, String)) # :nodoc:
+          @discard.subtract hash.keys
+          @flashes.update hash
           self
         end
 
-        def unread
-          # TODO: unread marks them as read. Maybe fix this. It shouldn't actually matter since it get's reloaded next request.
-          reject { |key, _| @read.includes? key }
+        def keys
+          @flashes.keys
         end
 
-        def find_entry(key)
-          key = key.to_s
-          @read << key
-          super(key)
+        def has_key?(key)
+          @flashes.has_key?(key.to_s)
+        end
+
+        def delete(key)
+          @discard.delete key.to_s
+          @flashes.delete key.to_s
+          self
+        end
+
+        def to_hash
+          @flashes.dup
+        end
+
+        def empty?
+          @flashes.empty?
+        end
+
+        def clear
+          @discard.clear
+          @flashes.clear
+        end
+
+        def now
+          @now ||= FlashNow.new(self)
+        end
+
+        def keep(key = nil)
+          k = key.to_s if key
+          @discard.subtract k
+          k ? self[k] : self
+        end
+
+        def discard(key = nil)
+          k = key ? [key.to_s] : self.keys.map(&.to_s)
+          @discard.concat k.to_set
+          k ? self[k] : self
+        end
+
+        def sweep
+          @discard.each { |k| @flashes.delete k }
+          @discard = @discard.map(&.to_s).to_set | @flashes.keys.map(&.to_s).to_set
+        end
+
+        def alert
+          self["alert"]
+        end
+
+        def alert=(message)
+          self["alert"] = message
+        end
+
+        def notice
+          self["notice"]
+        end
+
+        def notice=(message)
+          self["notice"] = message
+        end
+
+        def to_session
+          {"flashes": @flashes, "discard": @discard}.to_json
         end
       end
     end
