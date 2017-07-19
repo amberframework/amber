@@ -48,7 +48,7 @@ module Amber
       @app_path = __FILE__
       @name = "amber_project"
       @port = 8080
-      @env = "development".colorize(:yellow).to_s
+      @env = "development".to_s
       @log = ::Logger.new(STDOUT)
       @log.level = ::Logger::INFO
       @secret = ENV["SECRET_KEY_BASE"]? || SecureRandom.hex(128)
@@ -103,7 +103,7 @@ module Amber
         exit
       end
 
-      log.info "Server started in #{env}.".to_s
+      log.info "Server started in #{env.colorize(:yellow)}.".to_s
       log.info "Startup Time #{Time.now - time}\n\n".colorize(:white).to_s
       server.listen(port_reuse)
     end
