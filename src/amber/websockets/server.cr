@@ -4,24 +4,20 @@ module Amber
       extend self
 
       def create_endpoint(path, app_socket)
-        spawn do
-          Amber::Server.instance.log.info "socket listening at #{path}"
-          Handler.new(path) do |socket|
-            instance = app_socket.new(socket)
-            socket.close && next unless instance.authorized?
+        Amber::Server.instance.log.info "socket listening at #{path}"
+        Handler.new(path) do |socket|
+          instance = app_socket.new(socket)
+          socket.close && next unless instance.authorized?
 
-            ClientSockets.add_client_socket(instance)
+          ClientSockets.add_client_socket(instance)
 
-            socket.on_message do |message|
-              instance.on_message(message)
-            end
-
-            socket.on_close do
-              ClientSockets.remove_client_socket(instance)
-            end
+          socket.on_message do |message|
+            instance.on_message(message)
           end
 
-          ClientSockets.setup_heartbeat
+          socket.on_close do
+            ClientSockets.remove_client_socket(instance)
+          end
         end
       end
 
