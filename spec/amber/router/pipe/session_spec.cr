@@ -35,7 +35,7 @@ module Amber
               :store     => :redis,
               :expires   => 120,
               :secret    => "secret",
-              :redis_url => "redis://127.0.0.1:6379",
+              :redis_url => ENV["REDIS_URL"] || "redis://127.0.0.1:6379",
             }
 
             request1 = HTTP::Request.new("GET", "/")
