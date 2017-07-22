@@ -50,7 +50,7 @@ module Amber
         end
       end
 
-      # Authentication and authorization shuould happen here
+      # Authentication and authorization should happen here
       def on_connect : Bool
         true
       end
