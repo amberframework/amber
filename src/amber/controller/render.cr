@@ -6,7 +6,11 @@ module Amber::Controller
       {% if filename.id.split("/").size > 2 %}
         Kilt.render("{{filename.id}}")
       {% else %}
-        Kilt.render("#{{{path}}}/{{filename.id}}")
+        {% if path == "src/views" %}
+          Kilt.render("{{__FILE__.split('/')[0..-4].join('/').id}}/#{{{path}}}/{{filename.id}}")
+        {% else %}
+          Kilt.render("#{{{path}}}/{{filename.id}}")
+        {% end %}
       {% end %}
     end
 
