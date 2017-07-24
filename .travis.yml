@@ -4,10 +4,10 @@ services:
   - docker
 
 before_install:
-  - docker-compose build spec
+  - docker build -t amber-spec -f spec/Dockerfile .
 
 script:
-  - docker-compose run spec
+  - docker-compose -f spec/docker-compose.yml run spec
 
 notifications:
   webhooks:
