@@ -1,0 +1,15 @@
+version: '2'
+services:
+  spec:
+    image: amber-spec
+    working_dir: /app/user
+    environment:
+      REDIS_URL: 'redis://redis:6379'
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:3.2-alpine
+    command: redis-server
+    ports:
+      - '6379:6379'
