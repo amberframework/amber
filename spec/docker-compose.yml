@@ -1,7 +1,7 @@
 version: '2'
 services:
   spec:
-    build: .
+    image: amber-spec
     working_dir: /app/user
     environment:
       REDIS_URL: 'redis://redis:6379'
