@@ -24,7 +24,7 @@ module Amber::Router
       end
 
       def cookie
-        Session::CookieStore.new(cookies, session[:key].to_s, session[:expires].to_i, session[:secret].to_s)
+        Session::CookieStore.new((session[:store] == :encrypted_cookie) ? cookies.encrypted : cookies.signed, session[:key].to_s, session[:expires].to_i, session[:secret].to_s, )
       end
     end
   end
