@@ -22,8 +22,13 @@ module Amber
       MAX_SOCKET_IDLE_TIME = 16.minutes
       BEAT_INTERVAL        = 5.minutes
 
-      property id : UInt64
-      property socket : HTTP::WebSocket
+      protected getter id : UInt64
+      getter socket : HTTP::WebSocket
+      protected getter context : HTTP::Server::Context
+      protected getter raw_params : HTTP::Params
+      protected getter params : Amber::Validators::Params
+      protected getter session : Amber::Router::Session::AbstractStore?
+      protected getter cookies : Amber::Router::Cookies::Store?
       private property pongs = Array(Time).new
       private property pings = Array(Time).new
 
@@ -41,16 +46,42 @@ module Amber
         return topic_channels[0][:channel] if topic_channels.any?
       end
 
-      def initialize(@socket)
+      # Broadcast a message to all subscribres of the topic
+      #
+      # ```crystal
+      # UserSocket.broadcast("message", "chats_room:1", "msg:new", {"message" => "test"})
+      # ```
+      protected def self.broadcast(event : String, topic : String, subject : String, payload : Hash)
+        if channel = get_topic_channel(WebSockets.topic_path(topic))
+          channel.rebroadcast!({
+            "event"   => event,
+            "topic"   => topic,
+            "subject" => subject,
+            "payload" => payload,
+          })
+        end
+      end
+
+      def initialize(@socket, @context)
         @id = @socket.object_id
         @subscription_manager = SubscriptionManager.new
+        @raw_params = @context.params
+        @params = Amber::Validators::Params.new(@raw_params)
         @socket.on_pong do |msg|
           @pongs.push(Time.now)
           @pongs.delete_at(0) if @pongs.size > 3
         end
       end
 
-      # Authentication and authorization should happen here
+      def session
+        @session ||= @context.session
+      end
+
+      def cookies
+        @cookies ||= @context.cookies
+      end
+
+      # Authentication and authorization can happen here
       def on_connect : Bool
         true
       end
@@ -82,11 +113,11 @@ module Amber
         if @socket.closed?
           Amber::Server.instance.log.error "Ignoring message sent to closed socket"
         else
-          @subscription_manager.dispatch self, decode(message)
+          @subscription_manager.dispatch self, decode_message(message)
         end
       end
 
-      protected def decode(message)
+      protected def decode_message(message)
         # TODO: implement different decoders
         JSON.parse(message)
       end

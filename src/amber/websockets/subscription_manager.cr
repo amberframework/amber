@@ -21,7 +21,7 @@ module Amber
       private def join(client_socket, message)
         return if subscriptions[message["topic"]]?
         if channel = client_socket.class.get_topic_channel(WebSockets.topic_path(message["topic"]))
-          channel.subscribe_to_channel(client_socket)
+          channel.subscribe_to_channel(client_socket, message)
           subscriptions[message["topic"].as_s] = channel
         end
       end
