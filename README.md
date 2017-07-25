@@ -69,7 +69,7 @@ dependencies:
 
 ## Usage
 
-Please see [Installing Amber CLI from the Amber Book](https://amber-crystal.gitbooks.io/amber/content/getting-started/installation/heroku.html)
+Please see [Installing Amber CLI from the Amber Book](https://amber-crystal.gitbooks.io/amber/content/getting-started/Installation/)
 
 ## App Layout
 
