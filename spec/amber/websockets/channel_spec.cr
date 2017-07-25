@@ -15,7 +15,7 @@ module Amber
       it "should call `handle_joined`" do
         ws, client_socket = create_user_socket
         channel = UserSocket.channels[0][:channel]
-        channel.subscribe_to_channel(client_socket)
+        channel.subscribe_to_channel(client_socket, "{}")
         channel.test_field.last.should eq "handle joined #{client_socket.id}"
       end
     end

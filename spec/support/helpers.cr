@@ -49,8 +49,9 @@ def build_controller(referer)
 end
 
 def create_user_socket
+  request = HTTP::Request.new("GET", "/")
   ws = HTTP::WebSocket.new(STDOUT)
-  client_socket = UserSocket.new(ws)
+  client_socket = UserSocket.new(ws, create_context(request))
   return ws, client_socket
 end
 
@@ -68,5 +69,6 @@ def create_socket_server
 
   listen_port = port_chan.receive
   ws = HTTP::WebSocket.new("ws://127.0.0.1:#{listen_port}")
+  spawn { ws.run }
   return http_ref.not_nil!, ws
 end

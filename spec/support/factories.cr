@@ -93,7 +93,7 @@ class UserChannel < Amber::WebSockets::Channel
     test_field.push("handle leave #{client_socket.id}")
   end
 
-  def handle_joined(client_socket)
+  def handle_joined(client_socket, msg)
     test_field.push("handle joined #{client_socket.id}")
   end
 
