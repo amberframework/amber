@@ -171,6 +171,16 @@ module Amber::Router
         cookies.signed["user_name"].should eq ""
       end
 
+      it "ignores cookie without signature" do
+        cookies = new_cookie_store
+        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=ZGF2aWQ%3D; path=/").first
+
+        cookies[cookie.name] = cookie
+
+        cookies.signed["user_name"].should eq ""
+      end
+
+
       it "ignores unset encrypted cookies" do
         cookies = new_cookie_store
 
