@@ -222,7 +222,6 @@ module Amber::Router
       end
 
       def set(name : String, value : String, path : String = "/", expires : Time? = nil, domain : String? = nil, secure : Bool = false, http_only : Bool = false, extension : String? = nil)
-        "puts writing again"
         cookie = HTTP::Cookie.new(name, @verifier.generate(value), path, expires, domain, secure, http_only, extension)
         raise Exceptions::CookieOverflow.new if cookie.value.bytesize > MAX_COOKIE_SIZE
         @store[name] = cookie
@@ -270,7 +269,7 @@ module Amber::Router
       end
 
       private def verify_and_decrypt(encrypted_message)
-        String.new(@encryptor.decrypt_and_verify(encrypted_message))
+        String.new(@encryptor.verify_and_decrypt(encrypted_message))
       rescue e # TODO: This should probably actually raise the exception instead of rescueing from it. 
         ""
       end

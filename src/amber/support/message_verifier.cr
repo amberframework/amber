@@ -26,7 +26,16 @@ module Amber::Support
       verified(signed_message) || raise(Exceptions::InvalidSignature.new)
     end
 
-    def generate(value : String)
+    def verify_raw(signed_message : String) : Bytes
+      data, digest = signed_message.split("--")
+      if valid_message?(data, digest)
+        decode(data)
+      else
+        raise(Exceptions::InvalidSignature.new)
+      end
+    end
+
+    def generate(value : String | Bytes)
       data = encode(value)
       "#{data}--#{generate_digest(data)}"
     end
@@ -40,7 +49,7 @@ module Amber::Support
     end
 
     private def generate_digest(data)
-      OpenSSL::HMAC.hexdigest(@digest, @secret, data)
+      encode(OpenSSL::HMAC.digest(@digest, @secret, data))
     end
   end
 end

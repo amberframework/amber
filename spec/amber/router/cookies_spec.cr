@@ -108,7 +108,7 @@ module Amber::Router
 
       it "gets an encrypted cookie" do
         cookies = new_cookie_store
-        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=ZDVhS1BmdGlCVlY2bHFCeWUvclNZdz09LS12cmtSbXJHa3A4Wng5MHhHQzdQNmpBPT0%3D--629f7a4b6669bb0b1a06edc7c7eecb877d08f7157e7ad53e3ee85cb4ba07a255; path=/").first
+        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=LByguEoiSsJqc1iG%2FPrIujkr5ha0yUi%2Fng2fT4XSX3I%3D--qRpa7wr%2FuVEx5xfyfDrCHzrXjnJv44q1xhqG1XdgaAQ%3D; path=/").first
 
         cookies[cookie.name] = cookie
 
@@ -117,7 +117,7 @@ module Amber::Router
 
       it "ignores tampered cookie signature" do
         cookies = new_cookie_store
-        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=eTNVK2VMYUgramhtK0JKckwvbzZVQT09LS1pNmgycVJvcWthWm5lTm5WaVg1R0d3PT0%3D--tampered; path=/").first
+        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=LByguEoiSsJqc1iG%2FPrIujkr5ha0yUi%2Fng2fT4XSX3I%3D--tampered; path=/").first
 
         cookies[cookie.name] = cookie
 
@@ -149,7 +149,7 @@ module Amber::Router
 
       it "gets a cookie" do
         cookies = new_cookie_store
-        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=ZGF2aWQ%3D--f384f584190515936b50ac2178d3f92974d37499; path=/").first
+        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=ZGF2aWQ%3D--84T1hBkFFZNrUKwheNP5KXTTdJk%3D; path=/").first
 
         cookies[cookie.name] = cookie
 
