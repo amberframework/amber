@@ -1,5 +1,5 @@
 import { Socket } from './websockets/socket'
 
-export default {
+module.exports = {
   Socket: Socket
 }

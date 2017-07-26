@@ -8,10 +8,17 @@ export class Socket {
   }
 
   connect (params) {
-    return new Promise((resolve, reject) => {
-      let location = window.location.hostname
-      if (window.location.port) location += `:${window.location.port}`
-      this.ws = new WebSocket(`ws://${location}${this.endpoint}`)
+    let opts = {
+      location: window.location.hostname,
+      port: window.location.port,
+      protocol: window.location.protocol === 'https:' ? 'wss:' : 'ws:',
+    }
+
+    if (params) Object.assign(opts, params)
+    if (opts.port) opts.location += `:${opts.port}`
+
+    return new Promise((resolve, reject) => {      
+      this.ws = new WebSocket(`${opts.protocol}//${opts.location}${this.endpoint}`)
       this.ws.onmessage = (msg) => { this.handleMessage(msg) }
       this.ws.onopen = () => resolve()
     })
