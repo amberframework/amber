@@ -1,4 +1,3 @@
-require "json"
 require "openssl/hmac"
 require "crypto/subtle"
 
@@ -7,22 +6,19 @@ module Amber::Support
     def initialize(@secret : Bytes, @digest = :sha1)
     end
 
-    def valid_message?(signed_message)
-      split_message = signed_message.to_s.split("--", 2)
-      return if split_message.size < 2
-      data, digest = split_message
+    def valid_message?(data, digest)
       data.size > 0 && digest.size > 0 && Crypto::Subtle.constant_time_compare(digest, generate_digest(data))
     end
 
     def verified(signed_message : String)
-      if valid_message?(signed_message)
-        begin
-          data = signed_message.split("--").first
+      begin
+        data, digest = signed_message.split("--")
+        if valid_message?(data, digest)
           String.new(decode(data))
-        rescue argument_error : ArgumentError
-          return if argument_error.message =~ %r{invalid base64}
-          raise argument_error
         end
+      rescue argument_error : ArgumentError
+        return if argument_error.message =~ %r{invalid base64}
+        raise argument_error
       end
     end
 
@@ -30,7 +26,16 @@ module Amber::Support
       verified(signed_message) || raise(Exceptions::InvalidSignature.new)
     end
 
-    def generate(value : String)
+    def verify_raw(signed_message : String) : Bytes
+      data, digest = signed_message.split("--")
+      if valid_message?(data, digest)
+        decode(data)
+      else
+        raise(Exceptions::InvalidSignature.new)
+      end
+    end
+
+    def generate(value : String | Bytes)
       data = encode(value)
       "#{data}--#{generate_digest(data)}"
     end
@@ -44,7 +49,7 @@ module Amber::Support
     end
 
     private def generate_digest(data)
-      OpenSSL::HMAC.hexdigest(@digest, @secret, data)
+      encode(OpenSSL::HMAC.digest(@digest, @secret, data))
     end
   end
 end
