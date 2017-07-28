@@ -17,6 +17,10 @@ module Amber::Router
       def encrypted
         @encrypted ||= EncryptedStore.new(self, @key_generator, @options)
       end
+
+      def signed
+        @signed ||= SignedStore.new(self, @key_generator, @options)
+      end
     end
 
     # Cookies can typically store 4096 bytes.
@@ -147,12 +151,12 @@ module Amber::Router
     end
 
     module SerializedStore
-      protected def serialize(name, value)
+      protected def serialize(value)
         serializer.dump(value)
       end
 
-      protected def deserialize(name, value)
-        serializer.load(value)["value"].to_s
+      protected def deserialize(value)
+        serializer.load(value).to_s
       end
 
       protected def serializer
@@ -191,6 +195,45 @@ module Amber::Router
       end
     end
 
+    class SignedStore
+      include ChainedStore
+
+      getter store : Store
+      getter key_generator : Support::CachingKeyGenerator
+      getter options : Hash(String, String)
+
+      def initialize(@store, @key_generator, @options)
+        secret = key_generator.generate_key("encrypted_cookie_salt")
+        @verifier = Support::MessageVerifier.new(secret)
+      end
+
+      def [](name)
+        get(name)
+      end
+
+      def []=(name, value)
+        set(name, value)
+      end
+
+      def get(name)
+        if value = @store.get(name)
+          verify(value)
+        end
+      end
+
+      def set(name : String, value : String, path : String = "/", expires : Time? = nil, domain : String? = nil, secure : Bool = false, http_only : Bool = false, extension : String? = nil)
+        cookie = HTTP::Cookie.new(name, @verifier.generate(value), path, expires, domain, secure, http_only, extension)
+        raise Exceptions::CookieOverflow.new if cookie.value.bytesize > MAX_COOKIE_SIZE
+        @store[name] = cookie
+      end
+
+      private def verify(message)
+        @verifier.verify(message)
+      rescue e # TODO: This should probably actually raise the exception instead of rescueing from it. 
+        ""
+      end
+    end
+
     class EncryptedStore
       include ChainedStore
       include SerializedStore
@@ -215,21 +258,20 @@ module Amber::Router
 
       def get(name)
         if value = @store.get(name)
-          deserialize name, decrypt_and_verify(value)
+          verify_and_decrypt(value)
         end
       end
 
       def set(name : String, value : String, path : String = "/", expires : Time? = nil, domain : String? = nil, secure : Bool = false, http_only : Bool = false, extension : String? = nil)
-        cookie = HTTP::Cookie.new(name, value, path, expires, domain, secure, http_only, extension)
-        cookie.value = @encryptor.encrypt_and_sign(serialize(name, {"value": cookie.value}))
+        cookie = HTTP::Cookie.new(name, @encryptor.encrypt_and_sign(value), path, expires, domain, secure, http_only, extension)
         raise Exceptions::CookieOverflow.new if cookie.value.bytesize > MAX_COOKIE_SIZE
         @store[name] = cookie
       end
 
-      private def decrypt_and_verify(encrypted_message)
-        String.new(@encryptor.decrypt_and_verify(encrypted_message))
-      rescue e
-        "{\"value\":\"\"}"
+      private def verify_and_decrypt(encrypted_message)
+        String.new(@encryptor.verify_and_decrypt(encrypted_message))
+      rescue e # TODO: This should probably actually raise the exception instead of rescueing from it. 
+        ""
       end
     end
   end

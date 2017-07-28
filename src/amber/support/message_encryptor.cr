@@ -7,6 +7,7 @@ module Amber::Support
 
     def initialize(@secret : Bytes, @cipher = "aes-256-cbc", @digest = :sha1, @sign_secret : Bytes? = nil)
       @verifier = MessageVerifier.new(@secret, digest: @digest)
+      @block_size = 16
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
@@ -19,10 +20,10 @@ module Amber::Support
       encrypt_and_sign(value.to_slice)
     end
 
-    # Decrypt and verify a message. We need to verify the message in order to
+    # Verify and Decrypt a message. We need to verify the message in order to
     # avoid padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
-    def decrypt_and_verify(value : String) : Bytes
-      _decrypt(verifier.verify(value))
+    def verify_and_decrypt(value : String) : Bytes
+      _decrypt(verifier.verify_raw(value))
     end
 
     private def _encrypt(value)
@@ -36,20 +37,22 @@ module Amber::Support
       encrypted_data = IO::Memory.new
       encrypted_data.write(cipher.update(value))
       encrypted_data.write(cipher.final)
+      encrypted_data.write(iv)
 
-      "#{::Base64.strict_encode encrypted_data}--#{::Base64.strict_encode iv}"
+      encrypted_data.to_slice
     end
 
-    private def _decrypt(encrypted_message)
+    private def _decrypt(value : Bytes)
       cipher = new_cipher
-      encrypted_data, iv = encrypted_message.split("--").map { |v| ::Base64.decode(v) }
+      data = value[0, value.size - @block_size]
+      iv = value[value.size - @block_size, @block_size]
 
       cipher.decrypt
       cipher.key = @secret
       cipher.iv = iv
 
       decrypted_data = IO::Memory.new
-      decrypted_data.write cipher.update(encrypted_data)
+      decrypted_data.write cipher.update(data)
       decrypted_data.write cipher.final
       decrypted_data.to_slice
     rescue OpenSSL::Cipher::Error

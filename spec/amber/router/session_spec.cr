@@ -23,7 +23,7 @@ module Amber::Router
         :store     => :redis,
         :expires   => 120,
         :secret    => "secret",
-        :redis_url => ENV["REDIS_URL"] || "redis://127.0.0.1:6379",
+        :redis_url => ENV["REDIS_URL"]? || "redis://127.0.0.1:6379",
       }
 
       store = Session::Store.new(cookies)
