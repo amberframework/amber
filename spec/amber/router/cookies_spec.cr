@@ -96,43 +96,96 @@ module Amber::Router
       cookie_header(cookies).should eq "user_name=david; path=/; expires=#{HTTP.rfc1123_date(Time.new(2017, 6, 7, 9))},login=XJ-122; path=/"
     end
 
-    it "sets an encrypted cookie" do
-      cookies = new_cookie_store
+    context "encrypted cookies" do
+      it "sets an encrypted cookie" do
+        cookies = new_cookie_store
 
-      cookies.encrypted.set "user_name", "david"
+        cookies.encrypted.set "user_name", "david"
 
-      cookies.encrypted["user_name"].should eq "david"
-      cookie_header(cookies).should_not eq "user_name=david; path=/"
+        cookies.encrypted["user_name"].should eq "david"
+        cookie_header(cookies).should_not eq "user_name=david; path=/"
+      end
+
+      it "gets an encrypted cookie" do
+        cookies = new_cookie_store
+        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=LByguEoiSsJqc1iG%2FPrIujkr5ha0yUi%2Fng2fT4XSX3I%3D--qRpa7wr%2FuVEx5xfyfDrCHzrXjnJv44q1xhqG1XdgaAQ%3D; path=/").first
+
+        cookies[cookie.name] = cookie
+
+        cookies.encrypted["user_name"].should eq "david"
+      end
+
+      it "ignores tampered cookie signature" do
+        cookies = new_cookie_store
+        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=LByguEoiSsJqc1iG%2FPrIujkr5ha0yUi%2Fng2fT4XSX3I%3D--tampered; path=/").first
+
+        cookies[cookie.name] = cookie
+
+        cookies.encrypted["user_name"].should eq ""
+      end
+
+      it "ignores tampered cookie value" do
+        cookies = new_cookie_store(HTTP::Headers{"Cookie" => "user_name=tampered%3D%3D--cead74d6b7a64512a499fef31483fd21d9e89b85378a3eaa440c7ac7f9cd6b94;"})
+
+        cookies.encrypted["user_name"].should eq ""
+      end
+
+      it "ignores unset encrypted cookies" do
+        cookies = new_cookie_store
+
+        cookies.encrypted["invalid"].should eq nil
+      end
     end
 
-    it "gets an encrypted cookie" do
-      cookies = new_cookie_store
-      cookie = HTTP::Cookie::Parser.parse_cookies("user_name=V2dOdEU0dzhQSWJ3V0RsOHVJOFdaSnJER2VEa1hxMTJtQ09LOFZkTm9xMD0tLU1hUDQ4dWpSWXhndEU1RU5yNDRXRlE9PQ==--4b887ed5ce9e000fa21b00bf9a474e17b8e662dc195f3db83fc424cd3d8b891d; path=/").first
+    context "signed cookies" do
+      it "sets a cookie" do
+        cookies = new_cookie_store
 
-      cookies[cookie.name] = cookie
+        cookies.signed.set "user_name", "david"
 
-      cookies.encrypted["user_name"].should eq "david"
-    end
+        cookies.signed["user_name"].should eq "david"
+        cookie_header(cookies).should_not eq "user_name=david; path=/"
+      end
 
-    it "ignores tampered cookie signature" do
-      cookies = new_cookie_store
-      cookie = HTTP::Cookie::Parser.parse_cookies("user_name=YVpKaXlJN29vZUlwUnNuR3JzOVFPdEFwazFGWWNrYlpIUzhqU21YWWJDbz0tLVAvUldZaFZCQklLOW44ZGJLMDAramc9PQ%3D%3D--tampered; path=/").first
+      it "gets a cookie" do
+        cookies = new_cookie_store
+        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=ZGF2aWQ%3D--84T1hBkFFZNrUKwheNP5KXTTdJk%3D; path=/").first
 
-      cookies[cookie.name] = cookie
+        cookies[cookie.name] = cookie
 
-      cookies.encrypted["user_name"].should eq ""
-    end
+        cookies.signed["user_name"].should eq "david"
+      end
 
-    it "ignores tampered cookie value" do
-      cookies = new_cookie_store(HTTP::Headers{"Cookie" => "user_name=tampered%3D%3D--cead74d6b7a64512a499fef31483fd21d9e89b85378a3eaa440c7ac7f9cd6b94;"})
+      it "ignores tampered cookie signature" do
+        cookies = new_cookie_store
+        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=ZGF2aWQ%3D--tampered; path=/").first
 
-      cookies.encrypted["user_name"].should eq ""
-    end
+        cookies[cookie.name] = cookie
 
-    it "ignores unset encrypted cookies" do
-      cookies = new_cookie_store
+        cookies.signed["user_name"].should eq ""
+      end
 
-      cookies.encrypted["invalid"].should eq nil
+      it "ignores tampered cookie value" do
+        cookies = new_cookie_store(HTTP::Headers{"Cookie" => "user_name=tampered%3D%3D--cead74d6b7a64512a499fef31483fd21d9e89b85378a3eaa440c7ac7f9cd6b94;"})
+
+        cookies.signed["user_name"].should eq ""
+      end
+
+      it "ignores cookie without signature" do
+        cookies = new_cookie_store
+        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=ZGF2aWQ%3D; path=/").first
+
+        cookies[cookie.name] = cookie
+
+        cookies.signed["user_name"].should eq ""
+      end
+
+
+      it "ignores unset encrypted cookies" do
+        cookies = new_cookie_store
+
+        cookies.signed["invalid"].should eq nil
+      end
     end
 
     it "raises cookie overflow error" do
