@@ -13,8 +13,10 @@ module Amber::Router
         @session_store ||= case session[:store]
                            when :redis
                              redis
+                           when :encrypted_cookie
+                             encrypted_cookie
                            else
-                             cookie
+                             signed_cookie
                            end
       end
 
@@ -23,8 +25,12 @@ module Amber::Router
         Session::RedisStore.new(store, cookies, session[:key].to_s, session[:expires].to_i)
       end
 
-      def cookie
-        Session::CookieStore.new(cookies, session[:key].to_s, session[:expires].to_i, session[:secret].to_s)
+      def encrypted_cookie
+        Session::CookieStore.new(cookies.encrypted, session[:key].to_s, session[:expires].to_i, session[:secret].to_s)
+      end
+
+      def signed_cookie
+        Session::CookieStore.new(cookies.signed, session[:key].to_s, session[:expires].to_i, session[:secret].to_s)
       end
     end
   end

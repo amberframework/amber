@@ -6,7 +6,7 @@ module Amber
       it "sets a cookie" do
         request = HTTP::Request.new("GET", "/")
         context = create_context(request)
-
+        context.session[:listening] = "linkin park"
         Session.new.call(context)
 
         context.response.headers.has_key?("Set-Cookie").should be_true
@@ -35,7 +35,7 @@ module Amber
               :store     => :redis,
               :expires   => 120,
               :secret    => "secret",
-              :redis_url => ENV["REDIS_URL"] || "redis://127.0.0.1:6379",
+              :redis_url => ENV["REDIS_URL"]? || "redis://127.0.0.1:6379",
             }
 
             request1 = HTTP::Request.new("GET", "/")

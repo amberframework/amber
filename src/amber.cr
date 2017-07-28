@@ -42,7 +42,7 @@ module Amber
     getter key_generator : Amber::Support::CachingKeyGenerator
     property pubsub_adapter : WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
     property redis_url : String
-    property session : Hash(Symbol, Symbol | Int32 | String )
+    property session : Hash(Symbol, Symbol | Int32 | String)
 
     def initialize
       @app_path = __FILE__
@@ -61,7 +61,8 @@ module Amber
       @redis_url = "redis://localhost:6379"
       @session = {
         :key       => "session_id",
-        :store     => :cookie,
+        # store can be [:signed_cookie, :encrypted_cookie, :redis]
+        :store     => :signed_cookie, 
         :expires   => 0,
         :secret    => secret,
         :redis_url => "redis://localhost:6379",
