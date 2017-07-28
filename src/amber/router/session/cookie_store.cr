@@ -2,14 +2,23 @@ module Amber::Router::Session
   class SessionHash < Hash(String, String)
     property changed = false
 
-    def []=(key : String | Symbol, value : V)
+    def []=(key : String | Symbol, value)
       if @changed = (value != fetch(key.to_s, nil))
-        super(key.to_s, value)
+        if value.nil?
+          self.delete(key)
+        else
+          super(key.to_s, value.to_s)
+        end
       end
     end
 
     def [](key)
       fetch(key.to_s, nil)
+    end
+
+    def delete(key)
+      @changed = true
+      super(key.to_s)
     end
 
     def find_entry(key)
