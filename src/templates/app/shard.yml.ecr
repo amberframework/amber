@@ -10,7 +10,7 @@ license: MIT
 
 dependencies:
   amber:
-    github: Amber-Crystal/amber 
+    github: amber-crystal/amber 
     version: ~> 0.1.4
 
   quartz-mailer:
@@ -18,7 +18,7 @@ dependencies:
     branch: master
 
   granite_orm:
-    github: kemalyst/granite-orm
+    github: amber-crystal/granite-orm
     version: ~> 0.6.0
 
 <% case @database when "pg" -%>
@@ -38,3 +38,8 @@ dependencies:
 #    github: will/crystal-pg
 #  sqlite3:
 #    github: crystal-lang/crystal-sqlite3
+
+development_dependencies:
+  amber-spec:
+    github: amber-crystal/amber-spec
+    branch: master

@@ -13,7 +13,7 @@ describe <%= @name.capitalize %>Controller do
     <%= @name.capitalize %>.clear
   end
 
-  describe <%= @name.capitalize %>Controller::Index do
+  describe "index" do
     it "renders all the <%= @name %>s" do
       subject = create_subject
       get "/<%= @name %>s"
@@ -21,7 +21,7 @@ describe <%= @name.capitalize %>Controller do
     end
   end
 
-  describe <%= @name.capitalize %>Controller::Show do
+  describe "show" do
     it "renders a single <%= @name %>" do
       subject = create_subject
       get "/<%= @name %>s/#{subject.id}"
@@ -29,14 +29,14 @@ describe <%= @name.capitalize %>Controller do
     end
   end
 
-  describe <%= @name.capitalize %>Controller::New do
+  describe "new" do
     it "render new template" do
       get "/<%= @name %>s/new"
       response.body.should contain "New <%= @name.capitalize %>"
     end
   end
 
-  describe <%= @name.capitalize %>Controller::Create do
+  describe "create" do
     it "creates a <%= @name %>" do
       post "/<%= @name %>s", body: "<%= field_name %>=testing"
       subject_list = <%= @name.capitalize %>.all
@@ -44,7 +44,7 @@ describe <%= @name.capitalize %>Controller do
     end
   end
 
-  describe <%= @name.capitalize %>Controller::Edit do
+  describe "edit" do
     it "renders edit template" do
       subject = create_subject
       get "/<%= @name %>s/#{subject.id}/edit"
@@ -52,7 +52,7 @@ describe <%= @name.capitalize %>Controller do
     end
   end
 
-  describe <%= @name.capitalize %>Controller::Update do
+  describe "update" do
     it "updates a <%= @name %>" do
       subject = create_subject
       patch "/<%= @name %>s/#{subject.id}", body: "<%= field_name %>=test2"
@@ -61,7 +61,7 @@ describe <%= @name.capitalize %>Controller do
     end
   end
 
-  describe <%= @name.capitalize %>Controller::Delete do
+  describe "delete" do
     it "deletes a <%= @name %>" do
       subject = create_subject
       delete "/<%= @name %>s/#{subject.id}"
