@@ -11,15 +11,12 @@ license: MIT
 dependencies:
   amber:
     github: amber-crystal/amber 
-    version: ~> 0.1.4
 
   quartz-mailer:
     github: amber-crystal/quartz-mailer
-    branch: master
 
   granite_orm:
     github: amber-crystal/granite-orm
-    version: ~> 0.6.0
 
 <% case @database when "pg" -%>
   pg:
@@ -40,6 +37,5 @@ dependencies:
 #    github: crystal-lang/crystal-sqlite3
 
 development_dependencies:
-  amber-spec:
+  amber_spec:
     github: amber-crystal/amber-spec
-    branch: master
