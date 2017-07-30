@@ -5,7 +5,7 @@ all: build force_link
 build:
 	@echo "Building amber in $(shell pwd)"
 	@mkdir -p $(OUT_DIR)
-	@crystal build -o $(OUT_DIR)/amber src/amber_cmd.cr
+	@crystal build -o $(OUT_DIR)/amber src/amber_cmd.cr -p --no-debug
 
 run:
 	$(OUT_DIR)/amber
