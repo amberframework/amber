@@ -5,6 +5,7 @@
 
 - action = (<%= @name %>.id ? "/<%= @name %>s/" + <%= @name %>.id.to_s : "/<%= @name %>s")
 form action="#{ action }" method="post"
+  == csrf_tag
   - if <%= @name %>.id
     input type="hidden" name="_method" value="patch"
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
