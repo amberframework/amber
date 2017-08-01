@@ -43,6 +43,8 @@ module Amber
     property pubsub_adapter : WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
     property redis_url : String
     property session : Hash(Symbol, Symbol | Int32 | String)
+    property ssl_key_file : String?
+    property ssl_cert_file : String?
 
     def initialize
       @app_path = __FILE__
@@ -89,7 +91,9 @@ module Amber
 
     def start
       time = Time.now
-      str_host = "http://#{host}:#{port}".colorize(:light_cyan).underline
+      ssl_enabled = ssl_key_file && ssl_cert_file
+      scheme = ssl_enabled ? "https" : "http"
+      str_host = "#{scheme}://#{host}:#{port}".colorize(:light_cyan).underline
       version = "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
       log.info "#{version} serving application \"#{name}\" at #{str_host}".to_s
 
@@ -97,6 +101,7 @@ module Amber
       handler.prepare_pipelines
 
       server = HTTP::Server.new(host, port, handler)
+      server.tls = Amber::SSL.new(ssl_key_file.not_nil!, ssl_cert_file.not_nil!).generate_tls if ssl_enabled
 
       Signal::INT.trap do
         puts "Shutting down Amber"
