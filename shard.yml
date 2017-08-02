@@ -1,12 +1,12 @@
 name: amber
-version: 0.1.5
+version: 0.1.6
 
 authors:
   - Elias Perez <<eliasjpr@gmail.com>>
-  - Nick Franken <<shnick@gmail.com>>
   - Isaac Sloan <<isaac@isaacsloan.com>>
-  - Benoit de Chezelles <<benoit.dechezelles@gmail.com>>
   - Dru Jensen <<drujensen@gmail.com>>
+  - Nick Franken <<shnick@gmail.com>>
+  - Benoit de Chezelles <<benoit.dechezelles@gmail.com>>
 
 crystal: 0.22.0
 
