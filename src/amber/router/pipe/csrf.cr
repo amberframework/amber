@@ -31,7 +31,6 @@ module Amber
 
       def self.token(context)
         context.session[CSRF_KEY] ||= SecureRandom.urlsafe_base64(32)
-        context.session[CSRF_KEY]
       end
 
       def self.tag(context)
