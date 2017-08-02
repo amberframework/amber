@@ -3,7 +3,7 @@ module Amber::Router::Session
     property changed = false
 
     def []=(key : String | Symbol, value)
-      if @changed = (value != fetch(key.to_s, nil))
+      if @changed |= (value != fetch(key.to_s, nil))
         if value.nil?
           self.delete(key)
         else
