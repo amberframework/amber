@@ -29,14 +29,13 @@ module Amber
           context = create_context(request)
           route = Route.new("GET",
             "/#{action}",
-            build_handler(action, context),
+            build_halt_handler(action, context),
             action,
             :web,
             "",
             "FakeController")
 
           result = route.call(context)
-
           context.response.status_code.should eq 800
         end
       end
@@ -50,7 +49,7 @@ class FakeController < Amber::Controller::Base
   end
 
   def show
-    "Action show result"
+    puts "Action show result"
   end
 
   def halt_lifecycle
@@ -58,7 +57,8 @@ class FakeController < Amber::Controller::Base
   end
 
   def halt_request
-    "Should not be in request"
+    raise "Should not run!"
+    puts "Should not be in request"
   end
 end
 
@@ -68,7 +68,6 @@ def build_handler(action, context)
     controller.run_before_filter(:all)
     controller.run_before_filter(action)
     content = controller.show
-    puts context.response.status_code
     controller.run_after_filter(action)
     controller.run_after_filter(:all)
     context.response.print content
@@ -82,11 +81,9 @@ def build_halt_handler(action, context)
     controller.run_before_filter(:all)
     controller.run_before_filter(action)
     content = controller.halt_request
-    puts context.response.status_code
     controller.run_after_filter(action)
     controller.run_after_filter(:all)
     context.response.print content
     context.response.close
   }
 end
-

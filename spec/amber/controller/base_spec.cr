@@ -211,11 +211,11 @@ module Amber::Controller
 
   describe "#halt" do
     it "raises and Amber::Exceptions::HaltRequest error" do
-        controller = build_controller("")
+      controller = build_controller("")
 
-        controller.halt(status_code = 800, output = "Message")
+      controller.halt(status_code = 800, output = "Message")
 
-        controller.response.status_code.should eq 800
+      controller.response.status_code.should eq 800
     end
   end
 end

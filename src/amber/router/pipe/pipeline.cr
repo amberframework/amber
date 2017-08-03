@@ -41,7 +41,7 @@ module Amber
             pipeline[valve],
             ->(context : HTTP::Server::Context) {
               context.process_request
-           })
+            })
         end
       end
 
