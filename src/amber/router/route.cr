@@ -4,11 +4,23 @@ module Amber
 
     def initialize(@verb : String,
                    @resource : String,
-                   @handler : Proc(HTTP::Server::Context, Symbol, String),
+                   @handler : Proc(HTTP::Server::Context, Symbol, Bool | Nil),
                    @action : Symbol = :index,
                    @valve : Symbol = :web,
                    @scope : String = "",
                    @controller : String = "")
+    end
+
+    def call(context)
+      handler.call(context, action)
+    end
+
+    def trail
+      "#{verb.to_s.downcase}#{scope}#{resource}"
+    end
+
+    def trail_head
+      "head#{scope}#{resource}"
     end
 
     def to_json
@@ -22,18 +34,6 @@ module Amber
           json.field "resource", resource
         end
       end
-    end
-
-    def trail
-      "#{verb.to_s.downcase}#{scope}#{resource}"
-    end
-
-    def trail_head
-      "head#{scope}#{resource}"
-    end
-
-    def call(context)
-      handler.call(context, action)
     end
   end
 end

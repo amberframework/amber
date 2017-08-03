@@ -9,8 +9,8 @@ module Amber::Controller
        def run_before_filter(action)
         if self.responds_to? :before_filters
           self.before_filters
-          @filters.run(:before, action)
           @filters.run(:before, :all)
+          @filters.run(:before, action)
         end
       end
 

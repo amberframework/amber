@@ -18,7 +18,7 @@ module Amber
         if context.websocket?
           context.process_websocket_request
         else
-          @drain[context.valve].call(context) if @drain[context.valve]
+          @drain[context.valve].not_nil!.call(context)
         end
       rescue e : Amber::Exceptions::Base
         e.set_response(context.response)
@@ -40,8 +40,8 @@ module Amber
           @drain[valve] ||= build_pipeline(
             pipeline[valve],
             ->(context : HTTP::Server::Context) {
-              context.response.print(context.process_request)
-            })
+              context.process_request
+           })
         end
       end
 

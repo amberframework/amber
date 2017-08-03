@@ -5,8 +5,9 @@ module Amber
 
       def set_response(response)
         response.headers["Content-Type"] = "text/plain"
-        response.print message
         response.status_code = status_code
+        response.print message
+        response.close
       end
     end
 

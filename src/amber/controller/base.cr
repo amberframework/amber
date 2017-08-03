@@ -32,5 +32,12 @@ module Amber::Controller
     def session
       context.session
     end
+
+    def halt(status_code = 200, output = "")
+      context.response.headers["Content-Type"] = "text/plain"
+      context.response.status_code = status_code
+      context.response.print output
+      context.response.close
+    end
   end
 end
