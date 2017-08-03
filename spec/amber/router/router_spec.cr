@@ -69,7 +69,8 @@ module Amber
           request = HTTP::Request.new("GET", "/hello/world")
 
           handler = ->(context : HTTP::Server::Context, action : Symbol) {
-            "hey world"
+            context.response.print "hey world"
+            context.response.close
           }
 
           route = Route.new("GET", "/hello/world", handler)
@@ -98,7 +99,8 @@ module Amber
         it "register a GET route" do
           router = Router.new
           handler = ->(context : HTTP::Server::Context, action : Symbol) {
-            "hey world"
+            context.response.print "hey world"
+            context.response.close
           }
 
           route = Route.new("GET", "/some/joe", handler)
@@ -111,7 +113,8 @@ module Amber
         it "raises Amber::Exceptions::DuplicateRouteError on duplicate" do
           router = Router.new
           handler = ->(context : HTTP::Server::Context, action : Symbol) {
-            "hey world"
+            context.response.print "hey world"
+            context.response.close
           }
           route = Route.new("GET", "/some/joe", handler)
 
@@ -126,7 +129,10 @@ module Amber
       describe "#all" do
         it "gets all routes defined" do
           router = Router.new
-          handler = ->(context : HTTP::Server::Context, action : Symbol) { "hey" }
+          handler = ->(context : HTTP::Server::Context, action : Symbol) {
+            context.response.print "hey world"
+            context.response.close
+          }
           routes = [Route.new("GET", "/", handler),
                     Route.new("GET", "/a", handler),
                     Route.new("DELETE", "/b", handler),

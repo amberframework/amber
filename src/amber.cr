@@ -62,9 +62,9 @@ module Amber
       @pubsub_adapter = WebSockets::Adapters::MemoryAdapter
       @redis_url = "redis://localhost:6379"
       @session = {
-        :key       => "session_id",
+        :key => "session_id",
         # store can be [:signed_cookie, :encrypted_cookie, :redis]
-        :store     => :signed_cookie, 
+        :store     => :signed_cookie,
         :expires   => 0,
         :secret    => secret,
         :redis_url => "redis://localhost:6379",

@@ -16,7 +16,8 @@ module Amber::DSL
         content = controller.{{ action.id }}
         controller.run_after_filter(action)
         controller.run_after_filter(:all)
-        content
+        context.response.print(content)
+        context.response.close
       }
       %verb = {{verb.upcase.id.stringify}}
       %route = Amber::Route.new(%verb, {{resource}}, %handler, {{action}}, valve, scope, "{{controller.id}}")
