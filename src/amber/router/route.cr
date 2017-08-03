@@ -13,8 +13,6 @@ module Amber
 
     def call(context)
       handler.call(context, action)
-    rescue ex : Amber::Exceptions::HaltRequest
-      ex.set_response(context.response)
     end
 
     def trail
