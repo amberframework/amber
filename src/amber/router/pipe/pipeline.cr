@@ -40,7 +40,15 @@ module Amber
           @drain[valve] ||= build_pipeline(
             pipeline[valve],
             ->(context : HTTP::Server::Context) {
-              context.response.print(context.process_request)
+              content = context.process_request
+              response = context.response
+              if response.version != "HTTP/1.0" && !response.headers.has_key?("Content-Length")
+                context.session.set_session
+                context.cookies.write(context.response.headers)
+              else
+                context.cookies.write(context.response.headers)
+              end
+              context.response.print(content)
             })
         end
       end
