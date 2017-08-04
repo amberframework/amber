@@ -15,9 +15,6 @@ module Amber
           call_next(context)
         else
           raise Amber::Exceptions::Forbidden.new("CSRF check failed.")
-          context.response.status_code = 403
-          context.response.content_type = "text/plain"
-          context.response.print("CSRF check failed.")
         end
       end
 
