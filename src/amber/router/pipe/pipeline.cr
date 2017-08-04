@@ -41,8 +41,13 @@ module Amber
             pipeline[valve],
             ->(context : HTTP::Server::Context) {
               content = context.process_request
-              # Ensures it writes cookies to response header
-              context.cookies.write(context.response.headers)
+              response = context.response
+              if response.version != "HTTP/1.0" && !response.headers.has_key?("Content-Length")
+                context.session.set_session
+                context.cookies.write(context.response.headers)
+              else
+                context.cookies.write(context.response.headers)
+              end
               context.response.print(content)
             })
         end
