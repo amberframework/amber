@@ -40,7 +40,10 @@ module Amber
           @drain[valve] ||= build_pipeline(
             pipeline[valve],
             ->(context : HTTP::Server::Context) {
-              context.response.print(context.process_request)
+              content = context.process_request
+              # Ensures it writes cookies to response header
+              context.cookies.write(context.response.headers)
+              context.response.print(content)
             })
         end
       end
