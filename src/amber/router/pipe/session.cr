@@ -5,14 +5,9 @@ module Amber
     # be used to maintain data across requests.
     class Session < Base
       def call(context : HTTP::Server::Context)
-        # Session has to be set before it can be use down the pipeline
-        context.session.set_session
-
         call_next(context)
-      ensure
-        if context.session.changed?
-          context.cookies.write(context.response.headers)
-        end
+        # Writes the session to the store 
+        context.session.set_session
       end
     end
   end
