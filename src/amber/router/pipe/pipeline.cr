@@ -45,6 +45,20 @@ module Amber
         end
       end
 
+      def prepare_pipelines
+        pipeline.keys.each do |valve|
+          @drain[valve] ||= build_pipeline(
+            pipeline[valve],
+            ->(context : HTTP::Server::Context) {
+              content = context.process_request
+              # It's important that headers are written before response!
+              context.session.set_session
+              context.cookies.write(context.response.headers)
+              context.response.print(content)
+            })
+        end
+      end
+
       def build_pipeline(pipes, last_pipe : (HTTP::Server::Context ->))
         if pipes.empty?
           last_pipe
