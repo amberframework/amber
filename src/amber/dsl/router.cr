@@ -11,11 +11,9 @@ module Amber::DSL
     macro route(verb, resource, controller, action)
       %handler = ->(context : HTTP::Server::Context, action : Symbol){
         controller = {{controller.id}}.new(context)
-        controller.run_before_filter(:all)
         controller.run_before_filter(action)
         content = controller.{{ action.id }}
         controller.run_after_filter(action)
-        controller.run_after_filter(:all)
         content
       }
       %verb = {{verb.upcase.id.stringify}}
