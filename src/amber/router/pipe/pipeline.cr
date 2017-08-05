@@ -19,7 +19,7 @@ module Amber
           context.process_websocket_request
         elsif @drain[context.valve]
           @drain[context.valve].call(context)
-          context.response.print(context.content)
+          context.finalize_response
         end
       rescue e : Amber::Exceptions::Base
         e.set_response(context.response)

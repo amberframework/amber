@@ -55,10 +55,14 @@ class HTTP::Server::Context
   end
 
   def process_request
-    @content = request_handler.call(self)
+    content = request_handler.call(self)
   end
 
   def valve
     request_handler.valve
+  end
+
+  def finalize_response
+    response.print(content)
   end
 end
