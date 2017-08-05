@@ -17,8 +17,9 @@ module Amber
         raise Amber::Exceptions::RouteNotFound.new(context.request) if context.invalid_route?
         if context.websocket?
           context.process_websocket_request
-        else
-          @drain[context.valve].call(context) if @drain[context.valve]
+        elsif @drain[context.valve]
+          @drain[context.valve].call(context)
+          context.finalize_response
         end
       rescue e : Amber::Exceptions::Base
         e.set_response(context.response)
@@ -40,7 +41,7 @@ module Amber
           @drain[valve] ||= build_pipeline(
             pipeline[valve],
             ->(context : HTTP::Server::Context) {
-              context.response.print(context.process_request)
+              context.process_request
             })
         end
       end
