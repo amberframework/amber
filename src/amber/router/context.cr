@@ -55,9 +55,7 @@ class HTTP::Server::Context
   end
 
   def process_request
-    content = request_handler.call(self)
-    puts content
-    content
+    @content = request_handler.call(self)
   end
 
   def valve
@@ -65,8 +63,6 @@ class HTTP::Server::Context
   end
 
   def finalize_response
-    puts "inside of finalize"
-    puts content
-    response.print(content)
+    response.print(@content)
   end
 end
