@@ -14,6 +14,7 @@ class HTTP::Server::Context
   setter flash : Amber::Router::Flash::FlashStore?
   setter cookies : Amber::Router::Cookies::Store?
   setter session : Amber::Router::Session::AbstractStore?
+  property content : String?
 
   def initialize(@request : HTTP::Request, @response : HTTP::Server::Response)
     @router = Amber::Router::Router.instance
@@ -54,7 +55,7 @@ class HTTP::Server::Context
   end
 
   def process_request
-    request_handler.call(self)
+    @content = request_handler.call(self)
   end
 
   def valve
