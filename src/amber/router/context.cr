@@ -15,6 +15,7 @@ class HTTP::Server::Context
   setter cookies : Amber::Router::Cookies::Store?
   setter session : Amber::Router::Session::AbstractStore?
   property content : String?
+  property halt : Bool = false
 
   def initialize(@request : HTTP::Request, @response : HTTP::Server::Response)
     @router = Amber::Router::Router.instance

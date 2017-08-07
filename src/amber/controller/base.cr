@@ -32,5 +32,12 @@ module Amber::Controller
     def session
       context.session
     end
+
+    def halt!(status_code : Int32 = 200, content = "")
+      response.status_code = status_code
+      response.print content
+      response.close
+      context.halt = true
+    end
   end
 end
