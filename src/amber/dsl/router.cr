@@ -12,9 +12,9 @@ module Amber::DSL
       %handler = ->(context : HTTP::Server::Context, action : Symbol){
         controller = {{controller.id}}.new(context)
         controller.run_before_filter(action) unless context.halt
-        content = controller.{{ action.id }} unless context.halt
+        content = context.halt ? nil : controller.{{ action.id }}
         controller.run_after_filter(action) unless context.halt
-        content || ""
+        content.to_s
       }
       %verb = {{verb.upcase.id.stringify}}
       %route = Amber::Route.new(
