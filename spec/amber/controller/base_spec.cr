@@ -4,7 +4,7 @@ module Amber::Controller
   describe Base do
     describe "#cookies" do
       it "responds to cookies" do
-        controller = build_controller("")
+        controller = build_controller
 
         controller.responds_to?(:cookies).should eq true
       end
@@ -12,13 +12,13 @@ module Amber::Controller
 
     describe "#session" do
       it "responds to cookies" do
-        controller = build_controller("")
+        controller = build_controller
 
         controller.responds_to?(:session).should eq true
       end
 
       it "sets a session value" do
-        controller = build_controller("")
+        controller = build_controller
 
         controller.session["name"] = "David"
 
@@ -26,7 +26,7 @@ module Amber::Controller
       end
 
       it "has a session id" do
-        controller = build_controller("")
+        controller = build_controller
 
         controller.session.id.not_nil!.size.should eq 36
       end
@@ -98,7 +98,7 @@ module Amber::Controller
     describe "#before_action" do
       context "registering action filters" do
         it "registers a before action" do
-          controller = build_controller("")
+          controller = build_controller
           controller.before_filters
 
           before_filters = controller.filters[:before]
@@ -107,7 +107,7 @@ module Amber::Controller
         end
 
         it "registers a after action" do
-          controller = build_controller("")
+          controller = build_controller
           controller.after_filters
 
           after_filters = controller.filters[:after]
@@ -118,14 +118,14 @@ module Amber::Controller
 
       context "running filters" do
         it "runs before filters" do
-          controller = build_controller("")
+          controller = build_controller
           controller.run_before_filter(:index)
 
           controller.total.should eq 4
         end
 
         it "runs after filters" do
-          controller = build_controller("")
+          controller = build_controller
           controller.run_after_filter(:index)
 
           controller.total.should eq 2
@@ -147,7 +147,7 @@ module Amber::Controller
 
       context "and does not have a referer" do
         it "raisees an error" do
-          hello_controller = build_controller("")
+          hello_controller = build_controller
 
           expect_raises Exceptions::Controller::Redirect do
             hello_controller.redirect_back
@@ -171,7 +171,7 @@ module Amber::Controller
       context "when redirecting to url or path" do
         ["www.amberio.com", "/world"].each do |location|
           it "sets the location to #{location}" do
-            hello_controller = build_controller("")
+            hello_controller = build_controller
             hello_controller.redirect_to(location, 301)
 
             response = hello_controller.response
@@ -184,7 +184,7 @@ module Amber::Controller
 
       context "with invalid url or path" do
         it "raises redirect error" do
-          hello_controller = build_controller("")
+          hello_controller = build_controller
 
           expect_raises Exceptions::Controller::Redirect do
             hello_controller.redirect_to "saasd"
@@ -194,7 +194,7 @@ module Amber::Controller
 
       context "when redirecting to controller action" do
         it "sets the controller and action" do
-          hello_controller = build_controller("")
+          hello_controller = build_controller
           hello_controller.redirect_to :world, 301
 
           response = hello_controller.response
@@ -204,15 +204,35 @@ module Amber::Controller
         end
       end
 
-      context "when redirector to different controller" do
+      context "when redirecting to different controller" do
         it "sets new controller and action" do
-          hello_controller = build_controller("")
+          hello_controller = build_controller
           hello_controller.redirect_to :hello, :index, 301
 
           response = hello_controller.response
 
           response.headers["Location"].should eq "/hello/index"
           response.status_code.should eq 301
+        end
+      end
+
+      context "#halt!" do
+        it "sets context halt to true" do
+          controller = build_controller
+
+          controller.halt!
+          context = controller.context
+
+          context.content.should eq ""
+        end
+
+        it "set response status code" do
+          controller = build_controller
+
+          controller.halt!(status_code = 900)
+          context = controller.context
+
+          context.response.status_code.should eq 900
         end
       end
     end
