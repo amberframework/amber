@@ -19,10 +19,10 @@ module Amber
         it "does not execute action" do
           handler = ->(context : HTTP::Server::Context, action : Symbol) {
             controller = FakeController.new(context)
-            controller.run_before_filter(action) unless context.halt
-            content = controller.halt_action unless context.halt
-            controller.run_after_filter(action) unless context.halt
-            content || ""
+            controller.run_before_filter(action) unless context.content
+            content = controller.halt_action unless context.content
+            controller.run_after_filter(action) unless context.content
+            content.to_s
           }
 
           request = HTTP::Request.new("GET", "")
@@ -31,8 +31,7 @@ module Amber
 
           route.call(context).should eq ""
           context.response.status_code.should eq 900
-          context.halt.should eq true
-          context.content.should eq nil
+          context.content.should eq ""
         end
       end
 
@@ -40,10 +39,10 @@ module Amber
         it "halts request execution" do
           new_handler = ->(context : HTTP::Server::Context, action : Symbol) {
             controller = FakeRedirectController.new(context)
-            controller.run_before_filter(action) unless context.halt
-            content = controller.redirect_action unless context.halt
-            controller.run_after_filter(action) unless context.halt
-            content || ""
+            controller.run_before_filter(action) unless context.content
+            content = controller.redirect_action unless context.content
+            controller.run_after_filter(action) unless context.content
+            content.to_s
           }
 
           request = HTTP::Request.new("GET", "/")
@@ -52,8 +51,7 @@ module Amber
 
           route.call(context).should eq ""
           context.response.status_code.should eq 302
-          context.halt.should eq true
-          context.content.should eq nil
+          context.content.should eq "Redirecting to /"
         end
       end
     end

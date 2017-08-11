@@ -36,9 +36,7 @@ module Amber::Controller
     def halt!(status_code : Int32 = 200, content = "")
       response.headers["Content-Type"] = "text/plain"
       response.status_code = status_code
-      response.print content
-      response.close
-      context.halt = true
+      context.content = content
     end
   end
 end
