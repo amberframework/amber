@@ -41,7 +41,7 @@ def create_context(request)
   HTTP::Server::Context.new(request, response)
 end
 
-def build_controller(referer)
+def build_controller(referer = "")
   request = HTTP::Request.new("GET", "/")
   request.headers.add("Referer", referer)
   context = create_context(request)

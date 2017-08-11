@@ -11,13 +11,15 @@ module Amber::DSL
     macro route(verb, resource, controller, action)
       %handler = ->(context : HTTP::Server::Context, action : Symbol){
         controller = {{controller.id}}.new(context)
-        controller.run_before_filter(action)
-        content = controller.{{ action.id }}
-        controller.run_after_filter(action)
-        content
+        controller.run_before_filter(action) unless context.content
+        content = controller.{{ action.id }} unless context.content
+        controller.run_after_filter(action) unless context.content
+        content.to_s
       }
       %verb = {{verb.upcase.id.stringify}}
-      %route = Amber::Route.new(%verb, {{resource}}, %handler, {{action}}, valve, scope, "{{controller.id}}")
+      %route = Amber::Route.new(
+        %verb, {{resource}}, %handler, {{action}}, valve, scope, "{{controller.id}}"
+      )
 
       router.add(%route)
     end
