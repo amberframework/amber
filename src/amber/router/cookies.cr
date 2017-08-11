@@ -229,7 +229,7 @@ module Amber::Router
 
       private def verify(message)
         @verifier.verify(message)
-      rescue e # TODO: This should probably actually raise the exception instead of rescueing from it. 
+      rescue e # TODO: This should probably actually raise the exception instead of rescueing from it.
         ""
       end
     end
@@ -270,7 +270,7 @@ module Amber::Router
 
       private def verify_and_decrypt(encrypted_message)
         String.new(@encryptor.verify_and_decrypt(encrypted_message))
-      rescue e # TODO: This should probably actually raise the exception instead of rescueing from it. 
+      rescue e # TODO: This should probably actually raise the exception instead of rescueing from it.
         ""
       end
     end

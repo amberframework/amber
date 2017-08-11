@@ -43,7 +43,7 @@ module Amber
             controller.run_before_filter(:redirect_action) unless context.content
             unless context.content
               content = controller.redirect_action
-              controller.run_after_filter(:redirect_action) 
+              controller.run_after_filter(:redirect_action)
             end
           }
 
