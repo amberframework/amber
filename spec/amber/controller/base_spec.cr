@@ -223,7 +223,7 @@ module Amber::Controller
           controller.halt!
           context = controller.context
 
-          context.halt.should eq true
+          context.content.should eq ""
         end
 
         it "set response status code" do
