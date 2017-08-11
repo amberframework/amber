@@ -24,34 +24,35 @@ begin
         rel_gen_dirs = gen_dirs.map { |dir| dir[(TESTING_APP.size + 1)..-1] }
 
         rel_dirs.sort.should eq rel_gen_dirs.sort
-        File.read_lines("#{TESTING_APP}/config/database.yml").first.should eq "pg:"
-        File.read_lines("#{TESTING_APP}/shard.yml")[20]?.should eq "  pg:"
+        YAML.parse(File.read("#{TESTING_APP}/config/database.yml"))["pg"].should_not be_nil
+        YAML.parse(File.read("#{TESTING_APP}/shard.yml"))["dependencies"]["pg"].should_not be_nil
       end
 
       it "should create app with mysql settings" do
         Amber::CMD::MainCommand.run ["new", TESTING_APP, "-d", "mysql"]
-        File.read_lines("#{TESTING_APP}/config/database.yml").first.should eq "mysql:"
-        File.read_lines("#{TESTING_APP}/shard.yml")[20]?.should eq "  mysql:"
+        YAML.parse(File.read("#{TESTING_APP}/config/database.yml"))["mysql"].should_not be_nil
+        YAML.parse(File.read("#{TESTING_APP}/shard.yml"))["dependencies"]["mysql"].should_not be_nil
       end
 
       it "should create app with sqlite settings" do
         Amber::CMD::MainCommand.run ["new", TESTING_APP, "-d", "sqlite"]
-        File.read_lines("#{TESTING_APP}/config/database.yml").first.should eq "sqlite:"
-        File.read_lines("#{TESTING_APP}/shard.yml")[20]?.should eq "  sqlite3:"
+        YAML.parse(File.read("#{TESTING_APP}/config/database.yml"))["sqlite"].should_not be_nil
+        YAML.parse(File.read("#{TESTING_APP}/shard.yml"))["dependencies"]["sqlite3"].should_not be_nil
       end
 
       it "should generate .amber.yml with language settings" do
         Amber::CMD::MainCommand.run ["new", TESTING_APP, "-t", "ecr"]
-        File.read_lines("#{TESTING_APP}/.amber.yml")[2]?.should eq "language: ecr"
+        YAML.parse(File.read("#{TESTING_APP}/.amber.yml"))["language"].should eq "ecr"
       end
 
-      it "should require files in the right order and compile" do
-        Amber::CMD::MainCommand.run ["new", TESTING_APP, "--deps"]
-        Dir.cd(TESTING_APP)
-        Amber::CMD::MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
-        `crystal build src/testapp.cr`
-        File.exists?("testapp").should be_true 
-      end
+      # TODO: uncomment when the new build is in master
+      # it "should require files in the right order and compile" do
+      #   Amber::CMD::MainCommand.run ["new", TESTING_APP, "--deps"]
+      #   Dir.cd(TESTING_APP)
+      #   Amber::CMD::MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
+      #   `shards build`
+      #   File.exists?("bin/testapp").should be_true
+      # end
     end
   end
 ensure

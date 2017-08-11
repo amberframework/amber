@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/Amber-Crystal/amber_cmd.svg?branch=master)](https://travis-ci.org/Amber-Crystal/amber_cmd)
 # Amber::CMD
-This section provides an introduction into Amber command-line interface. 
+This section provides an introduction into Amber command-line interface.
 
 Amber provides a CLI client that makes interfacing with your file system and applications much smoother. The Amber console provides a framework for creating, generating, scaffolding and running your Amber project.
 
@@ -12,7 +12,6 @@ You can build the `amber` tool from source:
 ```shellsession
 $ git clone git@github.com:amber-crystal/amber_cmd.git
 $ cd amber_cmd/
-$ shards install
 $ make
 ```
 
@@ -22,8 +21,7 @@ You should now be able to run `amber` in the command line.
 Optionally, you can use homebrew to install.
 
 ```shellsession
-brew tap amber-crystal/amber
-brew install amber-crystal/amber/amber
+$ brew install amber-crystal/amber/amber
 ```
 
 ## Commands
@@ -38,14 +36,14 @@ The `amber new` command creates a new Amber application with a default
 directory structure and configuration at the path you specify.
 
 You can specify extra command-line arguments to be used every time
-`amber new` runs in the .amber.yml configuration file in your project 
+`amber new` runs in the .amber.yml configuration file in your project
 root directory
 
 Note that the arguments specified in the .amber.yml file does not affect the
 defaults values shown above in this help message.
 
 Usage:
-amber new [app_name] -d [pg | mysql | sqlite] -t [slang | ecr] --deps 
+amber new [app_name] -d [pg | mysql | sqlite] -t [slang | ecr] --deps
 
 Commands:
   amber c console                 # Starts a amber console   
@@ -55,14 +53,14 @@ Commands:
   amber w watch                   # Starts amber server and rebuilds on file changes
   amber routes                    # Prints the routes (In Development)
   amber r run [OPTION]            # Compiles and runs your project. Options: [-p --port | -e -environment]
-  
+
 Options:
-  -t, --template [name]           # Preconfigure for selected template engine. Options: slang | ecr 
+  -t, --template [name]           # Preconfigure for selected template engine. Options: slang | ecr
   -d, --database [name]           # Preconfigure for selected database. Options: pg | mysql | sqlite
   -h, --help                      # Describe available commands and usages
   -v, --version                   # Prints Amber version
   --deps                          # Installs project dependencies
-  
+
 Example:
   amber new ~/Code/Projects/weblog
   This generates a skeletal Amber installation in ~/Code/Projects/weblog.
@@ -71,7 +69,7 @@ Example:
 ## Usage
 
 ```sh
-amber new [your_app] -d [pg | mysql | sqlite] -t [slang | ecr] --deps 
+amber new [your_app] -d [pg | mysql | sqlite] -t [slang | ecr] --deps
 cd [your_app]
 ```
 options: `-d` defaults to pg. `-t` defaults to slang. `--deps` will run `crystal deps` for you.
@@ -105,9 +103,9 @@ To test the generated App locally:
 1. Create a new Postgres or Mysql database called `[your_app]_development`
 2. Configure your database in one of the following ways.
   * Add it in `config/database.yml`
-  * Run `export DATABASE_URL=postgres://[username]:[password]@localhost:5432/[your_app]_development` 
+  * Run `export DATABASE_URL=postgres://[username]:[password]@localhost:5432/[your_app]_development`
     which overrides the `config/database.yml`.
-3. Migrate the database: `amber migrate up`. You should see output like 
+3. Migrate the database: `amber migrate up`. You should see output like
     `Migrating db, current version: 0, target: [datetimestamp]OK   [datetimestamp]_create_shop.sql`
 4. Run the specs: `crystal spec`
 5. Start your app: `amber watch`

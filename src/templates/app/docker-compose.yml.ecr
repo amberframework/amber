@@ -16,34 +16,33 @@ services:
     build: .
     image: <%= @name %>
     command: 'amber watch'
-    working_dir: /app/user
+    working_dir: /app/local
     environment:
       DATABASE_URL: <%= @db_url %>
       SMTP_URL: mail:1025
     ports:
       - '3000:3000'
-    depends_on:
+    links:
       - db
       - mail
     volumes:
-      - '.:/app/user'
+      - '.:/app/local'
 
   migrate:
     build: .
     image: <%= @name %>
     command: bash -c '<%= @wait_for %>amber migrate up'
-    working_dir: /app/user
+    working_dir: /app/local
     environment:
       DATABASE_URL: <%= @db_url %>
     volumes:
-      - '.:/app/user'
-    depends_on:
+      - '.:/app/local'
+    links:
       - db
 
   mail:
     image: drujensen/mailcatcher:latest
     ports:
-      - '1025:1025'
       - '1080:1080'
 
 <% if @database == "pg" -%>
@@ -58,8 +57,6 @@ services:
 <% elsif @database == "mysql" -%>
   db:
     image: mysql:5.6
-    ports:
-      - "3306:3306"
     environment:
       MYSQL_USER: admin
       MYSQL_PASSWORD: password

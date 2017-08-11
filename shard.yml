@@ -7,7 +7,7 @@ authors:
   - Dru Jensen <drujensen@gmail.com>
 
 targets:
-  amber_cmd:
+  amber:
     main: src/amber_cmd.cr
 
 crystal: 0.23.0
@@ -48,6 +48,3 @@ dependencies:
     version: ~> 0.9.1
   spinner:
     github: elorest/spinner
-
-scripts:
-  postinstall: make build

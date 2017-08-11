@@ -1,15 +1,14 @@
-FROM drujensen/crystal:0.23.0
+FROM crystallang/crystal:<%= Crystal::VERSION %>
 
-ENV AMBER_VERSION <%= VERSION %>
+# Install Dependencies
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -qq && apt-get install -y --no-install-recommends libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev netcat
 
-RUN curl -L https://github.com/amber-crystal/amber-cmd/archive/v$AMBER_VERSION.tar.gz | tar xvz -C /usr/local/share/. && cd /usr/local/share/amber-cmd-$AMBER_VERSION && crystal deps && make
+# Build the app
+ENV PATH /app/bin:$PATH
+WORKDIR /app
+COPY shard.yml shard.lock /app/
+RUN shards build amber
 
-RUN ln -sf /usr/local/share/amber-cmd-$AMBER_VERSION/bin/amber /usr/local/bin/amber
-
-WORKDIR /app/user
-
-ADD . /app/user
-
-RUN crystal deps
-
-CMD ["crystal", "spec"]
+# Set config
+CMD amber watch

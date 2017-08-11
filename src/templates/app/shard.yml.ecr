@@ -4,13 +4,27 @@ version: 0.1.0
 authors:
   - Amber <contact@ambercr.io>
 
-crystal: 0.23.0
+crystal: <%= Crystal::VERSION %>
 
 license: MIT
 
-dependencies:
+targets:
+  <%= @name %>:
+    main: src/<%= @name %>.cr
+
   amber:
-    github: amber-crystal/amber 
+    main: lib/amber_cmd/src/amber_cmd.cr
+
+development_dependencies:
+  amber_spec:
+    github: amber-crystal/amber-spec
+
+dependencies:
+  amber_cmd:
+    github: amber-crystal/amber_cmd
+
+  amber:
+    github: amber-crystal/amber
 
   quartz-mailer:
     github: amber-crystal/quartz-mailer
@@ -35,7 +49,3 @@ dependencies:
 #    github: will/crystal-pg
 #  sqlite3:
 #    github: crystal-lang/crystal-sqlite3
-
-development_dependencies:
-  amber_spec:
-    github: amber-crystal/amber-spec
