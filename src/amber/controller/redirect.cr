@@ -1,7 +1,7 @@
 module Amber::Controller
   # This class writes the redirect URL to the response headers and parses params.
   class LocationRedirect
-    getter location, status, params
+    getter location, status, params, flash
 
     @location : String
     @status : Int32 = 302
@@ -12,7 +12,9 @@ module Amber::Controller
       raise_redirect_error(location) if location.empty?
     end
 
-    def redirect(for response)
+    def redirect(for context)
+      response = context.response
+      context.flash.merge!(flash)
       raise_redirect_error(location) unless location.url? || location.chars.first == '/'
       set_location(response, location, status, params)
     end
@@ -35,28 +37,24 @@ module Amber::Controller
 
   module RedirectFactory
     def redirect_to(location : String, **args)
-      flash.merge!(args[:flash]?)
-      LocationRedirect.new(location, **args).redirect(response)
+      LocationRedirect.new(location, **args).redirect(context)
       halt!(response.status_code, "Redirecting to #{response.headers["Location"]}")
     end
 
     # Redirects to the specified controller, action
     def redirect_to(controller : Symbol, action : Symbol, **args)
-      flash.merge!(args[:flash]?)
-      LocationRedirect.new("/#{controller}/#{action}", **args).redirect(response)
+      LocationRedirect.new("/#{controller}/#{action}", **args).redirect(context)
       halt!(response.status_code, "Redirecting to #{response.headers["Location"]}")
     end
 
     # Redirects within the same controller
     def redirect_to(action : Symbol, **args)
-      flash.merge!(args[:flash]?)
-      LocationRedirect.new("/#{controller_name}/#{action}", **args).redirect(response)
+      LocationRedirect.new("/#{controller_name}/#{action}", **args).redirect(context)
       halt!(response.status_code, "Redirecting to #{response.headers["Location"]}")
     end
 
     def redirect_back(**args)
-      flash.merge!(args[:flash]?)
-      LocationRedirect.new(request.headers["Referer"], status: 302).redirect(response)
+      LocationRedirect.new(request.headers["Referer"], status: 302).redirect(context)
       halt!(response.status_code, "Redirecting to #{response.headers["Location"]}")
     end
   end
