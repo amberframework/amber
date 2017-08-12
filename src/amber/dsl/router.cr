@@ -9,12 +9,13 @@ module Amber::DSL
     RESOURCES = [:get, :post, :put, :patch, :delete, :options, :head, :trace, :connect]
 
     macro route(verb, resource, controller, action)
-      %handler = ->(context : HTTP::Server::Context, action : Symbol){
+      %handler = ->(context : HTTP::Server::Context){
         controller = {{controller.id}}.new(context)
-        controller.run_before_filter(action) unless context.content
-        content = controller.{{ action.id }} unless context.content
-        controller.run_after_filter(action) unless context.content
-        content.to_s
+        controller.run_before_filter({{action}}) unless context.content
+        unless context.content
+          context.content = controller.{{ action.id }}.to_s
+          controller.run_after_filter({{action}})
+        end
       }
       %verb = {{verb.upcase.id.stringify}}
       %route = Amber::Route.new(

@@ -3,8 +3,8 @@ require "./../spec_helper"
 module Amber
   describe Route do
     it "Initializes correctly with Decendant controller" do
-      handler = ->(context : HTTP::Server::Context, action : Symbol) {
-        "Hey yo world!"
+      handler = ->(context : HTTP::Server::Context) {
+        context.content = "Hey yo world!"
       }
       request = HTTP::Request.new("GET", "/?test=test")
       context = create_context(request)
@@ -17,19 +17,20 @@ module Amber
     describe "#call" do
       context "before action" do
         it "does not execute action" do
-          handler = ->(context : HTTP::Server::Context, action : Symbol) {
+          handler = ->(context : HTTP::Server::Context) {
             controller = FakeController.new(context)
-            controller.run_before_filter(action) unless context.content
-            content = controller.halt_action unless context.content
-            controller.run_after_filter(action) unless context.content
-            content.to_s
+            controller.run_before_filter(:halt_action) unless context.content
+            unless context.content
+              content = controller.halt_action
+              controller.run_after_filter(:halt_action)
+            end
           }
 
           request = HTTP::Request.new("GET", "")
           context = create_context(request)
-          route = Route.new("GET", "", handler, :halt_action)
+          route = Route.new("GET", "", handler)
 
-          route.call(context).should eq ""
+          route.call(context)
           context.response.status_code.should eq 900
           context.content.should eq ""
         end
@@ -37,19 +38,20 @@ module Amber
 
       context "when redirecting" do
         it "halts request execution" do
-          new_handler = ->(context : HTTP::Server::Context, action : Symbol) {
+          new_handler = ->(context : HTTP::Server::Context) {
             controller = FakeRedirectController.new(context)
-            controller.run_before_filter(action) unless context.content
-            content = controller.redirect_action unless context.content
-            controller.run_after_filter(action) unless context.content
-            content.to_s
+            controller.run_before_filter(:redirect_action) unless context.content
+            unless context.content
+              content = controller.redirect_action
+              controller.run_after_filter(:redirect_action)
+            end
           }
 
           request = HTTP::Request.new("GET", "/")
           context = create_context(request)
           route = Route.new("GET", "", new_handler, :redirect_action)
 
-          route.call(context).should eq ""
+          route.call(context)
           context.response.status_code.should eq 302
           context.content.should eq "Redirecting to /"
         end

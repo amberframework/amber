@@ -55,7 +55,7 @@ class HTTP::Server::Context
   end
 
   def process_request
-    @content = request_handler.call(self)
+    request_handler.call(self)
   end
 
   def valve
