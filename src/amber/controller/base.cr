@@ -38,5 +38,9 @@ module Amber::Controller
       response.status_code = status_code
       context.content = content
     end
+
+    def controller_name
+      self.class.name.downcase.gsub("controller", "")
+    end
   end
 end
