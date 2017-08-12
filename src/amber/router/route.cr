@@ -4,7 +4,7 @@ module Amber
 
     def initialize(@verb : String,
                    @resource : String,
-                   @handler : Proc(HTTP::Server::Context, Symbol, String),
+                   @handler : HTTP::Server::Context ->,
                    @action : Symbol = :index,
                    @valve : Symbol = :web,
                    @scope : String = "",
@@ -33,7 +33,7 @@ module Amber
     end
 
     def call(context)
-      handler.call(context, action)
+      handler.call(context)
     end
   end
 end
