@@ -106,11 +106,9 @@ module Amber
           self
         end
 
-        def merge!(other : Hash(String, String)?)
-          if !other.nil?
-            other.each do |k, v|
-              @flashes[k.to_s] = v
-            end
+        def merge!(other : Hash(String, String))
+          other.each do |k, v|
+            @flashes[k.to_s] = v
           end
           self
         end

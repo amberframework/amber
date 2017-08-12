@@ -14,7 +14,7 @@ module Amber::Controller
 
     def redirect(for context)
       response = context.response
-      context.flash.merge!(flash)
+      context.flash.merge!(flash) if flash
       raise_redirect_error(location) unless location.url? || location.chars.first == '/'
       set_location(response, location, status, params)
     end
