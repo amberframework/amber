@@ -7,7 +7,21 @@ Amber provides a CLI client that makes interfacing with your file system and app
 
 ## Installation
 
-You can build the `amber` tool from source:
+#### Linux
+
+Ensure you have the necessary dependencies:
+
+- `git`: Use your platform specific package manager to install `git`
+- `crystal`: Follow the instructions to get `crystal` on this page: <https://crystal-lang.org/docs/installation/index.html>
+
+##### For Debian & Ubuntu
+- `sudo apt-get build-essential libreadline-dev libsqlite3-dev libssl-dev`
+
+<!-- WIP: ##### For RedHat & CentOS
+- `sudo yum groupinstall 'Development Tools' `
+- `sudo yum install readline-devel sqlite-devel openssl-devel libyaml-devel gc-devel libevent-devel` -->
+
+Once you have these dependencies, You can build the `amber` tool from source:
 
 ```shellsession
 $ git clone git@github.com:amber-crystal/amber-cmd.git
@@ -17,12 +31,15 @@ $ make
 
 You should now be able to run `amber` in the command line.
 
+#### Mac OS X
 
-Optionally, you can use homebrew to install.
+Best way to get `amber` on Mac OS X is via Homebrew:
 
 ```shellsession
 $ brew install amber-crystal/amber/amber
 ```
+
+Refer to [this link](https://brew.sh/) if you don't have homebrew installed.
 
 ## Commands
 
