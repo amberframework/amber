@@ -28,7 +28,7 @@ module Amber
 
       private def message(client_socket, message)
         if channel = subscriptions[message["topic"].as_s]?
-          channel.dispatch(message)
+          channel.dispatch(client_socket, message)
         end
       end
 

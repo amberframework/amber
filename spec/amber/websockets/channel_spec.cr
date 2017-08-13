@@ -6,7 +6,7 @@ module Amber
       it "should call `handle_message`" do
         channel = UserSocket.channels[0][:channel]
         message = JSON.parse({"event" => "message", "topic" => "user_room:123", "subject" => "msg:new", "payload" => {"message" => "hey guys"}}.to_json)
-        channel.on_message(message)
+        channel.on_message("123", message)
         channel.test_field.last.should eq "hey guys"
       end
     end
