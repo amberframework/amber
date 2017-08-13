@@ -10,8 +10,8 @@ Amber provides a CLI client that makes interfacing with your file system and app
 You can build the `amber` tool from source:
 
 ```shellsession
-$ git clone git@github.com:amber-crystal/amber_cmd.git
-$ cd amber_cmd/
+$ git clone git@github.com:amber-crystal/amber-cmd.git
+$ cd amber-cmd/
 $ make
 ```
 
