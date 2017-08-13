@@ -160,7 +160,7 @@ module Amber::Controller
       context "with url params" do
         it "sets the url params to path" do
           hello_controller = build_controller("/world")
-          hello_controller.redirect_to(:world, 302, {"hello" => "world"})
+          hello_controller.redirect_to(:world, status: 302, params: {"hello" => "world"})
 
           response = hello_controller.response
 
@@ -168,11 +168,33 @@ module Amber::Controller
         end
       end
 
+      context "whith flash" do
+        it "sets the flash scope from Hash(Symbol, String)" do
+          controller = build_controller("")
+          query = {} of String => String
+          controller.redirect_to(:world, status: 302, flash: {"notice" => "Success!"})
+
+          flash = controller.flash
+
+          flash["notice"].should eq "Success!"
+        end
+
+        it "sets the flash scope from Hash(String, String)" do
+          controller = build_controller("")
+          query = {} of String => String
+          controller.redirect_to(:world, status: 302, flash: {"notice" => "Success!"})
+
+          flash = controller.flash
+
+          flash["notice"].should eq "Success!"
+        end
+      end
+
       context "when redirecting to url or path" do
         ["www.amberio.com", "/world"].each do |location|
           it "sets the location to #{location}" do
             hello_controller = build_controller
-            hello_controller.redirect_to(location, 301)
+            hello_controller.redirect_to(location, status: 301)
 
             response = hello_controller.response
 
@@ -182,20 +204,10 @@ module Amber::Controller
         end
       end
 
-      context "with invalid url or path" do
-        it "raises redirect error" do
-          hello_controller = build_controller
-
-          expect_raises Exceptions::Controller::Redirect do
-            hello_controller.redirect_to "saasd"
-          end
-        end
-      end
-
       context "when redirecting to controller action" do
         it "sets the controller and action" do
           hello_controller = build_controller
-          hello_controller.redirect_to :world, 301
+          hello_controller.redirect_to :world, status: 301
 
           response = hello_controller.response
 
@@ -207,7 +219,7 @@ module Amber::Controller
       context "when redirecting to different controller" do
         it "sets new controller and action" do
           hello_controller = build_controller
-          hello_controller.redirect_to :hello, :index, 301
+          hello_controller.redirect_to :hello, :index, status: 301
 
           response = hello_controller.response
 

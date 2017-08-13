@@ -106,6 +106,13 @@ module Amber
           self
         end
 
+        def merge!(other : Hash(String, String))
+          other.each do |k, v|
+            @flashes[k.to_s] = v
+          end
+          self
+        end
+
         def to_hash
           @flashes.dup
         end
