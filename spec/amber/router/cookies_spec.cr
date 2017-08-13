@@ -180,7 +180,6 @@ module Amber::Router
         cookies.signed["user_name"].should eq ""
       end
 
-
       it "ignores unset encrypted cookies" do
         cookies = new_cookie_store
 
