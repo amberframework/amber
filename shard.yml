@@ -1,5 +1,5 @@
 name: amber_cmd
-version: 0.1.20
+version: 0.1.21
 
 authors:
   - Isaac Sloan <isaac@isaacsloan.com>
@@ -10,7 +10,7 @@ targets:
   amber:
     main: src/amber_cmd.cr
 
-crystal: 0.23.0
+crystal: 0.23.1
 
 license: MIT
 
