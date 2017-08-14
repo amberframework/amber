@@ -13,6 +13,10 @@ The purpose of Amber is not to create yet another framework, but to take advanta
 
 Amber Crystal borrows concepts that already have been battle tested, successful, and embrace new concepts through team and community collaboration and analysis, that aligns with Crystal philosophies.
 
+## Read the Docs
+
+Documentation https://amber-crystal.gitbooks.io/amber/content/
+
 ## Amber Philosophy H.R.T.
 
 *It's all about the community. Software development is a team sport!*
