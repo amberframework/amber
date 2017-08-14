@@ -1,4 +1,4 @@
-require "./../spec_helper"
+require "../../../spec_helper"
 
 module Amber
   describe Route do
@@ -12,6 +12,22 @@ module Amber
       route = Route.new("GET", "/", handler)
 
       route.class.should eq Route
+    end
+
+    describe "#parse_params" do
+      it "parses route resource params" do
+        handler = ->(context : HTTP::Server::Context) {}
+        params = {"id" => 123, "name" => "John"}
+        route = Route.new("GET",
+          "/fake/action/:id/:name",
+          handler,
+          :action,
+          :web,
+          "", "FakeController")
+
+        empty_hash = {} of String => String
+        route.parse_params(params).should eq({"/fake/action/123/John", empty_hash})
+      end
     end
 
     describe "#call" do

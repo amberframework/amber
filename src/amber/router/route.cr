@@ -35,5 +35,20 @@ module Amber
     def call(context)
       handler.call(context)
     end
+
+    def parse_params(params)
+      result = resource.dup
+      params.each do |k, v|
+        if result.includes?(":#{k}")
+          result = result.gsub(":#{k}", v)
+          params.delete(k)
+        end
+      end
+      {result, params}
+    end
+
+    def match(controller, action)
+      self.controller.downcase == "#{controller}controller" && self.action == action
+    end
   end
 end
