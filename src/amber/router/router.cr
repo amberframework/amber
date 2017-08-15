@@ -57,11 +57,11 @@ module Amber
 
       def match_by_controller_action(controller, action, node = @routes.root)
         route = node.payload
-        if route.match(controller, action)
+        if route.match?(controller, action)
           return route
         else
           node.children.each do |current_node|
-            return current_node.payload if current_node.payload.match(controller, action)
+            return current_node.payload if current_node.payload.match?(controller, action)
             match_by_controller_action(controller, action, current_node)
           end
         end

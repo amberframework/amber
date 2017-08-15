@@ -18,10 +18,13 @@ module Amber::Controller
   end
 
   class Redirector
+    DEFAULT_STATUS_CODE = 302
+    LOCATION_HEADER     = "Location"
+
     getter location, status, params, flash
 
     @location : String
-    @status : Int32 = 302
+    @status : Int32 = DEFAULT_STATUS_CODE
     @params : Hash(String, String)? = nil
     @flash : Hash(String, String)? = nil
 
@@ -31,18 +34,18 @@ module Amber::Controller
       raise Exceptions::Controller::Redirect.new("#{controller}##{action} not found!") unless route
       params = options[:params]?
       location, params = route.not_nil!.substitute_keys_in_path(params)
-      status = options[:status]? || 302
+      status = options[:status]? || DEFAULT_STATUS_CODE
       new(location, status: status, params: params, flash: options[:flash]?)
     end
 
-    def initialize(@location, @status = 302, @params = nil, @flash = nil)
+    def initialize(@location, @status = DEFAULT_STATUS_CODE, @params = nil, @flash = nil)
       raise_redirect_error(location) if location.empty?
     end
 
     def redirect(controller)
       set_flash(controller)
       url_path = encode_query_string(location, params)
-      controller.response.headers.add "Location", url_path
+      controller.response.headers.add LOCATION_HEADER, url_path
       controller.halt!(status, "Redirecting to #{url_path}")
     end
 
