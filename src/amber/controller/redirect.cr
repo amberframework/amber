@@ -28,13 +28,10 @@ module Amber::Controller
     def self.from_controller_action(controller : String, action : Symbol, **options)
       router = Amber::Router::Router.instance
       route = router.match_by_controller_action(controller, action)
-      if params = options[:params]?
-        location, params = route.not_nil!.parse_params(params)
-        status = options[:status]? || 302
-        new(location, status: status, params: params, flash: options[:flash]?)
-      else
-        raise Exceptions::Controller::Redirect.new("#{controller}##{action} not found!")
-      end
+      params = options[:params]?
+      location, params = route.not_nil!.substitute_keys_in_path(params)
+      status = options[:status]? || 302
+      new(location, status: status, params: params, flash: options[:flash]?)
     end
 
     def initialize(@location, @status = 302, @params = nil, @flash = nil)
@@ -62,7 +59,7 @@ module Amber::Controller
     end
 
     private def set_flash(controller)
-      controller.flash.merge!(flash.not_nil!) if !flash.nil?
+      controller.flash.merge!(flash.not_nil!) unless flash.nil?
     end
   end
 end

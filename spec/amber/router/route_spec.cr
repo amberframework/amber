@@ -17,7 +17,7 @@ module Amber
     describe "#parse_params" do
       it "parses route resource params" do
         handler = ->(context : HTTP::Server::Context) {}
-        params = {"id" => 123, "name" => "John"}
+        params = {"id" => "123", "name" => "John"}
         route = Route.new("GET",
           "/fake/action/:id/:name",
           handler,
@@ -26,7 +26,7 @@ module Amber
           "", "FakeController")
 
         empty_hash = {} of String => String
-        route.parse_params(params).should eq({"/fake/action/123/John", empty_hash})
+        route.substitute_keys_in_path(params).should eq({"/fake/action/123/John", empty_hash})
       end
     end
 

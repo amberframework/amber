@@ -36,12 +36,14 @@ module Amber
       handler.call(context)
     end
 
-    def parse_params(params)
+    def substitute_keys_in_path(params : Hash(String, String)? = nil)
       result = resource.dup
-      params.each do |k, v|
-        if result.includes?(":#{k}")
-          result = result.gsub(":#{k}", v)
-          params.delete(k)
+      if !params.nil?
+        params.each do |k, v|
+          if result.includes?(":#{k}")
+            result = result.gsub(":#{k}", v)
+            params.delete(k)
+          end
         end
       end
       {result, params}

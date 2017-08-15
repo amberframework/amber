@@ -66,28 +66,45 @@ module Amber::Controller
     end
 
     describe ".from_controller_action" do
-      Spec.before_each do
+      context "with params" do
+        it "redirects to correct location for given controller action" do
+          router = Amber::Router::Router.instance
+          router.draw :web do
+            get "/fake/:id", HelloController, :show
+            put "/hello/:id", HelloController, :update
+          end
+          controller = build_controller
+          redirector = Redirector.from_controller_action("hello", :show, params: {"id" => "11"})
+
+          redirector.redirect(controller)
+
+          controller.response.headers["location"].should eq "/fake/11"
+          controller.response.status_code.should eq 302
+          controller.context.content.nil?.should eq false
+        end
       end
 
-      it "redirects to correct location for given controller action" do
-        router = Amber::Router::Router.instance
-        router.draw :web do
-          get "/fake", HelloController, :index
-          get "/fake/:id", HelloController, :show
-          put "/hello/:id", HelloController, :update
+      context "without patams" do
+        it "redirects to correct location for given controller action" do
+          router = Amber::Router::Router.instance
+          router.draw :web do
+            get "/fake", HelloController, :index
+            put "/hello/:id", HelloController, :update
+          end
+          controller = build_controller
+          redirector = Redirector.from_controller_action("hello", :index)
+
+          redirector.redirect(controller)
+
+          controller.response.headers["location"].should eq "/fake"
+          controller.response.status_code.should eq 302
+          controller.context.content.nil?.should eq false
         end
-        controller = build_controller
-        redirector = Redirector.from_controller_action("hello", :show, params: {"id" => "11"})
-
-        redirector.redirect(controller)
-
-        controller.response.headers["location"].should eq "/fake/11"
-        controller.response.status_code.should eq 302
-        controller.context.content.nil?.should eq false
       end
     end
+
     describe "#redirect_back" do
-      context "and has a valid referer" do
+      context "and has a valid referrer" do
         it "sets the correct response headers" do
           hello_controller = build_controller("/world")
 
@@ -98,8 +115,8 @@ module Amber::Controller
         end
       end
 
-      context "and does not have a referer" do
-        it "raisees an error" do
+      context "and does not have a referrer" do
+        it "raises an error" do
           hello_controller = build_controller
 
           expect_raises Exceptions::Controller::Redirect do
