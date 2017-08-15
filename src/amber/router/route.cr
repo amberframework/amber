@@ -37,7 +37,7 @@ module Amber
     end
 
     def substitute_keys_in_path(params : Hash(String, String)? = nil)
-      result = resource.dup
+      result = scope.to_s + resource.dup
       if !params.nil?
         params.each do |k, v|
           if result.includes?(":#{k}")

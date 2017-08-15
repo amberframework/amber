@@ -28,6 +28,7 @@ module Amber::Controller
     def self.from_controller_action(controller : String, action : Symbol, **options)
       router = Amber::Router::Router.instance
       route = router.match_by_controller_action(controller, action)
+      raise Exceptions::Controller::Redirect.new("#{controller}##{action} not found!") unless route
       params = options[:params]?
       location, params = route.not_nil!.substitute_keys_in_path(params)
       status = options[:status]? || 302
