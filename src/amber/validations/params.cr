@@ -3,7 +3,7 @@ module Amber::Validators
   record Error, param : String, value : String | Nil, message : String
 
   # This struct holds the validation rules to be performed
-  struct BaseRule
+  class BaseRule
     getter predicate : (String -> Bool)
     getter field : String
     getter value : String?
@@ -23,8 +23,18 @@ module Amber::Validators
       Error.new @field, @value, error_message
     end
 
-    def error_message
+    private def error_message
       @msg || "Field #{@field.to_s} is required"
+    end
+  end
+
+  # OptionalRule only validates if the key is present.
+  class OptionalRule < BaseRule
+    def apply(params : HTTP::Params)
+      if params.has_key? @field
+        @value = params[@field]
+        @predicate.call params[@field] unless @predicate.nil?
+      end
     end
   end
 
@@ -35,6 +45,10 @@ module Amber::Validators
 
     def required(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
       _validator.add_rule BaseRule.new(param, msg, &b)
+    end
+
+    def optional(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
+      _validator.add_rule OptionalRule.new(param, msg, &b)
     end
   end
 
