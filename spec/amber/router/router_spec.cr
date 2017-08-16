@@ -123,6 +123,19 @@ module Amber
         end
       end
 
+      describe "#match_by_controller_action" do
+        it "matches route by controller and action" do
+          router = Router.new
+          handler = ->(context : HTTP::Server::Context) {}
+          routeA = Route.new("GET", "/fake", handler, :index, :web, "", "FakeController")
+          route = Route.new("GET", "/fake/route", handler, :route, :web, "", "FakeController")
+          router.add routeA
+          router.add route
+
+          router.match_by_controller_action("fake", :route).should eq route
+        end
+      end
+
       describe "#all" do
         it "gets all routes defined" do
           router = Router.new
