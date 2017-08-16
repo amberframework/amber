@@ -55,6 +55,18 @@ module Amber
         match(request.method, request.path)
       end
 
+      def match_by_controller_action(controller, action, node = @routes.root)
+        route = node.payload
+        if route.match?(controller, action)
+          return route
+        else
+          node.children.each do |current_node|
+            return current_node.payload if current_node.payload.match?(controller, action)
+            match_by_controller_action(controller, action, current_node)
+          end
+        end
+      end
+
       def all
         root_node = @routes.root
         all_routes = {} of String => String
@@ -72,12 +84,12 @@ module Amber
         end
       end
 
-      private def merge_params(params, context)
-        params.each { |k, v| context.params.add(k.to_s, v) }
-      end
-
       def match(http_verb, resource) : Radix::Result(Amber::Route)
         @routes.find build_node(http_verb, resource)
+      end
+
+      private def merge_params(params, context)
+        params.each { |k, v| context.params.add(k.to_s, v) }
       end
 
       private def build_node(http_verb : Symbol | String, resource : String)
