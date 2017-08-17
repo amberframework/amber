@@ -16,7 +16,7 @@ export class Channel {
   }
 
   leave () {
-    this.socket.ws.send(JSON.stringify({event: EVENTS.message, topic: this.topic}))
+    this.socket.ws.send(JSON.stringify({event: EVENTS.leave, topic: this.topic}))
   }
 
   handleMessage (msg) {
