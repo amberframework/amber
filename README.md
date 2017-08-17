@@ -15,7 +15,7 @@ Ensure you have the necessary dependencies:
 - `crystal`: Follow the instructions to get `crystal` on this page: <https://crystal-lang.org/docs/installation/index.html>
 
 ##### For Debian & Ubuntu
-- `sudo apt-get build-essential libreadline-dev libsqlite3-dev libssl-dev`
+- `sudo apt-get build-essential libreadline-dev libsqlite3-dev libpq-dev libmysqlclient-dev libssl-dev`
 
 <!-- WIP: ##### For RedHat & CentOS
 - `sudo yum groupinstall 'Development Tools' `
