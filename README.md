@@ -115,7 +115,7 @@ end
 
 *config/routes.cr*
 ```cr
-Amber::Server.instance do
+Amber::Server.instance.config do
   # Every Amber application needs to define a pipeline set of pipes
   # each pipeline allow a set of middleware transformations to be applied to
   # different sets of route, this give you granular control and explicitness
