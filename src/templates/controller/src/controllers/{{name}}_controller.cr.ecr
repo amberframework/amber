@@ -1,7 +1,7 @@
 class <%= @name.capitalize %>Controller < ApplicationController 
 <% @fields.each do |field| -%>
 
-  def <%= field.name %> do
+  def <%= field.name %>
     render("<%= field.name %>.<%= @language %>")
   end
 <% end -%>
