@@ -2,7 +2,7 @@ module Amber
   module Support
     module MimeTypes
       DEFAULT_MIME_TYPE = "application/octet-stream"
-	  ZIP_FILE_EXTENTIONS = %w(.htm .html .txt .css .js .svg .json .xml .otf .ttf .woff .woff2)
+	  ZIP_FILE_EXTENSIONS = %w(.htm .html .txt .css .js .svg .json .xml .otf .ttf .woff .woff2)
       MIME_TYPES = {
         "123"       => "application/vnd.lotus-1-2-3",
         "3dml"      => "text/vnd.in3d.3dml",
