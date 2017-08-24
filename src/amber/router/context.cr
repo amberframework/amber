@@ -4,7 +4,7 @@ require "./**"
 # passed to each handler that will read from the request object and build a
 # response object.  Params and Session hash can be accessed from the Context.
 class HTTP::Server::Context
-  METHODS            = %i(get post put patch delete update head)
+  METHODS            = %i(get post put patch delete head)
   FORMAT_HEADER      = "Accept"
   IP_ADDRESS_HEADERS = {"REMOTE_ADDR", "CLIENT_IP", "X_FORWARDED_FOR", "X_FORWARDED", "X_CLUSTER_CLIENT_IP", "FORWARDED"}
 
@@ -13,12 +13,12 @@ class HTTP::Server::Context
   include Amber::Router::Flash
   include Amber::Router::Params
 
-  property route : Radix::Result(Amber::Route)
   getter router : Amber::Router::Router
   setter flash : Amber::Router::Flash::FlashStore?
   setter cookies : Amber::Router::Cookies::Store?
   setter session : Amber::Router::Session::AbstractStore?
   property content : String?
+  property route : Radix::Result(Amber::Route)
 
   def initialize(@request : HTTP::Request, @response : HTTP::Server::Response)
     @router = Amber::Router::Router.instance
@@ -54,20 +54,9 @@ class HTTP::Server::Context
     route.payload
   end
 
-  def process_websocket_request
-    router.get_socket_handler(request).call(self)
-  end
-
-  def process_request
-    request_handler.call(self)
-  end
-
+  # TODO rename this method to something move descriptive
   def valve
     request_handler.valve
-  end
-
-  def finalize_response
-    response.print(@content)
   end
 
   {% for method in METHODS %}
@@ -100,5 +89,17 @@ class HTTP::Server::Context
       dashed_header = header.tr("_", "-")
       headers[header]? || headers[dashed_header]? || headers["HTTP_#{header}"]? || headers["Http-#{dashed_header}"]?
     }.try &.split(',').first
+  end
+
+  protected def process_websocket_request
+    router.get_socket_handler(request).call(self)
+  end
+
+  protected def process_request
+    request_handler.call(self)
+  end
+
+  protected def finalize_response
+    response.print(@content)
   end
 end

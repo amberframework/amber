@@ -1,9 +1,9 @@
 module Amber
   module Support
     module MimeTypes
-      DEFAULT_MIME_TYPE = "application/octet-stream"
-	  ZIP_FILE_EXTENSIONS = %w(.htm .html .txt .css .js .svg .json .xml .otf .ttf .woff .woff2)
-      MIME_TYPES = {
+      DEFAULT_MIME_TYPE   = "application/octet-stream"
+      ZIP_FILE_EXTENSIONS = %w(.htm .html .txt .css .js .svg .json .xml .otf .ttf .woff .woff2)
+      MIME_TYPES          = {
         "123"       => "application/vnd.lotus-1-2-3",
         "3dml"      => "text/vnd.in3d.3dml",
         "3g2"       => "video/3gpp2",
@@ -629,9 +629,9 @@ module Amber
         ZIP_FILE_EXTENSIONS.includes? File.extname(path)
       end
 
-	  def self.format(accepts)
-	    MIME_TYPES.key?(accepts)
-	  end
+      def self.format(accepts)
+        MIME_TYPES.key?(accepts)
+      end
     end
   end
 end

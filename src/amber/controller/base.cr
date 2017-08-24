@@ -14,6 +14,10 @@ module Amber::Controller
     protected getter context : HTTP::Server::Context
     protected getter params : Amber::Validators::Params
 
+    delegate :cookies, :format, :flash, :port, :requested_url, :session, :invalid_route, :valve,
+             :request_handler, :route, :websocket?, :invalid_route?, :get?, :post?, :patch?,
+             :put?, :delete?, :head?, :client_ip, to: context
+
     def initialize(@context : HTTP::Server::Context)
       @request = context.request
       @response = context.response
@@ -21,18 +25,13 @@ module Amber::Controller
       @params = Amber::Validators::Params.new(@raw_params)
     end
 
-    def cookies
-      context.cookies
-    end
-
-    def flash
-      context.flash
-    end
-
-    def session
-      context.session
-    end
-
+    # TODO: Move this method to Context
+    #
+    # Now that we are delegating to context we should be 
+    # able to move this method to the HTTP::Server context class
+    # Not doing it now because of some refactoring that needs to happen
+    # and is a little out of scope for this PR since it touches a lot of
+    # moving pieces
     def halt!(status_code : Int32 = 200, content = "")
       response.headers["Content-Type"] = "text/plain"
       response.status_code = status_code
