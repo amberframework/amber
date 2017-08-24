@@ -2,7 +2,7 @@ module Amber
   module Support
     module MimeTypes
       DEFAULT_MIME_TYPE = "application/octet-stream"
-
+	  ZIP_FILE_EXTENTIONS = %w(.htm .html .txt .css .js .svg .json .xml .otf .ttf .woff .woff2)
       MIME_TYPES = {
         "123"       => "application/vnd.lotus-1-2-3",
         "3dml"      => "text/vnd.in3d.3dml",
@@ -625,12 +625,12 @@ module Amber
         MIME_TYPES.fetch(format, fallback)
       end
 
-      def self.zip_types(path) # https://github.com/h5bp/server-configs-nginx/blob/master/nginx.conf
-        [".htm", ".html", ".txt", ".css", ".js", ".svg", ".json", ".xml", ".otf", ".ttf", ".woff", ".woff2"].includes? File.extname(path)
+      def self.zip_types(path)
+        ZIP_FILE_EXTENSIONS.includes? File.extname(path)
       end
 
 	  def self.format(accepts)
-		MIME_TYPES.key?(accepts)
+	    MIME_TYPES.key?(accepts)
 	  end
     end
   end
