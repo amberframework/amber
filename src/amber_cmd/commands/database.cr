@@ -25,21 +25,9 @@ module Amber::CMD
           begin
             case command
             when "drop"
-              uri = URI.parse(database_url)
-              if name = uri.path
-                name = name.gsub("/", "")
-                Micrate::DB.connection_url = database_url.gsub(name, uri.scheme)
-                drop_database(name)
-                puts "Dropped database #{name}"
-              end
+              drop_database
             when "create"
-              uri = URI.parse(database_url)
-              if name = uri.path
-                name = name.gsub("/", "")
-                Micrate::DB.connection_url = database_url.gsub(name, uri.scheme)
-                create_database(name)
-                puts "Created database #{name}"
-              end
+              create_database
             when "seed"
               `crystal db/seeds.cr`
               puts "Seeded database"
@@ -69,17 +57,33 @@ module Amber::CMD
         end
       end
 
-      def drop_database(name)
+      def drop_database
+        name = set_database_to_schema
         Micrate::DB.connect do |db|
           db.exec "DROP DATABASE #{name};"
         end
+        puts "Dropped database #{name}"
       end
 
-      def create_database(name)
+      def create_database
+        name = set_database_to_schema
         Micrate::DB.connect do |db|
           db.exec "CREATE DATABASE #{name};"
         end
+        puts "Created database #{name}"
       end
+
+      def set_database_to_schema
+        url = Micrate::DB.connection_url.to_s
+        uri = URI.parse(url)
+        if path = uri.path
+          Micrate::DB.connection_url = url.gsub(path, "/#{uri.scheme}")
+          return path.gsub("/", "")
+        else
+          raise "could not determine database name"
+        end
+      end
+
 
       def database_url
         ENV["DATABASE_URL"]? || begin
