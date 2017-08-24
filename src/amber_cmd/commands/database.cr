@@ -68,6 +68,18 @@ module Amber::CMD
         end
       end
 
+      def drop_database(name)
+        Micrate::DB.connect do |db|
+          db.exec "DROP DATABASE #{name};"
+        end
+      end
+
+      def create_database(name)
+        Micrate::DB.connect do |db|
+          db.exec "CREATE DATABASE #{name};"
+        end
+      end
+
       def database_url
         ENV["DATABASE_URL"]? || begin
           yaml_file = File.read("config/database.yml")
@@ -78,24 +90,14 @@ module Amber::CMD
         end
       end
 
-      private def env(value)
-        env_var = value.gsub("${", "").gsub("}", "")
-        if ENV.has_key? env_var
-          return ENV[env_var]
+      private def env(url)
+        regex = /\$\{(.*?)\}/
+        if regex.match(url)
+          url = url.gsub(regex) do |match|
+            ENV[match.gsub("${","").gsub("}","")]
+          end
         else
-          return value
-        end
-      end
-
-      private def drop_database(name)
-        Micrate::DB.connect do |db|
-          db.exec "DROP DATABASE #{name};"
-        end
-      end
-
-      private def create_database(name)
-        Micrate::DB.connect do |db|
-          db.exec "CREATE DATABASE #{name};"
+          return url
         end
       end
     end
