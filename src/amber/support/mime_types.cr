@@ -197,7 +197,6 @@ module Amber
         "hqx"       => "application/mac-binhex40",
         "htc"       => "text/x-component",
         "htke"      => "application/vnd.kenameaapp",
-        "htm"       => "text/html",
         "html"      => "text/html",
         "hvd"       => "application/vnd.yamaha.hv-dic",
         "hvp"       => "application/vnd.yamaha.hv-voice",
@@ -629,6 +628,10 @@ module Amber
       def self.zip_types(path) # https://github.com/h5bp/server-configs-nginx/blob/master/nginx.conf
         [".htm", ".html", ".txt", ".css", ".js", ".svg", ".json", ".xml", ".otf", ".ttf", ".woff", ".woff2"].includes? File.extname(path)
       end
+
+	  def self.format(accepts)
+		MIME_TYPES.key?(accepts)
+	  end
     end
   end
 end
