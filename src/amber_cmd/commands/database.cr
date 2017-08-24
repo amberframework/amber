@@ -19,11 +19,19 @@ module Amber::CMD
       end
 
       def run
-        Micrate::Cli.setup_logger
-        Micrate::DB.connection_url = database_url
         args.commands.each do |command|
+          Micrate::Cli.setup_logger
+          Micrate::DB.connection_url = database_url
           begin
             case command
+            when "drop"
+              uri = URI.parse(database_url)
+              if name = uri.path
+                name = name.gsub("/", "")
+                Micrate::DB.connection_url = database_url.gsub(name, uri.scheme)
+                drop_database(name)
+                puts "Dropped database #{name}"
+              end
             when "create"
               uri = URI.parse(database_url)
               if name = uri.path
@@ -31,13 +39,6 @@ module Amber::CMD
                 Micrate::DB.connection_url = database_url.gsub(name, uri.scheme)
                 create_database(name)
                 puts "Created database #{name}"
-              end
-            when "drop"
-              uri = URI.parse(database_url)
-              if name = uri.path
-                name = name.gsub("/", "")
-                drop_database(name)
-                puts "Dropped database #{name}"
               end
             when "seed"
               `crystal db/seeds.cr`
