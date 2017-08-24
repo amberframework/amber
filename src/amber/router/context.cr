@@ -1,5 +1,15 @@
 require "./**"
 
+class HTTP::Request
+  def port
+    uri.port
+  end
+
+  def url
+    uri.to_s
+  end
+end
+
 # The Context holds the request and the response objects.  The context is
 # passed to each handler that will read from the request object and build a
 # response object.  Params and Session hash can be accessed from the Context.
@@ -61,20 +71,27 @@ class HTTP::Server::Context
 
   {% for method in METHODS %}
   def {{method.id}}?
-    request.method == {{method.id}}
+    request.method == "{{method.id}}"
   end
   {% end %}
 
   def format
-    Amber::Support::MimeTypes.format(headers[FORMAT_HEADER])
+    content_type = request.headers[FORMAT_HEADER].split(",").first
+    type = if content_type.includes?(";")
+             content_type.split(";").first
+           else
+             content_type
+           end
+
+    Amber::Support::MimeTypes.format(type)
   end
 
   def port
-    request.uri.port
+    request.port
   end
 
   def requested_url
-    request.uri.to_s
+    request.url
   end
 
   # Attemps to retrieve client IP Address from headers

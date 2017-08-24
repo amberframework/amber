@@ -33,11 +33,6 @@ module Amber::Controller
     end
 
     describe "#session" do
-      it "responds to session" do
-        controller = build_controller
-        controller.responds_to?(:session).should eq true
-      end
-
       it "sets a session value" do
         controller = build_controller
         controller.session["name"] = "David"
