@@ -1,3 +1,6 @@
+# NOTE : This project has merged with https://github.com/amber-crystal/amber code base and is no longer maintained.
+
+
 [![Build Status](https://travis-ci.org/Amber-Crystal/amber_cmd.svg?branch=master)](https://travis-ci.org/Amber-Crystal/amber_cmd)
 # Amber::CMD
 This section provides an introduction into Amber command-line interface.
