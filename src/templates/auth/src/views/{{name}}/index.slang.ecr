@@ -1,0 +1,25 @@
+div.row
+  div.col-sm-11
+    h2 <%= @name.capitalize %>s
+  div.col-sm-1
+    a.btn.btn-success.btn-xs href="/<%= @name %>s/new" New
+div.table-responsive
+  table.table.table-striped
+    thead
+      tr
+<% @fields.reject{|f| f.hidden || f.type == "password" }.each do |field| -%>
+        th <%= field.name.capitalize %>
+<% end -%>
+        th Actions
+    tbody
+    - <%= @name %>s.each do |<%= @name %>|
+      tr
+<% @fields.reject{|f| f.hidden || f.type == "password" }.each do |field| -%>
+        td = <%= @name %>.<%= field.name %>
+<% end -%>
+        td
+          span
+            a.btn.btn-primary.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }" read
+            a.btn.btn-success.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }/edit" edit
+            a.btn.btn-danger.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }?_method=delete" onclick="return confirm('Are you sure?');" delete
+

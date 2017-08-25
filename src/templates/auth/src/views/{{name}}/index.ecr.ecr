@@ -1,0 +1,36 @@
+<div class="row">
+  <div class="col-sm-11">
+    <h2><%= @name.capitalize %>s</h2>
+  </div>
+  <div class="col-sm-1">
+    <a class="btn btn-success btn-xs" href="/<%= @name %>s/new">New</a>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+<% @fields.reject{|f| f.hidden || f.type == "password" }.each do |field| -%>
+        <th><%= field.name.capitalize %></th>
+<% end -%>
+        <th>Actions</th>
+      </tr>
+    <tbody>
+    <%="<"%>%- <%= @name %>s.each do |<%= @name %>| %>
+      <tr>
+<% @fields.reject{|f| f.hidden || f.type == "password" }.each do |field| -%>
+        <td><%="<"%>%= <%= @name %>.<%= field.name %> %></td>
+<% end -%>
+        <td>
+          <span>
+            <a class="btn btn-default btn-xs" href="/<%= @name %>s/<%="<"%>%= <%= @name %>.id %>">read</a>
+            <a class="btn btn-success btn-xs" href="/<%= @name %>s/<%="<"%>%= <%= @name %>.id %>/edit">edit</a>
+            <a class="btn btn-danger btn-xs" href="/<%= @name %>s/<%="<"%>%= <%= @name %>.id %>?_method=delete" onclick="return confirm('Are you sure?');">delete</a>
+          </span>
+        </td>
+      </tr>
+    <%="<"%>%- end %>
+    </tbody>
+  </table>
+</div>
