@@ -8,26 +8,22 @@ module Amber::Controller
     include Callbacks
     include Helpers::Tag
 
-    protected getter request : HTTP::Request
-    protected getter response : HTTP::Server::Response
     protected getter raw_params : HTTP::Params
     protected getter context : HTTP::Server::Context
     protected getter params : Amber::Validators::Params
 
     delegate :cookies, :format, :flash, :port, :requested_url, :session, :invalid_route, :valve,
-             :request_handler, :route, :websocket?, :invalid_route?, :get?, :post?, :patch?,
-             :put?, :delete?, :head?, :client_ip, to: context
+      :request_handler, :route, :websocket?, :invalid_route?, :get?, :post?, :patch?,
+      :put?, :delete?, :head?, :client_ip, :request, :response, to: context
 
     def initialize(@context : HTTP::Server::Context)
-      @request = context.request
-      @response = context.response
       @raw_params = context.params
       @params = Amber::Validators::Params.new(@raw_params)
     end
 
     # TODO: Move this method to Context
     #
-    # Now that we are delegating to context we should be 
+    # Now that we are delegating to context we should be
     # able to move this method to the HTTP::Server context class
     # Not doing it now because of some refactoring that needs to happen
     # and is a little out of scope for this PR since it touches a lot of

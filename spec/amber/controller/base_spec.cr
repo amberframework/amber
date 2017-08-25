@@ -23,6 +23,8 @@ module Amber::Controller
       controller.responds_to?(:delete?).should eq true
       controller.responds_to?(:head?).should eq true
       controller.responds_to?(:client_ip).should eq true
+      controller.responds_to?(:request).should eq true
+      controller.responds_to?(:response).should eq true
     end
 
     describe "#redirect_back" do

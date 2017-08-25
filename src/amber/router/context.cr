@@ -16,7 +16,7 @@ end
 class HTTP::Server::Context
   METHODS            = %i(get post put patch delete head)
   FORMAT_HEADER      = "Accept"
-  IP_ADDRESS_HEADERS = {"REMOTE_ADDR", "CLIENT_IP", "X_FORWARDED_FOR", "X_FORWARDED", "X_CLUSTER_CLIENT_IP", "FORWARDED"}
+  IP_ADDRESS_HEADERS = %w(REMOTE_ADDR CLIENT_IP X_FORWARDED_FOR X_FORWARDED X_CLUSTER_CLIENT_IP FORWARDED)
 
   include Amber::Router::Files
   include Amber::Router::Session
@@ -102,10 +102,12 @@ class HTTP::Server::Context
   # but this value is easily spoofed.
   def client_ip
     headers = request.headers
-    IP_ADDRESS_HEADERS.find_value { |header|
+    val = {} of String => String
+    IP_ADDRESS_HEADERS.find { |header|
       dashed_header = header.tr("_", "-")
-      headers[header]? || headers[dashed_header]? || headers["HTTP_#{header}"]? || headers["Http-#{dashed_header}"]?
-    }.try &.split(',').first
+      val = headers[header]? || headers[dashed_header]? || headers["HTTP_#{header}"]? || headers["Http-#{dashed_header}"]?
+    }
+    val
   end
 
   protected def process_websocket_request
