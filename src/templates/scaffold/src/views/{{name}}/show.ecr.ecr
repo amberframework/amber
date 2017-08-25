@@ -1,8 +1,0 @@
-<% @fields.reject{|f| f.hidden }.each do |field| -%>
-<p><%="<"%>%= <%= @name %>.<%= field.name %> %></p>
-<% end -%>
-<p>
-          <a class="btn btn-default btn-xs" href="/<%= @name %>s">back</a>
-          <a class="btn btn-success btn-xs" href="/<%= @name %>s/<%="<"%>%= <%= @name %>.id %>/edit">edit</a>
-          <a class="btn btn-danger btn-xs" href="/<%= @name %>s/<%="<"%>%= <%= @name %>.id %>?_method=delete" onclick="return confirm('Are you sure?');">delete</a>
-</p>
