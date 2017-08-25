@@ -1,0 +1,11 @@
+require "./spec_helper"
+
+describe <%= @name.capitalize %>Controller do
+<% @fields.each do |field| -%>
+
+  describe <%= @name.capitalize %>Controller::<%= field.name.capitalize %> do
+    it "renders the view" do
+    end
+  end
+<% end %>
+end
