@@ -1,0 +1,69 @@
+class <%= @name.capitalize %>Controller < ApplicationController 
+  def index
+    <%= @name %>s = <%= @name.capitalize %>.all
+    render("index.<%= @language %>")
+  end
+
+  def show
+    if <%= @name %> = <%= @name.capitalize %>.find params["id"]
+      render("show.<%= @language %>")
+    else
+      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      redirect_to "/<%= @name %>s"
+    end
+  end
+
+  def new
+    <%= @name %> = <%= @name.capitalize %>.new
+    render("new.<%= @language %>")
+  end
+
+  def create
+    <%= @name %> = <%= @name.capitalize %>.new(params.to_h.select(<%= @visible_fields %>))
+    <%= @name %>.password = params["password"]
+
+    if <%= @name %>.valid? && <%= @name %>.save
+      flash["success"] = "Created <%= @name.capitalize %> successfully."
+      redirect_to "/<%= @name %>s"
+    else
+      flash["danger"] = "Could not create <%= @name.capitalize %>!"
+      render("new.<%= @language %>")
+    end
+  end
+
+  def edit
+    if <%= @name %> = <%= @name.capitalize %>.find params["id"]
+      render("edit.<%= @language %>")
+    else
+      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      redirect_to "/<%= @name %>s"
+    end
+  end
+
+  def update
+    if <%= @name %> = <%= @name.capitalize %>.find(params["id"])
+      <%= @name %>.set_attributes(params.to_h.select(<%= @visible_fields %>))
+      <%= @name %>.password = params["password"]
+
+      if <%= @name %>.valid? && <%= @name %>.save
+        flash["success"] = "Updated <%= @name.capitalize %> successfully."
+        redirect_to "/<%= @name %>s"
+      else
+        flash["danger"] = "Could not update <%= @name.capitalize %>!"
+        render("edit.<%= @language %>")
+      end
+    else
+      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      redirect_to "/<%= @name %>s"
+    end
+  end
+
+  def destroy
+    if <%= @name %> = <%= @name.capitalize %>.find params["id"]
+      <%= @name %>.destroy
+    else
+      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+    end
+    redirect_to "/<%= @name %>s"
+  end
+end

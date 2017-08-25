@@ -1,0 +1,39 @@
+- if <%= @name %>.errors
+  ul.errors
+  - <%= @name %>.errors.each do |error|
+    li = error.to_s
+
+- action = (<%= @name %>.id ? "/<%= @name %>s/" + <%= @name %>.id.to_s : "/<%= @name %>s")
+form action="#{ action }" method="post"
+  == csrf_tag
+  - if <%= @name %>.id
+    input type="hidden" name="_method" value="patch"
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
+  div.form-group
+<% case field.type
+   when "text" -%>
+    textarea.form-control rows="10" name="<%= field.name %>" placeholder="<%= field.name.capitalize %>" =  <%= @name %>.<%= field.name %>
+<% when "boolean" -%>
+    div.checkbox
+      label
+        input type="hidden" name="published" value="false"
+        - if <%= @name %>.<%= field.name %>
+          input type="checkbox" name="<%= field.name %>" value="true" checked="true" <%= field.name.capitalize %>
+        - else
+          input type="checkbox" name="<%= field.name %>" value="true" <%= field.name.capitalize %>
+<% when "bool_as_int" -%>
+    div.checkbox
+      label
+        input type="hidden" name="published" value="false"
+        - if <%= @name %>.<%= field.name %> == 1
+          input type="checkbox" name="<%= field.name %>" value="true" checked="true" <%= field.name.capitalize %>
+        - else
+          input type="checkbox" name="<%= field.name %>" value="true" <%= field.name.capitalize %>
+<% when "password" -%>
+    input.form-control type="password" name="password" placeholder="Password"
+<% else -%>
+    input.form-control type="text" name="<%= field.name %>" placeholder="<%= field.name.capitalize %>" value="#{ <%= @name %>.<%= field.name %> }"
+<% end -%>
+<% end -%>
+  button.btn.btn-primary.btn-xs type="submit" Submit
+  a.btn.btn-default.btn-xs href="/<%= @name %>s" back

@@ -1,0 +1,51 @@
+<%="<"%>%- if <%= @name %>.errors %>
+  <ul class="errors">
+  <%="<"%>%- <%= @name %>.errors.each do |error| %>
+    <li><%="<"%>%= error.to_s %></li>
+  <%="<"%>%- end %>
+  </ul>
+<%="<"%>%- end %>
+
+<%="<"%>%- action = (<%= @name %>.id ? "/<%= @name %>s/" + <%= @name %>.id.to_s : "/<%= @name %>s") %>
+<form action="<%="<"%>%= action %>" method="post">
+  <%="<"%>%= csrf_tag %>
+  <%="<"%>%- if <%= @name %>.id %>
+  <input type="hidden" name="_method" value="patch" />
+  <%="<"%>%- end %>
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
+  <div class="form-group">
+<% case field.type
+   when "text" -%>
+    <textarea class="form-control" rows="10" name="<%= field.name %>" placeholder="<%= field.name.capitalize %>"><%="<"%>%=  <%= @name %>.<%= field.name %> %></textarea>
+<% when "boolean" -%>
+    <div class="checkbox">
+      <label>
+        <input type="hidden" name="published" value="false" />
+        <%="<"%>%- if <%= @name %>.<%= field.name %> %>
+          <input type="checkbox" name="<%= field.name %>" value="true" checked="true" /><%= field.name.capitalize %>
+        <%="<"%>%- else %>
+          <input type="checkbox" name="<%= field.name %>" value="true" /> <%= field.name.capitalize %>
+        <%="<"%>%- end %>
+      </label>
+    </div>
+<% when "bool_as_int" -%>
+    <div class="checkbox">
+      <label>
+        <input type="hidden" name="published" value="false" />
+        <%="<"%>%- if <%= @name %>.<%= field.name %> == 1%>
+          <input type="checkbox" name="<%= field.name %>" value="true" checked="true"><%= field.name.capitalize %>
+        <%="<"%>%- else %>
+          <input type="checkbox" name="<%= field.name %>" value="true"> <%= field.name.capitalize %>
+        <%="<"%>%- end %>
+      </label>
+    </div>
+<% when "password" -%>
+    <input class="form-control" type="text" name="password" placeholder="Password" />
+<% else -%>
+    <input class="form-control" type="text" name="<%= field.name %>" placeholder="<%= field.name.capitalize %>" value="<%="<"%>%= <%= @name %>.<%= field.name %> %>" />
+<% end -%>
+  </div>
+<% end -%>
+  <button class="btn btn-primary btn-xs" type="submit">Submit</button>
+  <a class="btn btn-default btn-xs" href="/<%= @name %>s">back</a>
+</form>
