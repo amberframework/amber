@@ -2,7 +2,7 @@ require "amber"
 require "../config/*"
 require "./models/**"
 require "./mailers/**"
-require "./middleware/**"
+require "./handlers/**"
 
 # load the application_controller before controllers which depend on it
 require "./controllers/application_controller"
