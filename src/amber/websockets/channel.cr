@@ -25,7 +25,7 @@ module Amber
       @@adapter : WebSockets::Adapters::RedisAdapter? | WebSockets::Adapters::MemoryAdapter?
       @topic_path : String
 
-      abstract def handle_message(msg)
+      abstract def handle_message(client_socket, msg)
 
       # Authorization can happen here
       def handle_joined(client_socket, message); end
@@ -35,8 +35,9 @@ module Amber
       def initialize(@topic_path); end
 
       # Called from proc when message is returned from the pubsub service
-      def on_message(message)
-        handle_message(message)
+      def on_message(client_socket_id, message)
+        client_socket = ClientSockets.client_sockets[client_socket_id]?
+        handle_message(client_socket, message)
       end
 
       # Helper method for retrieving the apdater not nillable
@@ -56,8 +57,8 @@ module Amber
       end
 
       # Sends *message* to the pubsub service
-      protected def dispatch(message)
-        adapter.publish(@topic_path, message)
+      protected def dispatch(client_socket, message)
+        adapter.publish(@topic_path, client_socket, message)
       end
 
       # Rebroadcast this message to all subscribers of the channel
@@ -70,7 +71,7 @@ module Amber
       # Ensure the pubsub adpater instance exists, and set up the on_message proc callback
       protected def setup_pubsub_adapter
         @@adapter = Amber::Server.instance.pubsub_adapter.instance
-        @@adapter.not_nil!.on_message(@topic_path, ->(message : JSON::Any) { self.on_message(message); nil })
+        @@adapter.not_nil!.on_message(@topic_path, ->(client_socket_id : String, message : JSON::Any) { self.on_message(client_socket_id, message); nil })
       end
     end
   end

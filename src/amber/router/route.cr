@@ -35,5 +35,22 @@ module Amber
     def call(context)
       handler.call(context)
     end
+
+    def substitute_keys_in_path(params : Hash(String, String)? = nil)
+      result = scope.to_s + resource.dup
+      if !params.nil?
+        params.each do |k, v|
+          if result.includes?(":#{k}")
+            result = result.gsub(":#{k}", v)
+            params.delete(k)
+          end
+        end
+      end
+      {result, params}
+    end
+
+    def match?(controller, action)
+      self.controller.downcase == "#{controller}controller" && self.action == action
+    end
   end
 end

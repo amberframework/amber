@@ -97,7 +97,7 @@ class UserChannel < Amber::WebSockets::Channel
     test_field.push("handle joined #{client_socket.id}")
   end
 
-  def handle_message(msg)
+  def handle_message(client_socket, msg)
     test_field.push(msg["payload"]["message"].as_s)
   end
 end

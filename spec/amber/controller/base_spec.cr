@@ -2,32 +2,47 @@ require "../../../spec_helper"
 
 module Amber::Controller
   describe Base do
-    describe "#cookies" do
-      it "responds to cookies" do
-        controller = build_controller
+    it "responds to context methods" do
+      controller = build_controller
+      controller.responds_to?(:redirect_to).should eq true
+      controller.responds_to?(:cookies).should eq true
+      controller.responds_to?(:format).should eq true
+      controller.responds_to?(:port).should eq true
+      controller.responds_to?(:requested_url).should eq true
+      controller.responds_to?(:session).should eq true
+      controller.responds_to?(:invalid_route?).should eq true
+      controller.responds_to?(:valve).should eq true
+      controller.responds_to?(:request_handler).should eq true
+      controller.responds_to?(:route).should eq true
+      controller.responds_to?(:websocket?).should eq true
+      controller.responds_to?(:invalid_route?).should eq true
+      controller.responds_to?(:get?).should eq true
+      controller.responds_to?(:post?).should eq true
+      controller.responds_to?(:patch?).should eq true
+      controller.responds_to?(:put?).should eq true
+      controller.responds_to?(:delete?).should eq true
+      controller.responds_to?(:head?).should eq true
+      controller.responds_to?(:client_ip).should eq true
+      controller.responds_to?(:request).should eq true
+      controller.responds_to?(:response).should eq true
+    end
 
-        controller.responds_to?(:cookies).should eq true
+    describe "#redirect_back" do
+      it "responds to redirect_back" do
+        controller = build_controller
+        controller.responds_to?(:redirect_back).should eq true
       end
     end
 
     describe "#session" do
-      it "responds to cookies" do
-        controller = build_controller
-
-        controller.responds_to?(:session).should eq true
-      end
-
       it "sets a session value" do
         controller = build_controller
-
         controller.session["name"] = "David"
-
         controller.session["name"].should eq "David"
       end
 
       it "has a session id" do
         controller = build_controller
-
         controller.session.id.not_nil!.size.should eq 36
       end
     end
@@ -129,122 +144,6 @@ module Amber::Controller
           controller.run_after_filter(:index)
 
           controller.total.should eq 2
-        end
-      end
-    end
-
-    describe "#redirect_back" do
-      context "and has a valid referer" do
-        it "sets the correct response headers" do
-          hello_controller = build_controller("/world")
-
-          hello_controller.redirect_back
-          response = hello_controller.response
-
-          response.headers["Location"].should eq "/world"
-        end
-      end
-
-      context "and does not have a referer" do
-        it "raisees an error" do
-          hello_controller = build_controller
-
-          expect_raises Exceptions::Controller::Redirect do
-            hello_controller.redirect_back
-          end
-        end
-      end
-    end
-
-    describe "#redirect_to" do
-      context "with url params" do
-        it "sets the url params to path" do
-          hello_controller = build_controller("/world")
-          hello_controller.redirect_to(:world, status: 302, params: {"hello" => "world"})
-
-          response = hello_controller.response
-
-          response.headers["Location"].should eq "/hello/world?hello=world"
-        end
-      end
-
-      context "whith flash" do
-        it "sets the flash scope from Hash(Symbol, String)" do
-          controller = build_controller("")
-          query = {} of String => String
-          controller.redirect_to(:world, status: 302, flash: {"notice" => "Success!"})
-
-          flash = controller.flash
-
-          flash["notice"].should eq "Success!"
-        end
-
-        it "sets the flash scope from Hash(String, String)" do
-          controller = build_controller("")
-          query = {} of String => String
-          controller.redirect_to(:world, status: 302, flash: {"notice" => "Success!"})
-
-          flash = controller.flash
-
-          flash["notice"].should eq "Success!"
-        end
-      end
-
-      context "when redirecting to url or path" do
-        ["www.amberio.com", "/world"].each do |location|
-          it "sets the location to #{location}" do
-            hello_controller = build_controller
-            hello_controller.redirect_to(location, status: 301)
-
-            response = hello_controller.response
-
-            response.headers["Location"].should eq location
-            response.status_code.should eq 301
-          end
-        end
-      end
-
-      context "when redirecting to controller action" do
-        it "sets the controller and action" do
-          hello_controller = build_controller
-          hello_controller.redirect_to :world, status: 301
-
-          response = hello_controller.response
-
-          response.headers["Location"].should eq "/hello/world"
-          response.status_code.should eq 301
-        end
-      end
-
-      context "when redirecting to different controller" do
-        it "sets new controller and action" do
-          hello_controller = build_controller
-          hello_controller.redirect_to :hello, :index, status: 301
-
-          response = hello_controller.response
-
-          response.headers["Location"].should eq "/hello/index"
-          response.status_code.should eq 301
-        end
-      end
-
-      context "#halt!" do
-        it "sets context halt to true" do
-          controller = build_controller
-
-          controller.halt!
-          context = controller.context
-
-          context.content.should eq ""
-        end
-
-        it "set response status code" do
-          controller = build_controller
-
-          controller.halt!(status_code = 900)
-          context = controller.context
-
-          context.response.status_code.should eq 900
         end
       end
     end
