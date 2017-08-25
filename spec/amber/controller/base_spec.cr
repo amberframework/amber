@@ -2,19 +2,29 @@ require "../../../spec_helper"
 
 module Amber::Controller
   describe Base do
-    describe "#cookies" do
-      it "responds to cookies" do
-        controller = build_controller
-
-        controller.responds_to?(:cookies).should eq true
-      end
-    end
-
-    describe "#redirect_to" do
-      it "responds to redirect_to" do
-        controller = build_controller
-        controller.responds_to?(:redirect_to).should eq true
-      end
+    it "responds to context methods" do
+      controller = build_controller
+      controller.responds_to?(:redirect_to).should eq true
+      controller.responds_to?(:cookies).should eq true
+      controller.responds_to?(:format).should eq true
+      controller.responds_to?(:port).should eq true
+      controller.responds_to?(:requested_url).should eq true
+      controller.responds_to?(:session).should eq true
+      controller.responds_to?(:invalid_route?).should eq true
+      controller.responds_to?(:valve).should eq true
+      controller.responds_to?(:request_handler).should eq true
+      controller.responds_to?(:route).should eq true
+      controller.responds_to?(:websocket?).should eq true
+      controller.responds_to?(:invalid_route?).should eq true
+      controller.responds_to?(:get?).should eq true
+      controller.responds_to?(:post?).should eq true
+      controller.responds_to?(:patch?).should eq true
+      controller.responds_to?(:put?).should eq true
+      controller.responds_to?(:delete?).should eq true
+      controller.responds_to?(:head?).should eq true
+      controller.responds_to?(:client_ip).should eq true
+      controller.responds_to?(:request).should eq true
+      controller.responds_to?(:response).should eq true
     end
 
     describe "#redirect_back" do
@@ -25,23 +35,14 @@ module Amber::Controller
     end
 
     describe "#session" do
-      it "responds to cookies" do
-        controller = build_controller
-
-        controller.responds_to?(:session).should eq true
-      end
-
       it "sets a session value" do
         controller = build_controller
-
         controller.session["name"] = "David"
-
         controller.session["name"].should eq "David"
       end
 
       it "has a session id" do
         controller = build_controller
-
         controller.session.id.not_nil!.size.should eq 36
       end
     end
@@ -143,29 +144,6 @@ module Amber::Controller
           controller.run_after_filter(:index)
 
           controller.total.should eq 2
-        end
-      end
-    end
-
-    describe "#redirect_back" do
-      context "and has a valid referrer" do
-        it "sets the correct response headers" do
-          hello_controller = build_controller("/world")
-
-          hello_controller.redirect_back
-          response = hello_controller.response
-
-          response.headers["Location"].should eq "/world"
-        end
-      end
-
-      context "and does not have a referrer" do
-        it "raisees an error" do
-          hello_controller = build_controller
-
-          expect_raises Exceptions::Controller::Redirect do
-            hello_controller.redirect_back
-          end
         end
       end
     end
