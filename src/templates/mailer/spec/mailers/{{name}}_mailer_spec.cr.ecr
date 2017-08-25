@@ -1,9 +1,0 @@
-require "./spec_helper"
-require "../src/mailers/<%= @name %>_mailer.cr"
-
-describe <%= @name.capitalize %>Mailer do
-  it "sends an email" do
-    mailer = <%= @name.capitalize %>Mailer.new
-    mailer.deliver(<%= @fields.map{|f| "\"#{f.name}\""}.join(", ") %>)
-  end
-end
