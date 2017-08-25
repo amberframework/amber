@@ -6,46 +6,25 @@
   </ul>
 <%="<"%>%- end %>
 
-<%="<"%>%- action = (<%= @name %>.id ? "/<%= @name %>s/" + <%= @name %>.id.to_s : "/<%= @name %>s") %>
-<form action="<%="<"%>%= action %>" method="post">
+<%="<"%>% form(action: "/<%= @name -%>s/#{<%= @name -%>.id.to_s}", method: <%= @name %>.id ? :patch : :post) do %>
   <%="<"%>%= csrf_tag %>
-  <%="<"%>%- if <%= @name %>.id %>
-  <input type="hidden" name="_method" value="patch" />
-  <%="<"%>%- end %>
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
   <div class="form-group">
 <% case field.type
    when "text" -%>
-    <textarea class="form-control" rows="10" name="<%= field.name %>" placeholder="<%= field.name.capitalize %>"><%="<"%>%=  <%= @name %>.<%= field.name %> %></textarea>
+    <%="<"%>%= text_area(name: "<%= field.name -%>", content: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control", size: "30x10") -%>
 <% when "boolean" -%>
     <div class="checkbox">
-      <label>
-        <input type="hidden" name="published" value="false" />
-        <%="<"%>%- if <%= @name %>.<%= field.name %> %>
-          <input type="checkbox" name="<%= field.name %>" value="true" checked="true" /><%= field.name.capitalize %>
-        <%="<"%>%- else %>
-          <input type="checkbox" name="<%= field.name %>" value="true" /> <%= field.name.capitalize %>
-        <%="<"%>%- end %>
-      </label>
-    </div>
-<% when "bool_as_int" -%>
-    <div class="checkbox">
-      <label>
-        <input type="hidden" name="published" value="false" />
-        <%="<"%>%- if <%= @name %>.<%= field.name %> == 1%>
-          <input type="checkbox" name="<%= field.name %>" value="true" checked="true"><%= field.name.capitalize %>
-        <%="<"%>%- else %>
-          <input type="checkbox" name="<%= field.name %>" value="true"> <%= field.name.capitalize %>
-        <%="<"%>%- end %>
-      </label>
+      <%="<"%>%= label(<%=":#{field.name}"%>) -%>
+      <%="<"%>%= check_box(<%=":#{field.name}, checked=#{@name}.#{field.name}.to_s == \"1\""%>) -%>
     </div>
 <% when "password" -%>
     <input class="form-control" type="text" name="password" placeholder="Password" />
 <% else -%>
-    <input class="form-control" type="text" name="<%= field.name %>" placeholder="<%= field.name.capitalize %>" value="<%="<"%>%= <%= @name %>.<%= field.name %> %>" />
+    <%="<"%>%= text_field(name: "<%= field.name %>", value: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control") -%>
 <% end -%>
   </div>
 <% end -%>
-  <button class="btn btn-primary btn-xs" type="submit">Submit</button>
-  <a class="btn btn-default btn-xs" href="/<%= @name %>s">back</a>
-</form>
+    <%="<"%>%= submit("Submit", class: "btn btn-primary btn-xs") -%>
+    <%="<"%>%= link_to("back", "/<%= @name %>s", class: "btn btn-default btn-xs") -%>
+<%="<"%>% end %>
