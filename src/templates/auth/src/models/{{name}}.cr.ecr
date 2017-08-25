@@ -1,0 +1,27 @@
+require "granite_orm/adapter/<%= @database %>"
+require "crypto/bcrypt/password"
+
+class <%= @name.capitalize %> < Granite::ORM 
+  adapter <%= @database %>
+
+  # id : Int64 primary key is created for you
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
+  field <%= field.name %> : <%= field.cr_type %>
+<% end -%>
+<% if @database != "sqlite" -%>
+  timestamps
+<% end -%>
+
+  def password=(password)
+    @encrypted_password = Crypto::Bcrypt::Password.create(password, cost: 10).to_s
+  end
+
+  def authenticate(password : String)
+    if enc = @encrypted_password
+      bcrypt_password = Crypto::Bcrypt::Password.new(enc)
+      return bcrypt_password == password
+    else
+      return false
+    end
+  end
+end

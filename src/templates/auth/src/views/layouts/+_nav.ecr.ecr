@@ -1,0 +1,11 @@
+<%="<"%>%- active = context.request.path == "/<%= @name %>s" ? "active" : "" %>
+<a class="nav-item <%="<"%>%= active %>" href="/<%= @name %>s"><%= @name.capitalize %>s</a>
+
+<%="<"%>%- if context.current_<%= @name %> %>
+  <a class="nav-item pull-right" href="/logout">Logout</a>
+  <%="<"%>%- active = context.request.path == "/<%= @name %>s" ? "active" : "" %>
+  <a class="nav-item <%="<"%>%= active %>" href="/<%= @name %>s"><%= @name.capitalize %>s</a>
+<%="<"%>%- else %>
+  <%="<"%>%- active = context.request.path == "/login" ? "active" : "" %>
+  <a class="nav-item <%="<"%>%= active %> pull-right" href="/login">Login</a>
+<%="<"%>%- end %>

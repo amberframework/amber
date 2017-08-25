@@ -1,0 +1,8 @@
+require "amber"
+require "../src/models/*"
+
+<%= @name %> = <%= @name.capitalize %>.new
+<%= @name %>.email = "admin@example.com"
+<%= @name %>.password = "password"
+<%= @name %>.save
+
