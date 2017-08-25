@@ -5,7 +5,7 @@ module Amber
     #
     module ClientSockets
       extend self
-      @@client_sockets = Hash(UInt64, ClientSocket).new
+      @@client_sockets = Hash(String, ClientSocket).new
 
       def add_client_socket(client_socket)
         @@client_sockets[client_socket.id] = client_socket

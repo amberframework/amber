@@ -10,6 +10,32 @@ require "./amber/**"
 
 module Amber
   class Server
+    alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
+
+    property port_reuse = true
+    property port = 8080
+    property name = "amber_project"
+    property env = ARGV[0]? || ENV["AMBER_ENV"]? || "development"
+    property log = ::Logger.new(STDOUT)
+    property host = "0.0.0.0"
+    property ssl_key_file : String? = nil
+    property ssl_cert_file : String? = nil
+    property redis_url = ENV["REDIS_URL"]? || "localhost:6379"
+    property secret = ENV["SECRET_KEY_BASE"]? || SecureRandom.hex(128)
+    property pubsub_adapter : WebSocketAdapter = WebSockets::Adapters::MemoryAdapter
+
+    property session = {
+      :key => "amber.session", :store => :signed_cookie, :expires => 0, :secret => secret.to_s, :redis_url => redis_url.to_s,
+    }
+
+    getter key_generator = Amber::Support::CachingKeyGenerator.new(
+      Amber::Support::KeyGenerator.new(secret.to_s, 5)
+    )
+
+    def initialize
+      @log.level = ::Logger::INFO
+    end
+
     def self.instance
       @@instance ||= new
     end
@@ -18,8 +44,8 @@ module Amber
       instance.all_routes
     end
 
-    def self.settings
-      instance
+    def self.config(&block)
+      instance.config(block)
     end
 
     def self.key_generator
@@ -28,47 +54,6 @@ module Amber
 
     def self.session
       instance.session
-    end
-
-    setter project_name : String?
-    getter key_generator : Amber::Support::CachingKeyGenerator
-    property port : Int32
-    property name : String
-    property env : String
-    property log : Logger
-    property secret : String
-    property host : String = "0.0.0.0"
-    property port_reuse : Bool = false
-    getter key_generator : Amber::Support::CachingKeyGenerator
-    property pubsub_adapter : WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
-    property redis_url : String
-    property session : Hash(Symbol, Symbol | Int32 | String)
-    property ssl_key_file : String?
-    property ssl_cert_file : String?
-
-    def initialize
-      @app_path = __FILE__
-      @name = "amber_project"
-      @port = 8080
-      @env = "development".to_s
-      @log = ::Logger.new(STDOUT)
-      @log.level = ::Logger::INFO
-      @secret = ENV["SECRET_KEY_BASE"]? || SecureRandom.hex(128)
-      @host = "0.0.0.0"
-      @port_reuse = true
-      @key_generator = Amber::Support::CachingKeyGenerator.new(
-        Amber::Support::KeyGenerator.new(secret, 5)
-      )
-      @pubsub_adapter = WebSockets::Adapters::MemoryAdapter
-      @redis_url = "redis://localhost:6379"
-      @session = {
-        :key => "session_id",
-        # store can be [:signed_cookie, :encrypted_cookie, :redis]
-        :store     => :signed_cookie,
-        :expires   => 0,
-        :secret    => secret,
-        :redis_url => "redis://localhost:6379",
-      }
     end
 
     def project_name
@@ -91,27 +76,22 @@ module Amber
 
     def start
       time = Time.now
-      ssl_enabled = ssl_key_file && ssl_cert_file
-      scheme = ssl_enabled ? "https" : "http"
-      str_host = "#{scheme}://#{host}:#{port}".colorize(:light_cyan).underline
-      version = "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
-      log.info "#{version} serving application \"#{name}\" at #{str_host}".to_s
+      log.info "#{version} serving application \"#{name}\" at #{host}".to_s
 
-      # prepare pipelines for processing and memoize them to gain a little performance
       handler.prepare_pipelines
 
       server = HTTP::Server.new(host, port, handler)
-      server.tls = Amber::SSL.new(ssl_key_file.not_nil!, ssl_cert_file.not_nil!).generate_tls if ssl_enabled
+      server.tls = Amber::SSL.new(ssl_key_file.not_nil!, ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
 
       Signal::INT.trap do
-        puts "Shutting down Amber"
+        log.info "Shutting down Amber"
         server.close
         exit
       end
 
       log.info "Server started in #{env.colorize(:yellow)}.".to_s
-      log.info "Startup Time #{Time.now - time}\n\n".colorize(:white).to_s
       server.listen(port_reuse)
+      log.info "Startup Time #{Time.now - time}\n\n".colorize(:white).to_s
     end
 
     def config(&block)
@@ -134,12 +114,24 @@ module Amber
       end
     end
 
-    def handler
-      @handler ||= Pipe::Pipeline.new
+    private def version
+      "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
     end
 
-    def all_routes
-      router.all
+    private def host
+      "#{scheme}://#{host}:#{port}".colorize(:light_cyan).underline
+    end
+
+    private def ssl_enabled?
+      ssl_key_file && ssl_cert_file
+    end
+
+    private def scheme
+      ssl_enabled? ? "https" : "http"
+    end
+
+    private def handler
+      @handler ||= Pipe::Pipeline.new
     end
 
     private def router

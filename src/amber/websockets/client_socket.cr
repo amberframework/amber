@@ -22,7 +22,7 @@ module Amber
       MAX_SOCKET_IDLE_TIME = 16.minutes
       BEAT_INTERVAL        = 5.minutes
 
-      protected getter id : UInt64
+      protected getter id : String
       getter socket : HTTP::WebSocket
       protected getter context : HTTP::Server::Context
       protected getter raw_params : HTTP::Params
@@ -63,7 +63,7 @@ module Amber
       end
 
       def initialize(@socket, @context)
-        @id = @socket.object_id
+        @id = SecureRandom.uuid
         @subscription_manager = SubscriptionManager.new
         @raw_params = @context.params
         @params = Amber::Validators::Params.new(@raw_params)
