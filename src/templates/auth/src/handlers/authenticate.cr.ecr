@@ -1,0 +1,18 @@
+class HTTP::Server::Context
+  property current_<%= @name %> : <%= @name.capitalize %>?
+end
+
+class Authenticate < Amber::Pipe::Base
+  def call(context)
+    <%= @name %>_id = context.session["<%= @name %>_id"]?
+    if <%= @name %> = <%= @name.capitalize %>.find <%= @name %>_id
+      context.current_<%= @name %> = <%= @name %>
+      call_next(context)
+    else
+      return call_next(context) if ["/signin","/session","/signup","/registration"].includes?(context.request.path)
+      context.flash[:warning] = "Please Sign In"
+      context.response.headers.add "Location", "/signin"
+      context.response.status_code = 302
+    end
+  end
+end

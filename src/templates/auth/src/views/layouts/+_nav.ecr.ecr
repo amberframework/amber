@@ -1,0 +1,9 @@
+<%="<"%>%- if context.current_<%= @name %> %>
+  <a class="nav-item pull-right" href="/signout">Sign Out</a>
+  <div class="nav-item pull-right"><%="<"%>%= context.current_<%= @name %>.not_nil!.email %></div>
+<%="<"%>%- else %>
+  <%="<"%>%- active = context.request.path == "/signup" ? "active" : "" %>
+  <a class="nav-item <%="<"%>%= active %> pull-right" href="/signup">Sign Up</a>
+  <%="<"%>%- active = context.request.path == "/signin" ? "active" : "" %>
+  <a class="nav-item <%="<"%>%= active %> pull-right" href="/signin">Sign In</a>
+<%="<"%>%- end %>

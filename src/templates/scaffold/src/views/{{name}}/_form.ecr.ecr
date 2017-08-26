@@ -6,8 +6,15 @@
   </ul>
 <%="<"%>%- end %>
 
-<%="<"%>% form(action: "/<%= @name -%>s/#{<%= @name -%>.id.to_s}", method: <%= @name %>.id ? :patch : :post) do %>
+
+
+<%="<"%>%- action = (<%= @name %>.id ? "/<%= @name %>s/" + <%= @name %>.id.to_s : "/<%= @name %>s") %>
+<form action="<%="<"%>%= action %>" method="post">
   <%="<"%>%= csrf_tag %>
+  <%="<"%>%- if <%= @name %>.id %>
+  <input type="hidden" name="_method" value="patch" />
+  <%="<"%>%- end %>
+
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
   <div class="form-group">
 <% case field.type
@@ -23,6 +30,6 @@
 <% end -%>
   </div>
 <% end -%>
-    <%="<"%>%= submit("Submit", class: "btn btn-primary btn-xs") -%>
-    <%="<"%>%= link_to("back", "/<%= @name %>s", class: "btn btn-default btn-xs") -%>
-<%="<"%>% end %>
+  <%="<"%>%= submit("Submit", class: "btn btn-primary btn-xs") -%>
+  <%="<"%>%= link_to("back", "/<%= @name %>s", class: "btn btn-default btn-xs") -%>
+</form>

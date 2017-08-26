@@ -1,0 +1,37 @@
+require "granite_orm/adapter/<%= @database %>"
+require "crypto/bcrypt/password"
+
+class <%= @name.capitalize %> < Granite::ORM
+  adapter <%= @database %>
+  property password : String?
+  before_save :encrypt_password
+
+  validate :email, "is required", -> (<%= @name %> : <%= @name.capitalize %>) do
+    (<%= @name %>.email != nil) && (!<%= @name %>.email.not_nil!.empty?)
+  end
+
+  validate :password, "is to short", -> (<%= @name %> : <%= @name.capitalize %>) do
+    (<%= @name %>.password != nil) && (<%= @name %>.password.not_nil!.size >= 8)
+  end
+
+  primary id : Int64
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
+  field <%= field.name %> : <%= field.cr_type %>
+<% end -%>
+<% if @database != "sqlite" -%>
+  timestamps
+<% end -%>
+
+  def encrypt_password
+    @encrypted_password = Crypto::Bcrypt::Password.create(@password.not_nil!, cost: 10).to_s
+  end
+
+  def authenticate(password : String)
+    if enc = @encrypted_password
+      bcrypt_password = Crypto::Bcrypt::Password.new(enc)
+      return bcrypt_password == password
+    else
+      return false
+    end
+  end
+end
