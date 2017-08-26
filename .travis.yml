@@ -7,4 +7,4 @@ before_install:
   - docker-compose build spec
 
 script:
-- docker-compose run spec
+  - docker-compose run spec

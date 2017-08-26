@@ -1,0 +1,2 @@
+smtp:
+  url: localhost:25

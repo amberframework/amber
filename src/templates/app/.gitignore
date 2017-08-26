@@ -1,7 +1,8 @@
 /doc/
 /libs/
 /lib/
-/bin/
+/.crystal/
 /.shards/
-.DS_Store
-/test_app/
+.env
+
+
