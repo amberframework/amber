@@ -1,16 +1,18 @@
-class SessionController < ApplicationController 
+class SessionController < ApplicationController
   def new
+    <%= @name %> = <%= @name.capitalize %>.new
     render("new.<%= @language %>")
   end
 
   def create
-    <%= @name %> = <%= @name.capitalize %>.find_by :email, params["email"]
+    <%= @name %> = <%= @name.capitalize %>.find_by(:email, params["email"])
     if <%= @name %> && <%= @name %>.authenticate(params["password"])
         session[:<%= @name %>_id] = <%= @name %>.id
         flash[:info] = "Successfully logged in"
         redirect_to "/"
       else
         flash[:danger] = "Invalid email or password"
+        <%= @name %> = <%= @name.capitalize %>.new
         render("new.<%= @language %>")
       end
   end
@@ -21,4 +23,3 @@ class SessionController < ApplicationController
     redirect_to "/"
   end
 end
-

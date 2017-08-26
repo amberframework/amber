@@ -6,7 +6,7 @@
   </ul>
 <%="<"%>%- end %>
 
-<%="<"%>% form(action: "/<%= @name -%>s/#{<%= @name -%>.id.to_s}", method: <%= @name %>.id ? :patch : :post) do %>
+<%="<"%>%= form(action: "/<%= @name -%>s/#{<%= @name -%>.id.to_s}", method: <%= @name %>.id ? :patch : :post) do %>
   <%="<"%>%= csrf_tag %>
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
   <div class="form-group">

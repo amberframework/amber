@@ -9,9 +9,9 @@ class Authenticate < Amber::Pipe::Base
       context.current_<%= @name %> = <%= @name %>
       call_next(context)
     else
-      return call_next(context) if ["/login","/session"].includes?(context.request.path)
-      context.flash[:warning] = "Please login"
-      context.response.headers.add "Location", "/login"
+      return call_next(context) if ["/signin","/session","/signup","/registration"].includes?(context.request.path)
+      context.flash[:warning] = "Please Sign In"
+      context.response.headers.add "Location", "/signin"
       context.response.status_code = 302
     end
   end
