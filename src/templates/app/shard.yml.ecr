@@ -13,16 +13,13 @@ targets:
     main: src/<%= @name %>.cr
 
   amber:
-    main: lib/amber_cmd/src/amber_cmd.cr
+    main: lib/amber/src/amber_cmd.cr
 
 development_dependencies:
   amber_spec:
     github: amber-crystal/amber-spec
 
 dependencies:
-  amber_cmd:
-    github: amber-crystal/amber_cmd
-
   amber:
     github: amber-crystal/amber
 
