@@ -36,6 +36,10 @@ module Amber::Router::Session
 
     forward_missing_to session
 
+    def self.build(store, session)
+      new(store, session[:key].to_s, session[:expires].to_i, session[:secret].to_s)
+    end
+
     def initialize(@store, @key, @expires, @secret)
       @session = current_session
     end

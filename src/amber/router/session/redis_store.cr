@@ -8,6 +8,10 @@ module Amber::Router::Session
     property session_id : String
     property cookies : Amber::Router::Cookies::Store
 
+    def self.build(store, cookies, session)
+      new(store, cookies, session[:key].to_s, session[:expires].to_i)
+    end
+
     def initialize(@store, @cookies, @key, @expires = 120)
       @session_id = current_session || "#{key}:#{id}"
     end
