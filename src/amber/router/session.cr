@@ -1,37 +1,34 @@
-module Amber::Router
-  module Session
-    class Store
-      property session : Hash(Symbol, Symbol | Int32 | String)
-      property cookies : Cookies::Store
-      getter session_store : Session::AbstractStore?
+module Amber::Router::Session
+  class Store
+    getter session_config : Hash(Symbol, Symbol | Int32 | String) = Amber::Server.session
+    getter cookies : Cookies::Store
 
-      def initialize(@cookies)
-        @session = Amber::Server.session
-      end
+    def initialize(@cookies)
+    end
 
-      def build : Session::AbstractStore
-        @session_store ||= case session[:store]
-                           when :redis
-                             redis
-                           when :encrypted_cookie
-                             encrypted_cookie
-                           else
-                             signed_cookie
-                           end
-      end
+    def build : Session::AbstractStore
+      return RedisStore.build(redis_store, cookies, session_config) if redis?
+      CookieStore.build(cookie_store, session_config)
+    end
 
-      def redis
-        store = Redis.new(url: session[:redis_url].to_s)
-        Session::RedisStore.new(store, cookies, session[:key].to_s, session[:expires].to_i)
+    private def cookie_store
+      if store == :encrypted_cookie
+        cookies.encrypted
+      else
+        cookies.signed
       end
+    end
 
-      def encrypted_cookie
-        Session::CookieStore.new(cookies.encrypted, session[:key].to_s, session[:expires].to_i, session[:secret].to_s)
-      end
+    private def redis_store
+      Redis.new(url: session_config[:redis_url].to_s)
+    end
 
-      def signed_cookie
-        Session::CookieStore.new(cookies.signed, session[:key].to_s, session[:expires].to_i, session[:secret].to_s)
-      end
+    private def redis?
+      store == :redis
+    end
+
+    private def store
+      session_config[:store]
     end
   end
 end
