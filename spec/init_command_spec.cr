@@ -56,7 +56,6 @@ begin
     end
   end
 ensure
-  puts "Recoving from exception and removing test code.."
   Dir.cd(CURRENT_DIR)
   `rm -rf #{TESTING_APP}`
 end
