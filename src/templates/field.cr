@@ -16,9 +16,11 @@ module Amber::CMD
         date:      ["date", "Time", "DATE"],
         time:      ["time", "Time", "TIMESTAMP"],
         timestamp: ["time", "Time", "TIMESTAMP"],
+        password:  ["password", "String", "VARCHAR"],
       },
       mysql: {
         string:    ["string", "String", "VARCHAR(255)"],
+        password:  ["password", "String", "VARCHAR(255)"],
         time:      ["time", "Time", "TIMESTAMP NULL"],
         timestamp: ["time", "Time", "TIMESTAMP NULL"],
       },
