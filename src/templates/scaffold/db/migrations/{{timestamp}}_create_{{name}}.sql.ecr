@@ -1,0 +1,8 @@
+-- +micrate Up
+CREATE TABLE <%= @name %>s (
+  <%= @primary_key %>,
+  <%= @fields.map{ |field| "#{field.name} #{field.db_type}" }.join(",\n  ") %>
+);
+
+-- +micrate Down
+DROP TABLE IF EXISTS <%= @name %>s;

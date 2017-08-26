@@ -8,9 +8,13 @@ authors:
   - Nick Franken <<shnick@gmail.com>>
   - Benoit de Chezelles <<benoit.dechezelles@gmail.com>>
 
-crystal: 0.22.0
+crystal: 0.23.1
 
 license: MIT
+
+targets:
+  amber:
+    main: src/amber_cmd.cr
 
 dependencies:
   radix:
@@ -28,3 +32,40 @@ dependencies:
   redis:
     github: stefanwille/crystal-redis
     version: ~> 1.8.0
+
+  cli:
+    github: mosop/cli
+    version: ~> 0.5.1
+
+  teeplate:
+    github: mosop/teeplate
+    version: ~> 0.4.4
+
+  icr:
+    github: TechMagister/crystal-icr
+    branch: master
+
+  sentry:
+    github: TechMagister/sentry
+    branch: change_cli
+
+  micrate:
+    github: juanedi/micrate
+
+  shell-table:
+    github: jwaldrip/shell-table.cr
+    version: ~> 0.9.1
+
+  spinner:
+    github: elorest/spinner 
+
+development_dependencies:
+  pg:
+    github: will/crystal-pg
+
+  mysql:
+    github: crystal-lang/crystal-mysql
+
+  sqlite3:
+    github: crystal-lang/crystal-sqlite3
+
