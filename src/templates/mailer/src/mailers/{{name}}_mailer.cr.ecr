@@ -1,0 +1,17 @@
+require "quartz-mailer"
+
+class <%= @name.capitalize %>Mailer < Quartz::Mailer
+  def initialize
+    super()
+    from "from@example.com"
+  end
+
+  def deliver(<%= @fields.map{|f| "#{f.name} : #{f.cr_type}"}.join(", ") %>)
+    to "to@example.com"
+    subject "Example Subject"
+    body render("mailers/<%= @name %>_mailer.<%= @language %>", "mailer.<%= @language %>")
+    super()
+  end
+end
+
+

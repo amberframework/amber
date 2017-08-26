@@ -1,0 +1,13 @@
+require "granite_orm/adapter/<%= @database %>"
+
+class <%= @name.capitalize %> < Granite::ORM 
+  adapter <%= @database %>
+
+  # id : Int64 primary key is created for you
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
+  field <%= field.name %> : <%= field.cr_type %>
+<% end -%>
+<% if @database != "sqlite" -%>
+  timestamps
+<% end -%>
+end
