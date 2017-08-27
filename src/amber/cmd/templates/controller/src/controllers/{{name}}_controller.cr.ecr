@@ -1,8 +1,8 @@
 class <%= @name.capitalize %>Controller < ApplicationController 
-<% @fields.each do |field| -%>
+<% @actions.each do |action, verb| -%>
 
-  def <%= field.name %>
-    render("<%= field.name %>.<%= @language %>")
+  def <%= action %>
+    render("<%= action %>.<%= @language %>")
   end
 <% end -%>
 end

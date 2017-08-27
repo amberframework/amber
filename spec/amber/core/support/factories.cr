@@ -1,4 +1,4 @@
-require "../../src/amber/core/*"
+require "../../../../src/amber/core/*"
 
 class HelloController < Amber::Controller::Base
   @total : Int32 = 0

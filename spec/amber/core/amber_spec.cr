@@ -1,4 +1,4 @@
-require "./spec_helper"
+require "../../spec_helper"
 
 describe Amber do
   describe "Running the server" do
