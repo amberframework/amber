@@ -6,14 +6,22 @@ module Amber::CMD
     directory "#{__DIR__}/controller"
 
     @name : String
-    @fields : Array(Field)
+    @actions = Hash(String, String).new
     @language : String
 
-    def initialize(@name, fields)
+    def initialize(@name, actions)
       @language = language
-      @fields = fields.map { |field| Field.new(field) }
+      parse_actions(actions)
       add_route
       add_views
+    end
+
+    def parse_actions(actions)
+      actions.each do |action|
+        next unless action.size > 0
+        split_action = action.split(":")
+        @actions[split_action.first] = split_action[1]? || "get"
+      end
     end
 
     def language
@@ -30,15 +38,15 @@ module Amber::CMD
       routes = File.read("./config/routes.cr")
       replacement = <<-ROUTE
       routes :web do
-          #{@fields.map(&.name).map { |f| %Q(get "/#{@name}/#{f}", #{@name.capitalize}Controller, :#{f}) }.join("\n    ")}
+          #{@actions.map { |action, verb| %Q(#{verb} "/#{@name}/#{action}", #{@name.capitalize}Controller, :#{action}) }.join("\n    ")}
       ROUTE
       File.write("./config/routes.cr", routes.gsub("routes :web do", replacement))
     end
 
     def add_views
-      @fields.each do |f|
+      @actions.each do |action, verb|
         `mkdir -p src/views/#{@name}`
-        `touch src/views/#{@name}/#{f.name}.#{language}`
+        `touch src/views/#{@name}/#{action}.#{language}`
       end
     end
   end
