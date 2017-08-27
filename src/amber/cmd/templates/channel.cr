@@ -4,8 +4,8 @@ module Amber::CMD
   class WebSocketChannel < Teeplate::FileTree
     directory "#{__DIR__}/channel"
     @name : String
-    def initialize(@name)
 
+    def initialize(@name)
     end
   end
 end

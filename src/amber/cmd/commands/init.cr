@@ -1,5 +1,3 @@
-require "../../templates/template"
-
 module Amber::CMD
   class MainCommand < Cli::Supercommand
     command "n", aliased: "new"

@@ -220,51 +220,51 @@ describe HTTP::Server::Context do
   end
 
   describe "#client_ip" do
-	HTTP::Server::Context::IP_ADDRESS_HEADERS.each do |header|
-	  it "gets client ip from #{header} headers" do
-		ip_address = "102.168.35.88"
-		headers = HTTP::Headers.new
-		headers[header] = ip_address
-		request = HTTP::Request.new("GET", "/", headers)
-		context = create_context(request)
-		context.client_ip.should eq ip_address
-	  end
+    HTTP::Server::Context::IP_ADDRESS_HEADERS.each do |header|
+      it "gets client ip from #{header} headers" do
+        ip_address = "102.168.35.88"
+        headers = HTTP::Headers.new
+        headers[header] = ip_address
+        request = HTTP::Request.new("GET", "/", headers)
+        context = create_context(request)
+        context.client_ip.should eq ip_address
+      end
 
-	  it "gets client ip from #{header} headers" do
-		ip_address = "102.168.35.88"
-		headers = HTTP::Headers.new
-		headers[header.tr("_", "-")] = ip_address
-		request = HTTP::Request.new("GET", "/", headers)
-		context = create_context(request)
-		context.client_ip.should eq ip_address
-	  end
+      it "gets client ip from #{header} headers" do
+        ip_address = "102.168.35.88"
+        headers = HTTP::Headers.new
+        headers[header.tr("_", "-")] = ip_address
+        request = HTTP::Request.new("GET", "/", headers)
+        context = create_context(request)
+        context.client_ip.should eq ip_address
+      end
 
-	  it "gets client ip from #{header} headers" do
-		ip_address = "102.168.35.88"
-		headers = HTTP::Headers.new
-		headers["HTTP_#{header}"] = ip_address
-		request = HTTP::Request.new("GET", "/", headers)
-		context = create_context(request)
-		context.client_ip.should eq ip_address
-	  end
+      it "gets client ip from #{header} headers" do
+        ip_address = "102.168.35.88"
+        headers = HTTP::Headers.new
+        headers["HTTP_#{header}"] = ip_address
+        request = HTTP::Request.new("GET", "/", headers)
+        context = create_context(request)
+        context.client_ip.should eq ip_address
+      end
 
-	  it "gets client ip from #{header} headers" do
-		ip_address = "102.168.35.88"
-		headers = HTTP::Headers.new
-		headers["Http-#{header}"] = ip_address
-		request = HTTP::Request.new("GET", "/", headers)
-		context = create_context(request)
-		context.client_ip.should eq ip_address
-	  end
+      it "gets client ip from #{header} headers" do
+        ip_address = "102.168.35.88"
+        headers = HTTP::Headers.new
+        headers["Http-#{header}"] = ip_address
+        request = HTTP::Request.new("GET", "/", headers)
+        context = create_context(request)
+        context.client_ip.should eq ip_address
+      end
 
-	  it "gets client ip from #{header} headers" do
-		ip_address = "102.168.35.88"
-		headers = HTTP::Headers.new
-		headers["HTTP-#{header}"] = ip_address
-		request = HTTP::Request.new("GET", "/", headers)
-		context = create_context(request)
-		context.client_ip.should eq ip_address
-	  end
-	end
+      it "gets client ip from #{header} headers" do
+        ip_address = "102.168.35.88"
+        headers = HTTP::Headers.new
+        headers["HTTP-#{header}"] = ip_address
+        request = HTTP::Request.new("GET", "/", headers)
+        context = create_context(request)
+        context.client_ip.should eq ip_address
+      end
+    end
   end
 end
