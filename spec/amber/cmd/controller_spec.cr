@@ -25,12 +25,12 @@ begin
 
         CONT
 
-        File.read("src/controllers/animal_controller.cr").should eq expected 
+        File.read("src/controllers/animal_controller.cr").should eq expected
       end
 
       it "should generate routes with correct verbs and actions" do
         expected = ["post \"/animal/add\", AnimalController, :add\n    get \"/animal/list\", AnimalController, :list\n    delete \"/animal/remove\""]
-        File.read("config/routes.cr").scan(expected.first).should eq expected 
+        File.read("config/routes.cr").scan(expected.first).should eq expected
       end
     end
   end
