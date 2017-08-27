@@ -1,7 +1,4 @@
 require "micrate"
-require "pg"
-require "mysql"
-require "sqlite3"
 
 module Amber::CMD
   class MainCommand < Cli::Supercommand
