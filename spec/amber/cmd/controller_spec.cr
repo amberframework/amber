@@ -9,7 +9,6 @@ begin
         Amber::CMD::MainCommand.run ["generate", "controller", "Animal", "add:post", "list:get", "remove:delete"]
         expected = <<-CONT
         class AnimalController < ApplicationController 
-
           def add
             render("add.slang")
           end
