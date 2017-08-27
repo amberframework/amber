@@ -6,7 +6,7 @@ require "secure_random"
 require "kilt"
 require "kilt/slang"
 require "redis"
-require "./amber/**"
+require "./amber/core/**"
 
 module Amber
   class Server

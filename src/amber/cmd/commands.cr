@@ -1,8 +1,9 @@
 AMBER_YML    = ".amber.yml"
 DATABASE_YML = "config/database.yml"
 
-require "./version"
+require "../version"
 require "./commands/*"
+require "./templates/template"
 
 module Amber::CMD
   class MainCommand < Cli::Supercommand
@@ -24,7 +25,7 @@ module Amber::CMD
 
         Usage:
         amber new [app_name] -d [pg | mysql | sqlite] -t [slang | ecr] --deps
-        EOS
+      EOS
 
       footer <<-EOS
       Example:
