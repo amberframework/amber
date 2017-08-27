@@ -84,7 +84,6 @@ module Amber::CMD
         end
       end
 
-
       def database_url
         ENV["DATABASE_URL"]? || begin
           yaml_file = File.read("config/database.yml")
@@ -99,7 +98,7 @@ module Amber::CMD
         regex = /\$\{(.*?)\}/
         if regex.match(url)
           url = url.gsub(regex) do |match|
-            ENV[match.gsub("${","").gsub("}","")]
+            ENV[match.gsub("${", "").gsub("}", "")]
           end
         else
           return url
@@ -108,4 +107,3 @@ module Amber::CMD
     end
   end
 end
-

@@ -8,7 +8,6 @@ module Amber::CMD
     @fields : Array(String)
 
     def initialize(@name, @fields)
-
     end
   end
 end
