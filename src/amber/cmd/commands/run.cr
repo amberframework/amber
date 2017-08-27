@@ -25,7 +25,7 @@ module Amber::CMD
         Process.run(
           "PORT=#{options.p} AMBER_ENV=#{options.e} ./app",
           shell: true, output: true, error: true
-         )
+        )
       end
     end
   end
