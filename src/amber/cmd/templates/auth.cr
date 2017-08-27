@@ -86,4 +86,3 @@ module Amber::CMD
     end
   end
 end
-
