@@ -1,8 +1,12 @@
 class <%= @name.capitalize %>Controller < ApplicationController 
-<% @actions.each do |action, verb| -%>
-
-  def <%= action %>
-    render("<%= action %>.<%= @language %>")
+<%= 
+  actions = @actions.map do |action, verb| 
+    <<-ACTION
+      def #{action}
+        render("#{action}.#{@language}")
+      end
+    ACTION
   end
-<% end -%>
+  actions.join("\n\n") if actions
+%>
 end
