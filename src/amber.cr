@@ -6,6 +6,7 @@ require "secure_random"
 require "kilt"
 require "kilt/slang"
 require "redis"
+require "./amber/version"
 require "./amber/core/**"
 
 module Amber
@@ -76,7 +77,7 @@ module Amber
 
     def start
       time = Time.now
-      log.info "#{version} serving application \"#{name}\" at #{host}".to_s
+      log.info "#{version} serving application \"#{name}\" at #{host_url}".to_s
 
       handler.prepare_pipelines
 
@@ -118,7 +119,7 @@ module Amber
       "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
     end
 
-    private def host
+    private def host_url
       "#{scheme}://#{host}:#{port}".colorize(:light_cyan).underline
     end
 
