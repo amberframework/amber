@@ -59,7 +59,6 @@ dependencies:
   spinner:
     github: elorest/spinner 
 
-development_dependencies:
   pg:
     github: will/crystal-pg
 
