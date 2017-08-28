@@ -52,10 +52,6 @@ class HTTP::Server::Context
     @flash ||= Amber::Router::Flash.from_session_value(session.fetch(Amber::Pipe::Flash::PARAM_KEY, "{}"))
   end
 
-  def invalid_route?
-    !route.payload? && !router.socket_route_defined?(@request)
-  end
-
   def websocket?
     request.headers["Upgrade"]? == "websocket"
   end
@@ -108,6 +104,15 @@ class HTTP::Server::Context
       val = headers[header]? || headers[dashed_header]? || headers["HTTP_#{header}"]? || headers["Http-#{dashed_header}"]?
     }
     val
+  end
+
+  def halt!(status_code : Int32 = 200, @content = "")
+    response.headers["Content-Type"] = "text/plain"
+    response.status_code = status_code
+  end
+
+  protected def invalid_route?
+    !route.payload? && !router.socket_route_defined?(@request)
   end
 
   protected def process_websocket_request
