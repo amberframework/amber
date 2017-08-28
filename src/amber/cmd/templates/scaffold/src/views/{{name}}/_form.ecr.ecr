@@ -23,7 +23,7 @@
 <% when "boolean" -%>
     <div class="checkbox">
       <%="<"%>%= label(<%=":#{field.name}"%>) -%>
-      <%="<"%>%= check_box(<%=":#{field.name}, checked=#{@name}.#{field.name}.to_s == \"1\""%>) -%>
+      <%="<"%>%= check_box(<%=":#{field.name}, checked: #{@name}.#{field.name}.to_s == \"1\""%>) -%>
     </div>
 <% else -%>
     <%="<"%>%= text_field(name: "<%= field.name %>", value: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control") -%>
