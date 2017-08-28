@@ -31,7 +31,7 @@ services:
   migrate:
     build: .
     image: <%= @name %>
-    command: bash -c '<%= @wait_for %>amber migrate up'
+    command: bash -c '<%= @wait_for %>amber db migrate seed'
     working_dir: /app/local
     environment:
       DATABASE_URL: <%= @db_url %>
