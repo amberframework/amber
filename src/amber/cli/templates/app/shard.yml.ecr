@@ -1,0 +1,51 @@
+name: <%= @name %>
+version: 0.1.0
+
+authors:
+  - Amber <contact@ambercr.io>
+
+crystal: <%= Crystal::VERSION %>
+
+license: UNLICENSED
+
+targets:
+  <%= @name %>:
+    main: src/<%= @name %>.cr
+
+  amber:
+    main: lib/amber/src/amber/cli.cr
+
+development_dependencies:
+  amber_spec:
+    github: amber-crystal/amber-spec
+
+dependencies:
+  amber:
+    github: amber-crystal/amber
+
+  quartz-mailer:
+    github: amber-crystal/quartz-mailer
+
+  granite_orm:
+    github: amber-crystal/granite-orm
+
+  jasper_helpers:
+    github: amber-crystal/jasper-helpers
+
+<% case @database when "pg" -%>
+  pg:
+    github: will/crystal-pg
+<% when "mysql" -%>
+  mysql:
+    github: crystal-lang/crystal-mysql
+<% when "sqlite" -%>
+  sqlite3:
+    github: crystal-lang/crystal-sqlite3
+<% end -%>
+
+#  mysql:
+#    github: crystal-lang/crystal-mysql
+#  pg:
+#    github: will/crystal-pg
+#  sqlite3:
+#    github: crystal-lang/crystal-sqlite3
