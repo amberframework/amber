@@ -6,11 +6,19 @@ require "secure_random"
 require "kilt"
 require "kilt/slang"
 require "redis"
-require "./amber/version"
-require "./amber/core/**"
+require "./amber/controller/**"
+require "./amber/dsl/**"
+require "./amber/exceptions/**"
+require "./amber/extensions/**"
+require "./amber/router/**"
+require "./amber/server/**"
+require "./amber/validations/**"
+require "./amber/websockets/**"
 
 module Amber
   class Server
+    include Amber::DSL::Server
+
     alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
 
     property port_reuse = true
@@ -103,18 +111,6 @@ module Amber
       WebSockets::Server.create_endpoint(path, app_socket)
     end
 
-    macro routes(valve, scope = "")
-      router.draw {{valve}}, {{scope}} do
-        {{yield}}
-      end
-    end
-
-    macro pipeline(valve)
-      handler.build {{valve}} do
-        {{yield}}
-      end
-    end
-
     private def version
       "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
     end
@@ -137,21 +133,6 @@ module Amber
 
     private def router
       @router ||= Router::Router.instance
-    end
-  end
-
-  class Cluster
-    def self.fork(env : Hash)
-      env["FORKED"] = "1"
-      Process.fork { Process.run(PROGRAM_NAME, nil, env, true, false, true, true, true, nil) }
-    end
-
-    def self.master?
-      (ENV["FORKED"]? || "0") == "0"
-    end
-
-    def self.worker?
-      (ENV["FORKED"]? || "0") == "1"
     end
   end
 end
