@@ -1,4 +1,4 @@
 require "cli"
-require "./commands"
+require "./cli/commands"
 require "./version"
 Amber::CLI::MainCommand.run ARGV
