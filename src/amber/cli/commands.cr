@@ -1,4 +1,4 @@
-require "../amber/version"
+require "../version"
 require "./commands/*"
 require "./templates/template"
 
