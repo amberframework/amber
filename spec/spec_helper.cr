@@ -1,18 +1,21 @@
 require "http"
 require "spec"
 require "../src/amber"
-require "../src/amber/cmd/commands"
-require "./amber/core/support/**"
-require "./amber/core/controller/*"
+require "../src/amber/cli/commands"
+require "./amber/controller/*"
+require "./support/**"
 
-TESTING_APP  = "./testapp"
-APP_TPL_PATH = "./src/amber/cmd/templates/app"
+TEST_PATH    = "spec/support/sample"
+PUBLIC_PATH  = TEST_PATH + "/public"
+VIEWS_PATH   = TEST_PATH + "/views"
+TESTING_APP  = "./test_app"
+APP_TPL_PATH = "./src/amber/cli/templates/app"
 CURRENT_DIR  = Dir.current
 
-module Amber::CMD::Spec
+module Amber::CLI::Spec
   def self.cleanup
     puts "cleaning up..."
-    Dir.cd(CURRENT_DIR)
+    Dir.cd CURRENT_DIR
     `rm -rf #{TESTING_APP}`
   end
 end
