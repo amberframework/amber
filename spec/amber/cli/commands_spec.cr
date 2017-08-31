@@ -38,6 +38,8 @@ module Amber::CLI
         MainCommand.run ["new", TESTING_APP, "--deps"]
         Dir.cd(TESTING_APP)
         MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
+		`rm ./shard.yml`
+		`cp ../spec/support/sample/test_shard.yml ./shard.yml`
         `shards build`
         `crystal spec`
 
@@ -96,3 +98,4 @@ end
 def shard_yml
   YAML.parse(File.read("#{TESTING_APP}/shard.yml"))
 end
+
