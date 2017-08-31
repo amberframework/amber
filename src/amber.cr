@@ -55,8 +55,8 @@ module Amber
       end
 
       settings.log.info "Server started in #{settings.env.colorize(:yellow)}.".to_s
-      server.listen(settings.port_reuse)
       settings.log.info "Startup Time #{Time.now - time}\n\n".colorize(:white).to_s
+      server.listen(settings.port_reuse)
     end
 
     def socket_endpoint(path, app_socket)

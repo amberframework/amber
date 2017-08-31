@@ -3,8 +3,8 @@ module Amber
     include Amber::DSL::Server
     alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
     class_property port_reuse = true
-    class_property handler = Pipe::Pipeline.new
-    class_property router = Router::Router.new
+    class_getter handler = Pipe::Pipeline.new
+    class_getter router = Router::Router.new
     class_property port = 8080
     class_property process_count = 1
     class_property name = "amber_project"

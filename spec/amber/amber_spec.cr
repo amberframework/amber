@@ -12,12 +12,12 @@ describe Amber::Server do
         server.secret = "some secret key"
       end
 
-      server = Amber::Server
+      settings = Amber::Server.settings
 
-      server.settings.name.should eq "Hello World App"
-      server.settings.port.should eq 8080
-      server.settings.env.should eq "development"
-      server.settings.secret.should eq "some secret key"
+      settings.name.should eq "Hello World App"
+      settings.port.should eq 8080
+      settings.env.should eq "development"
+      settings.secret.should eq "some secret key"
     end
   end
 end
