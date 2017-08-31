@@ -34,12 +34,12 @@ module Amber::CLI
         shard_yml["dependencies"]["sqlite3"].should_not be_nil
       end
 
-      it "require files in the right order and compile" do
+      it "generates and builds the generated app" do
         MainCommand.run ["new", TESTING_APP, "--deps"]
+		`rm #{TESTING_APP}/shard.yml`
+		`cp ../spec/support/sample/test_shard.yml #{TESTING_APP}/shard.yml`
         Dir.cd(TESTING_APP)
         MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
-		`rm ./shard.yml`
-		`cp ../spec/support/sample/test_shard.yml ./shard.yml`
         `shards build`
         `crystal spec`
 
