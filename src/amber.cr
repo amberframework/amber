@@ -18,7 +18,6 @@ require "./amber/websockets/**"
 
 module Amber
   class Server
-    include Amber::DSL
     include Amber::Configuration
 
     def initialize
@@ -30,8 +29,7 @@ module Amber
     end
 
     def run
-      ENV["PROCESS_COUNT"] ||= "1"
-      thread_count = ENV["PROCESS_COUNT"].to_i
+      thread_count = settings.process_count
       if Cluster.master? && thread_count > 1
         while (thread_count > 0)
           Cluster.fork ({"id" => thread_count.to_s})
@@ -45,22 +43,20 @@ module Amber
 
     def start
       time = Time.now
-      log.info "#{version} serving application \"#{settings.name}\" at #{host_url}".to_s
-
-      handler.prepare_pipelines
-
-      server = HTTP::Server.new(settings.host, settings.port, handler)
+      settings.log.info "#{version} serving application \"#{settings.name}\" at #{host_url}".to_s
+      settings.handler.prepare_pipelines
+      server = HTTP::Server.new(settings.host, settings.port, settings.handler)
       server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
 
       Signal::INT.trap do
-        log.info "Shutting down Amber"
+        settings.log.info "Shutting down Amber"
         server.close
         exit
       end
 
-      log.info "Server started in #{env.colorize(:yellow)}.".to_s
-      server.listen(port_reuse)
-      log.info "Startup Time #{Time.now - time}\n\n".colorize(:white).to_s
+      settings.log.info "Server started in #{settings.env.colorize(:yellow)}.".to_s
+      server.listen(settings.port_reuse)
+      settings.log.info "Startup Time #{Time.now - time}\n\n".colorize(:white).to_s
     end
 
     def socket_endpoint(path, app_socket)
@@ -72,7 +68,7 @@ module Amber
     end
 
     private def host_url
-      "#{scheme}://#{host}:#{port}".colorize(:light_cyan).underline
+      "#{scheme}://#{settings.host}:#{settings.port}".colorize(:light_cyan).underline
     end
 
     private def ssl_enabled?
@@ -81,14 +77,6 @@ module Amber
 
     private def scheme
       ssl_enabled? ? "https" : "http"
-    end
-
-    private def handler
-      @handler ||= Pipe::Pipeline.new
-    end
-
-    private def router
-      @router ||= Router::Router.instance
     end
   end
 end

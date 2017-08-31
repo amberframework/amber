@@ -26,7 +26,7 @@ module Amber
       end
 
       def self.start
-        settings.run
+        instance.run
       end
 
       def self.log
@@ -35,6 +35,10 @@ module Amber
 
       def self.pubsub_adapter
         settings.pubsub_adapter.instance
+      end
+
+      def self.router
+        settings.router
       end
 
       def self.redis_url
