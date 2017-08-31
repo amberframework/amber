@@ -15,6 +15,14 @@ services:
   web:
     build: .
     image: <%= @name %>
+    command: bash -c 'npm install && npm run watch'
+    working_dir: /app/local
+    volumes:
+      - '.:/app/local'
+
+  app:
+    build: .
+    image: <%= @name %>
     command: 'amber watch'
     working_dir: /app/local
     environment:
