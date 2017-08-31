@@ -149,16 +149,16 @@ This will generate scaffolding for a Post:
 ## Running App Locally
 To test the generated App locally:
 
-1. Create a new Postgres or Mysql database called `[your_app]_development`
-2. Configure your database in one of the following ways.
+1. Make sure your app has the right credentials via the following methods: 
   * Add it in `config/database.yml`
+  or
   * Run `export DATABASE_URL=postgres://[username]:[password]@localhost:5432/[your_app]_development`
     which overrides the `config/database.yml`.
-3. Migrate the database: `amber migrate up`. You should see output like
+2. Migrate the database: `amber db create migrate`. You should see output like
     `Migrating db, current version: 0, target: [datetimestamp]OK   [datetimestamp]_create_shop.sql`
-4. Run the specs: `crystal spec`
-5. Start your app: `amber watch`
-6. Then visit `http://0.0.0.0:3000/`
+3. Run the specs: `crystal spec`
+4. Start your app: `amber watch`
+5. Then visit `http://0.0.0.0:3000/`
 
 Note: The `amber watch` command uses [Sentry](https://github.com/samueleaton/sentry) to watch for any changes in your source files, recompiling automatically.
 
