@@ -38,11 +38,12 @@ module Amber::CLI
         MainCommand.run ["new", TESTING_APP, "--deps"]
         Dir.cd(TESTING_APP)
         MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
-		`rm ./shard.yml`
-		`cp ../spec/support/sample/test_shard.yml ./shard.yml`
+        `sed -i '24s/github/path/g' shard.yml`
+        `sed -i '24s/amber-crystal/../g' ./shard.yml`
+        `sed -i '24s/amber//g' ./shard.yml`
+        puts "Done! Setting amber context to Test"
         `shards build`
         `crystal spec`
-		p Dir.current
 
         File.exists?("bin/#{TESTING_APP}").should be_true
       end
@@ -99,4 +100,3 @@ end
 def shard_yml
   YAML.parse(File.read("#{TESTING_APP}/shard.yml"))
 end
-
