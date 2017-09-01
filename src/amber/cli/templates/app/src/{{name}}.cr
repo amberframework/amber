@@ -8,4 +8,4 @@ require "./handlers/**"
 require "./controllers/application_controller"
 require "./controllers/**"
 
-Amber::Server.instance.run
+Amber::Server.start

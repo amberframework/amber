@@ -7,10 +7,6 @@ module Amber
     class Router
       property :routes
 
-      def self.instance
-        @@instance ||= new
-      end
-
       def initialize
         @routes = Radix::Tree(Route).new
         @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new

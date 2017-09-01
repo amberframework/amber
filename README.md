@@ -24,7 +24,7 @@ Documentation https://amber-crystal.gitbooks.io/amber/content/
 Latest Results **968,824.35 requests per second: 32 cores at 2.7Ghz**
 
 ```bash
-ubuntu@ip-172-31-0-70:~/bench⟫ wrk -d 60 -t 20 -c 1015 http://localhost:3000                                      
+ubuntu@ip-172-31-0-70:~/bench⟫ wrk -d 60 -t 20 -c 1015 http://localhost:3000
 Running 1m test @ http://localhost:3000
   20 threads and 1015 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
@@ -47,6 +47,7 @@ Ensure you have the necessary dependencies:
 - `crystal`: Follow the instructions to get `crystal` on this page: <https://crystal-lang.org/docs/installation/index.html>
 
 ##### For Debian & Ubuntu
+- These are necessary to compile the CLI:
 - `sudo apt-get build-essential libreadline-dev libsqlite3-dev libpq-dev libmysqlclient-dev libssl-dev`
 
 <!-- WIP: ##### For RedHat & CentOS
@@ -54,6 +55,7 @@ Ensure you have the necessary dependencies:
 - `sudo yum install readline-devel sqlite-devel openssl-devel libyaml-devel gc-devel libevent-devel` -->
 
 Once you have these dependencies, You can build the `amber` tool from source:
+
 
 ```shellsession
 $ git clone git@github.com:amber-crystal/amber.git
@@ -70,6 +72,7 @@ Best way to get `amber` on Mac OS X is via Homebrew:
 ```shellsession
 $ brew install amber-crystal/amber/amber
 ```
+
 
 Refer to [this link](https://brew.sh/) if you don't have homebrew installed.
 
