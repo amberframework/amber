@@ -4,7 +4,7 @@ module Amber
       extend self
 
       def create_endpoint(path, app_socket)
-        Amber::Server.instance.log.info "socket listening at #{path}"
+        Amber::Server.log.info "Socket listening at #{path}"
         Handler.new(path) do |socket, context|
           instance = app_socket.new(socket, context)
           socket.close && next unless instance.authorized?
@@ -23,7 +23,7 @@ module Amber
 
       class Handler < HTTP::WebSocketHandler
         def initialize(@path : String, &@proc : HTTP::WebSocket, HTTP::Server::Context -> Void)
-          Router::Router.instance.add_socket_route(@path, self)
+          Amber::Server.router.add_socket_route(@path, self)
         end
 
         def call(context)

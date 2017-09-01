@@ -19,7 +19,7 @@ module Amber
           pipeline = Pipeline.new
           request = HTTP::Request.new("GET", "/bad/route")
           pipeline.build :web { plug Amber::Pipe::Logger.new }
-          Router::Router.instance.draw :web { get "/valid/route", HelloController, :world }
+          Amber::Server.router.draw :web { get "/valid/route", HelloController, :world }
           create_request_and_return_io(pipeline, request).status_code.should eq 404
         end
 
@@ -27,7 +27,7 @@ module Amber
           pipeline = Pipeline.new
           request = HTTP::Request.new("GET", "/index/elias")
           pipeline.build :web { plug Amber::Pipe::Logger.new }
-          Router::Router.instance.draw :web { get "/index/:name", HelloController, :world }
+          Amber::Server.router.draw :web { get "/index/:name", HelloController, :world }
 
           pipeline.prepare_pipelines
           response = create_request_and_return_io(pipeline, request)
@@ -41,7 +41,7 @@ module Amber
           request = HTTP::Request.new("GET", "/hello")
           pipeline = Pipeline.new
           pipeline.build :web { plug Amber::Pipe::Logger.new }
-          Router::Router.instance.draw :web { get "/hello", HelloController, :index }
+          Amber::Server.router.draw :web { get "/hello", HelloController, :index }
 
           pipeline.prepare_pipelines
           response = create_request_and_return_io(pipeline, request)
@@ -53,7 +53,7 @@ module Amber
           request = HTTP::Request.new("PUT", "/hello/1")
           pipeline = Pipeline.new
           pipeline.build :web { plug Amber::Pipe::Logger.new }
-          Router::Router.instance.draw :web { put "/hello/:id", HelloController, :update }
+          Amber::Server.router.draw :web { put "/hello/:id", HelloController, :update }
 
           pipeline.prepare_pipelines
           response = create_request_and_return_io(pipeline, request)
@@ -65,7 +65,7 @@ module Amber
           request = HTTP::Request.new("PATCH", "/hello/1")
           pipeline = Pipeline.new
           pipeline.build :web { plug Amber::Pipe::Logger.new }
-          Router::Router.instance.draw :web { patch "/hello/:id", HelloController, :update }
+          Amber::Server.router.draw :web { patch "/hello/:id", HelloController, :update }
 
           pipeline.prepare_pipelines
           response = create_request_and_return_io(pipeline, request)
@@ -77,7 +77,7 @@ module Amber
           request = HTTP::Request.new("POST", "/hello")
           pipeline = Pipeline.new
           pipeline.build :web { plug Amber::Pipe::Logger.new }
-          Router::Router.instance.draw :web { post "/hello", HelloController, :create }
+          Amber::Server.router.draw :web { post "/hello", HelloController, :create }
 
           pipeline.prepare_pipelines
           response = create_request_and_return_io(pipeline, request)
@@ -89,7 +89,7 @@ module Amber
           request = HTTP::Request.new("DELETE", "/hello/1")
           pipeline = Pipeline.new
           pipeline.build :web { plug Amber::Pipe::Logger.new }
-          Router::Router.instance.draw :web { delete "/hello/:id", HelloController, :destroy }
+          Amber::Server.router.draw :web { delete "/hello/:id", HelloController, :destroy }
 
           pipeline.prepare_pipelines
           response = create_request_and_return_io(pipeline, request)

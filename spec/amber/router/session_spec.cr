@@ -4,7 +4,7 @@ module Amber::Router
   describe Session::Store do
     it "creates a cookie session store" do
       cookies = new_cookie_store
-      Amber::Server.instance.session = {
+      Amber::Server.settings.session = {
         :key     => "name.session",
         :store   => :cookie,
         :expires => 120,
@@ -18,7 +18,7 @@ module Amber::Router
 
     it "creates a redis session store" do
       cookies = new_cookie_store
-      Amber::Server.instance.session = {
+      Amber::Server.settings.session = {
         :key       => "name.session",
         :store     => :redis,
         :expires   => 120,
