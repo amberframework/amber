@@ -2,11 +2,12 @@ require "../../support/message_encryptor"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
-    command "enc", aliased: "encrypt_env"
+    command "e", aliased: "encrypt"
 
-    class EncryptEnv < ::Cli::Command
+    class Encrypt < ::Cli::Command
       class Options
         arg "env", desc: "environment file to encrypt", default: "production"
+        string ["-e", "--editor"], desc: "editor", default: "vim"
       end
 
       class Help
@@ -16,13 +17,19 @@ module Amber::CLI
       def run
         secret_key = ENV["AMBER_SECRET_KEY"]? || File.open(".amber_secret_key").gets_to_end.to_s
         env = ENV["AMBER_ENV"]? || args.env
+        encrypted_file = "./config/environments/.#{env}.enc"
+        unencrypted_file = "./config/environments/#{env}.yml"
+
         enc = Amber::Support::MessageEncryptor.new(secret_key.to_slice)
-        if File.exists?(fn = "./config/environments/#{env}.yml")
-          File.write("./config/environments/.#{env}.enc", enc.encrypt(File.read(fn)))
-          File.delete(fn)
-        elsif File.exists?(fn = "./config/environments/.#{env}.enc")
-          File.write("./config/environments/#{env}.yml", enc.decrypt(File.open(fn).gets_to_end.to_slice))
-          File.delete(fn)
+
+        if File.exists?(encrypted_file)
+          File.write(unencrypted_file, enc.decrypt(File.open(encrypted_file).gets_to_end.to_slice))
+          system("#{options.editor} #{unencrypted_file}")
+        end
+
+        if File.exists?(unencrypted_file)
+          File.write(encrypted_file, enc.encrypt(File.read(unencrypted_file)))
+          File.delete(unencrypted_file)
         else
           puts "Ooops! Your environment file doesn't exist!"
         end
