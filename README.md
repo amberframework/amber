@@ -50,6 +50,10 @@ Ensure you have the necessary dependencies:
 - These are necessary to compile the CLI:
 - `sudo apt-get build-essential libreadline-dev libsqlite3-dev libpq-dev libmysqlclient-dev libssl-dev`
 
+##### For ArchLinux & derivates
+- Install the CLI from [AUR package](https://aur.archlinux.org/packages/amber/). Dependencies are automatically installed.
+- `yaourt -S amber`
+
 <!-- WIP: ##### For RedHat & CentOS
 - `sudo yum groupinstall 'Development Tools' `
 - `sudo yum install readline-devel sqlite-devel openssl-devel libyaml-devel gc-devel libevent-devel` -->
