@@ -67,7 +67,7 @@ module Amber::Controller
 
     describe ".from_controller_action" do
       it "raises an error for invalid controller/action" do
-        router = Amber::Router::Router.instance
+        router = Amber::Server.router
         router.draw :web { put "/invalid/:id", HelloController, :edit }
         controller = build_controller
 
@@ -78,7 +78,7 @@ module Amber::Controller
 
       context "when scope is present" do
         it "redirects to the correct scoped location" do
-          router = Amber::Router::Router.instance
+          router = Amber::Server.router
           router.draw :web, "/scoped" { delete "/hello/:id", HelloController, :destroy }
           controller = build_controller
           redirector = Redirector.from_controller_action("hello", :destroy, params: {"id" => "5"})
@@ -93,7 +93,7 @@ module Amber::Controller
 
       context "with params" do
         it "redirects to correct location for given controller action" do
-          router = Amber::Router::Router.instance
+          router = Amber::Server.router
           router.draw :web { get "/fake/:id", HelloController, :show }
           controller = build_controller
           redirector = Redirector.from_controller_action("hello", :show, params: {"id" => "11"})
@@ -108,7 +108,7 @@ module Amber::Controller
 
       context "without params" do
         it "redirects to correct location for given controller action" do
-          router = Amber::Router::Router.instance
+          router = Amber::Server.router
           router.draw :web { get "/fake", HelloController, :index }
           controller = build_controller
           redirector = Redirector.from_controller_action("hello", :index)

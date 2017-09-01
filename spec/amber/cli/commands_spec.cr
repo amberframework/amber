@@ -34,10 +34,14 @@ module Amber::CLI
         shard_yml["dependencies"]["sqlite3"].should_not be_nil
       end
 
-      it "require files in the right order and compile" do
+      it "generates and compile generated app" do
         MainCommand.run ["new", TESTING_APP, "--deps"]
         Dir.cd(TESTING_APP)
         MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
+        `sed -i '24s/github/path/g' shard.yml`
+        `sed -i '24s/amber-crystal/../g' ./shard.yml`
+        `sed -i '24s/amber//g' ./shard.yml`
+        puts "Done! Setting amber context to Test"
         `shards build`
         `crystal spec`
 
