@@ -52,7 +52,7 @@ Use Amber badge ![Amber Framework](https://img.shields.io/badge/using-amber%20fr
 Latest Results **968,824.35 requests per second: 32 cores at 2.7Ghz**
 
 ```bash
-ubuntu@ip-172-31-0-70:~/bench⟫ wrk -d 60 -t 20 -c 1015 http://localhost:3000                                      
+ubuntu@ip-172-31-0-70:~/bench⟫ wrk -d 60 -t 20 -c 1015 http://localhost:3000
 Running 1m test @ http://localhost:3000
   20 threads and 1015 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
@@ -86,24 +86,22 @@ This is how an amber app is laid out. Manually building everything is not recomm
 *src/yourapp.cr*
 ```cr
 # Require your file structure.
- 
+
 require "amber"
 require "../config/*"
 require "./models/**"
 require "./mailers/**"
 require "./controllers/**"
 
-
 # Finally this is how you will bootup the server.
-Amber::Server.instance.run
+Amber::Server.start
 ```
 
 *config/application.cr*
 ```crystal
 # This line represents how you will define your application configuration.
-Amber::Server.instance.config do |app|
+Amber::Server.configure do |app|
   # Server options
-  app_path = __FILE__ # Do not change unless you understand what you are doing.
   app.name = "Hello World App" # A descriptive name for your app
   app.port = (ENV["PORT"] ||= "3000").to_i # Port you wish your app to run
   app.env = (ENV["AMBER_ENV"] ||= "development").colorize(:yellow).to_s
@@ -115,7 +113,7 @@ end
 
 *config/routes.cr*
 ```cr
-Amber::Server.instance.config do
+Amber::Server.configure do
   # Every Amber application needs to define a pipeline set of pipes
   # each pipeline allow a set of middleware transformations to be applied to
   # different sets of route, this give you granular control and explicitness
