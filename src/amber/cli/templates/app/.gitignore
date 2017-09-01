@@ -4,5 +4,5 @@
 /.crystal/
 /.shards/
 .env
-
-
+.amber_secret_key
+production.yml

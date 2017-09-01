@@ -1,5 +1,6 @@
 require "json"
 require "openssl/cipher"
+require "./message_verifier"
 
 module Amber::Support
   class MessageEncryptor
@@ -55,8 +56,6 @@ module Amber::Support
       decrypted_data.write cipher.update(data)
       decrypted_data.write cipher.final
       decrypted_data.to_slice
-    rescue OpenSSL::Cipher::Error
-      raise Exceptions::InvalidMessage.new
     end
 
     private def new_cipher
