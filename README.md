@@ -63,6 +63,10 @@ $ cd amber/
 $ make
 ```
 
+##### For ArchLinux & derivates
+- Install the CLI from [AUR package](https://aur.archlinux.org/packages/amber/). Dependencies are automatically installed.
+- `yaourt -S amber`
+
 You should now be able to run `amber` in the command line.
 
 #### Mac OS X
