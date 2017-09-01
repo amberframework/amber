@@ -17,35 +17,7 @@ Amber Crystal borrows concepts that already have been battle tested, successful,
 
 Documentation https://amber-crystal.gitbooks.io/amber/content/
 
-## Amber Philosophy H.R.T.
 
-*It's all about the community. Software development is a team sport!*
-
-It's not enough to be brilliant when you're alone in your programming lair. You are not going to change the world or delight millions of users by hiding and preparing your secret invention. We need to work with other members, we need to share our visions, divide the labor, learn from others, we need to be a team.
-
-**HUMILITY** We are not the center of the universe. You're neither omniscient nor infallible. You are open to self-improvement.
-
-**RESPECT** You genuinely care about others you work with. You treat them as human beings and appreciate their abilities and accomplishments.
-
-**TRUST** You believe others are competent and will do the right thing, and you are OK with letting them drive when appropriate.
-
-## Become a Contributor
-
-Contributing to Amber can be a rewarding way to learn, teach, and build experience in just about any skill you can imagine. You don’t have to become a lifelong contributor to enjoy participating in Amber.
-
-Amber is a community effort and we want You to be part of ours [Join Amber Community!](https://github.com/Amber-Crystal/amber/blob/master/.github/CONTRIBUTING.md)
-
-## Code of Conduct
-
-We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](CODE_OF_CONDUCT.md) guidelines for Amber.
-
-## Have a Amber based project?
-
-Use Amber badge ![Amber Framework](https://img.shields.io/badge/using-amber%20framework-orange.svg)
-
-```markdown
-[![Amber Framework](https://img.shields.io/badge/using-amber%20framework-orange.svg)](Your project url)
-```
 
 ## Benchmark
 
@@ -67,135 +39,176 @@ Transfer/sec:     68.37MB
 
 ## Installation
 
-Add this to your application's `shard.yml`:
+#### Linux
 
-```yaml
-dependencies:
-  amber:
-    github: Amber-Crystal/amber
+Ensure you have the necessary dependencies:
+
+- `git`: Use your platform specific package manager to install `git`
+- `crystal`: Follow the instructions to get `crystal` on this page: <https://crystal-lang.org/docs/installation/index.html>
+
+##### For Debian & Ubuntu
+- These are necessary to compile the CLI:
+- `sudo apt-get build-essential libreadline-dev libsqlite3-dev libpq-dev libmysqlclient-dev libssl-dev`
+
+<!-- WIP: ##### For RedHat & CentOS
+- `sudo yum groupinstall 'Development Tools' `
+- `sudo yum install readline-devel sqlite-devel openssl-devel libyaml-devel gc-devel libevent-devel` -->
+
+Once you have these dependencies, You can build the `amber` tool from source:
+
+
+```shellsession
+$ git clone git@github.com:amber-crystal/amber.git
+$ cd amber/
+$ make
+```
+
+You should now be able to run `amber` in the command line.
+
+#### Mac OS X
+
+Best way to get `amber` on Mac OS X is via Homebrew:
+
+```shellsession
+$ brew install amber-crystal/amber/amber
+```
+
+
+Refer to [this link](https://brew.sh/) if you don't have homebrew installed.
+
+## Commands
+
+```shell
+$ amber --help
+amber [OPTIONS] SUBCOMMAND
+
+Amber
+
+The `amber new` command creates a new Amber application with a default
+directory structure and configuration at the path you specify.
+
+You can specify extra command-line arguments to be used every time
+`amber new` runs in the .amber.yml configuration file in your project
+root directory
+
+Note that the arguments specified in the .amber.yml file does not affect the
+defaults values shown above in this help message.
+
+Usage:
+amber new [app_name] -d [pg | mysql | sqlite] -t [slang | ecr] --deps
+
+Commands:
+  amber c console                 # Starts a amber console   
+  amber g generate [SUBCOMMAND]   # Generate Amber classes
+  amber n new                     # Generate a new amber project
+  amber m migrate [SUBCOMMAND]    # Performs database migrations tasks
+  amber w watch                   # Starts amber server and rebuilds on file changes
+  amber routes                    # Prints the routes (In Development)
+  amber r run [OPTION]            # Compiles and runs your project. Options: [-p --port | -e -environment]
+
+Options:
+  -t, --template [name]           # Preconfigure for selected template engine. Options: slang | ecr
+  -d, --database [name]           # Preconfigure for selected database. Options: pg | mysql | sqlite
+  -h, --help                      # Describe available commands and usages
+  -v, --version                   # Prints Amber version
+  --deps                          # Installs project dependencies
+
+Example:
+  amber new ~/Code/Projects/weblog
+  This generates a skeletal Amber installation in ~/Code/Projects/weblog.
 ```
 
 ## Usage
 
-Please see [Installing Amber CLI from the Amber Book](https://amber-crystal.gitbooks.io/amber/content/getting-started/Installation/)
+```sh
+amber new [your_app] -d [pg | mysql | sqlite] -t [slang | ecr] --deps
+cd [your_app]
+```
+options: `-d` defaults to pg. `-t` defaults to slang. `--deps` will run `crystal deps` for you.
 
-## App Layout
+This will generate a traditional web application:
+ - **/config** - Application and HTTP::Handler config's goes here.  The database.yml and routes.cr are here.
+ - **/lib** - shards are installed here.
+ - **/public** - Default location for html/css/js files.  The static handler points to this directory.
+ - **/spec** - all the crystal specs go here.
+ - **/src** - all the source code goes here.
 
-This is how an amber app is laid out. Manually building everything is not recommended however!
-
-*src/yourapp.cr*
-```cr
-# Require your file structure.
-
-require "amber"
-require "../config/*"
-require "./models/**"
-require "./mailers/**"
-require "./controllers/**"
-
-# Finally this is how you will bootup the server.
-Amber::Server.start
+## Scaffolding
+Generate scaffolding for a resource:
+```sh
+amber generate scaffold Post name:string body:text draft:bool
 ```
 
-*config/application.cr*
-```crystal
-# This line represents how you will define your application configuration.
-Amber::Server.configure do |app|
-  # Server options
-  app.name = "Hello World App" # A descriptive name for your app
-  app.port = (ENV["PORT"] ||= "3000").to_i # Port you wish your app to run
-  app.env = (ENV["AMBER_ENV"] ||= "development").colorize(:yellow).to_s
-  app.log = ::Logger.new(STDOUT)
-  app.log.level = ::Logger::INFO
-end
+This will generate scaffolding for a Post:
+ - src/controllers/post_controller.cr
+ - src/models/post.cr
+ - src/views/post/*
+ - db/migrations/[datetimestamp]_create_post.sql
+ - spec/controllers/post_controller_spec.cr
+ - spec/models/post_spec.cr
+ - appends route to config/routes.cr
+ - appends navigation to src/layouts/_nav.slang
 
-```
+## Running App Locally
+To test the generated App locally:
 
-*config/routes.cr*
-```cr
-Amber::Server.configure do
-  # Every Amber application needs to define a pipeline set of pipes
-  # each pipeline allow a set of middleware transformations to be applied to
-  # different sets of route, this give you granular control and explicitness
-  # of which transformation to run for each of the app requests.
+1. Make sure your app has the right credentials via the following methods: 
+  * Add it in `config/database.yml`
+  or
+  * Run `export DATABASE_URL=postgres://[username]:[password]@localhost:5432/[your_app]_development`
+    which overrides the `config/database.yml`.
+2. Migrate the database: `amber db create migrate`. You should see output like
+    `Migrating db, current version: 0, target: [datetimestamp]OK   [datetimestamp]_create_shop.sql`
+3. Run the specs: `crystal spec`
+4. Start your app: `amber watch`
+5. Then visit `http://0.0.0.0:3000/`
 
-  # All api scoped routes will run these transformations
+Note: The `amber watch` command uses [Sentry](https://github.com/samueleaton/sentry) to watch for any changes in your source files, recompiling automatically.
 
-  pipeline :web do
-    # Plug is the method to use connect a pipe (middleware)
-    # A plug accepts an instance of HTTP::Handler
+If you don't want to use Sentry, you can compile and run manually:
 
-    plug Amber::Pipe::Logger.new
-    plug Amber::Pipe::Flash.new
-    plug Amber::Pipe::Session.new
-    plug Amber::Pipe::CSRF.new
-  end
+1. Build the app `crystal build --release src/[your_app].cr`
+2. Run with `./[your_app]`
+3. Visit `http://0.0.0.0:3000/`
 
-  # All static content will run these transformations
-  pipeline :static do
-    plug HTTP::StaticFileHandler.new("./public")
-    plug HTTP::CompressHandler.new
-  end
 
-  routes :static do
-    # Each route is defined as follow
-    # verb resource : String, controller : Symbol, action : Symbol
-    get "/*", StaticController, :index
-  end
+## Amber Philosophy H.R.T.
 
-  # This is how you define the routes for your application
-  # HTTP methods supported [GET, PATCH, POST, PUT, DELETE, OPTIONS]
-  # Read more about HTTP methods here
-  # (HTTP METHODS)[https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html]
-  routes :web do
-    # Each route is defined as follow
-    # verb, resources : String, controller : Symbol, action : Symbol,
-    get "/", HelloController, :world
-    get "/hello", HelloController, :world
-    get "/hello/:planet", HelloController, :world
-    get "/hello/template_demo/:name", HelloController, :template_demo
-  end
-end
-```
+*It's all about the community. Software development is a team sport!*
 
-*src/controllers/hello_controller.cr*
-```cr
-class HelloController < Amber::Controller::Base
-  def world
-    "Hello World"
-  end
+It's not enough to be brilliant when you're alone in your programming lair. You are not going to change the world or delight millions of users by hiding and preparing your secret invention. We need to work with other members, we need to share our visions, divide the labor, learn from others, we need to be a team.
 
-  def template_demo
-    render "template_demo.slang" # renders views/hello/template_demo.slang with layout views/layouts/application.slang
-  end
-end
-```
+**HUMILITY** We are not the center of the universe. You're neither omniscient nor infallible. You are open to self-improvement.
 
-*src/views/hello/template_demo.slang*
-```slim
-h1 Hey You!
-p
-  | Welcome to the Machine.
-```
+**RESPECT** You genuinely care about others you work with. You treat them as human beings and appreciate their abilities and accomplishments.
 
-*src/views/layouts/application.slang*
-```slim
-html
-  head
-    title A New Machine (Part 1)
-  body
-    == content
+**TRUST** You believe others are competent and will do the right thing, and you are OK with letting them drive when appropriate.
+
+## Code of Conduct
+
+We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](CODE_OF_CONDUCT.md) guidelines for Amber.
+
+## Have a Amber based project?
+
+Use Amber badge ![Amber Framework](https://img.shields.io/badge/using-amber%20framework-orange.svg)
+
+```markdown
+[![Amber Framework](https://img.shields.io/badge/using-amber%20framework-orange.svg)](Your project url)
 ```
 
 ## Contributing
 
-1. Fork it (https://github.com/Amber-Crystal/amber)
+Contributing to Amber can be a rewarding way to learn, teach, and build experience in just about any skill you can imagine. You don’t have to become a lifelong contributor to enjoy participating in Amber.
+
+Amber is a community effort and we want You to be part of ours [Join Amber Community!](https://github.com/Amber-Crystal/amber/blob/master/.github/CONTRIBUTING.md)
+
+1. Fork it ( https://github.com/amber-crystal/amber_cmd/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
 5. Create a new Pull Request
 
-## Contributors
+## Amber Core Team
 
 - [eliasjpr](https://github.com/eliasjpr) Elias Perez - Maintainer
 - [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
@@ -210,4 +223,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-* Inspired by Kemal, Rails, Phoenix
+* Inspired by Kemal, Rails, Phoenix, Hanami
