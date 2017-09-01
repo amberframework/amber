@@ -1,4 +1,5 @@
 require "teeplate"
+require "secure_random"
 require "./app"
 require "./scaffold"
 require "./model"

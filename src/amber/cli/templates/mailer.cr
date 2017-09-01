@@ -1,4 +1,3 @@
-require "teeplate"
 require "./field.cr"
 
 module Amber::CLI
