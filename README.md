@@ -18,7 +18,6 @@ Amber Crystal borrows concepts that already have been battle tested, successful,
 Documentation https://amber-crystal.gitbooks.io/amber/content/
 
 
-
 ## Benchmark
 
 Latest Results **968,824.35 requests per second: 32 cores at 2.7Ghz**
@@ -48,7 +47,7 @@ Ensure you have the necessary dependencies:
 
 ##### For Debian & Ubuntu
 - These are necessary to compile the CLI:
-- `sudo apt-get build-essential libreadline-dev libsqlite3-dev libpq-dev libmysqlclient-dev libssl-dev`
+- `sudo apt-get install build-essential libreadline-dev libsqlite3-dev libpq-dev libmysqlclient-dev libssl-dev`
 
 <!-- WIP: ##### For RedHat & CentOS
 - `sudo yum groupinstall 'Development Tools' `
@@ -190,7 +189,7 @@ It's not enough to be brilliant when you're alone in your programming lair. You 
 
 ## Code of Conduct
 
-We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](CODE_OF_CONDUCT.md) guidelines for Amber.
+We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) guidelines for Amber.
 
 ## Have a Amber based project?
 
