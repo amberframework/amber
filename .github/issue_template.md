@@ -3,13 +3,6 @@ Have you read Amber's Code of Conduct? By filing an Issue, you are expected to c
 Do you want to ask a question? Are you looking for support? The Amber message board is the best place for getting support: https://gitter.io/Amber-Crystal/Lobby
 -->
 
-### Prerequisites
-
-* [ ] Put an X between the brackets on this line if you have done all of the following:
-    * Reproduced the problem
-    * Checked that your issue isn't already filed: https://github.com/Amber-Crystal/amber/issues
-    * Checked that there is not already a Crystal Shard that provides the described functionality: http://crystalshards.xyz/
-
 ### Description
 
 [Description of the issue]
