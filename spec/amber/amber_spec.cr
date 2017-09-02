@@ -9,7 +9,7 @@ describe Amber::Server do
         server.env = "development"
         server.log = ::Logger.new(STDOUT)
         server.log.level = ::Logger::INFO
-        server.secret = "some secret key"
+        server.secret_key_base = "some secret key"
       end
 
       settings = Amber::Server.settings
@@ -17,7 +17,7 @@ describe Amber::Server do
       settings.name.should eq "Hello World App"
       settings.port.should eq 8080
       settings.env.should eq "development"
-      settings.secret.should eq "some secret key"
+      settings.secret_key_base.should eq "some secret key"
     end
   end
 end

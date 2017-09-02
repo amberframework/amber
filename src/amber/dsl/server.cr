@@ -12,6 +12,6 @@ module Amber::DSL::Server
   end
 
   macro load_environment
-    {{ run("../../environment/load_environment.cr") }}
+    {{ run("../environment/load_environment.cr") }}
   end
 end
