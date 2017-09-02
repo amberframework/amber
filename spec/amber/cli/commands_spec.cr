@@ -38,12 +38,9 @@ module Amber::CLI
         MainCommand.run ["new", TESTING_APP, "--deps"]
         Dir.cd(TESTING_APP)
         MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
-        `sed -i '24s/github/path/g' shard.yml`
-        `sed -i '24s/amber-crystal/../g' ./shard.yml`
-        `sed -i '24s/amber//g' ./shard.yml`
-        puts "Done! Setting amber context to Test"
+        prepare_yaml(Dir.current)
+        `rm shard.lock`
         `shards build`
-        `crystal spec`
 
         File.exists?("bin/#{TESTING_APP}").should be_true
       end
@@ -99,4 +96,10 @@ end
 
 def shard_yml
   YAML.parse(File.read("#{TESTING_APP}/shard.yml"))
+end
+
+def prepare_yaml(path)
+  shard = File.read("#{path}/shard.yml")
+  shard = shard.gsub(/github\:\samber\-crystal\/amber\n/, "path: ../")
+  File.write("#{path}/shard.yml", shard)
 end
