@@ -7,4 +7,11 @@ Amber::Server.configure do |setting|
   setting.env = (ENV["AMBER_ENV"] ||= "development").to_s
   setting.log = ::Logger.new(STDOUT)
   setting.log.level = ::Logger::INFO
+
+  setting.session = {
+    :key       => "<%= @name %>.session",
+    :store     => :signed_cookie,
+    :expires   => 0,
+    :secret    => "<%= SecureRandom.hex(64) %>"
+  }
 end
