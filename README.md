@@ -218,8 +218,6 @@ Amber is a community effort and we want You to be part of ours [Join Amber Commu
 - [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
 - [elorest](https://github.com/elorest) Isaac Sloan - Maintainer
 - [drujensen](https://github.com/drujensen) Dru Jensen - Maintainer
-- [bew](https://github.com/bew) Benoit de Chezelles - Member
-- [mixflame](https://github.com/mixflame) Jonathan Silverman - Member
 
 ## License
 
