@@ -6,4 +6,5 @@
 lib/
 .shards/
 /amber
+/tmp
 shard.lock

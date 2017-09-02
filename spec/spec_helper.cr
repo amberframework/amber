@@ -8,7 +8,7 @@ require "./support/**"
 TEST_PATH    = "spec/support/sample"
 PUBLIC_PATH  = TEST_PATH + "/public"
 VIEWS_PATH   = TEST_PATH + "/views"
-TESTING_APP  = "./test_app"
+TESTING_APP  = "./tmp/test_app"
 APP_TPL_PATH = "./src/amber/cli/templates/app"
 CURRENT_DIR  = Dir.current
 

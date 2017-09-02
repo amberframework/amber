@@ -33,18 +33,6 @@ module Amber::CLI
           Amber::CLI::Spec.shard_yml["dependencies"]["sqlite3"].should_not be_nil
           Amber::CLI::Spec.cleanup
         end
-
-        it "generates and compile generated app" do
-          MainCommand.run ["new", TESTING_APP, "--deps"]
-          Dir.cd(TESTING_APP)
-          MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
-          Amber::CLI::Spec.prepare_yaml(Dir.current)
-          `rm shard.lock`
-          `shards build`
-
-          File.exists?("bin/#{TESTING_APP}").should be_true
-          Amber::CLI::Spec.cleanup
-        end
       end
     end
   ensure

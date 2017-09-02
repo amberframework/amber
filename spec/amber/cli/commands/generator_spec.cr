@@ -3,6 +3,20 @@ require "../../../spec_helper"
 module Amber::CLI
   begin
     describe MainCommand::Generate do
+      context "scaffold" do
+        it "generates and compile generated app" do
+          MainCommand.run ["new", TESTING_APP, "--deps"]
+          Dir.cd(TESTING_APP)
+          MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
+          Amber::CLI::Spec.prepare_yaml(Dir.current)
+          `rm shard.lock`
+          `shards build`
+
+          File.exists?("bin/#{TESTING_APP}").should be_true
+          Amber::CLI::Spec.cleanup
+        end
+      end
+
       context "controllers" do
         it "should generate controller with correct verbs and actions" do
           MainCommand.run ["new", TESTING_APP]
