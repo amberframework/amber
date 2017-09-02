@@ -17,7 +17,7 @@ module Amber
     class_property ssl_cert_file : String? = nil
     class_property redis_url = ""
     class_property session = {
-      :key => "amber.session", :store => :signed_cookie, :expires => 0
+      :key => "amber.session", :store => :signed_cookie, :expires => 0,
     }
     class_getter key_generator = Amber::Support::CachingKeyGenerator.new(
       Amber::Support::KeyGenerator.new(@@secret_key_base.to_s, 5)
