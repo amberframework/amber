@@ -15,19 +15,15 @@ targets:
   amber:
     main: lib/amber/src/amber/cli.cr
 
-development_dependencies:
-  amber_spec:
-    github: amber-crystal/amber-spec
-
 dependencies:
   amber:
     github: amber-crystal/amber
 
-  quartz-mailer:
-    github: amber-crystal/quartz-mailer
-
   granite_orm:
     github: amber-crystal/granite-orm
+
+  quartz-mailer:
+    github: amber-crystal/quartz-mailer
 
   jasper_helpers:
     github: amber-crystal/jasper-helpers
@@ -42,10 +38,9 @@ dependencies:
   sqlite3:
     github: crystal-lang/crystal-sqlite3
 <% end -%>
+ 
+development_dependencies:
+  amber_spec:
+    github: amber-crystal/amber-spec
 
-#  mysql:
-#    github: crystal-lang/crystal-mysql
-#  pg:
-#    github: will/crystal-pg
-#  sqlite3:
-#    github: crystal-lang/crystal-sqlite3
+
