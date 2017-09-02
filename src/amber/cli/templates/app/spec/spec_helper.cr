@@ -1,5 +1,6 @@
 require "spec"
 require "amber"
+require "../src/controllers/application_controller"
 require "../src/controllers/**"
 require "../src/mailers/**"
 require "../src/models/**"
