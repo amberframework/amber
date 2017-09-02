@@ -31,7 +31,7 @@ class HTTP::Server::Context
   property route : Radix::Result(Amber::Route)
 
   def initialize(@request : HTTP::Request, @response : HTTP::Server::Response)
-    @router = Amber::Router::Router.instance
+    @router = Amber::Server.router
     parse_params
     override_request_method!
     @route = router.match_by_request(@request)

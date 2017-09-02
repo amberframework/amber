@@ -70,7 +70,7 @@ module Amber
 
       # Ensure the pubsub adpater instance exists, and set up the on_message proc callback
       protected def setup_pubsub_adapter
-        @@adapter = Amber::Server.instance.pubsub_adapter.instance
+        @@adapter = Amber::Server.pubsub_adapter
         @@adapter.not_nil!.on_message(@topic_path, ->(client_socket_id : String, message : JSON::Any) { self.on_message(client_socket_id, message); nil })
       end
     end
