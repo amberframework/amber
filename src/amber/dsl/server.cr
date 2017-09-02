@@ -10,8 +10,4 @@ module Amber::DSL::Server
       {{yield}}
     end
   end
-
-  macro load_environment
-    {{ run("../environment/load_environment.cr") }}
-  end
 end

@@ -10,11 +10,11 @@ module Amber
       end
 
       def self.settings
-        Settings
+        Settings.secrets
       end
 
       def settings
-        Settings
+        Settings.secrets
       end
 
       def self.key_generator

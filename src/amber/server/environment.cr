@@ -15,4 +15,8 @@ yml = if File.exists?(fn = "config/environments/#{environment}.yml")
         "env: #{environment}"
       end
 secrets = YAML.parse(yml)
+
+puts %(@@name = "#{secrets["name"] || "amber server"}")
+puts "@@port = #{secrets.delete("port")}" if secrets["port"]?
+puts "@@pubsub_adapter = WebSockets::Adapters::RedisAdapter"
 puts "class_property secrets = #{secrets.inspect.gsub(/(\"[^\"]+\") \=\>/) { "#{$1}:" }}"
