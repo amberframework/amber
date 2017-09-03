@@ -2,7 +2,7 @@ require "../../../../spec_helper"
 require "redis"
 
 module Amber::Router::Session
-  REDIS_STORE = Redis.new(url: ENV["REDIS_URL"]? || "redis://127.0.0.1:6379")
+  REDIS_STORE = Redis.new(url: Settings.redis_url)
 
   describe RedisStore do
     describe "#id" do

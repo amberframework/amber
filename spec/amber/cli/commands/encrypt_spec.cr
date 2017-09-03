@@ -9,7 +9,7 @@ module Amber::CLI
           Dir.exists?(TESTING_APP).should be_true
           Dir.cd(TESTING_APP)
           MainCommand.run ["encrypt"]
-          File.exists?("config/environments/.production.enc").should be_true
+          File.exists?("config/environments/.test.enc").should be_true
           File.read(".amber_secret_key").size.should eq 44 
           Amber::CLI::Spec.cleanup
         end

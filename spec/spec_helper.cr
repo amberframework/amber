@@ -1,16 +1,20 @@
-require "http"
-require "spec"
-require "../src/amber"
-require "../src/amber/cli/commands"
-require "./amber/controller/*"
-require "./support/**"
+# NOTE: Constants should be set before require begins.
 
+ENV["AMBER_ENV"] = "test"
+ENV["ENV_PATH"] = "./spec/support/config"
 TEST_PATH    = "spec/support/sample"
 PUBLIC_PATH  = TEST_PATH + "/public"
 VIEWS_PATH   = TEST_PATH + "/views"
 TESTING_APP  = "./tmp/test_app"
 APP_TPL_PATH = "./src/amber/cli/templates/app"
 CURRENT_DIR  = Dir.current
+
+require "http"
+require "spec"
+require "../src/amber"
+require "../src/amber/cli/commands"
+require "./amber/controller/*"
+require "./support/**"
 
 module Amber::CLI::Spec
   extend self

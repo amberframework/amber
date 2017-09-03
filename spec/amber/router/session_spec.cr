@@ -8,7 +8,6 @@ module Amber::Router
         :key     => "name.session",
         :store   => "cookie",
         :expires => "120",
-        :secret  => "secret",
       }
 
       store = Session::Store.new(cookies)

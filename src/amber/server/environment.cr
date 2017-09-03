@@ -3,13 +3,14 @@ require "secure_random"
 require "../support/message_encryptor"
 
 environment = ARGV[0]? || ENV["AMBER_ENV"]? || "development"
+env_path = ENV["AMBER_ENV_PATH"]? || "./config/environments" 
 secret_key = ENV["AMBER_SECRET_KEY"]? || begin
   File.open(".amber_secret_key").gets_to_end.to_s if File.exists?(".amber_secret_key")
 end
 
-yml = if File.exists?(fn = "config/environments/#{environment}.yml")
+yml = if File.exists?(fn = "#{env_path}/#{environment}.yml")
         File.read(fn)
-      elsif File.exists?(fn = "config/environments/.#{environment}.enc") && secret_key
+      elsif File.exists?(fn = "#{env_path}/.#{environment}.enc") && secret_key
         enc = Amber::Support::MessageEncryptor.new(secret_key.to_slice)
         String.new(enc.decrypt(File.open(fn).gets_to_end.to_slice))
       else
@@ -25,6 +26,7 @@ str = String.build do |s|
   s.puts %(@@name = "#{settings["name"]? || "Amber_App"}")
   s.puts %(@@port_reuse = #{settings["port_reuse"]? || true})
   s.puts %(@@log = #{settings["log"]? || "::Logger.new(STDOUT)"})
+  s.puts %(@@log.level = #{settings["log_level"]? || "::Logger::INFO"})
   s.puts %(@@process_count = #{settings["process_count"]? || 1})
   s.puts %(@@redis_url = "#{settings["redis_url"]? || ENV["REDIS_URL"]? || "redis://localhost:6379"}")
   s.puts %(@@port = #{settings["port"]? || 3000})
