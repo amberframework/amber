@@ -1,3 +1,7 @@
+require "./cluster"
+require "./configuration"
+require "./ssl"
+
 module Amber
   class Settings
     include Amber::DSL::Server
@@ -16,7 +20,8 @@ module Amber
     class_property ssl_key_file : String? = nil
     class_property ssl_cert_file : String? = nil
     class_property redis_url = "" 
-    class_property session : Hash(Symbol, String | Int32) 
+    class_property session : Hash(Symbol, String) 
+
     #loads settings from environment yaml
     {{ run("./environment.cr") }}
 

@@ -21,8 +21,8 @@ module Amber
         settings.key_generator
       end
 
-      def self.session
-        settings.session
+      def self.secret_key_base
+        settings.secret_key_base
       end
 
       def self.start

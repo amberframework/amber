@@ -1,5 +1,6 @@
 secret_key_base: <%= SecureRandom.urlsafe_base64(32) %>
 port: 3000
+log: "::Logger.new(STDOUT)"
 name: <%= @name %>
 host: 0.0.0.0
 ssl_key_file:
@@ -10,12 +11,12 @@ session:
   store: signed_cookie
   expires: 0
 secrets:
-  description: "Store your test secrets credentials and settings here."
-<% case @database
-   when "mysql" -%>
+  description: Store your test secrets credentials and settings here.
+<%case @database
+  when "mysql" -%>
   database: mysql://root@localhost:3306/<%= @name %>_development
-<% when "pg" -%>
-   database: postgres://postgres:@pg:5432/<%= @name %>_development
-<% when "sqlite" -%>
-   database: sqlite3:./db/<%= @name %>_development.db
-<% end -%>
+<%when "pg" -%>
+  database: postgres://postgres:@pg:5432/<%= @name %>_development
+<%when "sqlite" -%>
+  database: sqlite3:./db/<%= @name %>_development.db
+<%end -%>
