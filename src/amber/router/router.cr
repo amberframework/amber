@@ -5,7 +5,7 @@ module Amber
     # This is the main application handler all routers should finally hit this
     # handler.
     class Router
-      property :routes
+      property :routes, :socket_routes
 
       def initialize
         @routes = Radix::Tree(Route).new

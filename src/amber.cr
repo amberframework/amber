@@ -59,10 +59,6 @@ module Amber
       server.listen(settings.port_reuse)
     end
 
-    def socket_endpoint(path, app_socket)
-      WebSockets::Server.create_endpoint(path, app_socket)
-    end
-
     private def version
       "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
     end
