@@ -1,3 +1,3 @@
-import Amber from '../../../lib/amber/assets/js/amber.js'
+import Amber from 'amber'
 import '../stylesheets/main.scss';
 
