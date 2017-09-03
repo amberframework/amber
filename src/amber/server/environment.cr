@@ -14,9 +14,44 @@ yml = if File.exists?(fn = "config/environments/#{environment}.yml")
       else
         "env: #{environment}"
       end
-secrets = YAML.parse(yml)
 
-puts %(@@name = "#{secrets["name"] || "amber server"}")
-puts "@@port = #{secrets.delete("port")}" if secrets["port"]?
-puts "@@pubsub_adapter = WebSockets::Adapters::RedisAdapter"
-puts "class_property secrets = #{secrets.inspect.gsub(/(\"[^\"]+\") \=\>/) { "#{$1}:" }}"
+settings = YAML.parse(yml)
+
+str = String.build do |s|
+  # Most of this logic can be cleaned up by just requiring environment files to contain valid params.
+  # For now I have this here so that tests can still pass without having to load env files although they should.
+  # This is a transistion.
+  s.puts %(@@name = "#{settings["name"]? || "Amber_App"}")
+  s.puts %(@@port_reuse = #{settings["port_reuse"]? || true})
+  s.puts %(@@log_level = #{settings["log_level"]? || "::Logger.new(STDOUT)"})
+  s.puts %(@@process_count = #{settings["process_count"]? || 1})
+  s.puts %(@@redis_url = "#{settings["port"]?}")
+  s.puts %(@@port = #{settings["port"]? || 3000})
+  s.puts %(@@host = "#{settings["host"]? || "127.0.0.1"}")
+
+  if settings["secret_key_base"]?
+    s.puts %(@@secret_key_base = "#{settings["secret_key_base"]?}")
+  end
+
+  unless settings["ssl_key_file"]?.to_s.empty?
+    s.puts %(@@ssl_key_file = "#{settings["ssl_key_file"]?}")
+  end
+
+  unless settings["ssl_cert_file"]?.to_s.empty?
+    s.puts %(@@ssl_cert_file = "#{settings["ssl_cert_file"]?}")
+  end
+
+  if settings["session"]? && settings["session"].raw.is_a?(Hash(YAML::Type, YAML::Type))
+    s.puts %(@@session = "#{settings["session"].inspect.gsub(/(\"[^\"]+\" \=\>)/) { ":#{$1}".gsub("\"", "") }}")
+  else
+    s.puts %(@@session = {:key => "amber.session", :store => "signed_cookie", :expires => "0"})
+  end
+
+  if settings["secrets"]? && settings["secrets"].raw.is_a?(Hash(YAML::Type, YAML::Type))
+    s.puts "class_getter secrets = #{settings["secrets"].inspect.gsub(/(\"[^\"]+\") \=\>/) { "#{$1}:" }}"
+  else
+    s.puts %(class_getter secrets = {description: "Store your #{environment} secrets credentials and settings here."})
+  end
+end
+
+puts str
