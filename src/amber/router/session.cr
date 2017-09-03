@@ -12,7 +12,7 @@ module Amber::Router::Session
     end
 
     private def cookie_store
-      if store == :encrypted_cookie
+      if encrypted_cookie?
         cookies.encrypted
       else
         cookies.signed
@@ -24,9 +24,12 @@ module Amber::Router::Session
     end
 
     private def redis?
-      store == :redis
+      store == "redis"
     end
 
+    private def encrypted_cookie?
+      store == "encrypted_cookie"
+    end
     private def store
       session_config[:store]
     end
