@@ -1,8 +1,9 @@
 require "../../../../spec_helper"
 require "redis"
 
+# TODO: This test can't run on it's own because it needs the EXPIRES contant which is set elsewhere.
 module Amber::Router::Session
-  REDIS_STORE = Redis.new(url: ENV["REDIS_URL"]? || "redis://127.0.0.1:6379")
+  REDIS_STORE = Redis.new(url: Settings.redis_url)
 
   describe RedisStore do
     describe "#id" do

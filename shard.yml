@@ -14,7 +14,7 @@ license: MIT
 
 targets:
   amber:
-    main: src/amber_cmd.cr
+    main: src/amber/cli.cr
 
 dependencies:
   radix:

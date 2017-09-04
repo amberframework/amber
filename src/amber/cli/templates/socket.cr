@@ -1,5 +1,3 @@
-require "teeplate"
-
 module Amber::CLI
   class WebSocket < Teeplate::FileTree
     directory "#{__DIR__}/socket"

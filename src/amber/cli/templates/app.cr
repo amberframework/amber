@@ -1,5 +1,3 @@
-require "teeplate"
-
 module Amber::CLI
   class App < Teeplate::FileTree
     directory "#{__DIR__}/app"

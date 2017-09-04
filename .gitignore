@@ -1,15 +1,10 @@
 /doc/
-/lib/
 /bin/
 /.shards/
 /.vscode/
-/.github/
 .DS_Store
 lib/
 .shards/
 /amber
-shard.lock
-
-# Libraries don't need dependency lock
-# Dependencies will be locked in application that uses them
+/tmp
 shard.lock
