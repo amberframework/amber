@@ -1,7 +1,6 @@
 # NOTE: Constants should be set before require begins.
 
 ENV["AMBER_ENV"] = "test"
-ENV["AMBER_ENV_PATH"] = "./spec/support/config"
 TEST_PATH    = "spec/support/sample"
 PUBLIC_PATH  = TEST_PATH + "/public"
 VIEWS_PATH   = TEST_PATH + "/views"

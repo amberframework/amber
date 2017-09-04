@@ -3,7 +3,18 @@ require "secure_random"
 require "../support/message_encryptor"
 
 environment = ARGV[0]? || ENV["AMBER_ENV"]? || "development"
-env_path = ENV["AMBER_ENV_PATH"]? || "./config/environments" 
+
+#Override to make the code testable.
+#Eliminates the need for environment variables gettings set before tests
+env_path = begin
+  if File.exists?(fn = "./config/environments")
+    fn
+  else # if config/environments doesn't exist look in spec folder and set env to test 
+    environment = ARGV[0]? || "test"
+    "./spec/support/config"
+  end
+end
+
 secret_key = ENV["AMBER_SECRET_KEY"]? || begin
   File.open(".amber_secret_key").gets_to_end.to_s if File.exists?(".amber_secret_key")
 end
@@ -28,7 +39,7 @@ str = String.build do |s|
   s.puts %(@@process_count = #{settings["process_count"]? || 1})
   s.puts %(@@log = #{settings["log"]? || "::Logger.new(STDOUT)"})
   s.puts %(@@log.level = #{settings["log_level"]? || "::Logger::INFO"})
-  s.puts %(@@redis_url = "#{settings["redis_url"]? ||"redis://localhost:6379"}")
+  s.puts %(@@redis_url = "#{settings["redis_url"]? || "redis://localhost:6379"}")
   s.puts %(@@port = #{settings["port"]? || 3000})
   s.puts %(@@host = "#{settings["host"]? || "127.0.0.1"}")
   s.puts %(@@secret_key_base = "#{settings["secret_key_base"]? || SecureRandom.urlsafe_base64(32)}")
