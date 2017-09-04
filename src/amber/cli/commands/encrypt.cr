@@ -17,7 +17,7 @@ module Amber::CLI
 
       def run
         secret_key = ENV["AMBER_SECRET_KEY"]? || File.open(".amber_secret_key").gets_to_end.to_s
-        env =  args.env
+        env = args.env
         encrypted_file = "config/environments/.#{env}.enc"
         unencrypted_file = "config/environments/#{env}.yml"
 
@@ -32,7 +32,8 @@ module Amber::CLI
           File.write(encrypted_file, enc.encrypt(File.read(unencrypted_file)))
           File.delete(unencrypted_file)
         else
-          puts "Ooops! Your environment file doesn't exist!"
+          puts ENV["AMBER_ENV"]?
+          puts "#{env}.yml doesn't exist. Loading defaults!"
         end
       rescue
         puts "Failed! Are you sure your key is correct?"
