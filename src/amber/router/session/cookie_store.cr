@@ -28,7 +28,6 @@ module Amber::Router::Session
 
   # This is the default Cookie Store
   class CookieStore < AbstractStore
-    property secret : String
     property key : String
     property expires : Int32
     property store : Amber::Router::Cookies::SignedStore | Amber::Router::Cookies::EncryptedStore
@@ -36,11 +35,11 @@ module Amber::Router::Session
 
     forward_missing_to session
 
-    def self.build(store, session)
-      new(store, session[:key].to_s, session[:expires].to_i, session[:secret].to_s)
+    def self.build(store, settings)
+      new(store, settings[:key].to_s, settings[:expires].to_i)
     end
 
-    def initialize(@store, @key, @expires, @secret)
+    def initialize(@store, @key, @expires)
       @session = current_session
     end
 

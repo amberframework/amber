@@ -6,9 +6,8 @@ module Amber::Router
       cookies = new_cookie_store
       Amber::Server.settings.session = {
         :key     => "name.session",
-        :store   => :cookie,
-        :expires => 120,
-        :secret  => "secret",
+        :store   => "cookie",
+        :expires => "120",
       }
 
       store = Session::Store.new(cookies)
@@ -20,10 +19,8 @@ module Amber::Router
       cookies = new_cookie_store
       Amber::Server.settings.session = {
         :key       => "name.session",
-        :store     => :redis,
-        :expires   => 120,
-        :secret    => "secret",
-        :redis_url => ENV["REDIS_URL"]? || "redis://127.0.0.1:6379",
+        :store     => "redis",
+        :expires   => "120"
       }
 
       store = Session::Store.new(cookies)

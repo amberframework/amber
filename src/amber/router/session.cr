@@ -1,6 +1,6 @@
 module Amber::Router::Session
   class Store
-    getter session_config : Hash(Symbol, Symbol | Int32 | String) = Amber::Server.session
+    getter session_config : Hash(Symbol, String) = Amber::Server.settings.session
     getter cookies : Cookies::Store
 
     def initialize(@cookies)
@@ -12,7 +12,7 @@ module Amber::Router::Session
     end
 
     private def cookie_store
-      if store == :encrypted_cookie
+      if encrypted_cookie?
         cookies.encrypted
       else
         cookies.signed
@@ -20,11 +20,15 @@ module Amber::Router::Session
     end
 
     private def redis_store
-      Redis.new(url: session_config[:redis_url].to_s)
+      Redis.new(url: Amber::Server.settings.redis_url.to_s)
     end
 
     private def redis?
-      store == :redis
+      store == "redis"
+    end
+
+    private def encrypted_cookie?
+      store == "encrypted_cookie"
     end
 
     private def store
