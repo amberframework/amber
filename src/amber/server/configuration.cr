@@ -21,8 +21,8 @@ module Amber
         settings.key_generator
       end
 
-      def self.session
-        settings.session
+      def self.secret_key_base
+        settings.secret_key_base
       end
 
       def self.start
@@ -44,6 +44,6 @@ module Amber
       def self.redis_url
         settings.redis_url
       end
-	  end
+    end
   end
 end

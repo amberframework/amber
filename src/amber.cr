@@ -12,7 +12,7 @@ require "./amber/dsl/**"
 require "./amber/exceptions/**"
 require "./amber/extensions/**"
 require "./amber/router/**"
-require "./amber/server/**"
+require "./amber/server/settings"
 require "./amber/validations/**"
 require "./amber/websockets/**"
 
@@ -57,10 +57,6 @@ module Amber
       settings.log.info "Server started in #{settings.env.colorize(:yellow)}.".to_s
       settings.log.info "Startup Time #{Time.now - time}\n\n".colorize(:white).to_s
       server.listen(settings.port_reuse)
-    end
-
-    def socket_endpoint(path, app_socket)
-      WebSockets::Server.create_endpoint(path, app_socket)
     end
 
     private def version
