@@ -17,7 +17,7 @@ describe Amber::Server do
       class_getter secrets = {"description": "Store your test secrets credentials and settings here.", "database": "mysql://root@localhost:3306/amber_test_app_test"}
 
       EXP
-      {{run("../../../src/amber/server/environment.cr").stringify}}.should eq expected
+      {{run("../../../src/amber/server/environment.cr", "test").stringify}}.should eq expected
     end
 
     it "should load default settings when environment file doesn't exist." do
