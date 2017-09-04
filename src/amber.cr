@@ -12,7 +12,7 @@ require "./amber/dsl/**"
 require "./amber/exceptions/**"
 require "./amber/extensions/**"
 require "./amber/router/**"
-require "./amber/server/**"
+require "./amber/server/settings"
 require "./amber/validations/**"
 require "./amber/websockets/**"
 

@@ -8,7 +8,7 @@ module Amber::Router::Session
     context "Encrypted" do
       describe "#id" do
         it "returns a UUID" do
-          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
           cookie_store.id.not_nil!.size.should eq 36
         end
@@ -16,7 +16,7 @@ module Amber::Router::Session
 
       describe "#destroy" do
         it "clears session" do
-          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
           cookie_store["name"] = "David"
           cookie_store.destroy
@@ -27,7 +27,7 @@ module Amber::Router::Session
 
       describe "#[]" do
         it "gets key, value" do
-          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
           cookie_store["name"] = "David"
           cookie_store[:name] = "John"
@@ -40,7 +40,7 @@ module Amber::Router::Session
 
       describe "#[]?" do
         it "returns true when key exists" do
-          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
           cookie_store["name"] = "David"
 
@@ -49,7 +49,7 @@ module Amber::Router::Session
         end
 
         it "returns false when key does not exists" do
-          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
           cookie_store[:name]?.should eq nil
           cookie_store["name"]?.should eq nil
@@ -58,7 +58,7 @@ module Amber::Router::Session
 
       describe "#[]=" do
         it "sets a key value" do
-          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
           cookie_store["name"] = "David"
 
@@ -67,7 +67,7 @@ module Amber::Router::Session
         end
 
         it "updates key value" do
-          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
           cookie_store["name"] = "David"
           cookie_store["name"] = "Frank"
@@ -80,7 +80,7 @@ module Amber::Router::Session
       describe "#key?" do
         context "key exists" do
           it "returns true" do
-            cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+            cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
             cookie_store[:name] = "David"
 
@@ -90,7 +90,7 @@ module Amber::Router::Session
 
         context "key does not exists" do
           it "returns false" do
-            cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+            cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
             cookie_store.key?(:name).should eq nil
             cookie_store.key?("name").should eq nil
@@ -100,7 +100,7 @@ module Amber::Router::Session
 
       describe "#keys" do
         it "returns a list of available keys" do
-          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
           cookie_store["a"] = "a"
           cookie_store[:b] = "c"
@@ -112,7 +112,7 @@ module Amber::Router::Session
 
       describe "#values" do
         it "returns a list of available keys" do
-          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
           cookie_store["a"] = "a"
           cookie_store["b"] = "b"
@@ -124,7 +124,7 @@ module Amber::Router::Session
 
       describe "#update" do
         it "updates all keys by hash" do
-          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
           cookie_store["a"] = "a"
           cookie_store["b"] = "b"
           cookie_store[:c] = "c"
@@ -138,7 +138,7 @@ module Amber::Router::Session
       describe "#fetch" do
         context "when key is not set" do
           it "fetches default value" do
-            cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+            cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
             cookie_store.fetch("name", "Jordan").should eq "Jordan"
           end
@@ -146,7 +146,7 @@ module Amber::Router::Session
 
         context "when key is set" do
           it "it fetches previously set value" do
-            cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+            cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
             cookie_store["name"] = "Michael"
 
@@ -157,13 +157,13 @@ module Amber::Router::Session
 
       describe "#empty?" do
         it "returns true when session is empty" do
-          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
           cookie_store.empty?.should eq true
         end
 
         it "returns false when session is not empty" do
-          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
           cookie_store["user_id"] = "1"
 
@@ -175,7 +175,7 @@ module Amber::Router::Session
     context "Signed" do
       describe "#id" do
         it "returns a UUID" do
-          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
           cookie_store.id.not_nil!.size.should eq 36
         end
@@ -183,7 +183,7 @@ module Amber::Router::Session
 
       describe "#destroy" do
         it "clears session" do
-          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
           cookie_store["name"] = "David"
           cookie_store.destroy
@@ -194,7 +194,7 @@ module Amber::Router::Session
 
       describe "#[]" do
         it "gets key, value" do
-          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
           cookie_store["name"] = "David"
           cookie_store[:name] = "John"
@@ -207,7 +207,7 @@ module Amber::Router::Session
 
       describe "#[]?" do
         it "returns true when key exists" do
-          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
           cookie_store["name"] = "David"
 
@@ -216,7 +216,7 @@ module Amber::Router::Session
         end
 
         it "returns false when key does not exists" do
-          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
           cookie_store[:name]?.should eq nil
           cookie_store["name"]?.should eq nil
@@ -225,7 +225,7 @@ module Amber::Router::Session
 
       describe "#[]=" do
         it "sets a key value" do
-          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
           cookie_store["name"] = "David"
 
@@ -234,7 +234,7 @@ module Amber::Router::Session
         end
 
         it "updates key value" do
-          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
           cookie_store["name"] = "David"
           cookie_store["name"] = "Frank"
@@ -247,7 +247,7 @@ module Amber::Router::Session
       describe "#key?" do
         context "key exists" do
           it "returns true" do
-            cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+            cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
             cookie_store[:name] = "David"
 
@@ -257,7 +257,7 @@ module Amber::Router::Session
 
         context "key does not exists" do
           it "returns false" do
-            cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+            cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
             cookie_store.key?(:name).should eq nil
             cookie_store.key?("name").should eq nil
@@ -267,7 +267,7 @@ module Amber::Router::Session
 
       describe "#keys" do
         it "returns a list of available keys" do
-          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
           cookie_store["a"] = "a"
           cookie_store[:b] = "c"
@@ -279,7 +279,7 @@ module Amber::Router::Session
 
       describe "#values" do
         it "returns a list of available keys" do
-          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
           cookie_store["a"] = "a"
           cookie_store["b"] = "b"
@@ -291,7 +291,7 @@ module Amber::Router::Session
 
       describe "#update" do
         it "updates all keys by hash" do
-          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
           cookie_store["a"] = "a"
           cookie_store["b"] = "b"
           cookie_store[:c] = "c"
@@ -305,7 +305,7 @@ module Amber::Router::Session
       describe "#fetch" do
         context "when key is not set" do
           it "fetches default value" do
-            cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+            cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
             cookie_store.fetch("name", "Jordan").should eq "Jordan"
           end
@@ -313,7 +313,7 @@ module Amber::Router::Session
 
         context "when key is set" do
           it "it fetches previously set value" do
-            cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+            cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
             cookie_store["name"] = "Michael"
 
@@ -324,13 +324,13 @@ module Amber::Router::Session
 
       describe "#empty?" do
         it "returns true when session is empty" do
-          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
           cookie_store.empty?.should eq true
         end
 
         it "returns false when session is not empty" do
-          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES, "secret")
+          cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
           cookie_store["user_id"] = "1"
 

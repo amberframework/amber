@@ -1,5 +1,3 @@
-require "teeplate"
-
 module Amber::CLI
   class WebSocketChannel < Teeplate::FileTree
     directory "#{__DIR__}/channel"

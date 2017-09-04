@@ -1,0 +1,25 @@
+secret_key_base: <%= SecureRandom.urlsafe_base64(32) %>
+port: 3000
+name: <%= @name %>
+log: "::Logger.new(STDOUT)"
+log_level: "::Logger::INFO"
+host: 0.0.0.0
+port_reuse: true
+process_count: (ENV[%(AMBER_PROCESS_COUNT)]? || 1).to_i
+ssl_key_file:
+ssl_cert_file:
+redis_url: "redis://localhost:6379"
+session:
+  key: amber.session
+  store: signed_cookie
+  expires: 0
+secrets:
+  description: Store your production secrets credentials and settings here.
+<%case @database
+  when "mysql" -%>
+  database: mysql://root@localhost:3306/<%= @name %>_development
+<%when "pg" -%>
+  database: postgres://postgres:@pg:5432/<%= @name %>_development
+<%when "sqlite" -%>
+  database: sqlite3:./db/<%= @name %>_development.db
+<%end -%>

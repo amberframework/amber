@@ -1,0 +1,18 @@
+name: amber_test_app
+secret_key_base: ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4
+port: 3000
+log: "::Logger.new(STDOUT)"
+log_level: "::Logger::INFO"
+port_reuse: true
+process_count: (ENV[%(AMBER_PROCESS_COUNT)]? || 1).to_i
+host: 0.0.0.0
+ssl_key_file:
+ssl_cert_file:
+redis_url: "#{ENV[%(REDIS_URL)]? || %(redis://localhost:6379)}"
+session:
+  key: amber.session
+  store: signed_cookie
+  expires: 0
+secrets:
+  description: Store your test secrets credentials and settings here.
+  database: mysql://root@localhost:3306/amber_test_app_test
