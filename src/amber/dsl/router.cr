@@ -66,8 +66,9 @@ module Amber::DSL
       {% end %}
     end
 
-    macro websocket(path, app_socket)
-      Amber::WebSockets::Server.create_endpoint({{path}}, {{app_socket}})
+
+    def websocket(path, app_socket)
+      Amber::WebSockets::Server.create_endpoint(path, app_socket)
     end
   end
 end
