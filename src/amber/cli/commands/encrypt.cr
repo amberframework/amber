@@ -17,7 +17,7 @@ module Amber::CLI
 
       def run
         secret_key = ENV["AMBER_SECRET_KEY"]? || File.open(".amber_secret_key").gets_to_end.to_s
-        env = ENV["AMBER_ENV"]? || args.env
+        env =  args.env
         encrypted_file = "config/environments/.#{env}.enc"
         unencrypted_file = "config/environments/#{env}.yml"
 
