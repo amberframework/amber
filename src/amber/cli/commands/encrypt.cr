@@ -35,7 +35,7 @@ module Amber::CLI
           puts "#{env}.yml doesn't exist. Loading defaults!"
         end
       rescue
-        puts "Failed! Are you sure your key is correct?"
+        puts "Failed! Make sure to set AMBER_SECRET_KEY env or add hidden file .amber_secret_key"
       end
     end
   end
