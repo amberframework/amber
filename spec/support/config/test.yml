@@ -1,9 +1,10 @@
+name: amber_test_app
 secret_key_base: ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4
 port: 3000
 log: "::Logger.new(STDOUT)"
-name: amber_test_app
-log: "::Logger.new(STDOUT)"
 log_level: "::Logger::INFO"
+port_reuse: true
+process_count: (ENV[%(AMBER_PROCESS_COUNT)]? || 1).to_i
 host: 0.0.0.0
 ssl_key_file:
 ssl_cert_file:

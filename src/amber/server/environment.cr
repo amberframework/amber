@@ -25,9 +25,9 @@ str = String.build do |s|
   # This is a transistion.
   s.puts %(@@name = "#{settings["name"]? || "Amber_App"}")
   s.puts %(@@port_reuse = #{settings["port_reuse"]? || true})
+  s.puts %(@@process_count = #{settings["process_count"]? || 1})
   s.puts %(@@log = #{settings["log"]? || "::Logger.new(STDOUT)"})
   s.puts %(@@log.level = #{settings["log_level"]? || "::Logger::INFO"})
-  s.puts %(@@process_count = #{settings["process_count"]? || 1})
   s.puts %(@@redis_url = "#{settings["redis_url"]? ||"redis://localhost:6379"}")
   s.puts %(@@port = #{settings["port"]? || 3000})
   s.puts %(@@host = "#{settings["host"]? || "127.0.0.1"}")

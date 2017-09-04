@@ -4,6 +4,8 @@ name: <%= @name %>
 log: "::Logger.new(STDOUT)"
 log_level: "::Logger::INFO"
 host: 0.0.0.0
+port_reuse: true
+process_count: (ENV[%(AMBER_PROCESS_COUNT)]? || 1).to_i
 ssl_key_file:
 ssl_cert_file:
 redis_url: "redis://localhost:6379"
