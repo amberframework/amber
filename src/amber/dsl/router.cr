@@ -65,5 +65,9 @@ module Amber::DSL
         {% raise "Invalid route action '#{action}'" %}
       {% end %}
     end
+
+    macro websocket(path, app_socket)
+      Amber::WebSockets::Server.create_endpoint({{path}}, {{app_socket}})
+    end
   end
 end
