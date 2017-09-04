@@ -6,7 +6,6 @@ services:
     environment:
       REDIS_URL: 'redis://redis:6379'
       AMBER_ENV: test 
-      AMBER_ENV_PATH: ./spec/support/config
     depends_on:
       - redis
 
