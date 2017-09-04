@@ -9,6 +9,11 @@ let config = {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, '../../public/dist')
   },
+  resolve: {
+    alias: {
+      amber: path.resolve(__dirname, '../../../lib/amber/assets/js/amber.js')
+    }
+  },
   module: {
     rules: [
       {
