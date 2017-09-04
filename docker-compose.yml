@@ -5,6 +5,3 @@ services:
     command: 'bash -c "cd /app/user && crystal spec"'
     working_dir: /app/user
     tmpfs: /app/testing
-    environment:
-      AMBER_ENV: test 
-      AMBER_ENV_PATH: ./spec/support/config
