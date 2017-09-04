@@ -32,7 +32,6 @@ module Amber::CLI
           File.write(encrypted_file, enc.encrypt(File.read(unencrypted_file)))
           File.delete(unencrypted_file)
         else
-          puts ENV["AMBER_ENV"]?
           puts "#{env}.yml doesn't exist. Loading defaults!"
         end
       rescue
