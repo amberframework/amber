@@ -18,8 +18,10 @@ module Amber::CLI
         name = File.basename(args.name)
         template = Template.new(name, "./#{args.name}")
         template.generate("app", options)
-        Dir.cd(args.name)
-        MainCommand.run ["encrypt", "production"]
+        
+        # Encrypts production.yml by default.
+        ENV["AMBER_ENV_PATH"] = args.name + "/config/environments"
+        MainCommand.run ["encrypt", "production", "--noedit"]
       end
     end
   end

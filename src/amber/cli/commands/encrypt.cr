@@ -7,7 +7,8 @@ module Amber::CLI
     class Encrypt < ::Cli::Command
       class Options
         arg "env", desc: "environment file to encrypt", default: "production"
-        string ["-e", "--editor"], desc: "editor", default: "vim"
+        string ["-e", "--editor"], desc: "Prefered Editor: [vim, nano, pico, etc]", default: "vim"
+        bool ["--noedit"], desc: "Skip editing and just encrypt", default: false 
       end
 
       class Help
@@ -24,7 +25,7 @@ module Amber::CLI
 
         if File.exists?(encrypted_file)
           File.write(unencrypted_file, enc.decrypt(File.open(encrypted_file).gets_to_end.to_slice))
-          system("#{options.editor} #{unencrypted_file}")
+          system("#{options.editor} #{unencrypted_file}") unless options.noedit?
         end
 
         if File.exists?(unencrypted_file)
