@@ -7,7 +7,7 @@ log_level: "::Logger::INFO"
 host: 0.0.0.0
 ssl_key_file:
 ssl_cert_file:
-redis_url: "redis://localhost:6379"
+redis_url: "#{ENV[%(REDIS_URL)]? || %(redis://localhost:6379)}"
 session:
   key: amber.session
   store: signed_cookie
