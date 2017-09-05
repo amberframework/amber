@@ -15,7 +15,7 @@ Amber Crystal borrows concepts that already have been battle tested, successful,
 
 ## Read the Docs
 
-Documentation https://amber-crystal.gitbooks.io/amber/content/
+Documentation https://docs.ambercr.io
 
 
 ## Benchmark
