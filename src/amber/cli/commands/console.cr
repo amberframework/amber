@@ -13,7 +13,14 @@ module Amber::CLI
       end
 
       def run
-        libs = ["require \"amber\"", "require \"./src/controllers/*\"", "require \"./src/models/*\"", "require \"./src/mailers/*\"", "require \"./src/views/*\"", "require \"./config/*\""] of String
+        libs = [
+          %(require "amber"),
+          %(require "./src/controllers/application_controller"),
+          %(require "./src/controllers/*"),
+          %(require "./src/models/*"),
+          %(require "./src/mailers/*"),
+          %(require "./src/views/*"),
+        ]
         code = libs.join ';'
         Icr::Console.new(options.d?).start(code)
       end
