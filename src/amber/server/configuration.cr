@@ -2,8 +2,8 @@ module Amber
   module Configuration
     macro included
       class_property settings : Amber::Settings = Amber::Environment.load(
-		"./config/environments", (ARGV[0]? || ENV["AMBER_ENV"]? || "development")
-	  )
+		    "./config/environments", (ARGV[0]? || ENV["AMBER_ENV"]? || "development")
+	    )
 
       def self.instance
         @@instance ||= new
