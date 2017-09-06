@@ -8,9 +8,8 @@ module Amber
     AMBER_SECRET_FILE = ".amber_secret_key"
     private getter yaml_settings : String
     private getter encrypted_settings : String
-
-    @default_path : String
-    @environment : String
+    private getter default_path : String
+    private getter environment : String
 
     def self.load(path, env)
       new(path, env).settings
@@ -24,27 +23,23 @@ module Amber
 
     def settings
       settings = Settings.from_yaml(environment_settings.to_s)
-      settings.env = @environment
+      settings.env = environment
       settings
     end
 
     private def env_path
-      return @default_path if Dir.exists?(@default_path)
-      # TODO Remove this implicit default environment settings
-      # We should not be setting this environment implicitly
-      @environment = ARGV[0]? || "test"
-      "./spec/support/config"
+      return default_path if Dir.exists?(default_path)
+      # TODO Remove, it should not be implicitly loading test environment settings
+      load_test_environment
     end
 
     private def secret_key
       return ENV[AMBER_SECRET_FILE]? if ENV[AMBER_SECRET_KEY]?
-      if File.exists?(AMBER_SECRET_FILE)
-        File.open(AMBER_SECRET_FILE).gets_to_end.to_s
-      end
+      File.open(AMBER_SECRET_FILE).gets_to_end.to_s if File.exists?(AMBER_SECRET_FILE)
     end
 
     private def environment_file(ext)
-      "#{env_path}/#{@environment}#{ext}"
+      "#{env_path}/#{environment}#{ext}"
     end
 
     private def environment_settings
@@ -58,6 +53,11 @@ module Amber
 
     private def env_settings_exists?
       File.exists?(yaml_settings) || File.exists?(encrypted_settings)
+    end
+
+    private def load_test_environment
+      environment = ARGV[0]? || "test"
+      "./spec/support/config"
     end
   end
 end
