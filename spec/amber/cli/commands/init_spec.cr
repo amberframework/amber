@@ -12,7 +12,7 @@ module Amber::CLI
           Amber::CLI::Spec.db_yml["pg"].should_not be_nil
           Amber::CLI::Spec.shard_yml["dependencies"]["pg"].should_not be_nil
           Amber::CLI::Spec.amber_yml["language"].should eq "slang"
-          File.read("#{TESTING_APP}/.amber_secret_key").size.should eq 44 
+          File.read("#{TESTING_APP}/.amber_secret_key").size.should eq 44
           Amber::CLI::Spec.cleanup
         end
       end
