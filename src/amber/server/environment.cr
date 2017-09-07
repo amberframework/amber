@@ -4,12 +4,12 @@ require "../support/message_encryptor"
 
 environment = ARGV[0]? || ENV["AMBER_ENV"]? || "development"
 
-#Override to make the code testable.
-#Eliminates the need for environment variables gettings set before tests
+# Override to make the code testable.
+# Eliminates the need for environment variables gettings set before tests
 env_path = begin
   if File.exists?(fn = "./config/environments")
     fn
-  else # if config/environments doesn't exist look in spec folder and set env to test 
+  else # if config/environments doesn't exist look in spec folder and set env to test
     environment = ARGV[0]? || "test"
     "./spec/support/config"
   end
