@@ -31,9 +31,9 @@ module Amber
         context "Redis Store" do
           it "sets session value in controller" do
             Amber::Server.settings.session = {
-              :key       => "session_id",
-              :store     => "redis",
-              :expires   => "120",
+              :key     => "session_id",
+              :store   => "redis",
+              :expires => "120",
             }
 
             request1 = HTTP::Request.new("GET", "/")
