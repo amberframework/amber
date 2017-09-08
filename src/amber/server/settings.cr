@@ -6,7 +6,7 @@ module Amber
   class Settings
     include Amber::DSL::Server
     alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
-
+    
     getter handler = Pipe::Pipeline.new
     getter router = Router::Router.new
     getter secret_key_base = SecureRandom.urlsafe_base64(32)
@@ -41,7 +41,7 @@ module Amber
       secrets: {type: Hash(String, String), default: {} of String => String},
       session: {type: Hash(String, Int32 | String), default: {
         "key" => "amber.session", "store" => "signed_cookie", "expires" => 0,
-      }},
+      }}
     )
   end
 end

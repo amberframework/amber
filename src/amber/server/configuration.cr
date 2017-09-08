@@ -14,6 +14,11 @@ module Amber
       def self.configure
         with settings yield settings
       end
+      
+      # NOTE: Deprecated. Here so old releases work.
+      def config
+        with settings yield settings
+      end
 
       def settings
         @@settings
