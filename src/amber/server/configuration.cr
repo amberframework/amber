@@ -1,6 +1,12 @@
 module Amber
   module Configuration
     macro included
+      ENVIRONMENT_FILE_PATH = "./config/environments"
+      DEFAULT_ENVIRONMENT = (ARGV[0]? || ENV["AMBER_ENV"]? || "development")
+      class_property settings : Amber::Settings = Amber::Environment.load(
+		    ENVIRONMENT_FILE_PATH, DEFAULT_ENVIRONMENT
+	    )
+
       def self.instance
         @@instance ||= new
       end
@@ -14,12 +20,8 @@ module Amber
         with settings yield settings
       end
 
-      def self.settings
-        Settings
-      end
-
       def settings
-        Settings
+        @@settings
       end
 
       def self.key_generator

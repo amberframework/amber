@@ -2,67 +2,62 @@ require "yaml"
 require "secure_random"
 require "../support/message_encryptor"
 
-environment = ARGV[0]? || ENV["AMBER_ENV"]? || "development"
+module Amber
+  class Environment
+    AMBER_SECRET_KEY  = "AMBER_SECRET_KEY"
+    AMBER_SECRET_FILE = ".amber_secret_key"
+    private getter yaml_settings : String
+    private getter encrypted_settings : String
+    private getter default_path : String
+    private getter environment : String
 
-# Override to make the code testable.
-# Eliminates the need for environment variables gettings set before tests
-env_path = begin
-  if File.exists?(fn = "./config/environments")
-    fn
-  else # if config/environments doesn't exist look in spec folder and set env to test
-    environment = ARGV[0]? || "test"
-    "./spec/support/config"
-  end
-end
+    def self.load(path, env)
+      new(path, env).settings
+    end
 
-secret_key = ENV["AMBER_SECRET_KEY"]? || begin
-  File.open(".amber_secret_key").gets_to_end.to_s if File.exists?(".amber_secret_key")
-end
+    def initialize(@default_path, @environment)
+      @yaml_settings = environment_file(".yml")
+      @encrypted_settings = environment_file(".enc")
+      raise "Environment file not found! #{yaml_settings}#{encrypted_settings}" unless env_settings_exists?
+    end
 
-yml = if File.exists?(fn = "#{env_path}/#{environment}.yml")
-        File.read(fn)
-      elsif File.exists?(fn = "#{env_path}/.#{environment}.enc") && secret_key
-        enc = Amber::Support::MessageEncryptor.new(secret_key.to_slice)
-        String.new(enc.decrypt(File.open(fn).gets_to_end.to_slice))
-      else
-        "env: #{environment}"
+    def settings
+      settings = Settings.from_yaml(environment_settings.to_s)
+      settings.env = environment
+      settings
+    end
+
+    private def env_path
+      return default_path if Dir.exists?(default_path)
+      # TODO Remove, it should not be implicitly loading test environment settings
+      load_test_environment
+    end
+
+    private def secret_key
+      return ENV[AMBER_SECRET_FILE]? if ENV[AMBER_SECRET_KEY]?
+      File.open(AMBER_SECRET_FILE).gets_to_end.to_s if File.exists?(AMBER_SECRET_FILE)
+    end
+
+    private def environment_file(ext)
+      "#{env_path}/#{environment}#{ext}"
+    end
+
+    private def environment_settings
+      return File.read(yaml_settings) if File.exists?(yaml_settings)
+
+      if File.exists?(encrypted_settings) && !secret_key.nil?
+        enc = Amber::Support::MessageEncryptor.new(secret_key.not_nil!.to_slice)
+        String.new(enc.decrypt(File.open(encrypted_settings).gets_to_end.to_slice))
       end
+    end
 
-settings = YAML.parse(yml)
+    private def env_settings_exists?
+      File.exists?(yaml_settings) || File.exists?(encrypted_settings)
+    end
 
-str = String.build do |s|
-  # Most of this logic can be cleaned up by just requiring environment files to contain valid params.
-  # For now I have this here so that tests can still pass without having to load env files although they should.
-  # This is a transistion.
-  s.puts %(@@name = "#{settings["name"]? || "Amber_App"}")
-  s.puts %(@@port_reuse = #{settings["port_reuse"]? || true})
-  s.puts %(@@process_count = #{settings["process_count"]? || 1})
-  s.puts %(@@log = #{settings["log"]? || "::Logger.new(STDOUT)"})
-  s.puts %(@@log.level = #{settings["log_level"]? || "::Logger::INFO"})
-  s.puts %(@@redis_url = "#{settings["redis_url"]? || "redis://localhost:6379"}")
-  s.puts %(@@port = #{settings["port"]? || 3000})
-  s.puts %(@@host = "#{settings["host"]? || "127.0.0.1"}")
-  s.puts %(@@secret_key_base = "#{settings["secret_key_base"]? || SecureRandom.urlsafe_base64(32)}")
-
-  unless settings["ssl_key_file"]?.to_s.empty?
-    s.puts %(@@ssl_key_file = "#{settings["ssl_key_file"]?}")
-  end
-
-  unless settings["ssl_cert_file"]?.to_s.empty?
-    s.puts %(@@ssl_cert_file = "#{settings["ssl_cert_file"]?}")
-  end
-
-  if settings["session"]? && settings["session"].raw.is_a?(Hash(YAML::Type, YAML::Type))
-    s.puts %(@@session = #{settings["session"].inspect.gsub(/(\"[^\"]+\" \=\>)/) { ":#{$1}".gsub("\"", "") }})
-  else
-    s.puts %(@@session = {:key => "amber.session", :store => "signed_cookie", :expires => "0"})
-  end
-
-  if settings["secrets"]? && settings["secrets"].raw.is_a?(Hash(YAML::Type, YAML::Type))
-    s.puts "class_getter secrets = #{settings["secrets"].inspect.gsub(/(\"[^\"]+\") \=\>/) { "#{$1}:" }}"
-  else
-    s.puts %(class_getter secrets = {description: "Store your #{environment} secrets credentials and settings here."})
+    private def load_test_environment
+      environment = ARGV[0]? || "test"
+      "./spec/support/config"
+    end
   end
 end
-
-puts str

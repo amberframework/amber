@@ -9,7 +9,7 @@ module Amber::Router::Session
     property cookies : Amber::Router::Cookies::Store
 
     def self.build(store, cookies, session)
-      new(store, cookies, session[:key].to_s, session[:expires].to_i)
+      new(store, cookies, session["key"].to_s, session["expires"].to_i)
     end
 
     def initialize(@store, @cookies, @key, @expires = 120)
