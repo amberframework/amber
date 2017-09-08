@@ -17,6 +17,10 @@ module Amber
         Settings
       end
 
+      def config
+        Settings
+      end
+
       def self.key_generator
         settings.key_generator
       end
