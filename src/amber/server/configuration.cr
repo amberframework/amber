@@ -9,15 +9,15 @@ module Amber
         with settings yield settings
       end
 
+      def config
+        with settings yield settings
+      end
+
       def self.settings
         Settings
       end
 
       def settings
-        Settings
-      end
-
-      def config
         Settings
       end
 
