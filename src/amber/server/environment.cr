@@ -53,9 +53,14 @@ str = String.build do |s|
   end
 
   if settings["session"]? && settings["session"].raw.is_a?(Hash(YAML::Type, YAML::Type))
-    s.puts %(@@session = #{settings["session"].inspect.gsub(/(\"[^\"]+\" \=\>)/) { ":#{$1}".gsub("\"", "") }})
+    s.puts %(@@session = {)
+      s.puts %(:key => "#{settings["session"]["key"]}",) if settings["session"]["key"]?
+      s.puts %(:store => #{settings["session"]["store"]},) if settings["session"]["store"]?
+      s.puts %(:expires => #{settings["session"]["expires"]},) if settings["session"]["expires"]?
+      s.puts %(:secret => "#{settings["session"]["secret"]}") if settings["session"]["secret"]?
+    s.puts %(})
   else
-    s.puts %(@@session = {:key => "amber.session", :store => "signed_cookie", :expires => "0"})
+    s.puts %(@@session = {:key => "amber.session", :store => :signed_cookie, :expires => 0, :secret => "change_me"})
   end
 
   if settings["secrets"]? && settings["secrets"].raw.is_a?(Hash(YAML::Type, YAML::Type))
