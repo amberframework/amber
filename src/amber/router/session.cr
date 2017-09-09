@@ -34,5 +34,9 @@ module Amber::Router::Session
     private def store
       session_config[:store]
     end
+
+    private def secret
+      session_config[:secret]
+    end
   end
 end

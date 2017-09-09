@@ -22,7 +22,7 @@ end
 yml = if File.exists?(fn = "#{env_path}/#{environment}.yml")
         File.read(fn)
       elsif File.exists?(fn = "#{env_path}/.#{environment}.enc") && secret_key
-        enc = Amber::Support::MessageEncryptor.new(secret_key.to_slice)
+        enc = Amber::Support::MessageEncryptor.new(secret_key)
         String.new(enc.decrypt(File.open(fn).gets_to_end.to_slice))
       else
         "env: #{environment}"
@@ -57,10 +57,9 @@ str = String.build do |s|
       s.puts %(:key => "#{settings["session"]["key"]}",) if settings["session"]["key"]?
       s.puts %(:store => #{settings["session"]["store"]},) if settings["session"]["store"]?
       s.puts %(:expires => #{settings["session"]["expires"]},) if settings["session"]["expires"]?
-      s.puts %(:secret => "#{settings["session"]["secret"]}") if settings["session"]["secret"]?
     s.puts %(})
   else
-    s.puts %(@@session = {:key => "amber.session", :store => :signed_cookie, :expires => 0, :secret => "change_me"})
+    s.puts %(@@session = {:key => "amber.session", :store => :signed_cookie, :expires => 0})
   end
 
   if settings["secrets"]? && settings["secrets"].raw.is_a?(Hash(YAML::Type, YAML::Type))

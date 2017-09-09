@@ -11,15 +11,19 @@ module Amber::Router
       @options = {} of String => String
 
       def permanent
-        @permanent ||= PermanentStore.new(self, @key_generator, @options)
+        @permanent ||= PermanentStore.new(self, @options)
       end
 
       def encrypted
-        @encrypted ||= EncryptedStore.new(self, @key_generator, @options)
+        @encrypted ||= EncryptedStore.new(self, @options)
       end
 
       def signed
-        @signed ||= SignedStore.new(self, @key_generator, @options)
+        @signed ||= SignedStore.new(self, @options)
+      end
+
+      def secret
+        @secret ||= Amber::Server.settings.secret_key_base || SecureRandom.urlsafe_base64(32) 
       end
     end
 
@@ -34,9 +38,7 @@ module Amber::Router
       property host : String?
       property secure : Bool = false
 
-      @key_generator : Support::CachingKeyGenerator
-
-      def initialize(@key_generator, @host = nil, @secure = false)
+      def initialize(@host = nil, @secure = false)
         @cookies = {} of String => String
         @set_cookies = {} of String => HTTP::Cookie
         @delete_cookies = {} of String => HTTP::Cookie
@@ -63,11 +65,11 @@ module Amber::Router
         cookies
       end
 
-      def self.build(request, key_generator = Support::KeyGenerator.new("secret"))
+      def self.build(request)
         headers = request.headers
         host = request.host
         secure = (headers["HTTPS"]? == "on")
-        new(key_generator, host, secure).tap do |store|
+        new(host, secure).tap do |store|
           store.update(from_headers(headers))
         end
       end
@@ -171,10 +173,9 @@ module Amber::Router
     class PermanentStore
       include ChainedStore
       getter store : Store
-      getter key_generator : Support::CachingKeyGenerator
       getter options : Hash(String, String)
 
-      def initialize(@store, @key_generator, @options)
+      def initialize(@store, @options)
       end
 
       def [](name)
@@ -199,11 +200,9 @@ module Amber::Router
       include ChainedStore
 
       getter store : Store
-      getter key_generator : Support::CachingKeyGenerator
       getter options : Hash(String, String)
 
-      def initialize(@store, @key_generator, @options)
-        secret = key_generator.generate_key("encrypted_cookie_salt")
+      def initialize(@store, @options)
         @verifier = Support::MessageVerifier.new(secret)
       end
 
@@ -239,13 +238,10 @@ module Amber::Router
       include SerializedStore
 
       getter store : Store
-      getter key_generator : Support::CachingKeyGenerator
       getter options : Hash(String, String)
 
-      def initialize(@store, @key_generator, @options)
-        secret = key_generator.generate_key("encrypted_cookie_salt")
-        sign_secret = key_generator.generate_key("encrypted_signed_cookie_salt")
-        @encryptor = Support::MessageEncryptor.new(secret, sign_secret: sign_secret, digest: digest)
+      def initialize(@store, @options)
+        @encryptor = Support::MessageEncryptor.new(secret, digest: digest)
       end
 
       def [](name)

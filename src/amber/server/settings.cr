@@ -24,10 +24,5 @@ module Amber
 
     # loads settings from environment yaml
     {{ run("./environment.cr") }}
-
-    # TODO: Remove as ASAP!
-    class_getter key_generator = Amber::Support::CachingKeyGenerator.new(
-      Amber::Support::KeyGenerator.new(@@secret_key_base.to_s, 5)
-    )
   end
 end

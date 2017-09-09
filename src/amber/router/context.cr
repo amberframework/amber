@@ -39,9 +39,7 @@ class HTTP::Server::Context
   end
 
   def cookies
-    @cookies ||= Amber::Router::Cookies::Store.build(
-      request, Amber::Server.key_generator
-    )
+    @cookies ||= Amber::Router::Cookies::Store.build(request)
   end
 
   def session
