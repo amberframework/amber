@@ -1,6 +1,6 @@
 require "granite_orm/adapter/<%= @database %>"
 
-class <%= @name.capitalize %> < Granite::ORM 
+class <%= @name.capitalize %> < Granite::ORM::Base
   adapter <%= @database %>
 
   # id : Int64 primary key is created for you
