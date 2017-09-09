@@ -49,7 +49,7 @@ class HTTP::Server::Context
   end
 
   def flash
-    @flash ||= Amber::Router::Flash.from_session_value(session.fetch(Amber::Pipe::Flash::PARAM_KEY, "{}"))
+    @flash ||= Amber::Router::Flash.from_session(session.fetch(Amber::Pipe::Flash::PARAM_KEY, "{}"))
   end
 
   def websocket?
