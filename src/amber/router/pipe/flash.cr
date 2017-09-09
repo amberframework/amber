@@ -70,6 +70,7 @@ module Amber
 
         def keep(key = nil)
           @read.delete key
+          @now.delete key
         end
 
         def alert
