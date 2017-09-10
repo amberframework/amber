@@ -8,22 +8,16 @@ require "../support/*"
 module Amber::Router
   class Cookies
     module ChainedStore
-      @options = {} of String => String
-
       def permanent
-        @permanent ||= PermanentStore.new(self, @options)
+        @permanent ||= PermanentStore.new(self)
       end
 
       def encrypted
-        @encrypted ||= EncryptedStore.new(self, @options)
+        @encrypted ||= EncryptedStore.new(self)
       end
 
       def signed
-        @signed ||= SignedStore.new(self, @options)
-      end
-
-      def secret
-        @secret ||= Amber::Server.settings.secret_key_base || SecureRandom.urlsafe_base64(32) 
+        @signed ||= SignedStore.new(self)
       end
     end
 
@@ -35,10 +29,11 @@ module Amber::Router
       include ChainedStore
 
       getter cookies
+      getter secret : String
       property host : String?
       property secure : Bool = false
 
-      def initialize(@host = nil, @secure = false)
+      def initialize(@host = nil, @secret = SecureRandom.urlsafe_base64(32), @secure = false)
         @cookies = {} of String => String
         @set_cookies = {} of String => HTTP::Cookie
         @delete_cookies = {} of String => HTTP::Cookie
@@ -65,11 +60,11 @@ module Amber::Router
         cookies
       end
 
-      def self.build(request)
+      def self.build(request, secret)
         headers = request.headers
         host = request.host
         secure = (headers["HTTPS"]? == "on")
-        new(host, secure).tap do |store|
+        new(host, secret, secure).tap do |store|
           store.update(from_headers(headers))
         end
       end
@@ -170,12 +165,11 @@ module Amber::Router
       end
     end
 
-    class PermanentStore
+    class PermanentStore << Store
       include ChainedStore
       getter store : Store
-      getter options : Hash(String, String)
 
-      def initialize(@store, @options)
+      def initialize(@store)
       end
 
       def [](name)
@@ -200,9 +194,8 @@ module Amber::Router
       include ChainedStore
 
       getter store : Store
-      getter options : Hash(String, String)
 
-      def initialize(@store, @options)
+      def initialize(@store)
         @verifier = Support::MessageVerifier.new(secret)
       end
 
@@ -233,14 +226,13 @@ module Amber::Router
       end
     end
 
-    class EncryptedStore
+    class EncryptedStore 
       include ChainedStore
       include SerializedStore
 
       getter store : Store
-      getter options : Hash(String, String)
 
-      def initialize(@store, @options)
+      def initialize(@store)
         @encryptor = Support::MessageEncryptor.new(secret, digest: digest)
       end
 
