@@ -15,7 +15,7 @@ Amber Crystal borrows concepts that already have been battle tested, successful,
 
 ## Read the Docs
 
-Documentation https://docs.ambercr.io
+Documentation https://docs.amberframework.org
 
 
 ## Benchmark
@@ -60,7 +60,7 @@ Once you have these dependencies, You can build the `amber` tool from source:
 $ git clone git@github.com:amber-crystal/amber.git
 $ cd amber/
 $ shards install
-$ sudo make
+$ make
 ```
 
 ##### For ArchLinux & derivates
