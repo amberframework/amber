@@ -1,7 +1,7 @@
 require "granite_orm/adapter/<%= @database %>"
 require "crypto/bcrypt/password"
 
-class <%= @name.capitalize %> < Granite::ORM
+class <%= @name.capitalize %> < Granite::ORM::Base
   adapter <%= @database %>
   property password : String?
   before_save :encrypt_password
