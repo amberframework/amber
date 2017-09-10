@@ -6,7 +6,7 @@ module Amber::Support
   class MessageEncryptor
     getter verifier : MessageVerifier
 
-    def initialize(@secret : Bytes, @cipher = "aes-256-cbc", @digest = :sha1, @sign_secret : Bytes? = nil)
+    def initialize(@secret : String, @cipher_algorithm = "aes-256-cbc", @digest = :sha1)
       @verifier = MessageVerifier.new(@secret, digest: @digest)
       @block_size = 16
     end
@@ -28,7 +28,7 @@ module Amber::Support
     end
 
     def encrypt(value)
-      cipher = new_cipher
+      cipher = OpenSSL::Cipher.new(@cipher_algorithm)
       cipher.encrypt
       cipher.key = @secret
 
@@ -44,7 +44,7 @@ module Amber::Support
     end
 
     def decrypt(value : Bytes)
-      cipher = new_cipher
+      cipher = OpenSSL::Cipher.new(@cipher_algorithm)
       data = value[0, value.size - @block_size]
       iv = value[value.size - @block_size, @block_size]
 
@@ -56,14 +56,6 @@ module Amber::Support
       decrypted_data.write cipher.update(data)
       decrypted_data.write cipher.final
       decrypted_data.to_slice
-    end
-
-    private def new_cipher
-      OpenSSL::Cipher.new(@cipher)
-    end
-
-    private def verifier
-      @verifier
     end
   end
 end

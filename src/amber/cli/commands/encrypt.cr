@@ -21,7 +21,7 @@ module Amber::CLI
         encrypted_file = "config/environments/.#{env}.enc"
         unencrypted_file = "config/environments/#{env}.yml"
 
-        enc = Amber::Support::MessageEncryptor.new(secret_key.to_slice)
+        enc = Amber::Support::MessageEncryptor.new(secret_key)
 
         if File.exists?(encrypted_file)
           File.write(unencrypted_file, enc.decrypt(File.open(encrypted_file).gets_to_end.to_slice))

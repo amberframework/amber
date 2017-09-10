@@ -20,14 +20,9 @@ module Amber
     class_property ssl_key_file : String? = nil
     class_property ssl_cert_file : String? = nil
     class_property redis_url = ""
-    class_property session : Hash(Symbol, String)
+    class_property session : Hash(Symbol, Symbol | String | Int32)
 
     # loads settings from environment yaml
     {{ run("./environment.cr") }}
-
-    # TODO: Remove as ASAP!
-    class_getter key_generator = Amber::Support::CachingKeyGenerator.new(
-      Amber::Support::KeyGenerator.new(@@secret_key_base.to_s, 5)
-    )
   end
 end

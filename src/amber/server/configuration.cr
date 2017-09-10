@@ -22,10 +22,6 @@ module Amber
         Settings
       end
 
-      def self.key_generator
-        settings.key_generator
-      end
-
       def self.secret_key_base
         settings.secret_key_base
       end

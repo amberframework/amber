@@ -3,7 +3,7 @@ require "crypto/subtle"
 
 module Amber::Support
   class MessageVerifier
-    def initialize(@secret : Bytes, @digest = :sha1)
+    def initialize(@secret : String, @digest = :sha1)
     end
 
     def valid_message?(data, digest)

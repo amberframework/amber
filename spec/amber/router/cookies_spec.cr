@@ -99,18 +99,14 @@ module Amber::Router
     context "encrypted cookies" do
       it "sets an encrypted cookie" do
         cookies = new_cookie_store
-
         cookies.encrypted.set "user_name", "david"
 
-        cookies.encrypted["user_name"].should eq "david"
         cookie_header(cookies).should_not eq "user_name=david; path=/"
       end
 
       it "gets an encrypted cookie" do
         cookies = new_cookie_store
-        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=LByguEoiSsJqc1iG%2FPrIujkr5ha0yUi%2Fng2fT4XSX3I%3D--qRpa7wr%2FuVEx5xfyfDrCHzrXjnJv44q1xhqG1XdgaAQ%3D; path=/").first
-
-        cookies[cookie.name] = cookie
+        cookies.encrypted.set "user_name", "david"
 
         cookies.encrypted["user_name"].should eq "david"
       end
@@ -140,18 +136,14 @@ module Amber::Router
     context "signed cookies" do
       it "sets a cookie" do
         cookies = new_cookie_store
-
         cookies.signed.set "user_name", "david"
 
-        cookies.signed["user_name"].should eq "david"
         cookie_header(cookies).should_not eq "user_name=david; path=/"
       end
 
       it "gets a cookie" do
         cookies = new_cookie_store
-        cookie = HTTP::Cookie::Parser.parse_cookies("user_name=ZGF2aWQ%3D--84T1hBkFFZNrUKwheNP5KXTTdJk%3D; path=/").first
-
-        cookies[cookie.name] = cookie
+        cookies.signed.set "user_name", "david"
 
         cookies.signed["user_name"].should eq "david"
       end
