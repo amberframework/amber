@@ -60,7 +60,7 @@ Once you have these dependencies, You can build the `amber` tool from source:
 $ git clone git@github.com:amber-crystal/amber.git
 $ cd amber/
 $ shards install
-$ sudo make
+$ make
 ```
 
 ##### For ArchLinux & derivates
