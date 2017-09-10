@@ -19,132 +19,58 @@ module Amber
 
   module Router
     module Flash
-      def self.from_session_value(flash_content)
-        FlashStore.from_session_value(flash_content)
+
+      def self.from_session(flash_content)
+        FlashStore.from_session(flash_content)
       end
 
-      class FlashNow
-        property :flash
-
-        def initialize(flash)
-          @flash = flash
-        end
-
-        def []=(key, value)
-          @flash[key] = value
-          @flash.discard(key)
-          value
-        end
-
-        def [](k)
-          @flash[k.to_s]
-        end
-
-        # Convenience accessor for <tt>flash.now["alert"]=</tt>.
-        def alert=(message)
-          self["alert"] = message
-        end
-
-        # Convenience accessor for <tt>flash.now["notice"]=</tt>.
-        def notice=(message)
-          self["notice"] = message
-        end
-      end
-
-      class FlashStore
-        include Enumerable(String)
-
-        JSON.mapping({
-          flashes: Hash(String | Symbol, String),
-          discard: Set(String),
-        })
-
-        def self.from_session_value(json)
-          from_json(json).tap(&.sweep)
+      class FlashStore < Hash(String, String)
+        def self.from_session(json)
+          flash = new
+          values = JSON.parse(json)
+          values.each {|k,v| flash[k.to_s] = v.to_s}
+          flash
         rescue e : JSON::ParseException
           new
         end
 
-        delegate :each, to: :flashes
-
         def initialize
-          @flashes = Hash(String | Symbol, String).new
-          @discard = Set(String).new
+          @read = [] of String
+          @now = [] of String
+          super
         end
 
-        def discard=(value : Array(String))
-          @discard = value.to_set
+        def fetch(key : String)
+          @read << key
+          super
         end
 
-        def []=(key, value)
-          k = key.to_s
-          @discard.delete k
-          @flashes[k] = value
+        def fetch(key : Symbol)
+          fetch key.to_s
         end
 
-        def [](key)
-          @flashes[key.to_s]?
+        def []=(key : Symbol, value : String)
+          self[key.to_s] = value
         end
 
-        def update(hash : Hash(String, String)) # :nodoc:
-          @discard.subtract hash.keys
-          @flashes.update hash
-          self
-        end
-
-        def keys
-          @flashes.keys
-        end
-
-        def has_key?(key)
-          @flashes.has_key?(key.to_s)
-        end
-
-        def delete(key)
-          @discard.delete key.to_s
-          @flashes.delete key.to_s
-          self
-        end
-
-        def merge!(other : Hash(String, String))
-          other.each do |k, v|
-            @flashes[k.to_s] = v
+        def each
+          current = @first
+          while current
+            yield({current.key, current.value})
+            @read << current.key
+            current = current.fore
           end
           self
         end
 
-        def to_hash
-          @flashes.dup
-        end
-
-        def empty?
-          @flashes.empty?
-        end
-
-        def clear
-          @discard.clear
-          @flashes.clear
-        end
-
-        def now
-          @now ||= FlashNow.new(self)
+        def now(key, value)
+          @now << key
+          self[key] = value
         end
 
         def keep(key = nil)
-          k = key.to_s if key
-          @discard.subtract k
-          k ? self[k] : self
-        end
-
-        def discard(key = nil)
-          k = key ? [key.to_s] : self.keys.map(&.to_s)
-          @discard.concat k.to_set
-          k ? self[k] : self
-        end
-
-        def sweep
-          @discard.each { |k| @flashes.delete k }
-          @discard = @discard.map(&.to_s).to_set | @flashes.keys.map(&.to_s).to_set
+          @read.delete key
+          @now.delete key
         end
 
         def alert
@@ -164,7 +90,7 @@ module Amber
         end
 
         def to_session
-          {"flashes": @flashes, "discard": @discard}.to_json
+          reject { |key, _| @read.includes? key }.reject { |key, _| @now.includes? key }.to_json
         end
       end
     end
