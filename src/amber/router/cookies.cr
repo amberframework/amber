@@ -13,11 +13,11 @@ module Amber::Router
       end
 
       def encrypted
-        @encrypted ||= EncryptedStore.new(self)
+        @encrypted ||= EncryptedStore.new(self, @secret)
       end
 
       def signed
-        @signed ||= SignedStore.new(self)
+        @signed ||= SignedStore.new(self, @secret)
       end
     end
 
@@ -167,6 +167,7 @@ module Amber::Router
 
     class PermanentStore
       include ChainedStore
+
       getter store : Store
 
       def initialize(@store)
@@ -195,7 +196,7 @@ module Amber::Router
 
       getter store : Store
 
-      def initialize(@store)
+      def initialize(@store, secret)
         @verifier = Support::MessageVerifier.new(secret)
       end
 
@@ -232,7 +233,7 @@ module Amber::Router
 
       getter store : Store
 
-      def initialize(@store)
+      def initialize(@store, secret)
         @encryptor = Support::MessageEncryptor.new(secret, digest: digest)
       end
 
