@@ -14,7 +14,7 @@ describe Amber::Server do
       settings.redis_url.should eq "#{ENV["REDIS_URL"]? || "redis://localhost:6379"}"
       settings.port.should eq 3000
       settings.env.should eq "test"
-      settings.secret_key_base.should eq "ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4"
+      settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
       # Sometimes settings get over written by other tests first and this fails
       # expected_session = {:key => "amber.session", :store => "signed_cookie", :expires => "0"}
       # settings.session.should eq expected_session
@@ -39,7 +39,7 @@ describe Amber::Server do
       settings.name.should eq "Hello World App"
       settings.port.should eq 8080
       settings.env.should eq "fake_env"
-      settings.secret_key_base.should eq "ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4"
+      settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
     end
 
     it "should still retain environment.yml settings that haven't been overwritten" do
@@ -61,7 +61,7 @@ describe Amber::Server do
         database:    "mysql://root@localhost:3306/amber_test_app_test",
       }
       settings.secrets.should eq expected_secrets
-      settings.secret_key_base.should eq "ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4"
+      settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
     end
 
     it "defines socket endpoint" do

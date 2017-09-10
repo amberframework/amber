@@ -9,15 +9,15 @@ ssl_cert_file:
 redis_url: "redis://localhost:6379"
 session:
   key: amber.session
-  store: signed_cookie
+  store: :signed_cookie
   expires: 0
 secrets:
   description: Store your test secrets credentials and settings here.
 <%case @database
   when "mysql" -%>
-  database: mysql://root@localhost:3306/<%= @name %>_development
+  database: mysql://root@localhost:3306/<%= @name %>_test
 <%when "pg" -%>
-  database: postgres://postgres:@pg:5432/<%= @name %>_development
+  database: postgres://postgres:@pg:5432/<%= @name %>_test
 <%when "sqlite" -%>
-  database: sqlite3:./db/<%= @name %>_development.db
+  database: sqlite3:./db/<%= @name %>_test.db
 <%end -%>
