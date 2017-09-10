@@ -165,7 +165,7 @@ module Amber::Router
       end
     end
 
-    class PermanentStore << Store
+    class PermanentStore
       include ChainedStore
       getter store : Store
 
