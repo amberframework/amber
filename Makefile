@@ -14,8 +14,8 @@ clean:
 	rm -rf  $(OUT_DIR) .crystal .shards libs lib
 
 link:
-	@ln -s `pwd`/bin/amber /usr/local/bin/amber
+	sudo ln -s `pwd`/bin/amber /usr/local/bin/amber
 
 force_link:
 	@echo "Symlinking `pwd`/bin/amber to /usr/local/bin/amber"
-	@ln -sf `pwd`/bin/amber /usr/local/bin/amber
+	sudo ln -sf `pwd`/bin/amber /usr/local/bin/amber
