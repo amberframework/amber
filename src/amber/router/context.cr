@@ -39,9 +39,7 @@ class HTTP::Server::Context
   end
 
   def cookies
-    @cookies ||= Amber::Router::Cookies::Store.build(
-      request, Amber::Server.key_generator
-    )
+    @cookies ||= Amber::Router::Cookies::Store.build(request, Amber::Server.secret_key_base)
   end
 
   def session
@@ -49,7 +47,7 @@ class HTTP::Server::Context
   end
 
   def flash
-    @flash ||= Amber::Router::Flash.from_session_value(session.fetch(Amber::Pipe::Flash::PARAM_KEY, "{}"))
+    @flash ||= Amber::Router::Flash.from_session(session.fetch(Amber::Pipe::Flash::PARAM_KEY, "{}"))
   end
 
   def websocket?

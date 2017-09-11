@@ -11,15 +11,15 @@ ssl_cert_file:
 redis_url: "redis://localhost:6379"
 session:
   key: amber.session
-  store: signed_cookie
+  store: :signed_cookie
   expires: 0
 secrets:
   description: Store your production secrets credentials and settings here.
 <%case @database
   when "mysql" -%>
-  database: mysql://root@localhost:3306/<%= @name %>_development
+  database: mysql://root@localhost:3306/<%= @name %>
 <%when "pg" -%>
-  database: postgres://postgres:@pg:5432/<%= @name %>_development
+  database: postgres://postgres:@pg:5432/<%= @name %>
 <%when "sqlite" -%>
-  database: sqlite3:./db/<%= @name %>_development.db
+  database: sqlite3:./db/<%= @name %>.db
 <%end -%>

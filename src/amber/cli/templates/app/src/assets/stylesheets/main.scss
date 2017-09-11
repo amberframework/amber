@@ -75,3 +75,11 @@ h6, .h6 {
 .main {
   padding-top: 20px;
 }
+
+#logo {
+  background-color: $background-color;
+  background-image: url("../images/logo.png");
+  background-size:contain;
+  width: 200px;
+  height:278px;
+}
