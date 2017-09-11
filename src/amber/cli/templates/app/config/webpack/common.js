@@ -12,7 +12,7 @@ let config = {
   },
   resolve: {
     alias: {
-      amber: path.resolve(__dirname, '../../../lib/amber/assets/js/amber.js')
+      amber: path.resolve(__dirname, '../../lib/amber/assets/js/amber.js')
     }
   },
   module: {
