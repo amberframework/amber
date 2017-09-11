@@ -7,7 +7,8 @@ let config = {
   },
   output: {
     filename: '[name].bundle.js',
-    path: path.resolve(__dirname, '../../public/dist')
+    path: path.resolve(__dirname, '../../public/dist'),
+    publicPath: '/dist'
   },
   resolve: {
     alias: {
@@ -37,7 +38,7 @@ let config = {
         test: /\.(png|svg|jpg|gif)$/,
         exclude: /node_modules/,
         use: [
-          'file-loader'
+          'file-loader?name=/images/[name].[ext]'
         ]
       },
       {
