@@ -207,7 +207,7 @@ Contributing to Amber can be a rewarding way to learn, teach, and build experien
 
 Amber is a community effort and we want You to be part of ours [Join Amber Community!](https://github.com/amberframework/amber/blob/master/.github/CONTRIBUTING.md)
 
-1. Fork it ( https://github.com/amberframework/amber_cmd/fork )
+1. Fork it ( https://github.com/amberframework/amber/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
