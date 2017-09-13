@@ -83,3 +83,10 @@ h6, .h6 {
   width: 200px;
   height:278px;
 }
+
+/* Hide logo in small screens */
+@media (max-width: 800px) {
+  #logo {
+    display: none;
+  }
+}

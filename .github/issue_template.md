@@ -1,5 +1,5 @@
 <!--
-Have you read Amber's Code of Conduct? By filing an Issue, you are expected to comply with it, including treating everyone with respect: https://github.com/Amber-Crystal/amber/blob/master/.github/CODE_OF_CONDUCT.md
+Have you read Amber's Code of Conduct? By filing an Issue, you are expected to comply with it, including treating everyone with respect: https://github.com/amberframework/amber/blob/master/.github/CODE_OF_CONDUCT.md
 Do you want to ask a question? Are you looking for support? The Amber message board is the best place for getting support: https://gitter.io/Amber-Crystal/Lobby
 -->
 
