@@ -43,7 +43,7 @@ module Amber::CLI::Spec
 
   def prepare_yaml(path)
     shard = File.read("#{path}/shard.yml")
-    shard = shard.gsub("github: amber-crystal/amber\n", "path: ../../\n")
+    shard = shard.gsub("github: amberframework/amber\n", "path: ../../\n")
     File.write("#{path}/shard.yml", shard)
   end
 end

@@ -31,7 +31,7 @@ Following these guidelines helps to communicate that you respect the time of the
 
 Be a law abiding contributor!
 
-This project adheres to the Contributor Covenant [CODE OF CONDUCT](https://github.com/Amber-Crystal/amber/blob/master/.github/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [code of conduct gitter channel](https://gitter.im/Amber-Crystal/code_of_conduct)
+This project adheres to the Contributor Covenant [CODE OF CONDUCT](https://github.com/amberframework/amber/blob/master/.github/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [code of conduct gitter channel](https://gitter.im/Amber-Crystal/code_of_conduct)
 
 ## How Can I Contribute
 
@@ -45,7 +45,7 @@ Before creating bug reports, please check this list as you might find out that y
 
 **How Do I Submit A (Good) Bug Report?**
 
-Bugs are tracked as [GitHub issues](https://github.com/Amber-Crystal/amber/issues). After you've determined the cause of the bug, create an issue and provide the following information by filling in the template.
+Bugs are tracked as [GitHub issues](https://github.com/amberframework/amber/issues). After you've determined the cause of the bug, create an issue and provide the following information by filling in the template.
 
 **A good bug report**
 
