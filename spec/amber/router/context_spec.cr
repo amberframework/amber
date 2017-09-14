@@ -273,7 +273,8 @@ describe HTTP::Server::Context do
       headers = HTTP::Headers.new
       request = HTTP::Request.new("GET", "/", headers)
       context = create_context(request)
-      context.response.headers.add "X-Powered-By", "Amber"
+      pipeline = Amber::Pipe::Pipeline.new
+      pipeline.call(context)
       context.response.headers["X-Powered-By"].should eq "Amber"
     end
   end
