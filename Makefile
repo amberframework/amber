@@ -2,6 +2,9 @@ OUT_DIR=bin
 
 all: build force_link
 
+install: build
+	sudo cp `pwd`/bin/amber /usr/local/bin/amber
+
 build:
 	@echo "Building amber in $(shell pwd)"
 	@mkdir -p $(OUT_DIR)
