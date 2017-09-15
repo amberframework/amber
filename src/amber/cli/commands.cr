@@ -8,7 +8,7 @@ DATABASE_YML = "config/database.yml"
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     command_name "amber"
-    version "Amber CMD (ambercr.io) - v#{VERSION}"
+    version "Amber CMD (amberframework.org) - v#{VERSION}"
 
     class Help
       title "\nAmber - Command Line Interface"
