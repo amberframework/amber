@@ -100,12 +100,14 @@ module Amber
 
       describe "X-Powered-By Header" do
         it "initializes context with X-Powered-By: Amber" do
-          headers = HTTP::Headers.new
-          request = HTTP::Request.new("GET", "/", headers)
-          context = create_context(request)
           pipeline = Pipeline.new
-          pipeline.call(context)
-          context.response.headers["X-Powered-By"].should eq "Amber"
+          request = HTTP::Request.new("GET", "/index/faustino")
+          pipeline.build :web { plug Amber::Pipe::Logger.new }
+          Amber::Server.router.draw :web { get "/index/:name", HelloController, :world }
+
+          pipeline.prepare_pipelines
+          response = create_request_and_return_io(pipeline, request)
+          response.headers["X-Powered-By"].should eq "Amber"
         end
       end
     end
