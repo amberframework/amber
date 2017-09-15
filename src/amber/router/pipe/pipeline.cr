@@ -14,7 +14,7 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
-        context.response.headers.add "X-Powered-By", "Amber"
+        context.response.headers["X-Powered-By"] = "Amber"
         raise Amber::Exceptions::RouteNotFound.new(context.request) if context.invalid_route?
         if context.websocket?
           context.process_websocket_request

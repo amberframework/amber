@@ -267,15 +267,4 @@ describe HTTP::Server::Context do
       end
     end
   end
-
-  describe "X-Powered-By Header" do
-    it "initializes context with X-Powered-By: Amber" do
-      headers = HTTP::Headers.new
-      request = HTTP::Request.new("GET", "/", headers)
-      context = create_context(request)
-      pipeline = Amber::Pipe::Pipeline.new
-      pipeline.call(context)
-      context.response.headers["X-Powered-By"].should eq "Amber"
-    end
-  end
 end
