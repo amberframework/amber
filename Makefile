@@ -2,6 +2,9 @@ OUT_DIR=bin
 
 all: build force_link
 
+install: build
+	sudo cp `pwd`/bin/amber /usr/local/bin/amber
+
 build:
 	@echo "Building amber in $(shell pwd)"
 	@mkdir -p $(OUT_DIR)
@@ -14,8 +17,8 @@ clean:
 	rm -rf  $(OUT_DIR) .crystal .shards libs lib
 
 link:
-	sudo ln -s `pwd`/bin/amber /usr/local/bin/amber
+	@ln -s `pwd`/bin/amber /usr/local/bin/amber
 
 force_link:
 	@echo "Symlinking `pwd`/bin/amber to /usr/local/bin/amber"
-	sudo ln -sf `pwd`/bin/amber /usr/local/bin/amber
+	@ln -sf `pwd`/bin/amber /usr/local/bin/amber

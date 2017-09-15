@@ -61,7 +61,7 @@ Once you have these dependencies, You can build the `amber` tool from source:
 $ git clone git@github.com:amberframework/amber.git
 $ cd amber/
 $ shards install
-$ make
+$ make install
 ```
 
 ##### For ArchLinux & derivates
