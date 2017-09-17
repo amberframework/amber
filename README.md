@@ -75,7 +75,7 @@ You should now be able to run `amber` in the command line.
 Best way to get `amber` on Mac OS X is via Homebrew:
 
 ```shellsession
-$ brew install amber-crystal/amber/amber
+$ brew install amberframework/amber/amber
 ```
 
 
