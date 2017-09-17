@@ -17,6 +17,8 @@ module Amber::CLI
         time:      ["time", "Time", "TIMESTAMP"],
         timestamp: ["time", "Time", "TIMESTAMP"],
         password:  ["password", "String", "VARCHAR"],
+        ref:       ["ref", "Int64", "BIGINT"],
+        reference: ["ref", "Int64", "BIGINT"],
       },
       mysql: {
         string:    ["string", "String", "VARCHAR(255)"],
@@ -64,6 +66,10 @@ module Amber::CLI
       else
         raise "type #{@type} not available"
       end
+    end
+
+    def ref?
+      self.type == "ref"
     end
   end
 end

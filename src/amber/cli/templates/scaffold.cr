@@ -21,7 +21,7 @@ module Amber::CLI
       end
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S")
       @primary_key = primary_key
-      @visible_fields = @fields.reject(&.hidden).map(&.name)
+      @visible_fields = @fields.reject{|f|f.hidden || f.ref?}.map(&.name)
       add_route
     end
 
