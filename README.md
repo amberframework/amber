@@ -1,6 +1,6 @@
 ![Amber Framework](https://github.com/amberframework/amber/blob/master/media/amber.png)
 
-[![Gitter](https://img.shields.io/gitter/room/Amber-Crystal/Lobby.svg)](https://gitter.im/Amber-Crystal/Lobby)
+[![Gitter](https://img.shields.io/gitter/room/amberframework/amber.svg)](https://gitter.im/amberframework/amber)
 [![Travis](https://img.shields.io/travis/amberframework/amber.svg)](https://travis-ci.org/amberframework/amber)
 [![license](https://img.shields.io/github/license/amberframework/amber.svg)](https://github.com/amberframework/amber/blob/master/LICENSE)
 [![GitHub tag](https://img.shields.io/github/tag/amberframework/amber.svg)](https://github.com/amberframework/amber/releases/latest)
