@@ -31,7 +31,7 @@ Following these guidelines helps to communicate that you respect the time of the
 
 Be a law abiding contributor!
 
-This project adheres to the Contributor Covenant [CODE OF CONDUCT](https://github.com/amberframework/amber/blob/master/.github/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [code of conduct gitter channel](https://gitter.im/Amber-Crystal/code_of_conduct)
+This project adheres to the Contributor Covenant [CODE OF CONDUCT](https://github.com/amberframework/amber/blob/master/.github/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [gitter channel](https://gitter.im/amberframework/amber)
 
 ## How Can I Contribute
 
