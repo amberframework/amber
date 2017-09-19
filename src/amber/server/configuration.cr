@@ -29,6 +29,10 @@ module Amber
         settings.log
       end
 
+      def self.color
+        settings.color
+      end
+
       def self.pubsub_adapter
         settings.pubsub_adapter.instance
       end

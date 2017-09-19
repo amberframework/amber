@@ -5,6 +5,16 @@ require "./templates/template"
 AMBER_YML    = ".amber.yml"
 DATABASE_YML = "config/database.yml"
 
+class Cli::Command
+  def colorize(text, color)
+    text.colorize(color).toggle(!options.no_color?).to_s
+  end
+
+  def colorize(text, color, mode)
+    text.colorize(color).toggle(!options.no_color?).mode(mode).to_s
+  end
+end
+
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     command_name "amber"

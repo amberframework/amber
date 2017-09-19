@@ -14,6 +14,7 @@ describe Amber::Server do
       settings.redis_url.should eq "#{ENV["REDIS_URL"]? || "redis://localhost:6379"}"
       settings.port.should eq 3000
       settings.env.should eq "test"
+      settings.color.should eq true
       settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
       # Sometimes settings get over written by other tests first and this fails
       # expected_session = {:key => "amber.session", :store => "signed_cookie", :expires => "0"}
@@ -32,6 +33,7 @@ describe Amber::Server do
         server.env = "fake_env"
         server.log = ::Logger.new(STDOUT)
         server.log.level = ::Logger::INFO
+        server.color = false
       end
 
       settings = Amber::Server.settings
@@ -39,6 +41,7 @@ describe Amber::Server do
       settings.name.should eq "Hello World App"
       settings.port.should eq 8080
       settings.env.should eq "fake_env"
+      settings.color.should eq false
       settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
     end
 
