@@ -10,7 +10,7 @@ module Amber::CLI
         string "-d", desc: "database", any_of: %w(pg mysql sqlite), default: "pg"
         string "-t", desc: "template language", any_of: %w(slang ecr), default: "slang"
         bool "--deps", desc: "installs deps, (shards update)", default: false
-        bool "--no-color", desc: "# Disable colored output", default: false
+        bool "--no-color", desc: "Disable colored output", default: false
       end
 
       class Help
