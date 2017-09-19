@@ -11,7 +11,7 @@
   <table class="table table-striped">
     <thead>
       <tr>
-<% @fields.reject{|f| f.hidden || f.ref? }.each do |field| -%>
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
         <th><%= field.name.capitalize %></th>
 <% end -%>
         <th>Actions</th>
@@ -19,8 +19,8 @@
     <tbody>
     <%="<"%>%- <%= @name %>s.each do |<%= @name %>| %>
       <tr>
-<% @fields.reject{|f| f.hidden || f.ref? }.each do |field| -%>
-        <td><%="<"%>%= <%= @name %>.<%= field.name %> %></td>
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
+  <td><%="<"%>%= <%= @name %>.<%= field.name %><%= field.ref? ? ".id" : "" %> %></td>
 <% end -%>
         <td>
           <span>
