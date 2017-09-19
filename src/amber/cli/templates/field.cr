@@ -17,8 +17,8 @@ module Amber::CLI
         time:      ["time", "Time", "TIMESTAMP"],
         timestamp: ["time", "Time", "TIMESTAMP"],
         password:  ["password", "String", "VARCHAR"],
-        ref:       ["ref", "Int64", "BIGINT"],
-        reference: ["ref", "Int64", "BIGINT"],
+        ref:       ["reference", "Int64", "BIGINT"],
+        reference: ["reference", "Int64", "BIGINT"],
       },
       mysql: {
         string:    ["string", "String", "VARCHAR(255)"],
@@ -68,8 +68,8 @@ module Amber::CLI
       end
     end
 
-    def ref?
-      self.type == "ref"
+    def reference?
+      self.type == "reference"
     end
   end
 end

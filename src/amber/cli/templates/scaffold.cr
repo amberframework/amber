@@ -64,7 +64,7 @@ module Amber::CLI
 
     def visible_fields
       @fields.reject{|f|f.hidden}.map do |f|
-        f.ref? ? "#{f.name}_id" : f.name
+        f.reference? ? "#{f.name}_id" : f.name
       end
     end
 
