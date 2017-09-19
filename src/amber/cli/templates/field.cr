@@ -20,6 +20,7 @@ module Amber::CLI
         ref:        ["reference", "Int64", "BIGINT"],
         belongs_to: ["reference", "Int64", "BIGINT"],
         reference:  ["reference", "Int64", "BIGINT"],
+        references: ["reference", "Int64", "BIGINT"],
       },
       mysql: {
         string:    ["string", "String", "VARCHAR(255)"],
