@@ -6,16 +6,11 @@ module Amber::Controller
 
     def initialize(@context : HTTP::Server::Context, @ex : AmberException)
       super(@context)
+      @context.response.content_type = content_type
     end
 
     def not_found
-      if context.request.headers["Accept"]?
-        content_type = context.request.headers["Accept"].split(",")[0]
-      else
-        content_type = "text/plain"
-      end
-      context.response.content_type = content_type
-      message_based_on_content_type(@ex.message, content_type)
+      response_format(@ex.message)
     end
 
     def internal_server_error
@@ -24,16 +19,18 @@ module Amber::Controller
     end
 
     def forbidden
-      if context.request.headers["Accept"]?
-        content_type = context.request.headers["Accept"].split(",")[0]
-      else
-        content_type = "text/plain"
-      end
-      context.response.content_type = content_type
-      message_based_on_content_type(@ex.message, content_type)
+      response_format(@ex.message)
     end
 
-    private def message_based_on_content_type(message, content_type)
+    private def content_type
+      if context.request.headers["Accept"]?
+        request.headers["Accept"].split(",").first
+      else
+        "text/plain"
+      end
+    end
+
+    private def response_format(message)
       case content_type
       when "application/json"
         {"error": message}.to_json
