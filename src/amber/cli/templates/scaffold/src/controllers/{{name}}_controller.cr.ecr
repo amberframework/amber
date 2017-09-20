@@ -1,4 +1,4 @@
-class <%= @name.capitalize %>Controller < ApplicationController 
+class <%= @name.capitalize %>Controller < ApplicationController
   def index
     <%= @name %>s = <%= @name.capitalize %>.all
     render("index.<%= @language %>")
@@ -19,7 +19,7 @@ class <%= @name.capitalize %>Controller < ApplicationController
   end
 
   def create
-  <%= @name %> = <%= @name.capitalize %>.new(params.to_h.select(<%= @visible_fields %>))
+    <%= @name %> = <%= @name.capitalize %>.new(params.to_h.select(<%= @visible_fields %>))
 
     if <%= @name %>.valid? && <%= @name %>.save
       flash["success"] = "Created <%= @name.capitalize %> successfully."

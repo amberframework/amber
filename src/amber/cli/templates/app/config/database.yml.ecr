@@ -3,7 +3,7 @@
    when "mysql" -%>
   database: mysql://root@localhost:3306/<%= "#{@name}_development" %>
 <% when "pg" -%>
-  database: postgres://postgres:@pg:5432/<%= "#{@name}_development" %>
+  database: postgres://root:@localhost:5432/<%= "#{@name}_development" %>
 <% when "sqlite" -%>
   database: sqlite3:./db/<%= "#{@name}_development" %>.db
 <% end -%>
