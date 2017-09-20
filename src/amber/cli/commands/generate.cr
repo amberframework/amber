@@ -6,7 +6,7 @@ module Amber::CLI
       class Options
         arg "type", desc: "scaffold, model, controller, migration, mailer, socket, channel, auth", required: true
         arg "name", desc: "name of resource", required: true
-        arg_array "fields", desc: "name:string body:text age:integer published:bool"
+        arg_array "fields", desc: "user:reference name:string body:text age:integer published:bool"
       end
 
       def run

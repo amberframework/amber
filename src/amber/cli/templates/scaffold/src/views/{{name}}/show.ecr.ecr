@@ -1,5 +1,5 @@
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
-<p><%="<"%>%= <%= @name %>.<%= field.name %> %></p>
+<p><%="<"%>%= <%= @name %>.<%= field.name %><%= field.reference? ? ".id" : "" %> %></p>
 <% end -%>
 <p>
           <a class="btn btn-default btn-xs" href="/<%= @name %>s">back</a>
