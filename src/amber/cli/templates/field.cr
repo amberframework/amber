@@ -2,21 +2,25 @@ module Amber::CLI
   class Field
     TYPE_MAPPING = {
       common: {
-        string:    ["string", "String", "VARCHAR"],
-        text:      ["text", "String", "TEXT"],
-        int:       ["integer", "Int32", "INT"],
-        int32:     ["integer", "Int32", "INT"],
-        integer:   ["integer", "Int32", "INT"],
-        int64:     ["bigint", "Int64", "BIGINT"],
-        bigint:    ["bigint", "Int64", "BIGINT"],
-        float:     ["float", "Float32", "FLOAT"],
-        real:      ["real", "Float64", "REAL"],
-        bool:      ["boolean", "Bool", "BOOL"],
-        boolean:   ["boolean", "Bool", "BOOL"],
-        date:      ["date", "Time", "DATE"],
-        time:      ["time", "Time", "TIMESTAMP"],
-        timestamp: ["time", "Time", "TIMESTAMP"],
-        password:  ["password", "String", "VARCHAR"],
+        string:     ["string", "String", "VARCHAR"],
+        text:       ["text", "String", "TEXT"],
+        int:        ["integer", "Int32", "INT"],
+        int32:      ["integer", "Int32", "INT"],
+        integer:    ["integer", "Int32", "INT"],
+        int64:      ["bigint", "Int64", "BIGINT"],
+        bigint:     ["bigint", "Int64", "BIGINT"],
+        float:      ["float", "Float32", "FLOAT"],
+        real:       ["real", "Float64", "REAL"],
+        bool:       ["boolean", "Bool", "BOOL"],
+        boolean:    ["boolean", "Bool", "BOOL"],
+        date:       ["date", "Time", "DATE"],
+        time:       ["time", "Time", "TIMESTAMP"],
+        timestamp:  ["time", "Time", "TIMESTAMP"],
+        password:   ["password", "String", "VARCHAR"],
+        ref:        ["reference", "Int64", "BIGINT"],
+        belongs_to: ["reference", "Int64", "BIGINT"],
+        reference:  ["reference", "Int64", "BIGINT"],
+        references: ["reference", "Int64", "BIGINT"],
       },
       mysql: {
         string:    ["string", "String", "VARCHAR(255)"],
@@ -64,6 +68,10 @@ module Amber::CLI
       else
         raise "type #{@type} not available"
       end
+    end
+
+    def reference?
+      self.type == "reference"
     end
   end
 end

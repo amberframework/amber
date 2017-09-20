@@ -15,7 +15,7 @@ div.table-responsive
     - <%= @name %>s.each do |<%= @name %>|
       tr
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
-        td = <%= @name %>.<%= field.name %>
+        td = <%= @name %>.<%= field.name %><%= field.reference? ? ".id" : "" %>
 <% end -%>
         td
           span
