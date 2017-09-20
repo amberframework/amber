@@ -25,6 +25,9 @@
       <%="<"%>%= label(<%=":#{field.name}"%>) -%>
       <%="<"%>%= check_box(<%=":#{field.name}, checked: #{@name}.#{field.name}.to_s == \"1\""%>) -%>
     </div>
+<% when "reference" -%>
+    <%="<"%>%= label(<%=":#{field.name}"%>) -%>
+    <%="<"%>%= select_field(name: "<%= field.name %>_id", collection: <%= field.name.capitalize %>.all.map{|<%= field.name %>| [<%= field.name %>.id, <%= field.name %>.id]}, selected: <%= @name %>.<%= field.name %>_id, class: "form-control") -%>
 <% else -%>
     <%="<"%>%= text_field(name: "<%= field.name %>", value: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control") -%>
 <% end -%>

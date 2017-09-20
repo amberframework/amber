@@ -21,7 +21,7 @@ module Amber::CLI
       end
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S")
       @primary_key = primary_key
-      @visible_fields = @fields.reject(&.hidden).map(&.name)
+      @visible_fields = visible_fields
       add_route
     end
 
@@ -60,6 +60,12 @@ module Amber::CLI
 
     def filter(entries)
       entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
+    end
+
+    def visible_fields
+      @fields.reject{|f|f.hidden}.map do |f|
+        f.reference? ? "#{f.name}_id" : f.name
+      end
     end
 
     def add_route
