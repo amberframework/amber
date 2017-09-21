@@ -1,5 +1,9 @@
 require "http"
-require "./**"
+
+require "./render"
+require "./filters"
+require "./redirect"
+require "./helpers/*"
 
 module Amber::Controller
   class Base
