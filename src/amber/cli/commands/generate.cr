@@ -1,4 +1,6 @@
 module Amber::CLI
+  class_property color = true
+
   class MainCommand < ::Cli::Supercommand
     command "g", aliased: "generate"
 
@@ -7,6 +9,7 @@ module Amber::CLI
         arg "type", desc: "scaffold, model, controller, migration, mailer, socket, channel, auth", required: true
         arg "name", desc: "name of resource", required: true
         arg_array "fields", desc: "user:reference name:string body:text age:integer published:bool"
+        bool "--no-color", desc: "Disable colored output", default: false
       end
 
       def run

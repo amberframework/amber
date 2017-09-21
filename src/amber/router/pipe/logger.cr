@@ -3,6 +3,10 @@ require "colorize"
 module Amber
   module Pipe
     class Logger < Base
+      def colorize(text, color)
+        text.colorize(color).toggle(Amber::Settings.color).to_s
+      end
+
       def initialize(io : IO = STDOUT)
         @io = io
       end
@@ -13,24 +17,24 @@ module Amber
         status = context.response.status_code
         elapsed = elapsed_text(Time.now - time)
         @io.puts "#{http_status(status)} | #{method(context)} #{path(context)} | #{elapsed}"
-        @io.puts "Params: #{context.params.to_s.colorize(:yellow)}"
+        @io.puts "Params: #{colorize(context.params.to_s, :yellow)}"
         context
       end
 
       def method(context)
-        context.request.method.colorize(:light_red).to_s + " "
+        colorize(context.request.method, :light_red) + " "
       end
 
       def path(context)
-        "\"" + context.request.path.to_s.colorize(:yellow).to_s + "\" "
+        "\"" + colorize(context.request.path.to_s, :yellow) + "\" "
       end
 
       def http_status(status)
         case status
         when 200
-          text = "200 ".colorize(:green).to_s
+          text = colorize("200 ", :green)
         when 404
-          text = "404 ".colorize(:red).to_s
+          text = colorize("404 ", :red)
         end
         "#{text}"
       end

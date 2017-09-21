@@ -94,6 +94,11 @@ class Teeplate::RenderingEntry
                       @data.path
                     end
   end
+
+  def list(s, color)
+    print s.colorize.fore(color).toggle(Amber::CLI.color)
+    puts local_path
+  end
 end
 
 module Teeplate

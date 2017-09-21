@@ -3,6 +3,7 @@ port: 3000
 name: <%= @name %>
 log: "::Logger.new(STDOUT)"
 log_level: "::Logger::INFO"
+color: false
 host: 0.0.0.0
 port_reuse: true
 process_count: (ENV[%(AMBER_PROCESS_COUNT)]? || 1).to_i

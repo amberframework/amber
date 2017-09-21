@@ -1,4 +1,6 @@
 module Amber::CLI
+  class_property color = true
+
   class MainCommand < ::Cli::Supercommand
     command "n", aliased: "new"
 
@@ -8,6 +10,7 @@ module Amber::CLI
         string "-d", desc: "database", any_of: %w(pg mysql sqlite), default: "pg"
         string "-t", desc: "template language", any_of: %w(slang ecr), default: "slang"
         bool "--deps", desc: "installs deps, (shards update)", default: false
+        bool "--no-color", desc: "Disable colored output", default: false
       end
 
       class Help
@@ -15,6 +18,7 @@ module Amber::CLI
       end
 
       def run
+        Amber::CLI.color = !options.no_color?
         name = File.basename(args.name)
         template = Template.new(name, "./#{args.name}")
         template.generate("app", options)
