@@ -35,10 +35,11 @@ str = String.build do |s|
   # For now I have this here so that tests can still pass without having to load env files although they should.
   # This is a transistion.
   s.puts %(@@name = "#{settings["name"]? || "Amber_App"}")
-  s.puts %(@@port_reuse = #{settings["port_reuse"]? || true})
+  s.puts %(@@port_reuse = #{settings["port_reuse"]? == nil ? true : settings["port_reuse"]})
   s.puts %(@@process_count = #{settings["process_count"]? || 1})
   s.puts %(@@log = #{settings["log"]? || "::Logger.new(STDOUT)"})
   s.puts %(@@log.level = #{settings["log_level"]? || "::Logger::INFO"})
+  s.puts %(@@color = #{settings["color"]? == nil ? true : settings["color"]})
   s.puts %(@@redis_url = "#{settings["redis_url"]? || "redis://localhost:6379"}")
   s.puts %(@@port = #{settings["port"]? || 3000})
   s.puts %(@@host = "#{settings["host"]? || "127.0.0.1"}")

@@ -13,7 +13,7 @@ module Amber::CLI
       property project_name : String?
 
       def run
-        (spinner = Spin.new(0.1, Spinner::Charset[:arrow2].map(&.colorize(:light_green).to_s))).start
+        (spinner = Spin.new(0.1, Spinner::Charset[:arrow2].map { |c| colorize(c, :light_green) })).start
         shard = YAML.parse(File.read("./shard.yml"))
         @project_name = shard["name"].to_s
         @server_name = "#{project_name}-#{args.server_suffix}".gsub(/[^\w\d\-]|_/, "")
@@ -36,6 +36,7 @@ module Amber::CLI
         string ["-k", "--key"], desc: "# API Key for service"
         string ["-t", "--tag"], desc: "# Tag to use. Overrides branch."
         string ["-b", "--branch"], desc: "# Branch to use. Default master.", default: "master"
+        bool "--no-color", desc: "# Disable colored output", default: false
       end
 
       def provision
@@ -77,7 +78,7 @@ module Amber::CLI
 
       def create_cloud_server
         puts "Deploying #{@server_name}"
-        puts "Creating docker machine: #{@server_name.colorize(:blue)}"
+        puts "Creating docker machine: #{colorize(@server_name, :blue)}"
         puts "Enter your write enabled Digital Ocean API KEY or create on with the link below."
         puts "https://cloud.digitalocean.com/settings/api/tokens/new"
         do_token = options.key? || getsecret("DigitalOcean Token")
