@@ -23,7 +23,7 @@ module Amber
           context.finalize_response
         end
       rescue e : Amber::Exceptions::Base
-        e.set_response(context.response)
+        Amber::Pipe::Error.new.call(context)
       end
 
       # Connects pipes to a pipeline to process requests
