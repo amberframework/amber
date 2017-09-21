@@ -25,12 +25,16 @@ module Amber::CLI
         caption "# Print out all defined routes in match order, with names"
       end
 
+      class Options
+        bool "--no-color", desc: "Disable colored output", default: false
+      end
+
       def run
         parse_routes
         print_routes_table
       rescue
-        puts "Error: Not valid project root directory.".colorize(:red)
-        puts "Run `amber routes` in project root directory.".colorize(:light_blue)
+        puts colorize("Error: Not valid project root directory.", :red)
+        puts colorize("Run `amber routes` in project root directory.", :light_blue)
         puts "Good bye :("
         exit 1
       end
@@ -106,8 +110,8 @@ module Amber::CLI
       private def print_routes_table
         table = ShellTable.new
         table.labels = LABELS
-        table.label_color = :light_red
-        table.border_color = :dark_gray
+        table.label_color = :light_red unless options.no_color?
+        table.border_color = :dark_gray unless options.no_color?
         routes.each do |route|
           row = table.add_row
           LABELS.each do |l|

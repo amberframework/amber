@@ -54,17 +54,17 @@ module Amber
         exit
       end
 
-      settings.log.info "Server started in #{settings.env.colorize(:yellow)}.".to_s
-      settings.log.info "Startup Time #{Time.now - time}\n\n".colorize(:white).to_s
+      settings.log.info "Server started in #{colorize(settings.env, :yellow)}."
+      settings.log.info colorize("Startup Time #{Time.now - time}\n\n", :white)
       server.listen(settings.port_reuse)
     end
 
     private def version
-      "[Amber #{Amber::VERSION}]".colorize(:light_cyan).to_s
+      colorize("[Amber #{Amber::VERSION}]", :light_cyan)
     end
 
     private def host_url
-      "#{scheme}://#{settings.host}:#{settings.port}".colorize(:light_cyan).underline
+      colorize("#{scheme}://#{settings.host}:#{settings.port}", :light_cyan, :underline)
     end
 
     private def ssl_enabled?
@@ -73,6 +73,14 @@ module Amber
 
     private def scheme
       ssl_enabled? ? "https" : "http"
+    end
+
+    def colorize(text, color)
+      text.colorize(color).toggle(Amber::Settings.color).to_s
+    end
+
+    def colorize(text, color, mode)
+      text.colorize(color).toggle(Amber::Settings.color).mode(mode).to_s
     end
   end
 end
