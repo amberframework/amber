@@ -2,7 +2,7 @@ require "./base"
 
 module Amber::Controller
   class Error < Base
-    def initialize(@context : HTTP::Server::Context, @ex : Amber::Exceptions::Base)
+    def initialize(@context : HTTP::Server::Context, @ex : Exception)
       super(@context)
       @context.response.content_type = content_type
     end
