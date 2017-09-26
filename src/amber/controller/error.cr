@@ -2,9 +2,7 @@ require "./base"
 
 module Amber::Controller
   class Error < Base
-    alias AmberException = Amber::Exceptions::Forbidden | Amber::Exceptions::RouteNotFound | Exception
-
-    def initialize(@context : HTTP::Server::Context, @ex : AmberException)
+    def initialize(@context : HTTP::Server::Context, @ex : Exception)
       super(@context)
       @context.response.content_type = content_type
     end
