@@ -110,7 +110,7 @@ Commands:
   amber w watch                   # Starts amber server and rebuilds on file changes
   amber routes                    # Prints the routes (In Development)
   amber r run [OPTION]            # Compiles and runs your project. Options: [-p --port | -e -environment]
-  amber deplopy [OPTION]          # Provisions server and deploys project. [-s --service | -k --key | -t --tag | -b --branch]
+  amber deploy [OPTION]           # Provisions server and deploys project. [-s --service | -k --key | -t --tag | -b --branch]
   amber encrypt [OPTION]          # Encrypts environment YAML file. [env | -e --editor | --noedit]
 
 Options:
