@@ -62,20 +62,24 @@ class TestController < Amber::Controller::Base
   end
 
   def render_partial
-    render("spec/support/sample/views/test/_test.slang")
+    render(partial: "spec/support/sample/views/test/_test.slang")
   end
 
   def render_with_layout
-    render("test/test.slang", "layout.slang", "spec/support/sample/views", "./")
+    render("test/test.slang", layout: "layout.slang", path: "spec/support/sample/views", folder: "./")
+  end
+
+  def render_multiple_partials_in_layout
+    render("test/test.slang", layout: "layout_with_partials.slang", path: "spec/support/sample/views", folder: "./")
   end
 
   def render_with_csrf
-    render("spec/support/sample/views/test/_form.slang", layout: false)
+    render(partial: "spec/support/sample/views/test/_form.slang")
   end
 
   def render_with_flash
     flash["error"] = "Displays error Message!"
-    render("spec/support/sample/views/test/flash.slang", false)
+    render("spec/support/sample/views/test/flash.slang", layout: false)
   end
 end
 

@@ -19,7 +19,6 @@ module Amber
 
   module Router
     module Flash
-
       def self.from_session(flash_content)
         FlashStore.from_session(flash_content)
       end
@@ -28,7 +27,7 @@ module Amber
         def self.from_session(json)
           flash = new
           values = JSON.parse(json)
-          values.each {|k,v| flash[k.to_s] = v.to_s}
+          values.each { |k, v| flash[k.to_s] = v.to_s }
           flash
         rescue e : JSON::ParseException
           new

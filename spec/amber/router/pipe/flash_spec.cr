@@ -9,13 +9,12 @@ module Amber
 
   module Router
     describe Flash::FlashStore do
-      
       describe ".from_session" do
         it "creates a flash store from json" do
           flashes = {"some_key" => "some_value"}
           json = flashes.to_json
           flash_store = Flash::FlashStore.from_session json
-          
+
           flash_store.has_key?("some_key").should be_true
           flash_store["some_key"].should eq "some_value"
         end
@@ -33,7 +32,7 @@ module Amber
           flashes = {"some_key" => "some_value"}
           json = flashes.to_json
           flash_store = Flash::FlashStore.from_session json
-          
+
           flash_store.fetch("some_key").should eq "some_value"
         end
 
@@ -41,7 +40,7 @@ module Amber
           flashes = {"some_key" => "some_value"}
           json = flashes.to_json
           flash_store = Flash::FlashStore.from_session json
-          
+
           flash_store.fetch(:some_key).should eq "some_value"
         end
 
@@ -62,7 +61,7 @@ module Amber
           json = flashes.to_json
           flash_store = Flash::FlashStore.from_session json
           test = Hash(String, String).new
-          flash_store.each {|k,v| test[k] = v}
+          flash_store.each { |k, v| test[k] = v }
           test.size.should eq 2
         end
 
@@ -71,7 +70,7 @@ module Amber
           json = flashes.to_json
           flash_store = Flash::FlashStore.from_session json
           test = Hash(String, String).new
-          flash_store.each {|k,v| test[k] = v}
+          flash_store.each { |k, v| test[k] = v }
           flash_store = Flash::FlashStore.from_session flash_store.to_session
 
           flash_store.has_key?("some_key").should be_false
@@ -137,7 +136,6 @@ module Amber
 
           flash_store["some_key"].should eq "some_value"
         end
-        
       end
     end
   end
