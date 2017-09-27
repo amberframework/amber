@@ -227,7 +227,7 @@ module Amber::Router
       end
     end
 
-    class EncryptedStore 
+    class EncryptedStore
       include ChainedStore
       include SerializedStore
 

@@ -80,6 +80,28 @@ module Amber::Controller
         request = HTTP::Request.new("GET", "/?test=test")
         context = create_context(request)
         html_output = <<-HTML
+        <html>
+          <body>
+            <h1>
+              <h1>Hello World</h1>
+        <p>I am glad you came</p>
+            </h1>
+            <h2>
+              <p>second partial</p>
+            </h2>
+            <h1>Hello World</h1>
+        <p>I am glad you came</p>
+          </body>
+        </html>
+        HTML
+
+        TestController.new(context).render_multiple_partials_in_layout.should eq html_output
+      end
+
+      it "renders html and layout from slang template" do
+        request = HTTP::Request.new("GET", "/?test=test")
+        context = create_context(request)
+        html_output = <<-HTML
         <html>\n  <body>\n    <h1>Hello World</h1>\n<p>I am glad you came</p>\n  </body>\n</html>
         HTML
 

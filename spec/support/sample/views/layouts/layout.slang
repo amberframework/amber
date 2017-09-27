@@ -1,4 +1,3 @@
 html
   body
     == content
- 

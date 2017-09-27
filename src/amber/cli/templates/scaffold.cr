@@ -63,7 +63,7 @@ module Amber::CLI
     end
 
     def visible_fields
-      @fields.reject{|f|f.hidden}.map do |f|
+      @fields.reject { |f| f.hidden }.map do |f|
         f.reference? ? "#{f.name}_id" : f.name
       end
     end
