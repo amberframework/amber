@@ -2,14 +2,6 @@ module Amber::Controller
   module Render
     LAYOUT = "application.slang"
 
-    private macro render_template(filename, path = "src/views")
-      {% if filename.id.split("/").size > 2 %}
-        Kilt.render("{{filename.id}}")
-      {% else %}
-        Kilt.render("#{{{path}}}/{{filename.id}}")
-      {% end %}
-    end
-
     macro render(template = nil, partial = nil, layout = true, path = "src/views", folder = __FILE__)
       {% if !(template || partial) %}
         raise "Template or partial required!"
@@ -32,6 +24,14 @@ module Amber::Controller
         render_template("layouts/#{{{layout.class_name == "StringLiteral" ? layout : LAYOUT}}}", {{path}})
       {% else %}
         %content
+      {% end %}
+    end
+
+    private macro render_template(filename, path = "src/views")
+      {% if filename.id.split("/").size > 2 %}
+        Kilt.render("{{filename.id}}")
+      {% else %}
+        Kilt.render("#{{{path}}}/{{filename.id}}")
       {% end %}
     end
   end
