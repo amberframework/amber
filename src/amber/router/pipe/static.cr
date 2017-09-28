@@ -128,7 +128,7 @@ module Amber
         end
 
         if endb == 0
-          endb = fileb
+          endb = fileb - 1
         end
 
         if startb < endb && endb <= fileb
