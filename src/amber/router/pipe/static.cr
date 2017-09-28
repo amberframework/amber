@@ -133,7 +133,7 @@ module Amber
 
         if startb < endb && endb <= fileb
           env.response.status_code = 206
-          env.response.content_length = endb - startb
+          env.response.content_length = (endb - startb) + 1
           env.response.headers["Accept-Ranges"] = "bytes"
           env.response.headers["Content-Range"] = "bytes #{startb}-#{endb}/#{fileb}" # MUST
 
