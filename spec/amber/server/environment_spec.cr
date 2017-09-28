@@ -10,7 +10,7 @@ describe Amber::Server do
       @@log = ::Logger.new(STDOUT)
       @@log.level = ::Logger::INFO
       @@color = true
-      @@redis_url = "#{ENV[%(REDIS_URL)]? || %(redis://localhost:6379)}"
+      @@redis_url = "\#{ENV[%(REDIS_URL)]? || %(redis://localhost:6379)}"
       @@port = 3000
       @@host = "0.0.0.0"
       @@secret_key_base = "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
