@@ -128,14 +128,14 @@ module Amber
         end
 
         if endb == 0
-          endb = fileb
+          endb = fileb - 1
         end
 
         if startb < endb && endb <= fileb
           env.response.status_code = 206
-          env.response.content_length = endb - startb
+          env.response.content_length = (endb - startb) + 1
           env.response.headers["Accept-Ranges"] = "bytes"
-          env.response.headers["Content-Range"] = "bytes #{startb}-#{endb - 1}/#{fileb}" # MUST
+          env.response.headers["Content-Range"] = "bytes #{startb}-#{endb}/#{fileb}" # MUST
 
           if startb > 1024
             skipped = 0
