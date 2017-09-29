@@ -2,7 +2,7 @@
 
 First thank you for taking the time to contribute and making our community great!
 
-Amber is an open source project and we love to receive contributions from our community — you! The following is a set of guidelines for contributing to Amber, which are hosted in the Amber Crystal on GitHub.
+Amber is an open source project and we love to receive contributions from our community — you! The following is a set of guidelines for contributing to Amber, which are hosted in the Amber Framework on GitHub.
 
 Following these guidelines helps to communicate that you respect the time of the developers managing and developing this open source project. In return, they should reciprocate that respect in addressing your issue, assessing changes, and helping you finalize your pull requests. These are just guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
