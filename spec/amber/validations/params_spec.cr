@@ -69,7 +69,7 @@ module Amber::Validators
           false
         end
 
-        rule.apply(params).should be_nil
+        rule.apply(params).should be_true
       end
 
       it "applies rule when field is present" do
@@ -102,7 +102,7 @@ module Amber::Validators
       context "optional params" do
         context "when missing" do
           it "does not validate optional field" do
-            http_params = HTTP::Params.parse("&last_name=&middle=j")
+            http_params = HTTP::Params.parse("last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
             result = validator.validation do
@@ -110,23 +110,22 @@ module Amber::Validators
               required("last_name") { |v| v.empty? }
             end
 
-            validator.valid?.should be_false
-            validator.errors.size.should eq 1
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
           end
         end
 
         context "when present" do
           it "validates optional field" do
-            http_params = HTTP::Params.parse("name=&last_name=&middle=j")
+            http_params = HTTP::Params.parse("name=")
             validator = Validators::Params.new(http_params)
 
             result = validator.validation do
               optional(:name) { |v| !v.empty? }
-              required("last_name") { |v| !v.empty? }
             end
 
             validator.valid?.should be_false
-            validator.errors.size.should eq 2
+            validator.errors.size.should eq 1
           end
         end
       end
