@@ -31,10 +31,9 @@ module Amber::Validators
   # OptionalRule only validates if the key is present.
   class OptionalRule < BaseRule
     def apply(params : HTTP::Params)
-      if params.has_key? @field
-        @value = params[@field]
-        @predicate.call params[@field] unless @predicate.nil?
-      end
+      return true unless params.has_key? @field
+      @value = params[@field]
+      @predicate.call params[@field] unless @predicate.nil?
     end
   end
 
