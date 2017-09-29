@@ -5,6 +5,8 @@ log: "::Logger.new(STDOUT)"
 log_level: "::Logger::INFO"
 color: true
 host: 0.0.0.0
+port_reuse: false
+process_count: (ENV[%(AMBER_PROCESS_COUNT)]? || 1).to_i
 ssl_key_file:
 ssl_cert_file:
 redis_url: "redis://localhost:6379"

@@ -2,7 +2,7 @@ module Amber::Controller
   module Render
     LAYOUT = "application.slang"
 
-    macro render(template = nil, partial = nil, layout = true, path = "src/views", folder = __FILE__)
+    macro render(template = nil, layout = true, partial = nil, path = "src/views", folder = __FILE__)
       {% if !(template || partial) %}
         raise "Template or partial required!"
       {% end %}
