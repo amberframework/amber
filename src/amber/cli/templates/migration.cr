@@ -2,6 +2,7 @@ require "./field.cr"
 
 module Amber::CLI
   class Migration < Teeplate::FileTree
+    include Amber::CLI::Helpers
     directory "#{__DIR__}/migration"
 
     @name : String
