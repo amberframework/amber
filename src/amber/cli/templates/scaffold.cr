@@ -2,6 +2,7 @@ require "./field.cr"
 
 module Amber::CLI
   class Scaffold < Teeplate::FileTree
+    include Amber::CLI::Helpers
     directory "#{__DIR__}/scaffold"
 
     @name : String
@@ -22,7 +23,14 @@ module Amber::CLI
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S")
       @primary_key = primary_key
       @visible_fields = visible_fields
-      add_route
+
+      add_routes :web, <<-ROUTE
+        resources "/#{@name}s", #{@name.capitalize}Controller
+      ROUTE
+
+      add_dependencies <<-DEPENDENCY
+      require "../src/models/**"
+      DEPENDENCY
     end
 
     def database
@@ -66,15 +74,6 @@ module Amber::CLI
       @fields.reject { |f| f.hidden }.map do |f|
         f.reference? ? "#{f.name}_id" : f.name
       end
-    end
-
-    def add_route
-      routes = File.read("./config/routes.cr")
-      replacement = <<-ROUTE
-      routes :web do
-          resources "/#{@name}s", #{@name.capitalize}Controller
-      ROUTE
-      File.write("./config/routes.cr", routes.gsub("routes :web do", replacement))
     end
   end
 end

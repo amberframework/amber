@@ -2,6 +2,7 @@ require "./field.cr"
 
 module Amber::CLI
   class Mailer < Teeplate::FileTree
+    include Amber::CLI::Helpers
     directory "#{__DIR__}/mailer"
 
     @name : String
@@ -11,6 +12,10 @@ module Amber::CLI
     def initialize(@name, fields)
       @language = language
       @fields = fields.map { |field| Field.new(field) }
+
+      add_dependencies <<-DEPENDENCY
+      require "../src/mailers/**"
+      DEPENDENCY
     end
 
     def language

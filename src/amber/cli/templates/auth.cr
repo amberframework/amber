@@ -2,6 +2,7 @@ require "./field.cr"
 
 module Amber::CLI
   class Auth < Teeplate::FileTree
+    include Amber::CLI::Helpers
     directory "#{__DIR__}/auth"
 
     @name : String
@@ -24,7 +25,23 @@ module Amber::CLI
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S")
       @primary_key = primary_key
       @visible_fields = @fields.reject(&.hidden).map(&.name)
-      add_route
+      
+      add_routes :web, <<-ROUTES
+        get "/signin", SessionController, :new
+          post "/session", SessionController, :create
+          get "/signout", SessionController, :delete
+          get "/signup", RegistrationController, :new
+          post "/registration", RegistrationController, :create
+      ROUTES
+
+      add_plugs :web, <<-PLUGS
+        plug Authenticate.new
+      PLUGS
+      
+      add_dependencies <<-DEPENDENCY
+      require "../src/models/**"
+      require "../src/handlers/**"
+      DEPENDENCY
     end
 
     def database
@@ -62,26 +79,6 @@ module Amber::CLI
 
     def filter(entries)
       entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
-    end
-
-    def add_route
-      routes = File.read("./config/routes.cr")
-      replacement = <<-ROUTE
-      routes :web do
-        get "/signin", SessionController, :new
-        post "/session", SessionController, :create
-        get "/signout", SessionController, :delete
-        get "/signup", RegistrationController, :new
-        post "/registration", RegistrationController, :create
-      ROUTE
-      File.write("./config/routes.cr", routes.gsub("routes :web do", replacement))
-
-      routes = File.read("./config/routes.cr")
-      replacement = <<-ROUTE
-        plug Amber::Pipe::CSRF.new
-        plug Authenticate.new
-      ROUTE
-      File.write("./config/routes.cr", routes.gsub("plug Amber::Pipe::CSRF.new", replacement))
     end
   end
 end

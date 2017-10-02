@@ -1,3 +1,9 @@
+require "amber"
+
+# load the application_controller before controllers which depend on it
+require "../src/controllers/application_controller"
+require "../src/controllers/**"
+
 # NOTE: Settings should all be in config/environments/env.yml.
 # Anything here will overwrite all environments.
 Amber::Server.configure do |setting|
