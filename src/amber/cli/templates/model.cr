@@ -2,6 +2,7 @@ require "./field.cr"
 
 module Amber::CLI
   class Model < Teeplate::FileTree
+    include Amber::CLI::Helpers
     directory "#{__DIR__}/model"
 
     @name : String
@@ -18,6 +19,10 @@ module Amber::CLI
       end
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S")
       @primary_key = primary_key
+
+      add_dependencies <<-DEPENDENCY
+      require "../src/models/**"
+      DEPENDENCY
     end
 
     def database

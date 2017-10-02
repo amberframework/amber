@@ -1,5 +1,6 @@
 require "teeplate"
 require "secure_random"
+require "./helpers.cr"
 require "./app"
 require "./scaffold"
 require "./model"
