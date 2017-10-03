@@ -1,29 +1,28 @@
 require "./field.cr"
 
 module Amber::CLI
-  class Controller < Teeplate::FileTree
+  class GraniteController < Teeplate::FileTree
     include Amber::CLI::Helpers
-    directory "#{__DIR__}/controller/plain"
+    directory "#{__DIR__}/controller/granite"
 
     @name : String
-    @actions = Hash(String, String).new
+    @fields : Array(Field)
+    @visible_fields : Array(String)
+    @database : String
     @language : String
 
-    def initialize(@name, actions)
+    def initialize(@name, fields)
       @language = language
-      parse_actions(actions)
-      add_routes :web, <<-ROUTES
-        #{@actions.map { |action, verb| %Q(#{verb} "/#{@name}/#{action}", #{@name.capitalize}Controller, :#{action}) }.join("\n    ")}
-      ROUTES
-      add_views
-    end
-
-    def parse_actions(actions)
-      actions.each do |action|
-        next unless action.size > 0
-        split_action = action.split(":")
-        @actions[split_action.first] = split_action[1]? || "get"
+      @database = database
+      @fields = fields.map { |field| Field.new(field, database: @database) }
+      @fields += %w(created_at:time updated_at:time).map do |f|
+        Field.new(f, hidden: true, database: @database)
       end
+      @visible_fields = visible_fields
+
+      add_routes :web, <<-ROUTE
+        resources "/#{@name}s", #{@name.capitalize}Controller
+      ROUTE
     end
 
     def language
@@ -36,10 +35,19 @@ module Amber::CLI
       end
     end
 
-    def add_views
-      @actions.each do |action, verb|
-        `mkdir -p src/views/#{@name}`
-        `touch src/views/#{@name}/#{action}.#{language}`
+    def database
+      if File.exists?(AMBER_YML) &&
+         (yaml = YAML.parse(File.read AMBER_YML)) &&
+         (database = yaml["database"]?)
+        database.to_s
+      else
+        return "pg"
+      end
+    end
+
+    def visible_fields
+      @fields.reject { |f| f.hidden }.map do |f|
+        f.reference? ? "#{f.name}_id" : f.name
       end
     end
   end

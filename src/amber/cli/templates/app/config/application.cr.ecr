@@ -1,3 +1,29 @@
+<% if @model == "crecto" -%>
+require "<%= @database %>"
+require "crecto"
+require "yaml"
+
+db_url = ENV["DATABASE_URL"]?
+unless db_url
+  yaml = YAML.parse(File.read("config/database.yml"))
+  settings = yaml["<%= @database %>"]
+  db_url = settings["database"].to_s
+end
+
+Query = Crecto::Repo::Query
+
+module Repo
+  extend Crecto::Repo
+
+  config do |c|
+    c.adapter = Crecto::Adapters::Postgres # Crecto::Adapters::Mysql -or- Crecto::Adapters::SQLite3
+    c.uri = db_url
+  end
+end
+
+Crecto::DbLogger.set_handler(STDOUT)  
+<% end -%>
+
 require "amber"
 
 # load the application_controller before controllers which depend on it

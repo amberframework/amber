@@ -9,10 +9,12 @@ module Amber::CLI
     @fields : Array(Field)
     @language : String
     @database : String
+    @model : String
 
     def initialize(@name, fields)
       @language = language
       @database = database
+      @model = model
       @fields = fields.map { |field| Field.new(field, database: @database) }
       @fields += %w(created_at:time updated_at:time).map do |f|
         Field.new(f, hidden: true, database: @database)
@@ -36,6 +38,16 @@ module Amber::CLI
         database.to_s
       else
         return "pg"
+      end
+    end
+
+    def model
+      if File.exists?(AMBER_YML) &&
+         (yaml = YAML.parse(File.read AMBER_YML)) &&
+         (model = yaml["model"]?)
+        model.to_s
+      else
+        return "granite"
       end
     end
 

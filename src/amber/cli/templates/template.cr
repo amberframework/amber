@@ -51,11 +51,7 @@ module Amber::CLI
         end
       when "migration"
         puts "Rendering Migration #{name}"
-        if model == "crecto"
-          CrectoMigration.new(name, fields).render(directory, list: true, color: true)
-        else
-          GraniteMigration.new(name, fields).render(directory, list: true, color: true)
-        end
+        Migration.new(name, fields).render(directory, list: true, color: true)
       when "model"
         puts "Rendering Model #{name}"
         if model == "crecto"
@@ -73,9 +69,11 @@ module Amber::CLI
         if model == "crecto"
           CrectoMigration.new(name, fields).render(directory, list: true, color: true)
           CrectoModel.new(name, fields).render(directory, list: true, color: true)
+          CrectoController.new(name, fields).render(directory, list: true, color: true)
         else
           GraniteMigration.new(name, fields).render(directory, list: true, color: true)
           GraniteModel.new(name, fields).render(directory, list: true, color: true)
+          GraniteController.new(name, fields).render(directory, list: true, color: true)
         end
         View.new(name, fields).render(directory, list: true, color: true)
       when "mailer"
@@ -94,6 +92,9 @@ module Amber::CLI
         WebSocketChannel.new(name).render(directory, list: true, color: true)
       when "auth"
         puts "Rendering Auth #{name}"
+        if model == "crecto"
+          raise "Auth not supported for crecto yet"
+        end
         GraniteMigration.new(name, fields).render(directory, list: true, color: true)
         Auth.new(name, fields).render(directory, list: true, color: true)
       else
@@ -110,7 +111,6 @@ module Amber::CLI
         return "granite"
       end
     end
-    
   end
 end
 

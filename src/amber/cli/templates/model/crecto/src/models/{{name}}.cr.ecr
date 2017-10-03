@@ -1,6 +1,6 @@
 class <%= @name.capitalize %> < Crecto::Model
   schema "<%= @name %>s" do
-<% @fields.each do |field| -%>
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
     field :<%= field.name %>, <%= field.cr_type %>
 <% end -%>
   end

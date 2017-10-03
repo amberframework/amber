@@ -24,7 +24,7 @@ class <%= @name.capitalize %>Controller < ApplicationController
     <%= @name %>.update_from_hash(params.to_h.select(<%= @visible_fields %>))
     changeset = Repo.insert(<%= @name %>)
 
-    if <%= @name %>.errors.any?
+    if changeset.errors.any?
       flash["danger"] = "Could not create <%= @name.capitalize %>!"
       render("new.<%= @language %>")
     else
