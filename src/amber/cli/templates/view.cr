@@ -1,24 +1,32 @@
 require "./field.cr"
 
 module Amber::CLI
-  class Model < Teeplate::FileTree
+  class View < Teeplate::FileTree
     include Amber::CLI::Helpers
-    directory "#{__DIR__}/model/granite"
+    directory "#{__DIR__}/view"
 
     @name : String
     @fields : Array(Field)
+    @language : String
     @database : String
 
     def initialize(@name, fields)
+      @language = language
       @database = database
       @fields = fields.map { |field| Field.new(field, database: @database) }
       @fields += %w(created_at:time updated_at:time).map do |f|
         Field.new(f, hidden: true, database: @database)
       end
+    end
 
-      add_dependencies <<-DEPENDENCY
-      require "../src/models/**"
-      DEPENDENCY
+    def language
+      if File.exists?(AMBER_YML) &&
+         (yaml = YAML.parse(File.read AMBER_YML)) &&
+         (language = yaml["language"]?)
+        language.to_s
+      else
+        return "slang"
+      end
     end
 
     def database
@@ -29,6 +37,10 @@ module Amber::CLI
       else
         return "pg"
       end
+    end
+
+    def filter(entries)
+      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
     end
   end
 end

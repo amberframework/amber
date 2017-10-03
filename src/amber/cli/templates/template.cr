@@ -2,10 +2,16 @@ require "teeplate"
 require "secure_random"
 require "./helpers.cr"
 require "./app"
-require "./scaffold"
-require "./model"
-require "./controller"
 require "./migration"
+require "./crecto_migration"
+require "./granite_migration"
+require "./model"
+require "./crecto_model"
+require "./granite_model"
+require "./controller"
+require "./crecto_controller"
+require "./granite_controller"
+require "./view"
 require "./mailer"
 require "./socket"
 require "./channel"
@@ -37,24 +43,41 @@ module Amber::CLI
       when "app"
         if options
           puts "Rendering App #{name} in #{directory}"
-          App.new(name, options.d, options.t).render(directory, list: true, color: true)
+          App.new(name, options.d, options.t, options.m).render(directory, list: true, color: true)
           if options.deps?
             puts "Installing Dependencies"
             puts `cd #{name} && crystal deps update`
           end
         end
-      when "scaffold"
-        puts "Rendering Scaffold #{name}"
-        Scaffold.new(name, fields).render(directory, list: true, color: true)
+      when "migration"
+        puts "Rendering Migration #{name}"
+        if model == "crecto"
+          CrectoMigration.new(name, fields).render(directory, list: true, color: true)
+        else
+          GraniteMigration.new(name, fields).render(directory, list: true, color: true)
+        end
       when "model"
         puts "Rendering Model #{name}"
-        Model.new(name, fields).render(directory, list: true, color: true)
+        if model == "crecto"
+          CrectoMigration.new(name, fields).render(directory, list: true, color: true)
+          CrectoModel.new(name, fields).render(directory, list: true, color: true)
+        else
+          GraniteMigration.new(name, fields).render(directory, list: true, color: true)
+          GraniteModel.new(name, fields).render(directory, list: true, color: true)
+        end
       when "controller"
         puts "Rendering Controller #{name}"
         Controller.new(name, fields).render(directory, list: true, color: true)
-      when "migration"
-        puts "Rendering Migration #{name}"
-        Migration.new(name, fields).render(directory, list: true, color: true)
+      when "scaffold"
+        puts "Rendering Scaffold #{name}"
+        if model == "crecto"
+          CrectoMigration.new(name, fields).render(directory, list: true, color: true)
+          CrectoModel.new(name, fields).render(directory, list: true, color: true)
+        else
+          GraniteMigration.new(name, fields).render(directory, list: true, color: true)
+          GraniteModel.new(name, fields).render(directory, list: true, color: true)
+        end
+        View.new(name, fields).render(directory, list: true, color: true)
       when "mailer"
         puts "Rendering Mailer #{name}"
         Mailer.new(name, fields).render(directory, list: true, color: true)
@@ -71,11 +94,23 @@ module Amber::CLI
         WebSocketChannel.new(name).render(directory, list: true, color: true)
       when "auth"
         puts "Rendering Auth #{name}"
+        GraniteMigration.new(name, fields).render(directory, list: true, color: true)
         Auth.new(name, fields).render(directory, list: true, color: true)
       else
         raise "Template not found"
       end
     end
+
+    def model
+      if File.exists?(AMBER_YML) &&
+         (yaml = YAML.parse(File.read AMBER_YML)) &&
+         (model = yaml["model"]?)
+        model.to_s
+      else
+        return "granite"
+      end
+    end
+    
   end
 end
 
