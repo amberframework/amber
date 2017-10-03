@@ -1,0 +1,11 @@
+-- +micrate Up
+CREATE TABLE <%= @name %>s (
+  <%= @primary_key %>,
+  <%= @fields.map{ |field| "#{field.name}#{field.reference? ? "_id" : ""} #{field.db_type}" }.join(",\n  ") %>
+);
+<% @fields.select{ |f| f.reference? }.each do |field|-%>
+CREATE INDEX <%= field.name %>_id_idx ON <%= @name %>s (<%= field.name %>_id);
+<% end -%>
+
+-- +micrate Down
+DROP TABLE IF EXISTS <%= @name %>s;

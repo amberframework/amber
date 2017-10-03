@@ -95,7 +95,6 @@ module Amber::CLI
         if model == "crecto"
           raise "Auth not supported for crecto yet"
         end
-        GraniteMigration.new(name, fields).render(directory, list: true, color: true)
         Auth.new(name, fields).render(directory, list: true, color: true)
       else
         raise "Template not found"
