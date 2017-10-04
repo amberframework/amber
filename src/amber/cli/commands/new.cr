@@ -9,6 +9,7 @@ module Amber::CLI
         arg "name", desc: "name of project", required: true
         string "-d", desc: "database", any_of: %w(pg mysql sqlite), default: "pg"
         string "-t", desc: "template language", any_of: %w(slang ecr), default: "slang"
+        string "-m", desc: "model type", any_of: %w(granite crecto), default: "granite"
         bool "--deps", desc: "installs deps, (shards update)", default: false
         bool "--no-color", desc: "Disable colored output", default: false
       end
