@@ -1,0 +1,72 @@
+class <%= @name.capitalize %>Controller < ApplicationController
+  def index
+    <%= @name %>s = Repo.all(<%= @name.capitalize %>)
+    render("index.<%= @language %>")
+  end
+
+  def show
+    if <%= @name %> = Repo.get(<%= @name.capitalize %>, params["id"])
+      render("show.<%= @language %>")
+    else
+      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      redirect_to "/<%= @name %>s"
+    end
+  end
+
+  def new
+    <%= @name %> = <%= @name.capitalize %>.new
+    changeset = <%= @name.capitalize %>.changeset(<%= @name %>) 
+    render("new.<%= @language %>")
+  end
+
+  def create
+    <%= @name %> = <%= @name.capitalize %>.new
+    <%= @name %>.update_from_hash(params.to_h.select(<%= @visible_fields %>))
+    changeset = Repo.insert(<%= @name %>)
+
+    if changeset.errors.any?
+      flash["danger"] = "Could not create <%= @name.capitalize %>!"
+      render("new.<%= @language %>")
+    else
+      flash["success"] = "Created <%= @name.capitalize %> successfully."
+      redirect_to "/<%= @name %>s"
+    end
+  end
+
+  def edit
+    if <%= @name %> = Repo.get(<%= @name.capitalize %>, params["id"])
+      changeset = Repo.update(<%= @name %>)
+      render("edit.<%= @language %>")
+    else
+      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      redirect_to "/<%= @name %>s"
+    end
+  end
+
+  def update
+    if <%= @name %> = Repo.get(<%= @name.capitalize %>, params["id"])
+      <%= @name %>.update_from_hash(params.to_h.select(<%= @visible_fields %>))
+      changeset = Repo.update(<%= @name %>)
+
+      if changeset.errors.any?
+        flash["danger"] = "Could not update <%= @name.capitalize %>!"
+        render("edit.<%= @language %>")
+      else
+        flash["success"] = "Updated <%= @name.capitalize %> successfully."
+        redirect_to "/<%= @name %>s"
+      end
+    else
+      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      redirect_to "/<%= @name %>s"
+    end
+  end
+
+  def destroy
+    if <%= @name %> = Repo.get(<%= @name.capitalize %>, params["id"])
+      Repo.delete(<%= @name %>)
+    else
+      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+    end
+    redirect_to "/<%= @name %>s"
+  end
+end

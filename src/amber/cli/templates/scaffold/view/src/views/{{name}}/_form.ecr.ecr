@@ -1,6 +1,6 @@
-<%="<"%>%- if <%= @name %>.errors %>
+<%="<"%>%- if <%= @model == "crecto" ? "changeset" : @name %>.errors %>
   <ul class="errors">
-  <%="<"%>%- <%= @name %>.errors.each do |error| %>
+  <%="<"%>%- <%= @model == "crecto" ? "changeset" : @name %>.errors.each do |error| %>
     <li><%="<"%>%= error.to_s %></li>
   <%="<"%>%- end %>
   </ul>
