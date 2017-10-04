@@ -4,10 +4,12 @@ module Amber::CLI
 
     @name : String
     @database : String
+    @language : String
+    @model : String
     @db_url : String
     @wait_for : String
 
-    def initialize(@name, @database = "pg", @language = "slang")
+    def initialize(@name, @database = "pg", @language = "slang", @model = "granite")
       @db_url = ""
       @wait_for = ""
     end

@@ -1,0 +1,31 @@
+require "<%= @database %>"
+require "crecto"
+require "yaml"
+
+db_url = ENV["DATABASE_URL"]?
+unless db_url
+  yaml = YAML.parse(File.read("config/database.yml"))
+  settings = yaml["<%= @database %>"]
+  db_url = settings["database"].to_s
+end
+
+Query = Crecto::Repo::Query
+
+module Repo
+  extend Crecto::Repo
+
+  config do |c|
+<% case @database
+     when "pg" -%>
+    c.adapter = Crecto::Adapters::Postgres
+<%   when "mysql" -%>
+    c.adapter = Crecto::Adapters::Mysql
+<%   when "sqlite" -%>
+    c.adapter = Crecto::Adapters::SQLite3
+<% end -%>
+
+    c.uri = db_url
+  end
+end
+
+Crecto::DbLogger.set_handler(STDOUT)

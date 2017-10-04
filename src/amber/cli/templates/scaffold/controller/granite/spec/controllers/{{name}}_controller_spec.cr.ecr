@@ -1,0 +1,72 @@
+<% field_name = @fields.first.name -%>
+require "./spec_helper"
+
+def create_subject
+  subject = <%= @name.capitalize %>.new
+  subject.<%= field_name %> = "test"
+  subject.save
+  subject
+end
+
+describe <%= @name.capitalize %>Controller do
+  Spec.before_each do
+    <%= @name.capitalize %>.clear
+  end
+
+  describe "index" do
+    it "renders all the <%= @name %>s" do
+      subject = create_subject
+      get "/<%= @name %>s"
+      response.body.should contain "test"
+    end
+  end
+
+  describe "show" do
+    it "renders a single <%= @name %>" do
+      subject = create_subject
+      get "/<%= @name %>s/#{subject.id}"
+      response.body.should contain "test"
+    end
+  end
+
+  describe "new" do
+    it "render new template" do
+      get "/<%= @name %>s/new"
+      response.body.should contain "New <%= @name.capitalize %>"
+    end
+  end
+
+  describe "create" do
+    it "creates a <%= @name %>" do
+      post "/<%= @name %>s", body: "<%= field_name %>=testing"
+      subject_list = <%= @name.capitalize %>.all
+      subject_list.size.should eq 1
+    end
+  end
+
+  describe "edit" do
+    it "renders edit template" do
+      subject = create_subject
+      get "/<%= @name %>s/#{subject.id}/edit"
+      response.body.should contain "Edit <%= @name.capitalize %>"
+    end
+  end
+
+  describe "update" do
+    it "updates a <%= @name %>" do
+      subject = create_subject
+      patch "/<%= @name %>s/#{subject.id}", body: "<%= field_name %>=test2"
+      result = <%= @name.capitalize %>.find(subject.id).not_nil!
+      result.<%= field_name %>.should eq "test2"
+    end
+  end
+
+  describe "delete" do
+    it "deletes a <%= @name %>" do
+      subject = create_subject
+      delete "/<%= @name %>s/#{subject.id}"
+      result = <%= @name.capitalize %>.find subject.id
+      result.should eq nil
+    end
+  end
+end
