@@ -9,9 +9,9 @@ require "./model"
 require "./crecto_model"
 require "./granite_model"
 require "./controller"
-require "./crecto_controller"
-require "./granite_controller"
-require "./view"
+require "./scaffold/crecto_controller"
+require "./scaffold/granite_controller"
+require "./scaffold/view"
 require "./mailer"
 require "./socket"
 require "./channel"
@@ -69,13 +69,13 @@ module Amber::CLI
         if model == "crecto"
           CrectoMigration.new(name, fields).render(directory, list: true, color: true)
           CrectoModel.new(name, fields).render(directory, list: true, color: true)
-          CrectoController.new(name, fields).render(directory, list: true, color: true)
+          Scaffold::CrectoController.new(name, fields).render(directory, list: true, color: true)
         else
           GraniteMigration.new(name, fields).render(directory, list: true, color: true)
           GraniteModel.new(name, fields).render(directory, list: true, color: true)
-          GraniteController.new(name, fields).render(directory, list: true, color: true)
+          Scaffold::GraniteController.new(name, fields).render(directory, list: true, color: true)
         end
-        View.new(name, fields).render(directory, list: true, color: true)
+        Scaffold::View.new(name, fields).render(directory, list: true, color: true)
       when "mailer"
         puts "Rendering Mailer #{name}"
         Mailer.new(name, fields).render(directory, list: true, color: true)

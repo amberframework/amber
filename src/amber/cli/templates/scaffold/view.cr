@@ -1,28 +1,24 @@
-require "./field.cr"
+require "../field.cr"
 
-module Amber::CLI
-  class GraniteController < Teeplate::FileTree
+module Amber::CLI::Scaffold
+  class View < Teeplate::FileTree
     include Amber::CLI::Helpers
-    directory "#{__DIR__}/controller/granite"
+    directory "#{__DIR__}/view"
 
     @name : String
     @fields : Array(Field)
-    @visible_fields : Array(String)
-    @database : String
     @language : String
+    @database : String
+    @model : String
 
     def initialize(@name, fields)
       @language = language
       @database = database
+      @model = model
       @fields = fields.map { |field| Field.new(field, database: @database) }
       @fields += %w(created_at:time updated_at:time).map do |f|
         Field.new(f, hidden: true, database: @database)
       end
-      @visible_fields = visible_fields
-
-      add_routes :web, <<-ROUTE
-        resources "/#{@name}s", #{@name.capitalize}Controller
-      ROUTE
     end
 
     def language
@@ -45,10 +41,18 @@ module Amber::CLI
       end
     end
 
-    def visible_fields
-      @fields.reject { |f| f.hidden }.map do |f|
-        f.reference? ? "#{f.name}_id" : f.name
+    def model
+      if File.exists?(AMBER_YML) &&
+         (yaml = YAML.parse(File.read AMBER_YML)) &&
+         (model = yaml["model"]?)
+        model.to_s
+      else
+        return "granite"
       end
+    end
+
+    def filter(entries)
+      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
     end
   end
 end

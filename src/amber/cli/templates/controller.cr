@@ -3,7 +3,7 @@ require "./field.cr"
 module Amber::CLI
   class Controller < Teeplate::FileTree
     include Amber::CLI::Helpers
-    directory "#{__DIR__}/controller/plain"
+    directory "#{__DIR__}/controller"
 
     @name : String
     @actions = Hash(String, String).new
