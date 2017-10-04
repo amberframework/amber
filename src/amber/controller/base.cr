@@ -26,5 +26,10 @@ module Amber::Controller
     def controller_name
       self.class.name.gsub(/Controller/i, "")
     end
+
+    # If static resource is not found then raise an exception
+    def index
+      raise Amber::Exceptions::RouteNotFound.new(request)
+    end
   end
 end
