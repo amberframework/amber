@@ -10,6 +10,7 @@ module Amber::CLI
         int64:      ["bigint", "Int64", "BIGINT"],
         bigint:     ["bigint", "Int64", "BIGINT"],
         float:      ["float", "Float32", "FLOAT"],
+        float64:    ["real", "Float64", "FLOAT"],
         real:       ["real", "Float64", "REAL"],
         bool:       ["boolean", "Bool", "BOOL"],
         boolean:    ["boolean", "Bool", "BOOL"],
