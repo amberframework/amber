@@ -84,7 +84,13 @@ class TestController < Amber::Controller::Base
 end
 
 struct UserSocket < Amber::WebSockets::ClientSocket
+  property test_field = Array(String).new
+
   channel "user_room:*", UserChannel
+
+  def on_disconnect(**args)
+    test_field.push("on close #{self.id}")
+  end
 end
 
 class UserChannel < Amber::WebSockets::Channel

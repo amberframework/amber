@@ -73,17 +73,20 @@ module Amber
         end
       end
 
-      def session
-        @session ||= @context.session
-      end
-
-      def cookies
-        @cookies ||= @context.cookies
-      end
-
       # Authentication and authorization can happen here
       def on_connect : Bool
         true
+      end
+
+      # On socket disconnect functionality
+      def on_disconnect; end
+
+      protected def session
+        @session ||= @context.session
+      end
+
+      protected def cookies
+        @cookies ||= @context.cookies
       end
 
       # Sends ping opcode to client : https://tools.ietf.org/html/rfc6455#section-5.5.2
