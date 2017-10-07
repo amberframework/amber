@@ -57,7 +57,7 @@ dependencies:
     version: ~> 0.9.1
 
   spinner:
-    github: elorest/spinner 
+    github: askn/spinner
 
   pg:
     github: will/crystal-pg
