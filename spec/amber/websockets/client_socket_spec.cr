@@ -106,6 +106,21 @@ module Amber
       end
     end
 
+    describe "#on_disconnect" do
+      it "should get called on socket disconnect" do
+        chan = Channel(String).new
+        http_server, ws = create_socket_server
+        client_socket = Amber::WebSockets::ClientSockets.client_sockets.values.first
+        ws.on_close &->(msg : String) { chan.send("closed") }
+        ws.close
+
+        chan.receive
+        client_socket.as(UserSocket).test_field[0].should eq "on close #{client_socket.id}"
+        client_socket.disconnect!
+        http_server.close
+      end
+    end
+
     context "#on_message" do
       describe "join event" do
         it "should add a subscription" do
