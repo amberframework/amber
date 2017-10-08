@@ -16,6 +16,7 @@ module Amber
           end
 
           socket.on_close do
+            instance.on_disconnect
             ClientSockets.remove_client_socket(instance)
           end
         end
