@@ -19,8 +19,8 @@ module Amber
     abstract struct ClientSocket
       @@channels = [] of NamedTuple(path: String, channel: Channel)
 
-      MAX_SOCKET_IDLE_TIME = 16.minutes
-      BEAT_INTERVAL        = 5.minutes
+      MAX_SOCKET_IDLE_TIME = 100.seconds
+      BEAT_INTERVAL        = 30.seconds
 
       protected getter id : String
       getter socket : HTTP::WebSocket
@@ -91,6 +91,7 @@ module Amber
 
       # Sends ping opcode to client : https://tools.ietf.org/html/rfc6455#section-5.5.2
       protected def beat
+        @socket.send("ping")
         @socket.ping
         @pings.push(Time.now)
         @pings.delete_at(0) if @pings.size > 3
