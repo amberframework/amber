@@ -39,6 +39,15 @@ describe HTTP::Server::Context do
           context.request.method.should eq "PATCH"
         end
       end
+
+      it "overrides form request method only by upper case value" do
+        header = HTTP::Headers.new
+        header["content-type"] = "application/x-www-form-urlencoded"
+        request = HTTP::Request.new("GET", "/?test=test", header, "_method=put")
+
+        context = create_context(request)
+        context.request.method.should eq "PUT"
+      end
     end
 
     it "overrides form POST method to PUT, PATCH, DELETE" do

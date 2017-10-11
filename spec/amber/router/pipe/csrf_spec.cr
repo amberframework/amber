@@ -5,7 +5,7 @@ module Amber
     describe CSRF do
       context "when requests have HTTP methods" do
         CSRF::CHECK_METHODS.each do |method|
-          it "raises forbbiden error for PUT request" do
+          it "raises forbidden error for #{method} request" do
             csrf = CSRF.new
 
             request = HTTP::Request.new(method, "/")
