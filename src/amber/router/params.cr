@@ -16,6 +16,8 @@ module Amber::Router
     OVERRIDE_HEADER  = "X-HTTP-Method-Override"
     OVERRIDE_METHODS = %w(PATCH PUT DELETE)
 
+    @override_method : String?
+
     alias ParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
 
     # clear the params.
@@ -54,15 +56,24 @@ module Amber::Router
     # don't do it. Use a POST instead.
     def override_request_method!
       # If the current request method is not GET or POST it means that it was
-      # already overrided
+      # already overridden
       return unless %(GET POST).includes? request.method
-      method = params[METHOD]? || override_header?
-      request.method = method if method && OVERRIDE_METHODS.includes? method.upcase
+      if (method = override_method) && override_method?
+        request.method = method
+      end
     end
 
     # Determines the existence of HTTP Request Method Override in headers
     def override_header?
       request.headers[OVERRIDE_HEADER]?
+    end
+
+    private def override_method?
+      OVERRIDE_METHODS.includes? override_method
+    end
+
+    private def override_method
+      @override_method ||= (params[METHOD]? || override_header?).try &.upcase
     end
 
     def merge_route_params
