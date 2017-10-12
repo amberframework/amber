@@ -1,12 +1,14 @@
 const webpack = require('webpack');
 const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 let config = {
   entry: {
-    main: './src/assets/javascripts/main.js'
+    'main.bundle.js': './src/assets/javascripts/main.js',
+    'main.bundle.css': './src/assets/stylesheets/main.scss'
   },
   output: {
-    filename: '[name].bundle.js',
+    filename: '[name]',
     path: path.resolve(__dirname, '../../public/dist'),
     publicPath: '/dist'
   },
@@ -20,19 +22,18 @@ let config = {
       {
         test: /\.css$/,
         exclude: /node_modules/,
-        use: [
-          'style-loader',
-          'css-loader'
-        ]
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: 'css-loader'
+        })
       },
       {
         test: /\.scss$/,
         exclude: /node_modules/,
-        use: [
-          'style-loader',
-          'css-loader',
-          'sass-loader'
-        ]
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: ['css-loader', 'sass-loader']
+        })
       },
       {
         test: /\.(png|svg|jpg|gif)$/,
@@ -57,7 +58,10 @@ let config = {
         }
       }
     ]
-  }
-}
+  },
+  plugins: [
+    new ExtractTextPlugin('main.bundle.css'),
+  ]
+};
 
 module.exports = config;
