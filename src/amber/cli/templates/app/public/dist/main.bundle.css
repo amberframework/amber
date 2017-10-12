@@ -71,4 +71,9 @@ h6, .h6 {
   width: 200px;
   height: 278px; }
 
+/* Hide logo in small screens */
+@media (max-width: 800px) {
+  #logo {
+    display: none; } }
+
 /*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IiIsImZpbGUiOiJtYWluLmJ1bmRsZS5jc3MiLCJzb3VyY2VSb290IjoiIn0=*/
