@@ -4,40 +4,85 @@ describe Amber do
   {% for env in %w(development staging test sandbox production) %}
     describe ".{{env.id}}?" do
       it "returns true when the environment is {{env.id}}" do
-        Amber::Settings.env = {{env}}
-        Amber.env.{{env.id}}?.should be_truthy
+        amber_env = Amber::Env.new {{env}}
+        amber_env.{{env.id}}?.should be_truthy
       end
 
       it "returns false when the environment does not match" do
-        Amber::Settings.env = "invalid environment"
-        Amber.env.{{env.id}}?.should be_falsey
+        amber_env = Amber::Env.new "invalid environment"
+        amber_env.{{env.id}}?.should be_falsey
       end
     end
   {% end %}
 
+  describe "Amber.env" do
+    it "should return development" do
+      Amber.env.test?.should be_truthy
+      Amber.env.is?(:test).should be_truthy
+      Amber.env.==(:test).should be_truthy
+      Amber.env.!=(:development).should be_truthy
+      Amber.env.!=(:test).should be_falsey
+    end
+  end
+
   describe ".is?" do
-    it "returns true when the environment matches the argument" do
-      Amber::Settings.env = "staging"
-      result = Amber.env.is? :staging
+    it "returns true when the environment matches the argument(String)" do
+      amber_env = Amber::Env.new "staging"
+      result = amber_env.is? "staging"
 
       result.should be_truthy
     end
 
-    it "returns true when the environment matches the argument" do
-      Amber::Settings.env = "invalid"
-      result = Amber.env.is? :staging
+    it "returns true when the environment matches the argument(Symbol)" do
+      amber_env = Amber::Env.new "staging"
+      result = amber_env.is? :staging
+
+      result.should be_truthy
+    end
+
+    it "returns false when the environment matches the argument" do
+      amber_env = Amber::Env.new "invalid"
+      result = amber_env.is? :staging
 
       result.should be_falsey
     end
   end
 
+  describe "==" do
+    it "returns true when the environment matches the argument" do
+      amber_env = Amber::Env.new "staging"
+      result = amber_env == :staging
+
+      result.should be_truthy
+    end
+  end
+
+  describe "!=" do
+    it "returns true when the environment doesn't match the argument" do
+      amber_env = Amber::Env.new "invalid"
+      result = amber_env != :staging
+
+      result.should be_truthy
+    end
+  end
+
   describe ".in?" do
     context "when settings environment is in list" do
-      it "returns true" do
-        Amber::Settings.env = "development"
+      it "returns true when array is passed in" do
+        amber_env = Amber::Env.new "development"
 
-        symbols_result = Amber.env.in? %i(development test production)
-        strings_result = Amber.env.in? %w(development test production)
+        symbols_result = amber_env.in? %i(development test production)
+        strings_result = amber_env.in? %w(development test production)
+
+        symbols_result.should be_truthy
+        strings_result.should be_truthy
+      end
+
+      it "returns true when tuple is passed in" do
+        amber_env = Amber::Env.new "development"
+
+        symbols_result = amber_env.in?(:development, :test, :production)
+        strings_result = amber_env.in?("development", "test", "production")
 
         symbols_result.should be_truthy
         strings_result.should be_truthy
@@ -46,10 +91,10 @@ describe Amber do
 
     context "when settings environment is not in list" do
       it "returns false" do
-        Amber::Settings.env = "invalid"
+        amber_env = Amber::Env.new "invalid"
 
-        symbols_result = Amber.env.in? %w(development test production)
-        strings_result = Amber.env.in? %w(development test production)
+        symbols_result = amber_env.in? %w(development test production)
+        strings_result = amber_env.in? %w(development test production)
 
         symbols_result.should be_falsey
         strings_result.should be_falsey

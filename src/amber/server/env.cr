@@ -1,33 +1,38 @@
 module Amber
   def self.env
-    Env.new(Settings.env.not_nil!.downcase)
+    @@_env ||= Env.new(ENV["AMBER_ENV"]? || "development") # Would be best to only define this once.
   end
 
   class Env
-    def initialize(@env : String | Symbol)
-    end
+    alias EnvType = String | Symbol 
 
-    def in?(environment_list : Array(String | Symbol))
-      (environment_list.map &.to_s.downcase).includes? @env
-    end
+    def initialize(@env : String) end
 
-    def is?(environment : String | Symbol)
+    def is?(environment : EnvType)
       @env == environment.to_s.downcase
+    end
+
+    def in?(environment_list : Array(EnvType))
+      environment_list.each do |other_env|
+        return true if is?(other_env)
+      end
+    end
+
+    def in?(*environment_list : Object)
+      in?(environment_list.to_a)
     end
 
     def to_s(io)
       io << @env
     end
 
-    private def environments
-      (Dir.entries(CONFIG_DIR).map &.downcase.tr(".yml", "") + ENVIRONMENTS).to_set
+    def ==(other : EnvType)
+      is?(other)
     end
 
     macro method_missing(call)
-      environment = {{call.name.id.stringify.downcase}}
-      if environment.chars.last == '?'
-        environment  = environment.downcase.tr("?", "")
-        (@env == environment)
+      if (environment = {{call.name.id.stringify}}).ends_with? '?'
+        is?(environment[0..-2])
       end
     end
   end
