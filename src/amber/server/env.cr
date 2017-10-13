@@ -1,6 +1,6 @@
 module Amber
   def self.env
-    @@_env ||= Env.new(ENV["AMBER_ENV"]? || "development") # Would be best to only define this once.
+    @@env ||= Env.new(ENV["AMBER_ENV"]? || "development") # Would be best to only define this once.
   end
 
   class Env
