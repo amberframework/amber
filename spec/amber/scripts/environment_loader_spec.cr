@@ -22,7 +22,7 @@ describe Amber::Server do
       class_getter secrets = {"description": "Store your test secrets credentials and settings here.", "database": "mysql://root@localhost:3306/amber_test_app_test"}
 
       EXP
-      {{run("../../../src/amber/server/environment.cr", "test").stringify}}.should eq expected
+      {{run("../../../src/amber/scripts/environment_loader.cr", "test").stringify}}.should eq expected
     end
 
     it "should load default settings when environment file doesn't exist." do
@@ -41,7 +41,7 @@ describe Amber::Server do
 
       EXP
       # Removed secret_key_base from default settings since it's different everytime.
-      {{run("../../../src/amber/server/environment.cr", "non_existent").stringify}}.gsub(/@@secret_key_base[^\n]+\n/, "").should eq expected
+      {{run("../../../src/amber/scripts/environment_loader.cr", "non_existent").stringify}}.gsub(/@@secret_key_base[^\n]+\n/, "").should eq expected
     end
   end
 end
