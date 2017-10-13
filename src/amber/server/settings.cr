@@ -25,6 +25,6 @@ module Amber
 
     # Loads environment yml settings from the current AMBER_ENV environment variable
     # and defaults to development environment
-    {{ run("./environment.cr") }}
+    {{ run("../scripts/environment_loader.cr") }}
   end
 end
