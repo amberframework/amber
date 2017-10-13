@@ -6,14 +6,13 @@ struct RoomSocket < Amber::WebSockets::ClientSocket; end
 
 describe Amber::Server do
   describe ".configure" do
-    it "it loads environment settings from test.yml" do
+    it "loads environment settings from test.yml" do
       settings = Amber::Server.settings
 
       settings.name.should eq "amber_test_app"
       settings.port_reuse.should eq true
       settings.redis_url.should eq "#{ENV["REDIS_URL"]? || "redis://localhost:6379"}"
       settings.port.should eq 3000
-      settings.env.should eq "test"
       settings.color.should eq true
       settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
       # Sometimes settings get over written by other tests first and this fails
@@ -26,7 +25,7 @@ describe Amber::Server do
       settings.secrets.should eq expected_secrets
     end
 
-    it "allows you to overide enviroment settings" do
+    it "overrides enviroment settings" do
       Amber::Server.configure do |server|
         server.name = "Hello World App"
         server.port = 8080
@@ -45,7 +44,7 @@ describe Amber::Server do
       settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
     end
 
-    it "should still retain environment.yml settings that haven't been overwritten" do
+    it "retains environment.yml settings that haven't been overwritten" do
       # NOTE: Any changes to settings here remain for all specs run afterwards.
       # This is a problem.
 
