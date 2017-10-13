@@ -5,6 +5,8 @@ module Amber::CLI
     describe MainCommand::Generate do
       context "scaffold" do
         it "generates and compile generated app" do
+          ENV["AMBER_ENV"] = "test"
+
           MainCommand.run ["new", TESTING_APP]
           Dir.cd(TESTING_APP)
           MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
@@ -17,7 +19,8 @@ module Amber::CLI
       end
 
       context "controllers" do
-        it "should generate controller with correct verbs and actions" do
+        it "generates controller with correct verbs and actions" do
+          ENV["AMBER_ENV"] = "test"
           MainCommand.run ["new", TESTING_APP]
           Dir.cd(TESTING_APP)
           MainCommand.run ["generate", "controller", "Animal", "add:post", "list:get", "remove:delete"]

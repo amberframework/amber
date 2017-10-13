@@ -23,7 +23,8 @@ module Amber
     class_property redis_url = ""
     class_property session : Hash(Symbol, Symbol | String | Int32)
 
-    # loads settings from environment yaml
+    # Loads environment yml settings from the current AMBER_ENV environment variable
+    # and defaults to development environment
     {{ run("./environment.cr") }}
   end
 end
