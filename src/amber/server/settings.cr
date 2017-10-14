@@ -12,7 +12,6 @@ module Amber
     class_property port_reuse : Bool
     class_property log : ::Logger
     class_property color : Bool = true
-    class_property env = ENV["AMBER_ENV"]? || "development"
     class_property process_count : Int32
     class_property secret_key_base : String
     class_property port : Int32

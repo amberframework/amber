@@ -54,7 +54,7 @@ module Amber
         exit
       end
 
-      settings.log.info "Server started in #{colorize(settings.env, :yellow)}."
+      settings.log.info "Server started in #{colorize(Amber.env, :yellow)}."
       settings.log.info colorize("Startup Time #{Time.now - time}\n\n", :white)
       server.listen(settings.port_reuse)
     end
