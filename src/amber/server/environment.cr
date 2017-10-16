@@ -26,8 +26,8 @@ module Amber
     end
 
     macro method_missing(call)
-      env2 = {{call.name.id.stringify}}
-      self == env2[0..-2] if env2.ends_with? '?'
+      env_name = {{call.name.id.stringify}}
+      (env_name.ends_with?('?') && self == env_name[0..-2])
     end
   end
 end
