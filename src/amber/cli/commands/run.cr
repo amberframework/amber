@@ -19,9 +19,13 @@ module Amber::CLI
       end
 
       def run
-        release = "--release" if options.e.downcase == "production"
+        build_options = Array(String)
+        build_options << "--release" if options.e.downcase == "production"
+        build_options << "--no-debug" if options.e.downcase == "production"
+        build_options << " " if build_options.size > 0
+
         puts colorize("💎  Crystalizing...", :dark_gray)
-        `crystal build #{release} $(ls ./src/*.cr | sort -n | head -1) -o app`
+        `crystal build #{build_options.join(" ")}$(ls ./src/*.cr | sort -n | head -1) -o app`
         puts colorize("💎  Crystalization complete!", :dark_gray)
         Process.run(
           "PORT=#{options.p} AMBER_ENV=#{options.e} ./app",
