@@ -21,7 +21,7 @@ module Amber::CLI
       def run
         puts colorize("💎  Crystalizing...", :dark_gray)
         compile_command = "crystal build $(ls ./src/*.cr | sort -n | head -1) -o app"
-        compile_command += " --release --no-debug" if %w(development test).includes?(options.e.downcase)
+        compile_command += " --release --no-debug" unless %w(development test).includes?(options.e.downcase)
         system(compile_command)
         puts colorize("💎  Crystalization complete!", :dark_gray)
         Process.run(
