@@ -12,6 +12,16 @@ describe Amber do
         amber_env = Amber::Environment.new "invalid environment"
         amber_env.{{env.id}}?.should be_falsey
       end
+
+      it "returns false when environment name does not have `?` at the end" do
+        amber_env = Amber::Environment.new "invalid environment"
+        amber_env.{{env.id}}.should be_falsey
+      end
+
+      it "does not return Nil type" do
+        amber_env = Amber::Environment.new "invalid environment"
+        amber_env.{{env.id}}.should_not be_nil
+      end
     end
   {% end %}
 
