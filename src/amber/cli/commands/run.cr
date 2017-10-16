@@ -19,7 +19,7 @@ module Amber::CLI
       end
 
       def run
-        build_options = Array(String)
+        build_options = Array(String).new
         build_options << "--release" if options.e.downcase == "production"
         build_options << "--no-debug" if options.e.downcase == "production"
         build_options << " " if build_options.size > 0
