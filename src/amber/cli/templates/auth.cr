@@ -25,7 +25,7 @@ module Amber::CLI
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S")
       @primary_key = primary_key
       @visible_fields = @fields.reject(&.hidden).map(&.name)
-      
+
       add_routes :web, <<-ROUTES
         get "/signin", SessionController, :new
           post "/session", SessionController, :create
@@ -37,7 +37,7 @@ module Amber::CLI
       add_plugs :web, <<-PLUGS
         plug Authenticate.new
       PLUGS
-      
+
       add_dependencies <<-DEPENDENCY
       require "../src/models/**"
       require "../src/handlers/**"

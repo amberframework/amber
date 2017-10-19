@@ -1,22 +1,22 @@
 module Amber::Validators
   # Holds a validation error message
-  record Error, param : String, value : String | Nil, message : String
+  record Error, param : String, value : Amber::Router::ParamsType, message : String
 
   # This struct holds the validation rules to be performed
   class BaseRule
-    getter predicate : (String -> Bool)
+    getter predicate : (Amber::Router::ParamsType -> Bool)
     getter field : String
-    getter value : String?
+    getter value : Amber::Router::ParamsType
 
-    def initialize(field : String | Symbol, @msg : String?, &block : String -> Bool)
+    def initialize(field : String | Symbol, @msg : String?, &block : Amber::Router::ParamsType -> Bool)
       @field = field.to_s
       @predicate = block
     end
 
-    def apply(params : HTTP::Params)
+    def apply(params : Amber::Router::ParamsHash)
       raise Exceptions::Validator::InvalidParam.new(@field) unless params.has_key? @field
       @value = params[@field]
-      @predicate.call params[@field] unless @predicate.nil?
+      @predicate.call @value.to_s unless @predicate.nil?
     end
 
     def error
@@ -24,16 +24,16 @@ module Amber::Validators
     end
 
     private def error_message
-      @msg || "Field #{@field.to_s} is required"
+      @msg || "Field #{@field} is required"
     end
   end
 
   # OptionalRule only validates if the key is present.
   class OptionalRule < BaseRule
-    def apply(params : HTTP::Params)
+    def apply(params : Amber::Router::ParamsHash)
       return true unless params.has_key? @field
       @value = params[@field]
-      @predicate.call params[@field] unless @predicate.nil?
+      @predicate.call @value unless @predicate.nil?
     end
   end
 
@@ -42,22 +42,23 @@ module Amber::Validators
       _validator.add_rule BaseRule.new(param, msg)
     end
 
-    def required(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
+    def required(param : String | Symbol, msg : String? = nil, &b : Amber::Router::ParamsType -> Bool)
       _validator.add_rule BaseRule.new(param, msg, &b)
     end
 
-    def optional(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
+    def optional(param : String | Symbol, msg : String? = nil, &b : Amber::Router::ParamsType -> Bool)
       _validator.add_rule OptionalRule.new(param, msg, &b)
     end
   end
 
   class Params
-    getter raw_params : HTTP::Params = HTTP::Params.parse("t=t")
+    getter raw_params = Amber::Router::ParamsHash.new
     getter errors = [] of Error
     getter rules = [] of BaseRule
-    getter params = {} of String => String | Nil
+    getter params = Amber::Router::ParamsHash.new
+    getter errors = [] of Error
 
-    def initialize(@raw_params : HTTP::Params); end
+    def initialize(@raw_params); end
 
     # This will allow params to respond to HTTP::Params methods.
     # For example: [], []?, add, delete, each, fetch, etc.
