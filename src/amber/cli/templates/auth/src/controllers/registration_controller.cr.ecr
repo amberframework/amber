@@ -5,8 +5,8 @@ class RegistrationController < ApplicationController
   end
 
   def create
-    <%= @name %> = <%= @name.capitalize %>.new(params.to_h.select(<%= @visible_fields %>))
-    <%= @name %>.password = params["password"]
+    <%= @name %> = <%= @name.capitalize %>.new(registration_params.validate!)
+    <%= @name %>.password = params["password"].to_s
 
     if <%= @name %>.valid? && <%= @name %>.save
       session[:<%= @name %>_id] = <%= @name %>.id
@@ -15,6 +15,13 @@ class RegistrationController < ApplicationController
     else
       flash["danger"] = "Could not create <%= @name.capitalize %>!"
       render("new.<%= @language %>")
+    end
+  end
+
+  private def registration_params
+    params.validation do
+      required(:email) { |f| !f.nil? }
+      required(:password) { |f| !f.nil? }
     end
   end
 end
