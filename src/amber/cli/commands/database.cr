@@ -47,7 +47,7 @@ module Amber::CLI
               Micrate::Cli.print_help
             end
           rescue e : Micrate::UnorderedMigrationsException
-            Micrate::Cli.report_unordered_migrations(e.versions)
+            Micrate::Cli.report_unordered_migrations(e.versions, migrations_path)
             exit 1
           rescue e : DB::ConnectionRefused
             puts "Connection refused: #{Micrate::DB.connection_url}"
