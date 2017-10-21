@@ -42,7 +42,7 @@ module Amber::CLI
             when "status"
               Micrate::Cli.run_status(migrations_path, migrations_table_suffix)
             when "version"
-              Micrate::Cli.run_dbversion
+              Micrate::Cli.run_dbversion(migrations_table_suffix)
             else
               Micrate::Cli.print_help
             end
