@@ -41,6 +41,10 @@ dependencies:
     github: mosop/teeplate
     version: ~> 0.4.5
 
+  sentry:
+    github: samueleaton/sentry
+    branch: master
+
   icr:
     github: TechMagister/crystal-icr
     branch: master
