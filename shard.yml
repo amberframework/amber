@@ -19,7 +19,7 @@ targets:
 dependencies:
   radix:
     github: luislavena/radix
-    branch: master
+    version: ~> 0.3.8
 
   kilt:
     github: jeromegn/kilt
@@ -27,19 +27,19 @@ dependencies:
 
   slang:
     github: jeromegn/slang
-    branch: master
+    version: ~> 1.6.1
 
   redis:
     github: stefanwille/crystal-redis
-    version: ~> 1.8.0
+    version: ~> 1.9.0
 
   cli:
     github: mosop/cli
-    version: ~> 0.5.1
+    version: ~> 0.6.10
 
   teeplate:
     github: mosop/teeplate
-    version: ~> 0.4.4
+    version: ~> 0.4.5
 
   icr:
     github: TechMagister/crystal-icr
