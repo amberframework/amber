@@ -19,6 +19,8 @@ module Amber::CLI
       end
 
       def run
+        migrations_path, migrations_table_suffix = Micrate::Cli.parse_command_arguments
+
         args.commands.each do |command|
           Micrate::Cli.setup_logger
           Micrate::DB.connection_url = database_url
@@ -32,13 +34,13 @@ module Amber::CLI
               `crystal db/seeds.cr`
               puts "Seeded database"
             when "migrate"
-              Micrate::Cli.run_up
+              Micrate::Cli.run_up(migrations_path, migrations_table_suffix)
             when "rollback"
-              Micrate::Cli.run_down
+              Micrate::Cli.run_down(migrations_path, migrations_table_suffix)
             when "redo"
-              Micrate::Cli.run_redo
+              Micrate::Cli.run_redo(migrations_path, migrations_table_suffix)
             when "status"
-              Micrate::Cli.run_status
+              Micrate::Cli.run_status(migrations_path, migrations_table_suffix)
             when "version"
               Micrate::Cli.run_dbversion
             else
