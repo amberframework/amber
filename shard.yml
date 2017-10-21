@@ -46,7 +46,7 @@ dependencies:
     branch: master
 
   icr:
-    github: TechMagister/crystal-icr
+    github: crystal-community/icr
     branch: master
 
   micrate:
