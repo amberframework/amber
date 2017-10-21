@@ -20,25 +20,26 @@ module Amber::CLI
       end
 
       def run
+        migrations_path, migrations_table_suffix = Micrate::Cli.parse_command_arguments
         Micrate::Cli.setup_logger
         Micrate::DB.connection_url = database_url
         begin
           case args.command
           when "up"
-            Micrate::Cli.run_up
+            Micrate::Cli.run_up(migrations_path, migrations_table_suffix)
           when "down"
-            Micrate::Cli.run_down
+            Micrate::Cli.run_down(migrations_path, migrations_table_suffix)
           when "redo"
-            Micrate::Cli.run_redo
+            Micrate::Cli.run_redo(migrations_path, migrations_table_suffix)
           when "status"
-            Micrate::Cli.run_status
+            Micrate::Cli.run_status(migrations_path, migrations_table_suffix)
           when "dbversion"
-            Micrate::Cli.run_dbversion
+            Micrate::Cli.run_dbversion(migrations_table_suffix)
           else
             Micrate::Cli.print_help
           end
         rescue e : Micrate::UnorderedMigrationsException
-          Micrate::Cli.report_unordered_migrations(e.versions)
+          Micrate::Cli.report_unordered_migrations(e.versions, migrations_path)
           exit 1
         rescue e : DB::ConnectionRefused
           puts "Connection refused: #{Micrate::DB.connection_url}"
