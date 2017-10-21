@@ -47,7 +47,7 @@ dependencies:
 
   icr:
     github: crystal-community/icr
-    branch: master
+    version: ~> 0.3.0
 
   micrate:
     github: juanedi/micrate
