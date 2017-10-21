@@ -70,7 +70,7 @@ module Sentry
       build args: #{options.build_args?}
       run:        #{options.run?}
       run args:   #{options.run_args?}
-      files:      #{options.watch?}
+      files:      #{options.watch}
     "
         exit! code: 0
       end
