@@ -51,6 +51,7 @@ dependencies:
 
   micrate:
     github: juanedi/micrate
+    branch: master
 
   shell-table:
     github: jwaldrip/shell-table.cr
@@ -58,13 +59,16 @@ dependencies:
 
   spinner:
     github: askn/spinner
+    version: ~> 0.1.1
 
   pg:
     github: will/crystal-pg
+    version: ~> 0.13.4
 
   mysql:
     github: crystal-lang/crystal-mysql
+    branch: master
 
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-
+    branch: master
