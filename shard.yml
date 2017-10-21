@@ -45,10 +45,6 @@ dependencies:
     github: TechMagister/crystal-icr
     branch: master
 
-  sentry:
-    github: TechMagister/sentry
-    branch: change_cli
-
   micrate:
     github: juanedi/micrate
 
