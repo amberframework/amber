@@ -43,7 +43,7 @@ module Amber::CLI
       when "app"
         if options
           puts "Rendering App #{name} in #{directory}"
-          App.new(name, options.d, options.t, options.m).render(directory, list: true, color: true)
+          App.new(name, options.d, options.t, options.m).render(directory, list: true, color: true, interactive: true)
           if options.deps?
             puts "Installing Dependencies"
             puts `cd #{name} && crystal deps update`
