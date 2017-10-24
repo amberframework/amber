@@ -19,8 +19,6 @@ module Amber::CLI
       end
 
       def run
-        migrations_path, migrations_table_suffix = Micrate::Cli.parse_command_arguments
-
         args.commands.each do |command|
           Micrate::Cli.setup_logger
           Micrate::DB.connection_url = database_url
@@ -34,20 +32,20 @@ module Amber::CLI
               `crystal db/seeds.cr`
               puts "Seeded database"
             when "migrate"
-              Micrate::Cli.run_up(migrations_path, migrations_table_suffix)
+              Micrate::Cli.run_up
             when "rollback"
-              Micrate::Cli.run_down(migrations_path, migrations_table_suffix)
+              Micrate::Cli.run_down
             when "redo"
-              Micrate::Cli.run_redo(migrations_path, migrations_table_suffix)
+              Micrate::Cli.run_redo
             when "status"
-              Micrate::Cli.run_status(migrations_path, migrations_table_suffix)
+              Micrate::Cli.run_status
             when "version"
-              Micrate::Cli.run_dbversion(migrations_table_suffix)
+              Micrate::Cli.run_dbversion
             else
               Micrate::Cli.print_help
             end
           rescue e : Micrate::UnorderedMigrationsException
-            Micrate::Cli.report_unordered_migrations(e.versions, migrations_path)
+            Micrate::Cli.report_unordered_migrations(e.versions)
             exit 1
           rescue e : DB::ConnectionRefused
             puts "Connection refused: #{Micrate::DB.connection_url}"
