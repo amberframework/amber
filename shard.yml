@@ -51,7 +51,7 @@ dependencies:
 
   micrate:
     github: juanedi/micrate
-    branch: master
+    version: ~> 0.3.0
 
   shell-table:
     github: jwaldrip/shell-table.cr
