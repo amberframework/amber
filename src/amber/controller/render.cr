@@ -29,7 +29,7 @@ module Amber::Controller
     end
 
     private macro render_template(filename, path = "src/views")
-      {% if filename.id.split("/").size > 3 %}
+      {% if filename.id.split("/").size > 2 %}
         Kilt.render("{{filename.id}}")
       {% else %}
         Kilt.render("#{{{path}}}/{{filename.id}}")
