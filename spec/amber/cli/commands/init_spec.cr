@@ -47,6 +47,20 @@ module Amber::CLI
               db_name.should_not contain "-"
             end
           end
+
+          it "creates app with correct docker-compose database urls and names" do
+            db_env_db_name = Amber::CLI::Spec.docker_compose_yml["services"]["db"]["environment"]["POSTGRES_DB"].as_s
+            app_env_db_url = Amber::CLI::Spec.docker_compose_yml["services"]["app"]["environment"]["DATABASE_URL"].as_s
+            app_env_db_name = Amber::CLI::Spec.db_name(app_env_db_url)
+            migrate_env_db_url = Amber::CLI::Spec.docker_compose_yml["services"]["migrate"]["environment"]["DATABASE_URL"].as_s
+            migrate_env_db_name = Amber::CLI::Spec.db_name(migrate_env_db_url)
+
+            [db_env_db_name, app_env_db_name, migrate_env_db_name].each do |db_name|
+              db_name.should_not eq ""
+              db_name.should contain "development"
+              db_name.should_not contain "-"
+            end
+          end
           Amber::CLI::Spec.cleanup
         end
 

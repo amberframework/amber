@@ -67,6 +67,10 @@ module Amber::CLI::Spec
     environment_yml("test")
   end
 
+  def docker_compose_yml
+    YAML.parse(File.read("#{TESTING_APP}/docker-compose.yml"))
+  end
+
   def prepare_yaml(path)
     shard = File.read("#{path}/shard.yml")
     shard = shard.gsub("github: amberframework/amber\n", "path: ../../\n")
