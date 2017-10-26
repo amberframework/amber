@@ -30,6 +30,15 @@ module Amber::CLI::Spec
     gen_dirs.map { |dir| dir[(app.size + 1)..-1] }
   end
 
+  def db_name(db_url : String) : String
+    db_name(URI.parse(db_url))
+  end
+
+  def db_name(db_uri : URI) : String
+    path = db_uri.path
+    path ? path.split('/').last : ""
+  end
+
   def db_yml
     YAML.parse(File.read("#{TESTING_APP}/config/database.yml"))
   end

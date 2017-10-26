@@ -20,6 +20,21 @@ module Amber::CLI
       end
 
       context "database" do
+        context "postgres" do
+          MainCommand.run ["new", TESTING_APP]
+          it "creates app with correct settings" do
+            Amber::CLI::Spec.shard_yml["dependencies"]["pg"].should_not be_nil
+            Amber::CLI::Spec.db_yml["pg"].should_not be_nil
+            db_url = Amber::CLI::Spec.db_yml["pg"]["database"].as_s
+            db_url.should_not be_nil
+
+            db_name = Amber::CLI::Spec.db_name(db_url)
+            db_name.should_not eq ""
+            db_name.should_not contain "-"
+          end
+          Amber::CLI::Spec.cleanup
+        end
+
         it "create app with mysql settings" do
           MainCommand.run ["new", TESTING_APP, "-d", "mysql", "-t", "ecr"]
 
