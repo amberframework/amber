@@ -7,24 +7,21 @@ module Amber::Controller
         raise "Template or partial required!"
       {% end %}
 
-      {{ filename = template || partial }}
-       
-      # Render Template and return content
+      {{filename = template || partial}}
+
       {% if filename.id.split("/").size > 1 %}
         %content = render_template("#{{{filename}}}", {{path}})
       {% else %}
-        {{ short_path = folder.gsub(/^.+?(?:controllers|views)\//, "") }}
         {% if folder.id.ends_with?(".ecr") %}
-          %content = render_template("#{{{path}}}/#{{{short_path.gsub(/\/[^\.\/]+\.ecr/, "")}}}/#{{{filename}}}")
+          %content = render_template("#{{{folder.split("/")[-2]}}}/#{{{filename}}}", {{path}})
         {% else %}
-          %content = render_template("#{{{path}}}/#{{{short_path.gsub(/\_controller\.cr|\.cr/, "")}}}/#{{{filename}}}")
+          %content = render_template("#{{{folder.split("/").last.gsub(/\_controller\.cr|\.cr/, "")}}}/#{{{filename}}}", {{path}})
         {% end %}
       {% end %}
-      
-      # Render Layout
+
       {% if layout && !partial %}
         content = %content
-        render_template("#{{{path}}}/layouts/#{{{layout.class_name == "StringLiteral" ? layout : LAYOUT}}}")
+        render_template("layouts/#{{{layout.class_name == "StringLiteral" ? layout : LAYOUT}}}", {{path}})
       {% else %}
         %content
       {% end %}
