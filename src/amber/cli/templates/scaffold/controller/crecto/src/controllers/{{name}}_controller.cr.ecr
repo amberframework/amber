@@ -1,71 +1,71 @@
-class <%= @name.capitalize %>Controller < ApplicationController
+class <%= @name.camelcase %>Controller < ApplicationController
   def index
-    <%= @name %>s = Repo.all(<%= @name.capitalize %>)
+    <%= @name %>s = Repo.all(<%= @name.camelcase %>)
     render("index.<%= @language %>")
   end
 
   def show
-    if <%= @name %> = Repo.get(<%= @name.capitalize %>, params["id"])
+    if <%= @name %> = Repo.get(<%= @name.camelcase %>, params["id"])
       render("show.<%= @language %>")
     else
-      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      flash["warning"] = "<%= @name.camelcase %> with ID #{params["id"]} Not Found"
       redirect_to "/<%= @name %>s"
     end
   end
 
   def new
-    <%= @name %> = <%= @name.capitalize %>.new
-    changeset = <%= @name.capitalize %>.changeset(<%= @name %>) 
+    <%= @name %> = <%= @name.camelcase %>.new
+    changeset = <%= @name.camelcase %>.changeset(<%= @name %>) 
     render("new.<%= @language %>")
   end
 
   def create
-    <%= @name %> = <%= @name.capitalize %>.new
+    <%= @name %> = <%= @name.camelcase %>.new
     <%= @name %>.update_from_hash(params.to_h.select(<%= @visible_fields %>))
     changeset = Repo.insert(<%= @name %>)
 
     if changeset.errors.any?
-      flash["danger"] = "Could not create <%= @name.capitalize %>!"
+      flash["danger"] = "Could not create <%= @name.camelcase %>!"
       render("new.<%= @language %>")
     else
-      flash["success"] = "Created <%= @name.capitalize %> successfully."
+      flash["success"] = "Created <%= @name.camelcase %> successfully."
       redirect_to "/<%= @name %>s"
     end
   end
 
   def edit
-    if <%= @name %> = Repo.get(<%= @name.capitalize %>, params["id"])
+    if <%= @name %> = Repo.get(<%= @name.camelcase %>, params["id"])
       changeset = Repo.update(<%= @name %>)
       render("edit.<%= @language %>")
     else
-      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      flash["warning"] = "<%= @name.camelcase %> with ID #{params["id"]} Not Found"
       redirect_to "/<%= @name %>s"
     end
   end
 
   def update
-    if <%= @name %> = Repo.get(<%= @name.capitalize %>, params["id"])
+    if <%= @name %> = Repo.get(<%= @name.camelcase %>, params["id"])
       <%= @name %>.update_from_hash(params.to_h.select(<%= @visible_fields %>))
       changeset = Repo.update(<%= @name %>)
 
       if changeset.errors.any?
-        flash["danger"] = "Could not update <%= @name.capitalize %>!"
+        flash["danger"] = "Could not update <%= @name.camelcase %>!"
         render("edit.<%= @language %>")
       else
-        flash["success"] = "Updated <%= @name.capitalize %> successfully."
+        flash["success"] = "Updated <%= @name.camelcase %> successfully."
         redirect_to "/<%= @name %>s"
       end
     else
-      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      flash["warning"] = "<%= @name.camelcase %> with ID #{params["id"]} Not Found"
       redirect_to "/<%= @name %>s"
     end
   end
 
   def destroy
-    if <%= @name %> = Repo.get(<%= @name.capitalize %>, params["id"])
+    if <%= @name %> = Repo.get(<%= @name.camelcase %>, params["id"])
       Repo.delete(<%= @name %>)
     else
-      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      flash["warning"] = "<%= @name.camelcase %> with ID #{params["id"]} Not Found"
     end
     redirect_to "/<%= @name %>s"
   end

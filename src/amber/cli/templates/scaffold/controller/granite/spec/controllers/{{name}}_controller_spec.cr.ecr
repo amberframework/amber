@@ -2,15 +2,15 @@
 require "./spec_helper"
 
 def create_subject
-  subject = <%= @name.capitalize %>.new
+  subject = <%= @name.camelcase %>.new
   subject.<%= field_name %> = "test"
   subject.save
   subject
 end
 
-describe <%= @name.capitalize %>Controller do
+describe <%= @name.camelcase %>Controller do
   Spec.before_each do
-    <%= @name.capitalize %>.clear
+    <%= @name.camelcase %>.clear
   end
 
   describe "index" do
@@ -32,14 +32,14 @@ describe <%= @name.capitalize %>Controller do
   describe "new" do
     it "render new template" do
       get "/<%= @name %>s/new"
-      response.body.should contain "New <%= @name.capitalize %>"
+      response.body.should contain "New <%= @name.camelcase %>"
     end
   end
 
   describe "create" do
     it "creates a <%= @name %>" do
       post "/<%= @name %>s", body: "<%= field_name %>=testing"
-      subject_list = <%= @name.capitalize %>.all
+      subject_list = <%= @name.camelcase %>.all
       subject_list.size.should eq 1
     end
   end
@@ -48,7 +48,7 @@ describe <%= @name.capitalize %>Controller do
     it "renders edit template" do
       subject = create_subject
       get "/<%= @name %>s/#{subject.id}/edit"
-      response.body.should contain "Edit <%= @name.capitalize %>"
+      response.body.should contain "Edit <%= @name.camelcase %>"
     end
   end
 
@@ -56,7 +56,7 @@ describe <%= @name.capitalize %>Controller do
     it "updates a <%= @name %>" do
       subject = create_subject
       patch "/<%= @name %>s/#{subject.id}", body: "<%= field_name %>=test2"
-      result = <%= @name.capitalize %>.find(subject.id).not_nil!
+      result = <%= @name.camelcase %>.find(subject.id).not_nil!
       result.<%= field_name %>.should eq "test2"
     end
   end
@@ -65,7 +65,7 @@ describe <%= @name.capitalize %>Controller do
     it "deletes a <%= @name %>" do
       subject = create_subject
       delete "/<%= @name %>s/#{subject.id}"
-      result = <%= @name.capitalize %>.find subject.id
+      result = <%= @name.camelcase %>.find subject.id
       result.should eq nil
     end
   end

@@ -1,6 +1,6 @@
 div.row
   div.col-sm-11
-    h2 <%= @name.capitalize %>s
+    h2 <%= @name.camelcase %>s
   div.col-sm-1
     a.btn.btn-success.btn-xs href="/<%= @name %>s/new" New
 div.table-responsive

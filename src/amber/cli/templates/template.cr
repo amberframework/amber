@@ -20,12 +20,16 @@ require "./auth"
 module Amber::CLI
   class Template
     getter name : String
+    # getter filename : String
+    getter class_name : String
     getter directory : String
     getter fields : Array(String)
 
     def initialize(name : String, directory : String, fields = [] of String)
       if name.match(/\A[a-zA-Z]/)
-        @name = name
+        # @filename = name.underscore
+        @class_name = name.camelcase
+        @name = name.underscore
       else
         raise "Name is not valid."
       end

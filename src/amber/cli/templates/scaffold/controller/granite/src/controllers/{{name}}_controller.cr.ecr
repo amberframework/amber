@@ -1,70 +1,70 @@
-class <%= @name.capitalize %>Controller < ApplicationController
+class <%= @name.camelcase %>Controller < ApplicationController
   def index
-    <%= @name %>s = <%= @name.capitalize %>.all
+    <%= @name %>s = <%= @name.camelcase %>.all
     render("index.<%= @language %>")
   end
 
   def show
-    if <%= @name %> = <%= @name.capitalize %>.find params["id"]
+    if <%= @name %> = <%= @name.camelcase %>.find params["id"]
       render("show.<%= @language %>")
     else
-      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      flash["warning"] = "<%= @name.camelcase %> with ID #{params["id"]} Not Found"
       redirect_to "/<%= @name %>s"
     end
   end
 
   def new
-    <%= @name %> = <%= @name.capitalize %>.new
+    <%= @name %> = <%= @name.camelcase %>.new
     render("new.<%= @language %>")
   end
 
   def create
-    <%= @name %> = <%= @name.capitalize %>.new(<%= @name.downcase%>_params.validate!)
+    <%= @name %> = <%= @name.camelcase %>.new(<%= @name.underscore %>_params.validate!)
 
     if <%= @name %>.valid? && <%= @name %>.save
-      flash["success"] = "Created <%= @name.capitalize %> successfully."
+      flash["success"] = "Created <%= @name.camelcase %> successfully."
       redirect_to "/<%= @name %>s"
     else
-      flash["danger"] = "Could not create <%= @name.capitalize %>!"
+      flash["danger"] = "Could not create <%= @name.camelcase %>!"
       render("new.<%= @language %>")
     end
   end
 
   def edit
-    if <%= @name %> = <%= @name.capitalize %>.find params["id"]
+    if <%= @name %> = <%= @name.camelcase %>.find params["id"]
       render("edit.<%= @language %>")
     else
-      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      flash["warning"] = "<%= @name.camelcase %> with ID #{params["id"]} Not Found"
       redirect_to "/<%= @name %>s"
     end
   end
 
   def update
-    if <%= @name %> = <%= @name.capitalize %>.find(params["id"])
-      <%= @name %>.set_attributes(<%= @name.downcase%>_params.validate!)
+    if <%= @name %> = <%= @name.camelcase %>.find(params["id"])
+      <%= @name %>.set_attributes(<%= @name.underscore %>_params.validate!)
       if <%= @name %>.valid? && <%= @name %>.save
-        flash["success"] = "Updated <%= @name.capitalize %> successfully."
+        flash["success"] = "Updated <%= @name.camelcase %> successfully."
         redirect_to "/<%= @name %>s"
       else
-        flash["danger"] = "Could not update <%= @name.capitalize %>!"
+        flash["danger"] = "Could not update <%= @name.camelcase %>!"
         render("edit.<%= @language %>")
       end
     else
-      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      flash["warning"] = "<%= @name.camelcase %> with ID #{params["id"]} Not Found"
       redirect_to "/<%= @name %>s"
     end
   end
 
   def destroy
-    if <%= @name %> = <%= @name.capitalize %>.find params["id"]
+    if <%= @name %> = <%= @name.camelcase %>.find params["id"]
       <%= @name %>.destroy
     else
-      flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
+      flash["warning"] = "<%= @name.camelcase %> with ID #{params["id"]} Not Found"
     end
     redirect_to "/<%= @name %>s"
   end
 
-  def <%= @name %>_params
+  def <%= @name.underscore %>_params
     params.validation do
       <%- @visible_fields.each do |field| -%>
       required(:<%= field %>) { |f| !f.nil? }

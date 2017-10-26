@@ -1,4 +1,4 @@
-struct <%= @name.capitalize %>Socket < Amber::WebSockets::ClientSocket
+struct <%= @name.camelcase %>Socket < Amber::WebSockets::ClientSocket
   <%- @fields.each do |field| %>
     channel "<%= field.underscore %>_room:*", <%= field.capitalize %>Channel
   <%- end %>

@@ -1,4 +1,4 @@
-class <%= @name.capitalize %>Controller < ApplicationController
+class <%= @name.camelcase %>Controller < ApplicationController
 <%=
   actions = @actions.map do |action, verb|
     <<-ACTION

@@ -1,2 +1,2 @@
 <%="<"%>%- active = context.request.path == "/<%= @name %>s" ? "active" : "" %>
-<a class="nav-item <%="<"%>%= active %>" href="/<%= @name %>s"><%= @name.capitalize %>s</a>
+<a class="nav-item <%="<"%>%= active %>" href="/<%= @name %>s"><%= @name.camelcase %>s</a>

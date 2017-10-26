@@ -1,11 +1,11 @@
 class HTTP::Server::Context
-  property current_<%= @name %> : <%= @name.capitalize %>?
+  property current_<%= @name %> : <%= @name.camelcase %>?
 end
 
 class Authenticate < Amber::Pipe::Base
   def call(context)
     <%= @name %>_id = context.session["<%= @name %>_id"]?
-    if <%= @name %> = <%= @name.capitalize %>.find <%= @name %>_id
+    if <%= @name %> = <%= @name.camelcase %>.find <%= @name %>_id
       context.current_<%= @name %> = <%= @name %>
       call_next(context)
     else
