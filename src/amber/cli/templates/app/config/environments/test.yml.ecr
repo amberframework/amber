@@ -20,7 +20,7 @@ secrets:
   when "mysql" -%>
   database: mysql://root@localhost:3306/<%= @name %>_test
 <%when "pg" -%>
-  database: postgres://postgres:@pg:5432/<%= @name %>_test
+  database: postgres://postgres:@pg:5432/<%= @name.gsub('-','_') %>_test
 <%when "sqlite" -%>
   database: sqlite3:./db/<%= @name %>_test.db
 <%end -%>

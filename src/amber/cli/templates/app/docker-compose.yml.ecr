@@ -1,5 +1,5 @@
 <% if @database == "pg"
-     @db_url = "postgres://admin:password@db:5432/#{@name}_development"
+     @db_url = "postgres://admin:password@db:5432/#{@name.gsub('-','_')}_development"
      @wait_for = "while ! nc -q 1 db 5432 </dev/null; do sleep 1; done && "
    elsif @database == "mysql"
      @db_url = "mysql://admin:password@db:3306/#{@name}_development"
@@ -59,7 +59,7 @@ services:
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: <%= "#{@name}_development" %>
+      POSTGRES_DB: <%= "#{@name.gsub('-','_')}_development" %>
     volumes:
       - 'db:/var/lib/postgres/data'
 <% elsif @database == "mysql" -%>
