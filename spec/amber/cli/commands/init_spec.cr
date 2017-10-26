@@ -32,6 +32,21 @@ module Amber::CLI
             db_name.should_not eq ""
             db_name.should_not contain "-"
           end
+
+          it "creates app with correct environment database urls" do
+            dev_db_url = Amber::CLI::Spec.development_yml["secrets"]["database"].as_s
+            dev_db_url.should_not eq ""
+            dev_db_url.should contain "development"
+            test_db_url = Amber::CLI::Spec.test_yml["secrets"]["database"].as_s
+            test_db_url.should_not eq ""
+            test_db_url.should contain "test"
+
+            [dev_db_url, test_db_url].each do |db_url|
+              db_name = Amber::CLI::Spec.db_name(db_url)
+              db_name.should_not eq ""
+              db_name.should_not contain "-"
+            end
+          end
           Amber::CLI::Spec.cleanup
         end
 
