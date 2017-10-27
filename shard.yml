@@ -35,7 +35,7 @@ dependencies:
 
   cli:
     github: mosop/cli
-    version: ~> 0.6.10
+    version: ~> 0.5.1
 
   teeplate:
     github: mosop/teeplate
