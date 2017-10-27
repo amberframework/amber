@@ -49,7 +49,7 @@ module Amber::CLI
       help desc: "# Describe available commands and usages"
       string ["-t", "--template"], desc: "# Preconfigure for selected template engine. Options: slang | ecr", default: "slang"
       string ["-d", "--database"], desc: "# Preconfigure for selected database. Options: pg | mysql | sqlite", default: "pg"
-      string ["-m", "--model"],    desc: "# Preconfigure for selected model. Options: granite | crecto", default: "granite"
+      string ["-m", "--model"], desc: "# Preconfigure for selected model. Options: granite | crecto", default: "granite"
     end
   end
 end

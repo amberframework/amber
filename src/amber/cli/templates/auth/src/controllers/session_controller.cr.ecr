@@ -5,8 +5,8 @@ class SessionController < ApplicationController
   end
 
   def create
-    <%= @name %> = <%= @name.capitalize %>.find_by(:email, params["email"])
-    if <%= @name %> && <%= @name %>.authenticate(params["password"])
+    <%= @name %> = <%= @name.capitalize %>.find_by(:email, params["email"].to_s)
+    if <%= @name %> && <%= @name %>.authenticate(params["password"].to_s)
         session[:<%= @name %>_id] = <%= @name %>.id
         flash[:info] = "Successfully logged in"
         redirect_to "/"
@@ -19,7 +19,7 @@ class SessionController < ApplicationController
 
   def delete
     session.delete(:<%= @name %>_id)
-    flash[:info] = "Logged out.  See ya later!"
+    flash[:info] = "Logged out. See ya later!"
     redirect_to "/"
   end
 end

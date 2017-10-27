@@ -25,7 +25,7 @@ module Amber
       protected getter id : String
       getter socket : HTTP::WebSocket
       protected getter context : HTTP::Server::Context
-      protected getter raw_params : HTTP::Params
+      protected getter raw_params : Amber::Router::ParamsHash
       protected getter params : Amber::Validators::Params
       protected getter session : Amber::Router::Session::AbstractStore?
       protected getter cookies : Amber::Router::Cookies::Store?

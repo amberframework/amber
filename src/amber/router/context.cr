@@ -21,7 +21,7 @@ class HTTP::Server::Context
   include Amber::Router::Files
   include Amber::Router::Session
   include Amber::Router::Flash
-  include Amber::Router::Params
+  include Amber::Router::ParamsParser
 
   getter router : Amber::Router::Router
   setter flash : Amber::Router::Flash::FlashStore?
