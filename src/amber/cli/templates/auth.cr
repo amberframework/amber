@@ -28,10 +28,10 @@ module Amber::CLI
 
       add_routes :web, <<-ROUTES
         get "/signin", SessionController, :new
-          post "/session", SessionController, :create
-          get "/signout", SessionController, :delete
-          get "/signup", RegistrationController, :new
-          post "/registration", RegistrationController, :create
+        post "/session", SessionController, :create
+        get "/signout", SessionController, :delete
+        get "/signup", RegistrationController, :new
+        post "/registration", RegistrationController, :create
       ROUTES
 
       add_plugs :web, <<-PLUGS
