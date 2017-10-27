@@ -6,14 +6,15 @@ module Amber::CLI
       context "scaffold" do
         it "generates and compile generated app" do
           ENV["AMBER_ENV"] = "test"
-
           MainCommand.run ["new", TESTING_APP]
           Dir.cd(TESTING_APP)
           MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
           Amber::CLI::Spec.prepare_yaml(Dir.current)
+
           `shards build`
 
-          File.exists?("bin/#{TESTING_APP.split("/").last}").should be_true
+          File.exists?("bin/#{TEST_APP_NAME}").should be_true
+
           Amber::CLI::Spec.cleanup
         end
       end
@@ -49,6 +50,7 @@ module Amber::CLI
           File.read("./config/routes.cr").includes?(routes_get).should be_true
           File.read("./config/routes.cr").includes?(routes_delete).should be_true
           File.read("./src/controllers/animal_controller.cr").should eq output_class
+
           Amber::CLI::Spec.cleanup
         end
       end
