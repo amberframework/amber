@@ -19,7 +19,7 @@ targets:
 dependencies:
   radix:
     github: luislavena/radix
-    branch: master
+    version: ~> 0.3.8
 
   kilt:
     github: jeromegn/kilt
@@ -27,11 +27,11 @@ dependencies:
 
   slang:
     github: jeromegn/slang
-    branch: master
+    version: ~> 1.6.1
 
   redis:
     github: stefanwille/crystal-redis
-    version: ~> 1.8.0
+    version: ~> 1.9.0
 
   cli:
     github: mosop/cli
@@ -39,18 +39,19 @@ dependencies:
 
   teeplate:
     github: mosop/teeplate
-    version: ~> 0.4.4
-
-  icr:
-    github: TechMagister/crystal-icr
-    branch: master
+    version: ~> 0.4.5
 
   sentry:
-    github: TechMagister/sentry
-    branch: change_cli
+    github: samueleaton/sentry
+    branch: master
+
+  icr:
+    github: crystal-community/icr
+    version: ~> 0.3.0
 
   micrate:
     github: juanedi/micrate
+    version: ~> 0.3.0
 
   shell-table:
     github: jwaldrip/shell-table.cr
@@ -58,13 +59,16 @@ dependencies:
 
   spinner:
     github: askn/spinner
+    version: ~> 0.1.1
 
   pg:
     github: will/crystal-pg
+    version: ~> 0.13.4
 
   mysql:
     github: crystal-lang/crystal-mysql
+    branch: master
 
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-
+    branch: master

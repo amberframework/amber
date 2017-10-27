@@ -18,7 +18,7 @@ end
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     command_name "amber"
-    version "Amber CMD (amberframework.org) - v#{VERSION}"
+    version "Amber CLI (amberframework.org) - v#{VERSION}"
 
     class Help
       title "\nAmber - Command Line Interface"
