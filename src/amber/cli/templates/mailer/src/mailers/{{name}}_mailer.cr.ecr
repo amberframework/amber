@@ -1,6 +1,6 @@
 require "quartz_mailer"
 
-class <%= @name.camelcase %>Mailer < Quartz::Mailer
+class <%= class_name %>Mailer < Quartz::Mailer
   def initialize
     super()
     from "from@example.com"

@@ -1,8 +1,8 @@
 require "./spec_helper"
 require "../../src/models/<%= @name %>.cr"
 
-describe <%= @name.camelcase %> do
+describe <%= class_name %> do
   Spec.before_each do
-    <%= @name.camelcase %>.clear
+    <%= class_name %>.clear
   end
 end

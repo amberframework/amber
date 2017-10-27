@@ -1,6 +1,6 @@
 require "granite_orm/adapter/<%= @database %>"
 
-class <%= @name.camelcase %> < Granite::ORM::Base
+class <%= class_name %> < Granite::ORM::Base
   adapter <%= @database %>
 
 <% @fields.select{|f| f.reference? }.each do |field| -%>

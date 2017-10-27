@@ -1,16 +1,16 @@
 require "granite_orm/adapter/<%= @database %>"
 require "crypto/bcrypt/password"
 
-class <%= @name.camelcase %> < Granite::ORM::Base
+class <%= class_name %> < Granite::ORM::Base
   adapter <%= @database %>
   property password : String?
   before_save :encrypt_password
 
-  validate :email, "is required", -> (<%= @name %> : <%= @name.camelcase %>) do
+  validate :email, "is required", -> (<%= @name %> : <%= class_name %>) do
     (<%= @name %>.email != nil) && (!<%= @name %>.email.not_nil!.empty?)
   end
 
-  validate :password, "is to short", -> (<%= @name %> : <%= @name.camelcase %>) do
+  validate :password, "is to short", -> (<%= @name %> : <%= class_name %>) do
     (<%= @name %>.password != nil) && (<%= @name %>.password.not_nil!.size >= 8)
   end
 

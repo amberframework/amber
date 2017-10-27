@@ -20,15 +20,11 @@ require "./auth"
 module Amber::CLI
   class Template
     getter name : String
-    # getter filename : String
-    getter class_name : String
     getter directory : String
     getter fields : Array(String)
 
     def initialize(name : String, directory : String, fields = [] of String)
       if name.match(/\A[a-zA-Z]/)
-        # @filename = name.underscore
-        @class_name = name.camelcase
         @name = name.underscore
       else
         raise "Name is not valid."
@@ -142,6 +138,7 @@ end
 
 module Teeplate
   abstract class FileTree
+    @class_name : String?
     # Renders all collected file entries.
     #
     # For more information about the arguments, see `Renderer`.
@@ -155,6 +152,10 @@ module Teeplate
     # Override to filter files rendered
     def filter(entries)
       entries
+    end
+
+    def class_name
+      @class_name ||= @name.camelcase
     end
   end
 end

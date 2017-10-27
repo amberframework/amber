@@ -1,7 +1,7 @@
 require "amber"
 require "../src/models/*"
 
-<%= @name %> = <%= @name.camelcase %>.new
+<%= @name %> = <%= class_name %>.new
 <%= @name %>.email = "admin@example.com"
 <%= @name %>.password = "password"
 <%= @name %>.save
