@@ -4,8 +4,7 @@ struct UserSocket < Amber::WebSockets::ClientSocket; end
 
 struct RoomSocket < Amber::WebSockets::ClientSocket; end
 
-
-describe Amber do 
+describe Amber do
   describe ".env" do
     it "should return test" do
       Amber.env.test?.should be_truthy
@@ -54,9 +53,10 @@ describe Amber do
         settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
       end
 
-      it "retains environment.yml settings that haven't been overwritten" do # NOTE: Any changes to settings here remain for all specs run afterwards.
-        # This is a problem.
-
+      it "retains environment.yml settings that haven't been overwritten" do
+        # NOTE: Any changes to settings here remain for all specs run afterwards.
+        # Added for convenience until settings is change to an instances
+        # instead of singleton this is still an "a problem".
         Amber::Server.configure do |server|
           server.name = "Hello World App"
           server.port = 8080

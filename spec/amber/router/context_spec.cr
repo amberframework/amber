@@ -2,7 +2,7 @@ require "../../../spec_helper"
 
 describe HTTP::Server::Context do
   describe "#override_request_method!" do
-    describe "when X-HTTP-Method-Overrid is present" do
+    context "when X-HTTP-Method-Override is present" do
       it "overrides form POST method to PUT, PATCH, DELETE" do
         %w(PUT PATCH DELETE).each do |method|
           header = HTTP::Headers.new
@@ -147,23 +147,24 @@ describe HTTP::Server::Context do
   it "parses json hash" do
     headers = HTTP::Headers.new
     headers["Content-Type"] = "application/json"
-    body = "{\"test\":\"test\"}"
+    body = %({ "test": "test", "address": { "city": "New York" }})
     request = HTTP::Request.new("POST", "/", headers, body)
 
     context = create_context(request)
 
     context.params["test"].should eq "test"
+    context.params["address"].as(Hash)["city"].should eq "New York"
   end
 
   it "parses json array" do
     headers = HTTP::Headers.new
     headers["Content-Type"] = "application/json"
-    body = "[\"test\",\"test2\"]"
+    body = %(["test", "test2"])
     request = HTTP::Request.new("POST", "/", headers, body)
 
     context = create_context(request)
 
-    context.params["_json"].should eq "[\"test\", \"test2\"]"
+    context.params["_json"].should eq %w(test test2)
   end
 
   it "parses files from multipart forms" do
