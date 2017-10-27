@@ -1,14 +1,16 @@
 require "json"
 
 module Amber::Router
-  # The Params module will parse parameters from a URL, a form post or a JSON
+  alias ParamsType = String | JSON::Type
+  alias ParamsHash = Hash(String | Symbol, Amber::Router::ParamsType)
+
+  # The Parameters module will parse parameters from a URL, a form post or a JSON
   # post and provide them in the self params hash.  This unifies access to
   # parameters into one place to simplify access to them.
   # Note: other params from the router will be handled in the router handler
   # instead of here.  This removes a dependency on the router in case it is
   # replaced or not needed.
-  module Params
-    property params = HTTP::Params.new({} of String => Array(String))
+  module ParamsParser
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     MULTIPART_FORM   = "multipart/form-data"
     APPLICATION_JSON = "application/json"
@@ -16,13 +18,12 @@ module Amber::Router
     OVERRIDE_HEADER  = "X-HTTP-Method-Override"
     OVERRIDE_METHODS = %w(PATCH PUT DELETE)
 
+    property params = Hash(String | Symbol, ParamsType).new
+
     @override_method : String?
 
-    alias ParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
-
-    # clear the params.
     def clear_params
-      @params = HTTP::Params.new({} of String => Array(String))
+      @params = Hash(String | Symbol, ParamsType).new
     end
 
     def parse_params
@@ -73,11 +74,11 @@ module Amber::Router
     end
 
     private def override_method
-      @override_method ||= (params[METHOD]? || override_header?).try &.upcase
+      @override_method ||= (params[METHOD]? || override_header?).try &.to_s.upcase
     end
 
     def merge_route_params
-      route_params.each { |k, v| params.add(k.to_s, v) }
+      route_params.each { |k, v| params[k] = v }
     end
 
     def route_params
@@ -87,13 +88,13 @@ module Amber::Router
     def parse_json
       if body = request.body.not_nil!.gets_to_end
         if body.size > 2
-          case json = JSON.parse(body).raw
+          case json = JSON.parse_raw(body)
           when Hash
             json.each do |key, value|
-              params[key.as(String)] = value.to_s
+              params[key.as(String)] = value
             end
           when Array
-            params["_json"] = json.to_s
+            params["_json"] = json
           end
         end
       end
@@ -106,7 +107,7 @@ module Amber::Router
         if filename.is_a?(String) && !filename.empty?
           files[upload.name] = Files::File.new(upload: upload)
         else
-          params.add(upload.name, upload.body.gets_to_end)
+          params[upload.name] = upload.body.gets_to_end
         end
       end
     end
@@ -122,7 +123,7 @@ module Amber::Router
                end
 
       HTTP::Params.parse(values) do |key, value|
-        params.add(key, value)
+        params[key] = value
       end
     end
   end

@@ -5,6 +5,7 @@
 [![license](https://img.shields.io/github/license/amberframework/amber.svg)](https://github.com/amberframework/amber/blob/master/LICENSE)
 [![GitHub tag](https://img.shields.io/github/tag/amberframework/amber.svg)](https://github.com/amberframework/amber/releases/latest)
 [![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/veelenga/awesome-crystal/#web-frameworks)
+[![Dependency Status](https://shards.rocks/badge/github/amberframework/amber/status.svg)](https://shards.rocks/github/amberframework/amber)
 
 # Welcome to Amber
 

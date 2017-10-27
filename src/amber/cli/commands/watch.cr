@@ -1,5 +1,5 @@
 require "cli"
-require "sentry/sentry_command"
+require "../sentry_command_helper"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand

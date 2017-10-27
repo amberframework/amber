@@ -51,4 +51,3 @@ module Amber::CLI::Scaffold
     end
   end
 end
-
