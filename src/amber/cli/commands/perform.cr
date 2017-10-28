@@ -1,5 +1,6 @@
 require "icr"
 require "cli"
+require "../../tasks/runner"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
