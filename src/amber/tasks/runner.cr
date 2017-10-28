@@ -1,3 +1,5 @@
+require "./task"
+
 module Amber::Tasks
   class Runner
     class_property tasks = [] of Amber::Tasks::Task
