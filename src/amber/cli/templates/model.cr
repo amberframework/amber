@@ -30,5 +30,9 @@ module Amber::CLI
         return "pg"
       end
     end
+
+    def table_name
+      @table_name ||= "#{@name}s"
+    end
   end
 end

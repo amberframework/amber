@@ -71,31 +71,60 @@ module Amber::CLI
       end
 
       context "model" do
-        ENV["AMBER_ENV"] = "test"
-        Amber::CLI::MainCommand.run ["new", TESTING_APP]
-        Dir.cd(TESTING_APP)
+        context "granite" do
+          ENV["AMBER_ENV"] = "test"
+          MainCommand.run ["new", TESTING_APP]
+          Dir.cd(TESTING_APP)
 
-        it "follows naming conventions for all files and class names" do
-          camel_case = "PostComment"
-          snake_case = "post_comment"
-          class_definition_prefix = "class #{camel_case}"
-          spec_definition_prefix = "describe #{camel_case}"
+          it "follows naming conventions for all files and class names" do
+            camel_case = "PostComment"
+            snake_case = "post_comment"
+            class_definition_prefix = "class #{camel_case}"
+            spec_definition_prefix = "describe #{camel_case}"
 
-          [camel_case, snake_case].each do |arg|
-            MainCommand.run ["generate", "model", arg]
-            filename = snake_case
-            src_filepath = "./src/models/#{filename}.cr"
-            spec_filepath = "./spec/models/#{filename}_spec.cr"
+            [camel_case, snake_case].each do |arg|
+              MainCommand.run ["generate", "model", arg]
+              filename = snake_case
+              granite_table_name = "table_name #{snake_case}s"
+              src_filepath = "./src/models/#{filename}.cr"
+              spec_filepath = "./spec/models/#{filename}_spec.cr"
 
-            File.exists?(src_filepath).should be_true
-            File.exists?(spec_filepath).should be_true
-            File.read(src_filepath).should contain class_definition_prefix
-            File.read(spec_filepath).should contain spec_definition_prefix
-            File.delete(src_filepath)
-            File.delete(spec_filepath)
+              File.exists?(src_filepath).should be_true
+              File.exists?(spec_filepath).should be_true
+              File.read(src_filepath).should contain class_definition_prefix
+              File.read(src_filepath).should contain granite_table_name
+              File.read(spec_filepath).should contain spec_definition_prefix
+              File.delete(src_filepath)
+              File.delete(spec_filepath)
+            end
           end
+          Amber::CLI::Spec.cleanup
         end
-        Amber::CLI::Spec.cleanup
+
+        context "crecto" do
+          ENV["AMBER_ENV"] = "test"
+          MainCommand.run ["new", TESTING_APP, "-m", "crecto"]
+          Dir.cd(TESTING_APP)
+
+          it "follows naming conventions for all files and class names" do
+            camel_case = "PostComment"
+            snake_case = "post_comment"
+            class_definition_prefix = "class #{camel_case}"
+
+            [camel_case, snake_case].each do |arg|
+              MainCommand.run ["generate", "model", arg]
+              filename = snake_case
+              crecto_table_name = %(schema "#{snake_case}s")
+              src_filepath = "./src/models/#{filename}.cr"
+
+              File.exists?(src_filepath).should be_true
+              File.read(src_filepath).should contain class_definition_prefix
+              File.read(src_filepath).should contain crecto_table_name
+              File.delete(src_filepath)
+            end
+          end
+          Amber::CLI::Spec.cleanup
+        end
       end
 
       context "controller" do

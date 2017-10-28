@@ -1,5 +1,5 @@
 class <%= class_name %> < Crecto::Model
-  schema "<%= @name %>s" do
+  schema "<%= table_name %>" do
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
     field :<%= field.name %>, <%= field.cr_type %>
 <% end -%>
