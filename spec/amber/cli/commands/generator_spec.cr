@@ -25,6 +25,7 @@ module Amber::CLI
 
           camel_case = "PostComment"
           snake_case = "post_comment"
+          incorrect_case = "Post_comment"
           display = "Post Comment"
           class_definition_prefix = "class #{camel_case}"
           spec_definition_prefix = "describe #{camel_case}"
@@ -51,6 +52,9 @@ module Amber::CLI
             File.read("./src/views/#{snake_case}/index.slang").should contain display
             File.read("./src/views/#{snake_case}/new.slang").should contain display
             File.read("./src/views/#{snake_case}/show.slang").should contain snake_case
+
+            File.read("./config/routes.cr").should contain "#{camel_case}Controller"
+            File.read("./config/routes.cr").should_not contain "#{incorrect_case}Controller"
 
             File.delete("./spec/models/#{snake_case}_spec.cr")
             File.delete("./src/models/#{snake_case}.cr")
