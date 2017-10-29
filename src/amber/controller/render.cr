@@ -39,13 +39,13 @@ module Amber::Controller
     end
 
     protected def respond_with(html : String? = nil, json : Hash | String? = nil, xml : String? = nil, text : String? = nil)
-      accepts = context.request.headers["Accept"].split(";").try(&.split(","))
+      accepts = context.request.headers["Accept"].split(";").try(&.split(/,|,\s/))
 
       if accepts.includes?("text/html") && html
         respond_with_html(html)
-      elsif accepts.includes?("text/json") && json
+      elsif accepts.includes?("application/json") && json
         respond_with_json(json.is_a?(Hash) ? json.to_json : json)
-      elsif accepts.includes?("text/xml") && xml
+      elsif accepts.includes?("application/xml") && xml
         respond_with_xml(xml)
       elsif accepts.includes?("text/plain") && text
         respond_with_text(text)
@@ -63,11 +63,11 @@ module Amber::Controller
     end
 
     protected def respond_with_json(body, status_code = 200)
-      set_response(body, status_code, "text/json")
+      set_response(body, status_code, "application/json")
     end
 
     protected def respond_with_xml(body, status_code = 200)
-      set_response(body, status_code, "text/xml")
+      set_response(body, status_code, "application/xml")
     end
 
     private def set_response(body, status_code = 200, content_type = "text/html")
