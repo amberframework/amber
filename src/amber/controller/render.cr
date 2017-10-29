@@ -38,7 +38,7 @@ module Amber::Controller
       {% end %}
     end
 
-    def respond_with(html : String? = nil, json : Hash | String? = nil, xml : String? = nil, text : String? = nil)
+    protected def respond_with(html : String? = nil, json : Hash | String? = nil, xml : String? = nil, text : String? = nil)
       accepts = context.request.headers["Accept"].split(";").try(&.split(","))
 
       if accepts.includes?("text/plain") && text
@@ -77,6 +77,5 @@ module Amber::Controller
       context.response.content_type = "text/xml"
       context.content = body
     end
-
   end
 end
