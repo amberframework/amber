@@ -19,7 +19,7 @@ class <%= @name.capitalize %>Controller < ApplicationController
   end
 
   def create
-    <%= @name %> = <%= @name.capitalize %>.new(params.to_h.select(<%= @visible_fields %>))
+    <%= @name %> = <%= @name.capitalize %>.new(<%= @name.downcase%>_params.validate!)
 
     if <%= @name %>.valid? && <%= @name %>.save
       flash["success"] = "Created <%= @name.capitalize %> successfully."
@@ -41,7 +41,7 @@ class <%= @name.capitalize %>Controller < ApplicationController
 
   def update
     if <%= @name %> = <%= @name.capitalize %>.find(params["id"])
-      <%= @name %>.set_attributes(params.to_h.select(<%= @visible_fields %>))
+      <%= @name %>.set_attributes(<%= @name.downcase%>_params.validate!)
       if <%= @name %>.valid? && <%= @name %>.save
         flash["success"] = "Updated <%= @name.capitalize %> successfully."
         redirect_to "/<%= @name %>s"
@@ -62,5 +62,13 @@ class <%= @name.capitalize %>Controller < ApplicationController
       flash["warning"] = "<%= @name.capitalize %> with ID #{params["id"]} Not Found"
     end
     redirect_to "/<%= @name %>s"
+  end
+
+  def <%= @name %>_params
+    params.validation do
+      <%- @visible_fields.each do |field| -%>
+      required(:<%= field %>) { |f| !f.nil? }
+      <%- end -%>
+    end
   end
 end
