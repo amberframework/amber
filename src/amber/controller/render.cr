@@ -44,7 +44,11 @@ module Amber::Controller
       if accepts.includes?("text/html") && html
         respond_with_html(html)
       elsif accepts.includes?("text/json") && json
-        respond_with_json(json)
+        if json.is_a? Hash
+          respond_with_json(json.to_json)
+        else
+          respond_with_json(json)
+        end
       elsif accepts.includes?("text/xml") && xml
         respond_with_xml(xml)
       elsif accepts.includes?("text/plain") && text
