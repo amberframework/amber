@@ -41,40 +41,38 @@ module Amber::Controller
     protected def respond_with(html : String? = nil, json : Hash | String? = nil, xml : String? = nil, text : String? = nil)
       accepts = context.request.headers["Accept"].split(";").try(&.split(","))
 
-      if accepts.includes?("text/plain") && text
-        render_text(text)
+      if accepts.includes?("text/html") && html
+        respond_with_html(html)
       elsif accepts.includes?("text/json") && json
-        render_json(json)
+        respond_with_json(json)
       elsif accepts.includes?("text/xml") && xml
-        render_xml(xml)
-      elsif accepts.includes?("text/html") && html
-        render_html(html)
+        respond_with_xml(xml)
+      elsif accepts.includes?("text/plain") && text
+        respond_with_text(text)
       else
-        render_text("Response not acceptable", 406)
+        respond_with_text("Response not acceptable", 406)
       end
     end
 
-    private def render_text(body, status_code = 200)
-      context.response.status_code = status_code
-      context.response.content_type = "text/plain"
-      context.content = body
+    protected def respond_with_html(body, status_code = 200)
+      set_response(body, status_code, "text/html")
     end
 
-    private def render_json(body, status_code = 200)
-      context.response.status_code = status_code
-      context.response.content_type = "text/json"
-      context.content = body
+    protected def respond_with_text(body, status_code = 200)
+      set_response(body, status_code, "text/plain")
     end
 
-    private def render_html(body, status_code = 200)
-      context.response.status_code = status_code
-      context.response.content_type = "text/html"
-      context.content = body
+    protected def respond_with_json(body, status_code = 200)
+      set_response(body, status_code, "text/json")
     end
 
-    private def render_xml(body, status_code = 200)
+    protected def respond_with_xml(body, status_code = 200)
+      set_response(body, status_code, "text/xml")
+    end
+
+    private def set_response(body, status_code = 200, content_type = "text/html")
       context.response.status_code = status_code
-      context.response.content_type = "text/xml"
+      context.response.content_type = content_type 
       context.content = body
     end
   end
