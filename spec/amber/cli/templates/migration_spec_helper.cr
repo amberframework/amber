@@ -17,7 +17,7 @@ module Amber::CLI
       migration_template_type.new("post", ["user:ref", "title:string", "body:text"])
     end
 
-    def self.sample_migration_migrate_up_text_pg
+    def self.sample_migration_create_table_sql_pg
       <<-SQL
       CREATE TABLE posts (
         id BIGSERIAL PRIMARY KEY,
@@ -30,7 +30,11 @@ module Amber::CLI
       SQL
     end
 
-    def self.sample_migration_migrate_down_text_pg
+    def self.sample_migration_create_index_sql
+      "CREATE INDEX post_user_id_idx ON posts (user_id);"
+    end
+
+    def self.sample_migration_drop_table_sql
       "DROP TABLE IF EXISTS posts;"
     end
 

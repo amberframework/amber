@@ -5,14 +5,12 @@ module Amber::CLI
   describe GraniteMigration do
     describe "#render" do
       context "when rendering a migration with an index for belongs_to" do
-        migration = GraniteMigration.new("post", ["user:ref", "title:string"])
+        migration = MigrationSpecHelper.sample_migration_for(GraniteMigration)
         migration_text = MigrationSpecHelper.text_for(migration)
 
         it "create the index with proper naming convention" do
-          create_index_line = <<-SQL
-            CREATE INDEX post_user_id_idx ON posts (user_id)
-            SQL
-          migration_text.should contain create_index_line
+          create_index_sql = MigrationSpecHelper.sample_migration_create_index_sql
+          migration_text.should contain create_index_sql
         end
 
       end
@@ -20,18 +18,23 @@ module Amber::CLI
       context "pg" do
         migration = MigrationSpecHelper.sample_migration_for(GraniteMigration)
         migration_text = MigrationSpecHelper.text_for(migration)
-        migrate_up_text = MigrationSpecHelper.sample_migration_migrate_up_text_pg
-        migrate_down_text = MigrationSpecHelper.sample_migration_migrate_down_text_pg
 
         it "should contain correct CREATE TABLE statement" do
-          migration_text.should contain migrate_up_text
+          create_table_sql = MigrationSpecHelper.sample_migration_create_table_sql_pg
+          migration_text.should contain create_table_sql
+        end
+
+        it "should contain correct CREATE INDEX statement" do
+          create_index_sql = MigrationSpecHelper.sample_migration_create_index_sql
+          migration_text.should contain create_index_sql
         end
 
         it "should contain correct DROP TABLE statement" do
-          migration_text.should contain migrate_down_text
+          drop_table_sql = MigrationSpecHelper.sample_migration_drop_table_sql
+          migration_text.should contain drop_table_sql
         end
       end
-      
+
     end
   end
 end
