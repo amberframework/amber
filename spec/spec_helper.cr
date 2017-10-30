@@ -15,7 +15,9 @@ require "../src/amber"
 require "../src/amber/cli/commands"
 require "./amber/controller/*"
 require "./support/fixtures"
-require "./support/**"
+require "./support/helpers"
+
+include Helpers
 
 module Amber::CLI::Spec
   extend self
