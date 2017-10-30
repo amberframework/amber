@@ -1,4 +1,7 @@
 require "../../../spec_helper"
+require "../../../support/helpers/router_helper"
+
+include RouterHelper
 
 module Amber
   module Pipe

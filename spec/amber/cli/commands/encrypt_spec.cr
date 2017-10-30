@@ -4,18 +4,20 @@ require "../../../support/helpers/cli_helper"
 include CLIHelper
 
 module Amber::CLI
-  begin
-    describe MainCommand::Encrypt do
-      context "application structure" do
-        it "creates amber directory structure" do
-          scaffold_app(TESTING_APP)
-          MainCommand.run ["encrypt", "test"]
-          assert_encrypted_files_exists?(".test.enc", ".amber_secret_key")
-          cleanup
-        end
-      end
+  describe MainCommand::Encrypt do
+    arg = "test"
+    cleanup
+    scaffold_app(TESTING_APP)
+    MainCommand.run ["encrypt", "test"]
+
+    it "creates a hidden .#{arg}.enc file" do
+      File.exists?("config/environments/.#{arg}.enc").should be_true
     end
-  ensure
+
+    it "creates a 44 characters secret key in .amber_secret_key" do
+      File.read(".amber_secret_key").size.should eq 44
+    end
+
     cleanup
   end
 end

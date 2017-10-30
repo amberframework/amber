@@ -14,7 +14,6 @@ module Amber::CLI
     end
 
     context "pg" do
-
       describe "#create_table_sql" do
         it "should return the correct CREATE TABLE statement" do
           create_table_sql = MigrationSpecHelper.sample_migration_create_table_sql_pg
@@ -28,8 +27,6 @@ module Amber::CLI
           migration.drop_table_sql.should eq drop_table_sql
         end
       end
-
     end
-
   end
 end
