@@ -1,8 +1,8 @@
 require "./spec_helper"
 require "../../src/models/<%= @name %>.cr"
 
-describe <%= @name.capitalize %> do
+describe <%= class_name %> do
   Spec.before_each do
-    <%= @name.capitalize %>.clear
+    <%= class_name %>.clear
   end
 end
