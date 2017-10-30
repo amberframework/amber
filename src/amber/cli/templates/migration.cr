@@ -23,6 +23,13 @@ module Amber::CLI
       @primary_key = primary_key
     end
 
+    def create_index_for_reference_fields_sql
+      sql_statements = reference_fields.map do |field|
+        create_index_for_reference_field_sql(field)
+      end
+      sql_statements.join("\n")
+    end
+
     def database
       if File.exists?(AMBER_YML) &&
          (yaml = YAML.parse(File.read AMBER_YML)) &&
@@ -44,6 +51,17 @@ module Amber::CLI
       else
         "id INTEGER NOT NULL PRIMARY KEY"
       end
+    end
+
+    private def create_index_for_reference_field_sql(field : Field)
+      index_name = "#{@name.underscore}_#{field.name}_id_idx"
+      <<-SQL
+      CREATE INDEX #{index_name} ON #{@name}s (#{field.name}_id);
+      SQL
+    end
+
+    private def reference_fields
+      @fields.select(&.reference?)
     end
   end
 end
