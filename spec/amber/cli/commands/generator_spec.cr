@@ -19,10 +19,6 @@ module Amber::CLI
         end
 
         it "follows naming conventions for all files and class names" do
-          ENV["AMBER_ENV"] = "test"
-          Amber::CLI::MainCommand.run ["new", TESTING_APP]
-          Dir.cd(TESTING_APP)
-
           camel_case = "PostComment"
           snake_case = "post_comment"
           incorrect_case = "Post_comment"
@@ -31,6 +27,10 @@ module Amber::CLI
           spec_definition_prefix = "describe #{camel_case}"
 
           [camel_case, snake_case].each do |arg|
+            ENV["AMBER_ENV"] = "test"
+            Amber::CLI::MainCommand.run ["new", TESTING_APP]
+            Dir.cd(TESTING_APP)
+
             MainCommand.run ["generate", "scaffold", arg, "name:string"]
 
             File.exists?("./spec/models/#{snake_case}_spec.cr").should be_true
@@ -56,17 +56,9 @@ module Amber::CLI
             File.read("./config/routes.cr").should contain "#{camel_case}Controller"
             File.read("./config/routes.cr").should_not contain "#{incorrect_case}Controller"
 
-            File.delete("./spec/models/#{snake_case}_spec.cr")
-            File.delete("./src/models/#{snake_case}.cr")
-            File.delete("./spec/controllers/#{snake_case}_controller_spec.cr")
-            File.delete("./src/controllers/#{snake_case}_controller.cr")
-            File.delete("./src/views/#{snake_case}/_form.slang")
-            File.delete("./src/views/#{snake_case}/edit.slang")
-            File.delete("./src/views/#{snake_case}/index.slang")
-            File.delete("./src/views/#{snake_case}/new.slang")
-            File.delete("./src/views/#{snake_case}/show.slang")
+            Amber::CLI::Spec.cleanup
           end
-          Amber::CLI::Spec.cleanup
+
         end
       end
 
@@ -321,15 +313,9 @@ module Amber::CLI
             File.read("./src/views/registration/new.slang").should contain snake_case
             File.read("./src/views/session/new.slang").should contain snake_case
 
-            File.delete("./db/migrations/#{migration_filename}")
-            File.delete("./db/seeds.cr")
-            File.delete("./spec/models/admin_user_spec.cr")
-            File.delete("./src/controllers/registration_controller.cr")
-            File.delete("./src/controllers/session_controller.cr")
-            File.delete("./src/handlers/authenticate.cr")
-            File.delete("./src/models/admin_user.cr")
-            File.delete("./src/views/registration/new.slang")
-            File.delete("./src/views/session/new.slang")
+            `rm -rf ./db/*`
+            `rm -rf ./src/*`
+            `rm -rf ./spec/*`
           end
         end
         Amber::CLI::Spec.cleanup
