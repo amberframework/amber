@@ -59,7 +59,7 @@ services:
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: <%= "#{@name.gsub('-','_')}_development" %>
+      POSTGRES_DB: <%= "#{database_name_base}_development" %>
     volumes:
       - 'db:/var/lib/postgres/data'
 <% elsif @database == "mysql" -%>
@@ -68,7 +68,7 @@ services:
     environment:
       MYSQL_USER: admin
       MYSQL_PASSWORD: password
-      MYSQL_DATABASE: <%= "#{@name}_development" %>
+      MYSQL_DATABASE: <%= "#{database_name_base}_development" %>
       MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
     volumes:
       - 'db:/var/lib/mysql'
