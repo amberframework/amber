@@ -1,9 +1,6 @@
 -- +micrate Up
-CREATE TABLE <%= @name %>s (
-  <%= @primary_key %>,
-  <%= @fields.map{ |field| "#{field.name}#{field.reference? ? "_id" : ""} #{field.db_type}" }.join(",\n  ") %>
-);
-<%= create_index_for_reference_fields_sql %> 
+<%= create_table_sql %>
+<%= create_index_for_reference_fields_sql %>
 
 -- +micrate Down
-DROP TABLE IF EXISTS <%= @name %>s;
+<%= drop_table_sql %>
