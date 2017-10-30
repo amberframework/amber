@@ -1,11 +1,11 @@
 <% if @database == "pg"
-     @db_url = "postgres://admin:password@db:5432/#{@name.gsub('-','_')}_development"
+     @db_url = "postgres://admin:password@db:5432/#{database_name_base}_development"
      @wait_for = "while ! nc -q 1 db 5432 </dev/null; do sleep 1; done && "
    elsif @database == "mysql"
-     @db_url = "mysql://admin:password@db:3306/#{@name}_development"
+     @db_url = "mysql://admin:password@db:3306/#{database_name_base}_development"
      @wait_for = "while ! nc -q 1 db 3306 </dev/null; do sleep 1; done && "
    else
-     @db_url = "sqlite3:./db/#{@name}_development.db"
+     @db_url = "sqlite3:./db/#{database_name_base}_development.db"
      @wait_for = ""
    end
 -%>
