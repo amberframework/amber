@@ -14,6 +14,7 @@ require "spec"
 require "../src/amber"
 require "../src/amber/cli/commands"
 require "./amber/controller/*"
+require "./support/fixtures"
 require "./support/**"
 
 module Amber::CLI::Spec
