@@ -1,4 +1,9 @@
 require "../../../spec_helper"
+require "../../../support/helpers/cli_helper"
+require "../../../support/fixtures/cli_fixtures"
+
+include CLIHelper
+include CLIFixtures
 
 module Amber::CLI
   begin
@@ -6,16 +11,10 @@ module Amber::CLI
       context "scaffold" do
         it "generates and compile generated app" do
           ENV["AMBER_ENV"] = "test"
-          MainCommand.run ["new", TESTING_APP]
-          Dir.cd(TESTING_APP)
+          scaffold_app(TESTING_APP)
           MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
-          Amber::CLI::Spec.prepare_yaml(Dir.current)
-
-          `shards build`
-
-          File.exists?("bin/#{TEST_APP_NAME}").should be_true
-
-          Amber::CLI::Spec.cleanup
+          assert_app_compiled?(TEST_APP_NAME)
+          cleanup
         end
 
         it "follows naming conventions for all files and class names" do
@@ -65,6 +64,7 @@ module Amber::CLI
       context "model" do
         context "granite" do
           ENV["AMBER_ENV"] = "test"
+<<<<<<< HEAD
           MainCommand.run ["new", TESTING_APP]
           Dir.cd(TESTING_APP)
 
@@ -151,8 +151,44 @@ module Amber::CLI
           File.read("./config/routes.cr").should contain routes_get
           File.read("./config/routes.cr").should contain routes_delete
           File.read("./src/controllers/animal_controller.cr").should eq output_class
+||||||| merged common ancestors
+          MainCommand.run ["new", TESTING_APP]
+          Dir.cd(TESTING_APP)
+          MainCommand.run ["generate", "controller", "Animal", "add:post", "list:get", "remove:delete"]
+          routes_post = %(post "/animal/add", AnimalController, :add)
+          routes_get = %(get "/animal/list", AnimalController, :list)
+          routes_delete = %(delete "/animal/remove")
 
-          Amber::CLI::Spec.cleanup
+          output_class = <<-CONT
+          class AnimalController < ApplicationController
+            def add
+              render("add.slang")
+            end
+
+            def list
+              render("list.slang")
+            end
+
+            def remove
+              render("remove.slang")
+            end
+          end
+
+          CONT
+
+          File.read("./config/routes.cr").includes?(routes_post).should be_true
+          File.read("./config/routes.cr").includes?(routes_get).should be_true
+          File.read("./config/routes.cr").includes?(routes_delete).should be_true
+          File.read("./src/controllers/animal_controller.cr").should eq output_class
+=======
+          controller = "Animal"
+          options = %w(add:post list:get remove:delete)
+          scaffold_app(TESTING_APP)
+>>>>>>> Cleans up the CLI Commands Specs
+
+          MainCommand.run ["generate", "controller", controller] | options
+          assert_controller_generated? "Animal", options, expected_controller
+          cleanup
         end
 
         it "follows naming conventions for all files and class names" do
@@ -322,6 +358,6 @@ module Amber::CLI
       end
     end
   ensure
-    Amber::CLI::Spec.cleanup
+    cleanup
   end
 end

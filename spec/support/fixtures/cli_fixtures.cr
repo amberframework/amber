@@ -1,20 +1,20 @@
 module CLIFixtures
-  def controller
+  def expected_controller
     <<-CONT
-      class AnimalController < ApplicationController
-        def add
-          render("add.slang")
-        end
+class AnimalController < ApplicationController
+  def add
+    render("add.slang")
+  end
 
-        def list
-          render("list.slang")
-        end
+  def list
+    render("list.slang")
+  end
 
-        def remove
-          render("remove.slang")
-        end
-      end
+  def remove
+    render("remove.slang")
+  end
+end
 
-    CONT
+CONT
   end
 end
