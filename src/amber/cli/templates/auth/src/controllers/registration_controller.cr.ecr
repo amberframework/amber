@@ -1,19 +1,19 @@
 class RegistrationController < ApplicationController
   def new
-    <%= @name %> = <%= @name.capitalize %>.new
+    <%= @name %> = <%= class_name %>.new
     render("new.<%= @language %>")
   end
 
   def create
-    <%= @name %> = <%= @name.capitalize %>.new(registration_params.validate!)
+    <%= @name %> = <%= class_name %>.new(registration_params.validate!)
     <%= @name %>.password = params["password"].to_s
 
     if <%= @name %>.valid? && <%= @name %>.save
       session[:<%= @name %>_id] = <%= @name %>.id
-      flash["success"] = "Created <%= @name.capitalize %> successfully."
+      flash["success"] = "Created <%= class_name %> successfully."
       redirect_to "/"
     else
-      flash["danger"] = "Could not create <%= @name.capitalize %>!"
+      flash["danger"] = "Could not create <%= class_name %>!"
       render("new.<%= @language %>")
     end
   end
