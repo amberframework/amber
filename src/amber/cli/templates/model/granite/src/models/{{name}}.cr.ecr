@@ -1,7 +1,8 @@
 require "granite_orm/adapter/<%= @database %>"
 
-class <%= @name.capitalize %> < Granite::ORM::Base
+class <%= class_name %> < Granite::ORM::Base
   adapter <%= @database %>
+  <%= "table_name #{table_name}" %>
 
 <% @fields.select{|f| f.reference? }.each do |field| -%>
   belongs_to :<%= field.name %>
