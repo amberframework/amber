@@ -13,7 +13,7 @@ module Amber::CLI
       end
 
       def run
-        template = Template.new(args.name.downcase, ".", args.fields)
+        template = Template.new(args.name, ".", args.fields)
         template.generate args.type
       end
 
