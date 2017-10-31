@@ -13,7 +13,7 @@ module Amber::CLI
       @language = language
       parse_actions(actions)
       add_routes :web, <<-ROUTES
-        #{@actions.map { |action, verb| %Q(#{verb} "/#{@name}/#{action}", #{@name.capitalize}Controller, :#{action}) }.join("\n    ")}
+        #{@actions.map { |action, verb| %Q(#{verb} "/#{@name}/#{action}", #{class_name}Controller, :#{action}) }.join("\n    ")}
       ROUTES
       add_views
     end

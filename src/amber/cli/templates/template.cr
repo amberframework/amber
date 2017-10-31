@@ -25,12 +25,16 @@ module Amber::CLI
 
     def initialize(name : String, directory : String, fields = [] of String)
       if name.match(/\A[a-zA-Z]/)
-        @name = name
+        @name = name.underscore
       else
         raise "Name is not valid."
       end
 
       @directory = File.join(directory)
+      if !Dir.empty?(@directory)
+        raise "Directory #{@directory} is not empty"
+      end
+
       unless Dir.exists?(@directory)
         Dir.mkdir_p(@directory)
       end
@@ -43,7 +47,7 @@ module Amber::CLI
       when "app"
         if options
           puts "Rendering App #{name} in #{directory}"
-          App.new(name, options.d, options.t, options.m).render(directory, list: true, color: true, interactive: true)
+          App.new(name, options.d, options.t, options.m).render(directory, list: true, color: true)
           if options.deps?
             puts "Installing Dependencies"
             puts `cd #{name} && crystal deps update`
@@ -138,6 +142,9 @@ end
 
 module Teeplate
   abstract class FileTree
+    @class_name : String?
+    @display_name : String?
+
     # Renders all collected file entries.
     #
     # For more information about the arguments, see `Renderer`.
@@ -151,6 +158,18 @@ module Teeplate
     # Override to filter files rendered
     def filter(entries)
       entries
+    end
+
+    def class_name
+      @class_name ||= @name.camelcase
+    end
+
+    def display_name
+      @display_name ||= generate_display_name
+    end
+
+    private def generate_display_name
+      @name.underscore.gsub('-', '_').split('_').map(&.capitalize).join(' ')
     end
   end
 end
