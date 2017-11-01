@@ -11,7 +11,11 @@ module Amber::CLI
           MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
           Amber::CLI::Spec.prepare_yaml(Dir.current)
 
-          `shards build #{TEST_APP_NAME}`
+          File.exists?("./src/#{TEST_APP_NAME}.cr").should be_true
+
+          `shards install`
+          `mkdir -p bin`
+          `crystal build -s --no-debug ./src/#{TEST_APP_NAME}.cr -o ./bin/#{TEST_APP_NAME}`
 
           File.exists?("./bin/#{TEST_APP_NAME}").should be_true
 
