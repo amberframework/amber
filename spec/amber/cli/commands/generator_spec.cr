@@ -11,9 +11,9 @@ module Amber::CLI
           MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
           Amber::CLI::Spec.prepare_yaml(Dir.current)
 
-          `shards build`
+          `shards build #{TESTING_APP}`
 
-          File.exists?("bin/#{TEST_APP_NAME}").should be_true
+          File.exists?("./bin/#{TEST_APP_NAME}").should be_true
 
           Amber::CLI::Spec.cleanup
         end
