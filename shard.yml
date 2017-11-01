@@ -23,11 +23,11 @@ dependencies:
 
   kilt:
     github: jeromegn/kilt
-    version: ~> 0.3.3
+    version: ~> 0.4.0
 
   slang:
     github: jeromegn/slang
-    version: ~> 1.6.1
+    version: ~> 1.7.0
 
   redis:
     github: stefanwille/crystal-redis
@@ -35,7 +35,7 @@ dependencies:
 
   cli:
     github: mosop/cli
-    version: ~> 0.5.1
+    version: ~> 0.6.10
 
   teeplate:
     github: mosop/teeplate
@@ -43,7 +43,7 @@ dependencies:
 
   sentry:
     github: samueleaton/sentry
-    branch: master
+    version: ~> 0.1.0
 
   icr:
     github: crystal-community/icr
