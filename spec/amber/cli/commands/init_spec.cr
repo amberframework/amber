@@ -21,7 +21,7 @@ module Amber::CLI
         dirs(TESTING_APP).sort.should eq dirs(APP_TEMPLATE_PATH).sort
       end
 
-      context "-m granite (Granite ORM)" do
+      describe "-m granite (Granite ORM)" do
         cleanup
         scaffold_app(TESTING_APP, "-m", "granite")
 
@@ -44,7 +44,7 @@ module Amber::CLI
         end
       end
 
-      context "-m crecto (Crecto Repo)" do
+      describe "-m crecto (Crecto Repo)" do
         cleanup
         scaffold_app(TESTING_APP, "-m", "crecto")
 
@@ -69,7 +69,7 @@ module Amber::CLI
         cleanup
         MainCommand.run ["new", TESTING_APP, "-d", db]
 
-        context "database.yml config for #{db}" do
+        describe "database.yml config for #{db}" do
           db_key = db == "sqlite" ? "sqlite3" : db
           db_url = db_yml[db]["database"].as_s
           db_name = db_name(db_url)
@@ -111,7 +111,7 @@ module Amber::CLI
           end
         end
 
-        context "template" do
+        describe "template" do
           it "sets ECR templates" do
             cleanup
             MainCommand.run ["new", TESTING_APP, "-t", "ecr"]

@@ -19,7 +19,7 @@ module Amber::CLI
       cleanup
       scaffold_app(TESTING_APP)
 
-      context "controller" do
+      describe "controller" do
         options = %w(add:post list:get remove:delete)
         MainCommand.run %w(generate controller animal) | options
         route_file = File.read("./config/routes.cr")
@@ -53,7 +53,7 @@ module Amber::CLI
         end
       end
 
-      context "model" do
+      describe "model" do
         MainCommand.run %w(
           generate model Post title:string body:text published:bool likes:int user:references
         )
@@ -74,7 +74,7 @@ module Amber::CLI
         end
       end
 
-      context "scaffold" do
+      describe "scaffold" do
         it "follows naming conventions for all files and class names" do
           [camel_case, snake_case].each do |arg|
             MainCommand.run ["generate", "scaffold", arg, "name:string"]
@@ -103,7 +103,7 @@ module Amber::CLI
         end
       end
 
-      context "migration" do
+      describe "migration" do
         it "follows naming conventions for all files" do
           migration_definition_prefix = "CREATE TABLE #{snake_case}"
 
@@ -117,7 +117,7 @@ module Amber::CLI
         end
       end
 
-      context "mailer" do
+      describe "mailer" do
         it "follows naming conventions for all files and class names" do
           [camel_case, snake_case].each do |arg|
             MainCommand.run ["generate", "mailer", arg]
@@ -131,7 +131,7 @@ module Amber::CLI
         end
       end
 
-      context "socket" do
+      describe "socket" do
         struct_definition_prefix = "struct #{camel_case}"
 
         it "follows naming conventions for all files and class names" do
@@ -147,7 +147,7 @@ module Amber::CLI
         end
       end
 
-      context "channel" do
+      describe "channel" do
         it "follows naming conventions for all files and class names" do
           [camel_case, snake_case].each do |arg|
             MainCommand.run ["generate", "channel", arg]
@@ -161,7 +161,7 @@ module Amber::CLI
         end
       end
 
-      context "auth" do
+      describe "auth" do
         camel_case = "AdminUser"
         snake_case = "admin_user"
         class_definition_prefix = "class #{camel_case}"
