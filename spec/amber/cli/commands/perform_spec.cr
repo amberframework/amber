@@ -3,7 +3,7 @@ require "../../tasks/**"
 require "../../../support/fixtures/tasks_fixtures"
 
 module Amber::CLI
-  describe MainCommand::Perform do
+  describe "amber perform" do
     runner = MainCommand.run ["perform", "faketask"]
 
     it "performs a tasks via command line" do

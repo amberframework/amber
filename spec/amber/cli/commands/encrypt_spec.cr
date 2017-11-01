@@ -4,7 +4,7 @@ require "../../../support/helpers/cli_helper"
 include CLIHelper
 
 module Amber::CLI
-  describe MainCommand::Encrypt do
+  describe "amber encrypt" do
     arg = "test"
     cleanup
     scaffold_app(TESTING_APP)
