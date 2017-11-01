@@ -7,7 +7,7 @@ before_install:
   - docker build -t amber-spec -f spec/Dockerfile .
 
 script:
-  - docker-compose -f spec/docker-compose.yml run spec -D run_build_tests
+  - docker-compose -f spec/docker-compose.yml run spec
 
 notifications:
   webhooks:
