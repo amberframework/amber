@@ -78,7 +78,7 @@ module Amber::CLI
     end
 
     private def create_table_fields_sql
-      @fields.map{|field| create_table_field_sql(field) }.join(",\n  ")
+      @fields.map { |field| create_table_field_sql(field) }.join(",\n  ")
     end
 
     private def reference_fields

@@ -4,23 +4,20 @@ require "cli"
 require "sentry"
 
 module Sentry
-
   class SentryCommand < Cli::Command
-
     command_name "sentry"
 
-    SHARD_YML = "shard.yml"
+    SHARD_YML    = "shard.yml"
     DEFAULT_NAME = "[process_name]"
 
     class Options
-
       def self.defaults
         name = Options.get_name
         {
-          name: name,
+          name:         name,
           process_name: "./#{name}",
-          build: "crystal build ./src/#{name}.cr",
-          watch: ["./src/**/*.cr", "./src/**/*.ecr"]
+          build:        "crystal build ./src/#{name}.cr",
+          watch:        ["./src/**/*.cr", "./src/**/*.ecr"],
         }
       end
 
@@ -35,34 +32,32 @@ module Sentry
       end
 
       string %w(-n --name), desc: "Sets the name of the app process",
-      default: Options.defaults[:name]
+        default: Options.defaults[:name]
 
       string %w(-b --build), desc: "Overrides the default build command",
-      default: Options.defaults[:build]
+        default: Options.defaults[:build]
 
       string "--build-args", desc: "Specifies arguments for the build command"
 
       bool "--no-build", desc: "Skips the build step", default: false
 
       string %w(-r --run), desc: "Overrides the default run command",
-      default: Options.defaults[:process_name]
+        default: Options.defaults[:process_name]
 
       string "--run-args", desc: "Specifies arguments for the run command"
 
       array %w(-w --watch),
-      desc: "Overrides default files and appends to list of watched files",
-      default: Options.defaults[:watch]
+        desc: "Overrides default files and appends to list of watched files",
+        default: Options.defaults[:watch]
 
       bool %w(-i --info),
-      desc: "Shows the values for build/run commands, build/run args, and watched files",
-      default: false
+        desc: "Shows the values for build/run commands, build/run args, and watched files",
+        default: false
 
       help
-
     end
 
     def run
-
       if options.info?
         puts "
       name:       #{options.name?}
@@ -97,7 +92,6 @@ module Sentry
       )
 
       process_runner.run
-
     end
   end
 end
