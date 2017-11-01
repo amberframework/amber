@@ -1,6 +1,5 @@
 module Amber::CLI
   module MigrationSpecHelper
-
     def self.text_for(migration : Migration) : String
       migration_text = ""
       begin
@@ -37,6 +36,5 @@ module Amber::CLI
     def self.sample_migration_drop_table_sql
       "DROP TABLE IF EXISTS posts;"
     end
-
   end
 end
