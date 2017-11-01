@@ -33,7 +33,6 @@ module Amber::CLI
           migration_text.should contain drop_table_sql
         end
       end
-
     end
   end
 end
