@@ -2,6 +2,6 @@ version: '2'
 services:
   spec:
     build: .
-    command: 'bash -c "cd /app/user && crystal spec"'
+    command: 'bash -c "cd /app/user && crystal spec -D run_build_tests"'
     working_dir: /app/user
     tmpfs: /app/testing
