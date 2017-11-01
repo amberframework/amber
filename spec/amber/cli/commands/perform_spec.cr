@@ -15,11 +15,10 @@ module Amber::CLI
     end
 
     context "listing all tasks" do
-      output = %(FirstFakeTask\t\t #First fake task\nSecond::FakeTask\t\t #Second fake task\nFakeTask\t\t #Fake command task\n)
       runner = MainCommand.run ["p", "-l", "faketask"]
 
       it "shows task description" do
-        runner.should eq output
+        runner.should eq expected_tasks_output
       end
     end
   end

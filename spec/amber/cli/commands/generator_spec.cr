@@ -161,15 +161,6 @@ module Amber::CLI
         end
       end
 
-      context "with the above generated files" do
-        it "builds and compile the App in bin directory" do
-          `shards build`
-          File.exists?("bin/#{TEST_APP_NAME}").should be_true
-        end
-
-        cleanup
-      end
-
       context "auth" do
         camel_case = "AdminUser"
         snake_case = "admin_user"
@@ -191,7 +182,7 @@ module Amber::CLI
             File.exists?("./src/views/session/new.slang").should be_true
 
             migration_filename = Dir["./db/migrations/*_#{snake_case}.sql"].first
-            File.read("./db/migrations/#{migration_filename}").should contain migration_definition_prefix
+            File.read("#{migration_filename}").should contain migration_definition_prefix
             File.read("./db/seeds.cr").should contain camel_case
             File.read("./db/seeds.cr").should contain snake_case
             File.read("./spec/models/admin_user_spec.cr").should contain spec_definition_prefix
@@ -207,6 +198,15 @@ module Amber::CLI
             File.read("./src/views/session/new.slang").should contain snake_case
           end
         end
+      end
+
+      context "with the above generated files" do
+        it "builds and compile the App in bin directory" do
+          `shards build`
+          File.exists?("bin/#{TEST_APP_NAME}").should be_true
+        end
+
+        cleanup
       end
     end
   end
