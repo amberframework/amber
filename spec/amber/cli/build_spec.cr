@@ -71,15 +71,16 @@ module Amber::CLI
       Dir.cd(TESTING_APP)
 
       options = ["user:reference", "name:string", "body:text", "age:integer", "published:bool"]
-      MainCommand.run ["generate", "auth", "User"] | (options - ["user:reference"])
-      MainCommand.run ["generate", "scaffold", "Animal"] | options
-      MainCommand.run ["generate", "scaffold", "Post"] | options
-      MainCommand.run ["generate", "scaffold", "PostComment"] | (options + ["post:reference"])
-      MainCommand.run ["generate", "model", "Bat"] | options
-      MainCommand.run ["generate", "migration", "Crocodile"] | options
-      MainCommand.run ["generate", "mailer", "Dinosaur"] | options
-      MainCommand.run ["generate", "socket", "Eagle"] | options
-      MainCommand.run ["generate", "channel", "Falcon"] | options
+      temp_options = options - ["user:reference", "age:integer"]
+      # MainCommand.run ["generate", "auth", "User"] | (options - ["user:reference"])
+      MainCommand.run ["generate", "scaffold", "Animal"] | temp_options
+      # MainCommand.run ["generate", "scaffold", "Post"] | options
+      # MainCommand.run ["generate", "scaffold", "PostComment"] | (options + ["post:reference"])
+      # MainCommand.run ["generate", "model", "Bat"] | options
+      # MainCommand.run ["generate", "migration", "Crocodile"] | options
+      # MainCommand.run ["generate", "mailer", "Dinosaur"] | options
+      # MainCommand.run ["generate", "socket", "Eagle"] | ["soar", "nest"]
+      # MainCommand.run ["generate", "channel", "Falcon"]
 
       prepare_yaml(Dir.current)
 
@@ -87,6 +88,7 @@ module Amber::CLI
       db_result = `amber db drop create migrate`
 
       it `generates a binary` do
+        puts build_result unless File.exists?("bin/#{TEST_APP_NAME}")
         File.exists?("bin/#{TEST_APP_NAME}").should be_true
       end
 
