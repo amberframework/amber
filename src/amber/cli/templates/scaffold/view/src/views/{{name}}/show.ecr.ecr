@@ -2,7 +2,7 @@
 <p><%="<"%>%= <%= @name %>.<%= field.name %><%= field.reference? ? ".id" : "" %> %></p>
 <% end -%>
 <p>
-          <a class="btn btn-default btn-xs" href="/<%= @name %>s">back</a>
-          <a class="btn btn-success btn-xs" href="/<%= @name %>s/<%="<"%>%= <%= @name %>.id %>/edit">edit</a>
-          <a class="btn btn-danger btn-xs" href="/<%= @name %>s/<%="<"%>%= <%= @name %>.id %>?_method=delete" onclick="return confirm('Are you sure?');">delete</a>
+  <%="<"%>%= link_to("back", "/<%= @name %>s", class: "btn btn-success btn-xs") -%>
+  <%="<"%>%= link_to("edit", "/<%= @name %>s/#{<%= @name %>.id}/edit", class: "btn btn-success btn-xs") -%>
+  <%="<"%>%= link_to("delete", "/<%= @name %>s/#{<%= @name %>.id}?_method=delete&_csrf=#{csrf_token}", class: "btn btn-danger btn-xs", onclick: "return confirm('Are you sure?');") -%>
 </p>
