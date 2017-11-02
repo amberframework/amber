@@ -7,7 +7,18 @@ module Amber::CLI
       ENV["AMBER_ENV"] = "test"
       MainCommand.run ["new", TESTING_APP]
       Dir.cd(TESTING_APP)
-      MainCommand.run ["generate", "scaffold", "Animal", "name:string"]
+
+      options = ["user:reference", "name:string", "body:text", "age:integer", "published:bool"]
+      MainCommand.run ["generate", "auth", "User"] | (options - ["user:reference"])
+      MainCommand.run ["generate", "scaffold", "Animal"] | options
+      MainCommand.run ["generate", "scaffold", "Post"] | options
+      MainCommand.run ["generate", "scaffold", "PostComment"] | (options + ["post:reference"])
+      MainCommand.run ["generate", "model", "Bat"] | options
+      MainCommand.run ["generate", "migration", "Crocodile"] | options
+      MainCommand.run ["generate", "mailer", "Dinosaur"] | options
+      MainCommand.run ["generate", "socket", "Eagle"] | options
+      MainCommand.run ["generate", "channel", "Falcon"] | options
+
       Amber::CLI::Spec.prepare_yaml(Dir.current)
 
       build_result = `shards build`
