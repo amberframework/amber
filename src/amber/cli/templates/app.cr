@@ -22,8 +22,7 @@ module Amber::CLI
     end
 
     private def generate_database_name_base
-      @name.gsub('-','_')
+      @name.gsub('-', '_')
     end
-
   end
 end
