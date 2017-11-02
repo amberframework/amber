@@ -1,12 +1,3 @@
-![Amber Framework]()
-
-[![Gitter]()]()
-[![Travis]()]()
-[![license]()]()
-[![GitHub tag]()]()
-[![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/veelenga/awesome-crystal/#web-frameworks)
-[![Dependency Status]()]()
-
 <p align="center">
   <img src="https://github.com/amberframework/amber/blob/master/media/amber.png" width="200">
   <p align="center">Fun. Statically Typed. High Performance.<p>
