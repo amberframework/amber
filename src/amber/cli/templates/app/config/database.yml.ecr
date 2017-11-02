@@ -1,9 +1,9 @@
 <%= @database %>:
 <% case @database
    when "mysql" -%>
-  database: mysql://root@localhost:3306/<%= "#{@name}_development" %>
+  database: mysql://root@localhost:3306/<%= "#{database_name_base}_development" %>
 <% when "pg" -%>
-  database: postgres://root:@localhost:5432/<%= "#{@name}_development" %>
+  database: postgres://postgres:@localhost:5432/<%= "#{database_name_base}_development" %>
 <% when "sqlite" -%>
-  database: sqlite3:./db/<%= "#{@name}_development" %>.db
+  database: sqlite3:./db/<%= "#{database_name_base}_development" %>.db
 <% end -%>

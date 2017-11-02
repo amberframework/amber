@@ -20,7 +20,7 @@ module Amber::CLI::Scaffold
       @visible_fields = visible_fields
 
       add_routes :web, <<-ROUTE
-        resources "/#{@name}s", #{@name.capitalize}Controller
+        resources "/#{@name}s", #{class_name}Controller
       ROUTE
     end
 
@@ -51,4 +51,3 @@ module Amber::CLI::Scaffold
     end
   end
 end
-

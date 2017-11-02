@@ -18,9 +18,9 @@ secrets:
   description: Store your production secrets credentials and settings here.
 <%case @database
   when "mysql" -%>
-  database: mysql://root@localhost:3306/<%= @name %>
+  database: mysql://root@localhost:3306/<%= database_name_base %>
 <%when "pg" -%>
-  database: postgres://postgres:@pg:5432/<%= @name %>
+  database: postgres://postgres:@pg:5432/<%= database_name_base %>
 <%when "sqlite" -%>
-  database: sqlite3:./db/<%= @name %>.db
+  database: sqlite3:./db/<%= database_name_base %>.db
 <%end -%>
