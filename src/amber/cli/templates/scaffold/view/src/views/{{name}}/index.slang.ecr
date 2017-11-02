@@ -19,7 +19,6 @@ div.table-responsive
 <% end -%>
         td
           span
-            a.btn.btn-primary.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }" read
-            a.btn.btn-success.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }/edit" edit
-            a.btn.btn-danger.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }?_method=delete" onclick="return confirm('Are you sure?');" delete
-
+            == link_to("read", "/<%= @name %>s/#{<%= @name %>.id}", class: "btn btn-success btn-xs")
+            == link_to("edit", "/<%= @name %>s/#{<%= @name %>.id}/edit", class: "btn btn-success btn-xs")
+            == link_to("delete", "/<%= @name %>s/#{ <%= @name %>.id }?_method=delete&_csrf=#{csrf_token}", class: "btn btn-danger btn-xs", onclick: "return confirm('Are you sure?');")
