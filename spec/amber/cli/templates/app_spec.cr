@@ -16,6 +16,5 @@ module Amber::CLI
         sqlite_app.database_name_base.should eq pg_app.database_name_base
       end
     end
-
   end
 end
