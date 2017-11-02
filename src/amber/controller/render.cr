@@ -2,6 +2,13 @@ module Amber::Controller
   module Render
     LAYOUT = "application.slang"
 
+    TYPE = { 
+      html: "text/html", 
+      json: "application/json", 
+      text: "text/plain", 
+      xml: "application/xml"
+    }
+
     macro render(template = nil, layout = true, partial = nil, path = "src/views", folder = __FILE__)
       {% if !(template || partial) %}
         raise "Template or partial required!"
@@ -41,13 +48,13 @@ module Amber::Controller
     protected def respond_with(html : String? = nil, json : Hash | String? = nil, xml : String? = nil, text : String? = nil)
       accepts = context.request.headers["Accept"].split(";").try(&.split(/,|,\s/))
 
-      if accepts.includes?("text/html") && html
+      if accepts.includes?(TYPE[:html]) && html
         respond_with_html(html)
-      elsif accepts.includes?("application/json") && json
+      elsif accepts.includes?(TYPE[:json]) && json
         respond_with_json(json.is_a?(Hash) ? json.to_json : json)
-      elsif accepts.includes?("application/xml") && xml
+      elsif accepts.includes?(TYPE[:xml]) && xml
         respond_with_xml(xml)
-      elsif accepts.includes?("text/plain") && text
+      elsif accepts.includes?(TYPE[:text]) && text
         respond_with_text(text)
       else
         respond_with_text("Response not acceptable", 406)
@@ -55,22 +62,22 @@ module Amber::Controller
     end
 
     protected def respond_with_html(body, status_code = 200)
-      set_response(body, status_code, "text/html")
+      set_response(body, status_code, TYPE[:html])
     end
 
     protected def respond_with_text(body, status_code = 200)
-      set_response(body, status_code, "text/plain")
+      set_response(body, status_code, TYPE[:text])
     end
 
     protected def respond_with_json(body, status_code = 200)
-      set_response(body, status_code, "application/json")
+      set_response(body, status_code, TYPE[:json])
     end
 
     protected def respond_with_xml(body, status_code = 200)
-      set_response(body, status_code, "application/xml")
+      set_response(body, status_code, TYPE[:xml])
     end
 
-    private def set_response(body, status_code = 200, content_type = "text/html")
+    private def set_response(body, status_code = 200, content_type = TYPE[:html])
       context.response.status_code = status_code
       context.response.content_type = content_type 
       context.content = body
