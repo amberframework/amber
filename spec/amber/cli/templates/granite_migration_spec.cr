@@ -12,7 +12,6 @@ module Amber::CLI
           create_index_sql = MigrationSpecHelper.sample_migration_create_index_sql
           migration_text.should contain create_index_sql
         end
-
       end
 
       context "pg" do
@@ -34,7 +33,6 @@ module Amber::CLI
           migration_text.should contain drop_table_sql
         end
       end
-
     end
   end
 end
