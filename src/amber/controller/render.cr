@@ -1,13 +1,30 @@
 module Amber::Controller
   module Render
-    LAYOUT = "application.slang"
+    class Content
+      TYPE = { html: "text/html", json: "application/json", text: "text/plain", xml: "application/xml" }
+      getter html : String? = nil
+      getter xml : String? = nil
+      getter json : Hash(String, String) | String? = nil
+      getter text : String? = nil
+     
+      def html(html : String)
+        @html = html; self
+      end
 
-    TYPE = { 
-      html: "text/html", 
-      json: "application/json", 
-      text: "text/plain", 
-      xml: "application/xml"
-    }
+      def xml(xml : String)
+        @xml = xml; self
+      end
+
+      def json(json : String | Hash(String | String))
+        @json = json; self
+      end
+
+      def text(text : String)
+        @text = text; self
+      end
+    end
+
+    LAYOUT = "application.slang"
 
     macro render(template = nil, layout = true, partial = nil, path = "src/views", folder = __FILE__)
       {% if !(template || partial) %}
@@ -46,38 +63,53 @@ module Amber::Controller
     end
 
     protected def respond_with(html : String? = nil, json : Hash | String? = nil, xml : String? = nil, text : String? = nil)
-      accepts = context.request.headers["Accept"].split(";").try(&.split(/,|,\s/))
-
-      if accepts.includes?(TYPE[:html]) && html
+      puts context.request.headers["Accept"]
+      accepts = context.request.headers["Accept"].split(";").first.try(&.split(/,|,\s/))
+      # TODO: add JS type simlar to rails.
+      if accepts.includes?(Content::TYPE[:html]) && html
         respond_with_html(html)
-      elsif accepts.includes?(TYPE[:json]) && json
+      elsif accepts.includes?(Content::TYPE[:json]) && json
         respond_with_json(json.is_a?(Hash) ? json.to_json : json)
-      elsif accepts.includes?(TYPE[:xml]) && xml
+      elsif accepts.includes?(Content::TYPE[:xml]) && xml
         respond_with_xml(xml)
-      elsif accepts.includes?(TYPE[:text]) && text
+      elsif accepts.includes?(Content::TYPE[:text]) && text
         respond_with_text(text)
+      elsif html
+        respond_with_html(html)
+      elsif text
+        respond_with_text(text)
+      elsif json
+        respond_with_json(json.is_a?(Hash) ? json.to_json : json)
+      elsif xml
+        respond_with_xml(xml)
       else
         respond_with_text("Response not acceptable", 406)
       end
     end
 
+    protected def respond_with(&block)
+      response = yield(Content.new)
+      pp response
+      respond_with(response.html, response.json, response.xml, response.text)
+    end
+
     protected def respond_with_html(body, status_code = 200)
-      set_response(body, status_code, TYPE[:html])
+      set_response(body, status_code, Content::TYPE[:html])
     end
 
     protected def respond_with_text(body, status_code = 200)
-      set_response(body, status_code, TYPE[:text])
+      set_response(body, status_code, Content::TYPE[:text])
     end
 
     protected def respond_with_json(body, status_code = 200)
-      set_response(body, status_code, TYPE[:json])
+      set_response(body, status_code, Content::TYPE[:json])
     end
 
     protected def respond_with_xml(body, status_code = 200)
-      set_response(body, status_code, TYPE[:xml])
+      set_response(body, status_code, Content::TYPE[:xml])
     end
 
-    private def set_response(body, status_code = 200, content_type = TYPE[:html])
+    private def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
       context.response.status_code = status_code
       context.response.content_type = content_type 
       context.content = body
