@@ -2,8 +2,8 @@ module Amber::Controller::Helpers
   module Responders
     class Content
       TYPE = {html: "text/html", json: "application/json", text: "text/plain", xml: "application/xml"}
-      property available_responses = Hash(String, String).new
-      getter accepts : String? = nil
+      @accepts : String
+      @available_responses = Hash(String, String).new
       @type : String? = nil 
       @body : String? = nil
 
@@ -29,7 +29,7 @@ module Amber::Controller::Helpers
 
       def type
         unless @type && @body
-          parse_accepts(accepts.to_s) if accepts.is_a?(String)
+          parse_accepts if @accepts.size > 3
           choose_type_and_body
         end
         @type.to_s
@@ -39,20 +39,20 @@ module Amber::Controller::Helpers
         (type && @body).to_s
       end
 
-      private def parse_accepts(accepts : String)
-        requested_resp = accepts.split(";").first?.try(&.split(/,|,\s/))
+      private def parse_accepts
+        requested_resp = @accepts.split(";").first?.try(&.split(/,|,\s/))
         if requested_resp 
           @type = requested_resp.find do |resp| 
-            available_responses.keys.includes?(resp)
+            @available_responses.keys.includes?(resp)
           end
         end
       end
 
       private def choose_type_and_body
         if @type
-          @body = available_responses[@type]
+          @body = @available_responses[@type]
         else 
-          @type, @body = available_responses.first
+          @type, @body = @available_responses.first
         end
       end
     end
