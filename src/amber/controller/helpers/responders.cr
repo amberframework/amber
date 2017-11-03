@@ -2,12 +2,11 @@ module Amber::Controller::Helpers
   module Responders
     class Content
       TYPE = {html: "text/html", json: "application/json", text: "text/plain", xml: "application/xml"}
-      @accepts : String
+      @requested_responses : Array(String)
       @available_responses = Hash(String, String).new
-      @type : String? = nil 
-      @body : String? = nil
+      @type : String? = nil
 
-      def initialize(@accepts)
+      def initialize(@requested_responses)
       end
 
       # TODO: add JS type simlar to rails.
@@ -19,8 +18,12 @@ module Amber::Controller::Helpers
         @available_responses[TYPE[:xml]] = xml; self
       end
 
-      def json(json : String | Hash(String | String))
+      def json(json : String | Hash(Symbol | String, String))
         @available_responses[TYPE[:json]] = json.is_a?(String) ? json : json.to_json; self
+      end
+
+      def json(**args : Object)
+        json(args.to_h)
       end
 
       def text(text : String)
@@ -28,40 +31,39 @@ module Amber::Controller::Helpers
       end
 
       def type
-        unless @type && @body
-          parse_accepts if @accepts.size > 3
-          choose_type_and_body
-        end
-        @type.to_s
+        select_type.to_s
       end
 
       def body
-        (type && @body).to_s
+        @available_responses[type]
       end
 
-      private def parse_accepts
-        requested_resp = @accepts.split(";").first?.try(&.split(/,|,\s/))
-        if requested_resp 
-          @type = requested_resp.find do |resp| 
+      private def select_type
+        @type ||= begin
+          raise "You must define at least one response_type." if @available_responses.empty?
+          @requested_responses << @available_responses.keys.first
+          @requested_responses.find do |resp|
             @available_responses.keys.includes?(resp)
           end
         end
       end
+    end
 
-      private def choose_type_and_body
-        if @type
-          @body = @available_responses[@type]
-        else 
-          @type, @body = @available_responses.first
-        end
+    private def requested_responses
+      req_responses = Array(String).new
+
+      unless (accept = context.request.headers["Accept"]).empty?
+        accepts = accept.split(";").first?.try(&.split(/,|,\s/))
+        req_responses.concat(accepts) if accepts.is_a?(Array) && accepts.any?
       end
+      req_responses
     end
 
     protected def respond_with(&block)
-      content = with Content.new(context.request.headers["Accept"]) yield
+      content = with Content.new(requested_responses) yield
       if content.body
-        set_response(body: content.body, status_code: 200, content_type: content.type) 
-      else 
+        set_response(body: content.body, status_code: 200, content_type: content.type)
+      else
         set_response(body: "Response unexceptable.", status_code: 406, content_type: Content::TYPE[:text])
       end
     end
