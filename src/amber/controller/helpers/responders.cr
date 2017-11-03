@@ -1,79 +1,74 @@
 module Amber::Controller::Helpers
   module Responders
     class Content
-      TYPE = { html: "text/html", json: "application/json", text: "text/plain", xml: "application/xml" }
-      getter html : String? = nil
-      getter xml : String? = nil
-      getter json : Hash(String, String) | String? = nil
-      getter text : String? = nil
-     
+      TYPE = {html: "text/html", json: "application/json", text: "text/plain", xml: "application/xml"}
+      property available_responses = Hash(String, String).new
+      getter accepts : String? = nil
+      @type : String? = nil 
+      @body : String? = nil
+
+      def initialize(@accepts)
+      end
+
+      # TODO: add JS type simlar to rails.
       def html(html : String)
-        @html = html; self
+        @available_responses[TYPE[:html]] = html; self
       end
 
       def xml(xml : String)
-        @xml = xml; self
+        @available_responses[TYPE[:xml]] = xml; self
       end
 
       def json(json : String | Hash(String | String))
-        @json = json; self
+        @available_responses[TYPE[:json]] = json.is_a?(String) ? json : json.to_json; self
       end
 
       def text(text : String)
-        @text = text; self
+        @available_responses[TYPE[:text]] = text; self
       end
-    end
 
-    protected def respond_with(html : String? = nil, json : Hash | String? = nil, xml : String? = nil, text : String? = nil)
-      puts context.request.headers["Accept"]
-      accepts = context.request.headers["Accept"].split(";").first.try(&.split(/,|,\s/))
-      # TODO: add JS type simlar to rails.
-      if accepts.includes?(Content::TYPE[:html]) && html
-        respond_with_html(html)
-      elsif accepts.includes?(Content::TYPE[:json]) && json
-        respond_with_json(json.is_a?(Hash) ? json.to_json : json)
-      elsif accepts.includes?(Content::TYPE[:xml]) && xml
-        respond_with_xml(xml)
-      elsif accepts.includes?(Content::TYPE[:text]) && text
-        respond_with_text(text)
-      elsif html
-        respond_with_html(html)
-      elsif text
-        respond_with_text(text)
-      elsif json
-        respond_with_json(json.is_a?(Hash) ? json.to_json : json)
-      elsif xml
-        respond_with_xml(xml)
-      else
-        respond_with_text("Response not acceptable", 406)
+      def type
+        unless @type && @body
+          parse_accepts(accepts.to_s) if accepts.is_a?(String)
+          choose_type_and_body
+        end
+        @type.to_s
+      end
+
+      def body
+        (type && @body).to_s
+      end
+
+      private def parse_accepts(accepts : String)
+        requested_resp = accepts.split(";").first?.try(&.split(/,|,\s/))
+        if requested_resp 
+          @type = requested_resp.find do |resp| 
+            available_responses.keys.includes?(resp)
+          end
+        end
+      end
+
+      private def choose_type_and_body
+        if @type
+          @body = available_responses[@type]
+        else 
+          @type, @body = available_responses.first
+        end
       end
     end
 
     protected def respond_with(&block)
-      response = yield(Content.new)
-      pp response
-      respond_with(response.html, response.json, response.xml, response.text)
-    end
-
-    protected def respond_with_html(body, status_code = 200)
-      set_response(body, status_code, Content::TYPE[:html])
-    end
-
-    protected def respond_with_text(body, status_code = 200)
-      set_response(body, status_code, Content::TYPE[:text])
-    end
-
-    protected def respond_with_json(body, status_code = 200)
-      set_response(body, status_code, Content::TYPE[:json])
-    end
-
-    protected def respond_with_xml(body, status_code = 200)
-      set_response(body, status_code, Content::TYPE[:xml])
+      content = with Content.new(context.request.headers["Accept"]) yield
+      if content.body
+        set_response(body: content.body, status_code: 200, content_type: content.type) 
+      else 
+        set_response(body: "Response unexceptable.", status_code: 406, content_type: Content::TYPE[:text])
+      end
     end
 
     private def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
       context.response.status_code = status_code
-      context.response.content_type = content_type 
+      context.response.content_type = content_type
       context.content = body
     end
   end
