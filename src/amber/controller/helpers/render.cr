@@ -37,30 +37,5 @@ module Amber::Controller::Helpers
         Kilt.render("#{{{path}}}/{{filename.id}}")
       {% end %}
     end
-
-    protected def respond_with(html : String? = nil, json : Hash | String? = nil, xml : String? = nil, text : String? = nil)
-      puts context.request.headers["Accept"]
-      accepts = context.request.headers["Accept"].split(";").first.try(&.split(/,|,\s/))
-      # TODO: add JS type simlar to rails.
-      if accepts.includes?(Content::TYPE[:html]) && html
-        respond_with_html(html)
-      elsif accepts.includes?(Content::TYPE[:json]) && json
-        respond_with_json(json.is_a?(Hash) ? json.to_json : json)
-      elsif accepts.includes?(Content::TYPE[:xml]) && xml
-        respond_with_xml(xml)
-      elsif accepts.includes?(Content::TYPE[:text]) && text
-        respond_with_text(text)
-      elsif html
-        respond_with_html(html)
-      elsif text
-        respond_with_text(text)
-      elsif json
-        respond_with_json(json.is_a?(Hash) ? json.to_json : json)
-      elsif xml
-        respond_with_xml(xml)
-      else
-        respond_with_text("Response not acceptable", 406)
-      end
-    end
   end
 end
