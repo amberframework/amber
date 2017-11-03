@@ -2,6 +2,6 @@
 p = <%= @name %>.<%= field.name %><%= field.reference? ? ".id" : "" %>
 <% end -%>
 p
-  a.btn.btn-default.btn-xs href="/<%= @name %>s" back
-  a.btn.btn-success.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }/edit" edit
-  a.btn.btn-danger.btn-xs href="/<%= @name %>s/#{ <%= @name %>.id }?_method=delete" onclick="return confirm('Are you sure?');" delete
+  == link_to("back", "/<%= @name %>s", class: "btn btn-success btn-xs")
+  == link_to("edit", "/<%= @name %>s/#{<%= @name %>.id}/edit", class: "btn btn-success btn-xs")
+  == link_to("delete", "/<%= @name %>s/#{<%= @name %>.id}?_method=delete&_csrf=#{csrf_token}", class: "btn btn-danger btn-xs", onclick: "return confirm('Are you sure?');")
