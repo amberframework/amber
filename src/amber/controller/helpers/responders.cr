@@ -52,7 +52,7 @@ module Amber::Controller::Helpers
     private def requested_responses
       req_responses = Array(String).new
 
-      unless (accept = context.request.headers["Accept"]).empty?
+      if (accept = context.request.headers["Accept"]?) && !accept.empty?
         accepts = accept.split(";").first?.try(&.split(/,|,\s/))
         req_responses.concat(accepts) if accepts.is_a?(Array) && accepts.any?
       end
