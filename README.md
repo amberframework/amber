@@ -1,11 +1,21 @@
-![Amber Framework](https://github.com/amberframework/amber/blob/master/media/amber.png)
-
-[![Gitter](https://img.shields.io/gitter/room/amberframework/amber.svg)](https://gitter.im/amberframework/amber)
-[![Travis](https://img.shields.io/travis/amberframework/amber.svg)](https://travis-ci.org/amberframework/amber)
-[![license](https://img.shields.io/github/license/amberframework/amber.svg)](https://github.com/amberframework/amber/blob/master/LICENSE)
-[![GitHub tag](https://img.shields.io/github/tag/amberframework/amber.svg)](https://github.com/amberframework/amber/releases/latest)
-[![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/veelenga/awesome-crystal/#web-frameworks)
-[![Dependency Status](https://shards.rocks/badge/github/amberframework/amber/status.svg)](https://shards.rocks/github/amberframework/amber)
+<p align="center">
+  <img src="https://github.com/amberframework/amber/blob/master/media/amber.png" width="200">
+  <p align="center">Easy Syntax. Reliable Static Typing. Compiled Speed.<p>
+  <p align="center">
+    <sup>
+      <i>
+        Amber makes building web applications fast, simple, and enjoyable - with fewer bugs and blazing fast performance.
+      </i>
+    </sup>
+  </p>
+  <p align="center">
+    <a href="https://travis-ci.org/amberframework/amber"><img src="https://img.shields.io/travis/amberframework/amber.svg?maxAge=360"></a>
+    <a href="https://github.com/amberframework/amber/releases/latest"><img src="https://img.shields.io/github/tag/amberframework/amber.svg?maxAge=360"></a>
+    <a href="https://shards.rocks/github/amberframework/amber"><img src="https://shards.rocks/badge/github/amberframework/amber/status.svg"></a>
+    <a href="https://github.com/amberframework/amber/blob/master/LICENSE"><img src="https://img.shields.io/github/license/amberframework/amber.svg"></a>
+  <a href="https://gitter.im/amberframework/amber"><img src="https://img.shields.io/gitter/room/amberframework/amber.svg"></a>
+  </p>
+</p>
 
 # Welcome to Amber
 
