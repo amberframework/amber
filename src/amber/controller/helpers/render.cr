@@ -1,4 +1,4 @@
-module Amber::Controller
+module Amber::Controller::Helpers
   module Render
     LAYOUT = "application.slang"
 
