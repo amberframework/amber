@@ -50,33 +50,68 @@ module Amber::Controller
       end
     end
 
+    describe "#respond_with" do
+      request = HTTP::Request.new("GET", "")
+      request.headers["Accept"] = ""
+      context = create_context(request)
+
+      it "respond_with html as default option" do
+        expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+        ResponsesController.new(context).index.should eq expected_result
+      end
+
+      it "respond_with html" do
+        expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+        context.request.headers["Accept"] = "text/html"
+        ResponsesController.new(context).index.should eq expected_result
+      end
+
+      it "responds with json" do
+        expected_result = %({"type":"json","name":"Amberator"})
+        context.request.headers["Accept"] = "application/json"
+        ResponsesController.new(context).index.should eq expected_result
+      end
+
+      it "responds with xml" do
+        expected_result = "<xml><body><h1>Sort of xml</h1></body></xml>"
+        context.request.headers["Accept"] = "application/xml"
+        ResponsesController.new(context).index.should eq expected_result
+      end
+
+      it "responds with text" do
+        expected_result = "Hello I'm text!"
+        context.request.headers["Accept"] = "text/plain"
+        ResponsesController.new(context).index.should eq expected_result
+      end
+    end
+
     describe "#render" do
       request = HTTP::Request.new("GET", "")
       context = create_context(request)
       csrf_form = form_with_csrf(Amber::Pipe::CSRF.token(context))
 
       it "renders html from slang template" do
-        TestController.new(context).render_template_page.should eq page_template
+        RenderController.new(context).render_template_page.should eq page_template
       end
 
       it "renders partial without layout" do
-        TestController.new(context).render_partial.should eq partial_only
+        RenderController.new(context).render_partial.should eq partial_only
       end
 
       it "renders flash message" do
-        TestController.new(context).render_with_flash
+        RenderController.new(context).render_with_flash
       end
 
       it "renders html and layout from slang template" do
-        TestController.new(context).render_multiple_partials_in_layout.should eq layout_with_multiple_partials
+        RenderController.new(context).render_multiple_partials_in_layout.should eq layout_with_multiple_partials
       end
 
       it "renders html and layout from slang template" do
-        TestController.new(context).render_with_layout.should eq layout_with_template
+        RenderController.new(context).render_with_layout.should eq layout_with_template
       end
 
       it "renders a form with a csrf tag" do
-        TestController.new(context).render_with_csrf.should eq csrf_form
+        RenderController.new(context).render_with_csrf.should eq csrf_form
       end
     end
 
