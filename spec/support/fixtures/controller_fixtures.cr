@@ -56,7 +56,7 @@ class HelloController < Amber::Controller::Base
   end
 end
 
-class TestController < Amber::Controller::Base
+class RenderController < Amber::Controller::Base
   def render_template_page
     render("spec/support/sample/views/test/test.slang", layout: false)
   end
@@ -80,5 +80,16 @@ class TestController < Amber::Controller::Base
   def render_with_flash
     flash["error"] = "Displays error Message!"
     render("spec/support/sample/views/test/flash.slang", layout: false)
+  end
+end
+
+class ResponsesController < Amber::Controller::Base
+  def index
+    respond_with do
+      html "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+      json type: "json", name: "Amberator"
+      xml "<xml><body><h1>Sort of xml</h1></body></xml>"
+      text "Hello I'm text!"
+    end
   end
 end
