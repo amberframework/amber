@@ -1,13 +1,13 @@
 require "http"
 
-require "./render"
 require "./filters"
 require "./redirect"
 require "./helpers/*"
 
 module Amber::Controller
   class Base
-    include Render
+    include Helpers::Render
+    include Helpers::Responders
     include RedirectMethods
     include Callbacks
     include Helpers::Tag
