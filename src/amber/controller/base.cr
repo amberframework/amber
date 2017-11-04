@@ -1,6 +1,5 @@
 require "http"
 
-require "./render"
 require "./filters"
 require "./helpers/*"
 
@@ -8,7 +7,10 @@ module Amber::Controller
   class Base
     include Helpers::CSRF
     include Helpers::Redirect
-    include Render
+    include Helpers::Render
+    include Helpers::Responders
+    include RedirectMethods
+
     include Callbacks
 
     protected getter context : HTTP::Server::Context
