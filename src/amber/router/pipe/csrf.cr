@@ -1,4 +1,4 @@
-require "secure_random"
+require "random/secure"
 
 module Amber
   module Pipe
@@ -27,7 +27,7 @@ module Amber
       end
 
       def self.token(context)
-        context.session[CSRF_KEY] ||= SecureRandom.urlsafe_base64(32)
+        context.session[CSRF_KEY] ||= Random::Secure.urlsafe_base64(32)
       end
 
       def self.tag(context)
