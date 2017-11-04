@@ -1,5 +1,5 @@
-module Amber::Controller
-  module RedirectMethods
+module Amber::Controller::Helpers
+  module Redirect
     def redirect_to(location : String, **args)
       Redirector.new(location, **args).redirect(self)
     end
