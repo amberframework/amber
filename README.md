@@ -1,10 +1,10 @@
 <p align="center">
   <img src="https://github.com/amberframework/amber/blob/master/media/amber.png" width="200">
-  <p align="center">Fun. Statically Typed. High Performance.<p>
+  <p align="center">Fun Syntax. Reliable Static Typing. Compiled Speed.<p>
   <p align="center">
     <sup>
       <i>
-        (one of the world’s oldest and most coveted treasures, a “Gold of the Sea” intrinsically formed by light and life)
+        Amber makes building web applications fast, simple, and enjoyable - with fewer bugs and blazing fast performance.
       </i>
     </sup>
   </p>
