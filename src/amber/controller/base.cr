@@ -9,6 +9,7 @@ module Amber::Controller
     include Helpers::Redirect
     include Helpers::Render
     include Helpers::Responders
+    include Helpers::Route
 
     include Callbacks
 
