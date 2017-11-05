@@ -7,8 +7,7 @@ describe Amber::Server do
       @name = "amber_test_app"
       @port_reuse = true
       @process_count = (ENV[%(AMBER_PROCESS_COUNT)]? || 1).to_i
-      @log = ::Logger.new(STDOUT)
-      @log.level = ::Logger::INFO
+      @log = ::Logger.new(STDOUT).tap{|l| l.level = ::Logger::INFO}
       @color = true
       @redis_url = "\#{ENV[%(REDIS_URL)]? || %(redis://localhost:6379)}"
       @port = 3000
@@ -30,8 +29,7 @@ describe Amber::Server do
       @name = "Amber_App"
       @port_reuse = true
       @process_count = 1
-      @log = ::Logger.new(STDOUT)
-      @log.level = ::Logger::INFO
+      @log = ::Logger.new(STDOUT).tap{|l| l.level = ::Logger::INFO}
       @color = true
       @redis_url = "redis://localhost:6379"
       @port = 3000
@@ -41,7 +39,7 @@ describe Amber::Server do
 
       EXP
       # Removed secret_key_base from default settings since it's different everytime.
-      {{run("../../../src/amber/scripts/environment_loader.cr", "non_existent").stringify}}.gsub(/@@secret_key_base[^\n]+\n/, "").should eq expected
+      {{run("../../../src/amber/scripts/environment_loader.cr", "non_existent").stringify}}.gsub(/@secret_key_base[^\n]+\n/, "").should eq expected
     end
   end
 end

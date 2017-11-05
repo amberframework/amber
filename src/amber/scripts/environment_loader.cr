@@ -37,7 +37,7 @@ str = String.build do |s|
   s.puts %(@name = "#{settings["name"]? || "Amber_App"}")
   s.puts %(@port_reuse = #{settings["port_reuse"]? == nil ? true : settings["port_reuse"]})
   s.puts %(@process_count = #{settings["process_count"]? || 1})
-  s.puts %(@log = #{settings["log"]? || "::Logger.new(STDOUT)"})
+  s.puts %(@log = #{settings["log"]? || "::Logger.new(STDOUT)"}.tap{|l| l.level = #{settings["log_level"]? || "::Logger::INFO"}})
   #s.puts %(@log.level = #{settings["log_level"]? || "::Logger::INFO"})
   s.puts %(@color = #{settings["color"]? == nil ? true : settings["color"]})
   s.puts %(@redis_url = "#{settings["redis_url"]? || "redis://localhost:6379"}")
