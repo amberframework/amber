@@ -1,6 +1,6 @@
-require "../../../spec_helper"
+require "../../../../spec_helper"
 
-module Amber::Controller
+module Amber::Controller::Helpers
   describe Redirector do
     describe "#redirect" do
       it "redirects to location" do
