@@ -16,14 +16,14 @@ module Amber
           end
 
           it "should add ':custom' to the server's pipeline" do
-            pipes = server.settings.handler.pipeline.keys
-            pipes.should contain :custom
+            valves = server.settings.handler.pipeline.keys
+            valves.should contain :custom
           end
 
           it "have added pipes in the pipeline" do
+            expected = [Pipe::Logger, Pipe::Error]
             plugs = server.settings.handler.pipeline[:custom]
-            plugs.first?.should be_a Pipe::Logger
-            plugs[1]?.should be_a Pipe::Error
+            plugs.map(&.class).should eq expected
           end
 
         end
@@ -60,16 +60,16 @@ module Amber
           end
 
           it "should add all pipelines to the server's pipeline" do
-            pipes = server.settings.handler.pipeline.keys
-            pipes.should contain :api
-            pipes.should contain :web
+            valves = server.settings.handler.pipeline.keys
+            valves.should contain :api
+            valves.should contain :web
           end
 
           it "have added shared pipes in all pipelines" do
+            expected = [Pipe::Logger, Pipe::Error]
             [:api, :web].each do |name|
               plugs = server.settings.handler.pipeline[name]
-              plugs.first?.should be_a Pipe::Logger
-              plugs[1]?.should be_a Pipe::Error
+              plugs.map(&.class).should eq expected
             end
           end
         end
