@@ -8,8 +8,9 @@ module Amber::Controller::Helpers
       Redirector.from_controller_action(controller_name, action, **args).redirect(self)
     end
 
-    def redirect_to(controller : Symbol, action : Symbol, **args)
-      Redirector.from_controller_action(controller.to_s, action, **args).redirect(self)
+    def redirect_to(controller : Symbol | Class, action : Symbol, **args)
+      controller = controller.to_s.downcase.gsub(/controller/i, "")
+      Redirector.from_controller_action(controller, action, **args).redirect(self)
     end
 
     def redirect_back(**args)
@@ -17,7 +18,7 @@ module Amber::Controller::Helpers
     end
   end
 
-  class Redirector
+  private class Redirector
     DEFAULT_STATUS_CODE = 302
     LOCATION_HEADER     = "Location"
 

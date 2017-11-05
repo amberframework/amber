@@ -66,9 +66,14 @@ module Amber::Controller::Helpers
     end
 
     describe ".from_controller_action" do
+      router = Amber::Server.router
+      router.draw :web { get "/hello", HelloController, :index }
+      router.draw :web { get "/hello/:id", HelloController, :show }
+      router.draw :web { get "/hello/:id/edit", HelloController, :edit }
+      router.draw :web { delete "/hello/:id", HelloController, :destroy }
+      router.draw :web, "/scoped" { put "/hello/:id", HelloController, :update }
+
       it "raises an error for invalid controller/action" do
-        router = Amber::Server.router
-        router.draw :web { put "/invalid/:id", HelloController, :edit }
         controller = build_controller
 
         expect_raises Exceptions::Controller::Redirect do
@@ -76,12 +81,28 @@ module Amber::Controller::Helpers
         end
       end
 
+      it "redirects to full controller name as symbol" do
+        controller = build_controller
+        redirector = controller.redirect_to(:HelloController, :destroy, params: {"id" => "5"})
+
+        controller.response.headers["location"].should eq "/hello/5"
+        controller.response.status_code.should eq 302
+        controller.context.content.nil?.should eq false
+      end
+
+      it "redirects to full controller name as class" do
+        controller = build_controller
+        redirector = controller.redirect_to(HelloController, :destroy, params: {"id" => "5"})
+
+        controller.response.headers["location"].should eq "/hello/5"
+        controller.response.status_code.should eq 302
+        controller.context.content.nil?.should eq false
+      end
+
       context "when scope is present" do
         it "redirects to the correct scoped location" do
-          router = Amber::Server.router
-          router.draw :web, "/scoped" { delete "/hello/:id", HelloController, :destroy }
           controller = build_controller
-          redirector = Redirector.from_controller_action("hello", :destroy, params: {"id" => "5"})
+          redirector = Redirector.from_controller_action("hello", :update, params: {"id" => "5"})
 
           redirector.redirect(controller)
 
@@ -93,14 +114,12 @@ module Amber::Controller::Helpers
 
       context "with params" do
         it "redirects to correct location for given controller action" do
-          router = Amber::Server.router
-          router.draw :web { get "/fake/:id", HelloController, :show }
           controller = build_controller
           redirector = Redirector.from_controller_action("hello", :show, params: {"id" => "11"})
 
           redirector.redirect(controller)
 
-          controller.response.headers["location"].should eq "/fake/11"
+          controller.response.headers["location"].should eq "/hello/11"
           controller.response.status_code.should eq 302
           controller.context.content.nil?.should eq false
         end
@@ -108,14 +127,12 @@ module Amber::Controller::Helpers
 
       context "without params" do
         it "redirects to correct location for given controller action" do
-          router = Amber::Server.router
-          router.draw :web { get "/fake", HelloController, :index }
           controller = build_controller
           redirector = Redirector.from_controller_action("hello", :index)
 
           redirector.redirect(controller)
 
-          controller.response.headers["location"].should eq "/fake"
+          controller.response.headers["location"].should eq "/hello"
           controller.response.status_code.should eq 302
           controller.context.content.nil?.should eq false
         end
