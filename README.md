@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://github.com/amberframework/amber/blob/master/media/amber.png" width="200">
-  <p align="center">Easy Syntax. Reliable Static Typing. Compiled Speed.<p>
+  <p align="center">Productivity. Performance. Happiness.<p>
   <p align="center">
     <sup>
       <i>
