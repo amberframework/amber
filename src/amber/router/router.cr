@@ -48,6 +48,7 @@ module Amber
       end
 
       def match_by_request(request)
+        pp request.path
         match(request.method, request.path)
       end
 
@@ -81,7 +82,12 @@ module Amber
       end
 
       def match(http_verb, resource) : Radix::Result(Amber::Route)
-        @routes.find build_node(http_verb, resource)
+        result = @routes.find build_node(http_verb, resource)
+        if result.found?
+          result
+        else
+          @routes.find build_node(http_verb, resource.sub(/\.[^$\/]+$/, ""))
+        end
       end
 
       private def merge_params(params, context)
