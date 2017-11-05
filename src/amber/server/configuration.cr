@@ -1,6 +1,8 @@
 module Amber
   module Configuration
     macro included
+      property settings = Settings.new
+
       def self.instance
         @@instance ||= new
       end
@@ -10,11 +12,7 @@ module Amber
       end
 
       def self.settings
-        Settings
-      end
-
-      def settings
-        Settings
+        instance.settings
       end
 
       def self.secret_key_base

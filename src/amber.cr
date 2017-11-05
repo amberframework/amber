@@ -76,11 +76,11 @@ module Amber
     end
 
     def colorize(text, color)
-      text.colorize(color).toggle(Amber::Settings.color).to_s
+      text.colorize(color).toggle(settings.color).to_s
     end
 
     def colorize(text, color, mode)
-      text.colorize(color).toggle(Amber::Settings.color).mode(mode).to_s
+      text.colorize(color).toggle(settings.color).mode(mode).to_s
     end
   end
 end
