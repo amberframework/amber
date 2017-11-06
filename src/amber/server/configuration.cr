@@ -11,6 +11,10 @@ module Amber
         with settings yield settings
       end
 
+      def self.settings(&block)
+        with settings yield settings
+      end
+
       def self.settings
         instance.settings
       end
