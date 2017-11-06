@@ -41,7 +41,8 @@ module Amber::Controller::Helpers
       private def select_type
         @type ||= begin
           raise "You must define at least one response_type." if @available_responses.empty?
-          @requested_responses << @available_responses.keys.first
+          # NOTE: If only one response is requested don't return something else.
+          @requested_responses << @available_responses.keys.first if @requested_responses.size > 1
           @requested_responses.find do |resp|
             @available_responses.keys.includes?(resp)
           end
@@ -51,8 +52,9 @@ module Amber::Controller::Helpers
 
     private def requested_responses
       req_responses = Array(String).new
-
-      if (accept = context.request.headers["Accept"]?) && !accept.empty?
+      if (ext = request.path.match(/\.(#{Content::TYPE.keys.join("|")})$/).try(&.[1]))
+        req_responses << Content::TYPE[ext]  
+      elsif (accept = context.request.headers["Accept"]?) && !accept.empty?
         accepts = accept.split(";").first?.try(&.split(/,|,\s/))
         req_responses.concat(accepts) if accepts.is_a?(Array) && accepts.any?
       end
