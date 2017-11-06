@@ -17,7 +17,7 @@ module Amber::Router::Session
     end
 
     def id
-      @id ||= SecureRandom.uuid
+      @id ||= Random::Secure.uuid
     end
 
     def changed?

@@ -1,5 +1,5 @@
 require "yaml"
-require "secure_random"
+require "random/secure"
 require "../support/message_encryptor"
 
 environment = ARGV[0]? || ENV["AMBER_ENV"]? || "development"
@@ -43,7 +43,7 @@ str = String.build do |s|
   s.puts %(@@redis_url = "#{settings["redis_url"]? || "redis://localhost:6379"}")
   s.puts %(@@port = #{settings["port"]? || 3000})
   s.puts %(@@host = "#{settings["host"]? || "127.0.0.1"}")
-  s.puts %(@@secret_key_base = "#{settings["secret_key_base"]? || SecureRandom.urlsafe_base64(32)}")
+  s.puts %(@@secret_key_base = "#{settings["secret_key_base"]? || Random::Secure.urlsafe_base64(32)}")
 
   unless settings["ssl_key_file"]?.to_s.empty?
     s.puts %(@@ssl_key_file = "#{settings["ssl_key_file"]?}")

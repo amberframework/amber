@@ -44,7 +44,7 @@ module Amber::Router::Session
     end
 
     def id
-      session["id"] ||= SecureRandom.uuid
+      session["id"] ||= Random::Secure.uuid
     end
 
     def changed?
