@@ -1,6 +1,6 @@
 module Amber::Controller::Helpers
   module Responders
-    class Response
+    class Content
       TYPE = {
         html: "text/html",
         json: "application/json",
@@ -61,8 +61,8 @@ module Amber::Controller::Helpers
 
     private def requested_responses
       req_responses = Array(String).new
-      if (ext = request.path.match(Response::REGEX).try(&.[1]))
-        req_responses << Response::TYPE[ext]
+      if (ext = request.path.match(Content::REGEX).try(&.[1]))
+        req_responses << Content::TYPE[ext]
       elsif (accept = context.request.headers["Accept"]?) && !accept.empty?
         accepts = accept.split(";").first?.try(&.split(/,|,\s/))
         req_responses.concat(accepts) if accepts.is_a?(Array) && accepts.any?
@@ -71,15 +71,15 @@ module Amber::Controller::Helpers
     end
 
     protected def respond_with(&block)
-      content = with Response.new(requested_responses) yield
+      content = with Content.new(requested_responses) yield
       if content.body
         set_response(body: content.body, status_code: 200, content_type: content.type)
       else
-        set_response(body: "Response unexceptable.", status_code: 406, content_type: Response::TYPE[:text])
+        set_response(body: "Response unexceptable.", status_code: 406, content_type: Content::TYPE[:text])
       end
     end
 
-    private def set_response(body, status_code = 200, content_type = Response::TYPE[:html])
+    private def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
       context.response.status_code = status_code
       context.response.content_type = content_type
       context.content = body
