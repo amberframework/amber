@@ -78,7 +78,13 @@ module Amber::Router
     end
 
     def merge_route_params
-      route_params.each { |k, v| params[k] = v }
+      route_params.each do |k, v|
+        if k == route_params.keys.last
+          params[k] = v.sub(Controller::Base::Response::REGEX, "")
+        else
+          params[k] = v
+        end
+      end
     end
 
     def route_params

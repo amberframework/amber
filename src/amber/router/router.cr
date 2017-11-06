@@ -48,7 +48,6 @@ module Amber
       end
 
       def match_by_request(request)
-        pp request.path
         match(request.method, request.path)
       end
 

@@ -83,6 +83,39 @@ module Amber::Controller
         context.request.headers["Accept"] = "text/plain"
         ResponsesController.new(context).index.should eq expected_result
       end
+
+
+      it "responds with json for path.json" do
+        expected_result = %({"type":"json","name":"Amberator"})
+        context.request.path = "/response/1.json"
+        ResponsesController.new(context).index.should eq expected_result
+      end
+
+      it "responds with xml for path.xml" do
+        expected_result = "<xml><body><h1>Sort of xml</h1></body></xml>"
+        context.request.path = "/response/1.xml"
+        ResponsesController.new(context).index.should eq expected_result
+      end
+
+      it "responds with text for path.txt" do
+        expected_result = "Hello I'm text!"
+        context.request.path = "/response/1.txt"
+        ResponsesController.new(context).index.should eq expected_result
+      end
+
+      it "responds with text for path.text" do
+        expected_result = "Hello I'm text!"
+        context.request.path = "/response/1.text"
+        ResponsesController.new(context).index.should eq expected_result
+      end
+
+      it "responds with 406 for path.text when text hasn't been defined" do
+        expected_result = "Response unexceptable."
+        context.request.path = "/response/1.text"
+        ResponsesController.new(context).show.should eq expected_result
+        context.response.status_code.should eq 406
+      end
+
     end
 
     describe "#render" do

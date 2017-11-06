@@ -1,7 +1,16 @@
 module Amber::Controller::Helpers
   module Responders
-    class Content
-      TYPE = {html: "text/html", json: "application/json", text: "text/plain", xml: "application/xml"}
+    class Response
+      TYPE = {
+        html: "text/html",
+        json: "application/json",
+        txt:  "text/plain",
+        text: "text/plain",
+        xml:  "application/xml",
+      }
+
+      REGEX = /\.(#{TYPE.keys.join("|")})$/
+
       @requested_responses : Array(String)
       @available_responses = Hash(String, String).new
       @type : String? = nil
@@ -35,14 +44,14 @@ module Amber::Controller::Helpers
       end
 
       def body
-        @available_responses[type]
+        @available_responses[type]?
       end
 
       private def select_type
         @type ||= begin
           raise "You must define at least one response_type." if @available_responses.empty?
           # NOTE: If only one response is requested don't return something else.
-          @requested_responses << @available_responses.keys.first if @requested_responses.size > 1
+          @requested_responses << @available_responses.keys.first if @requested_responses.size != 1
           @requested_responses.find do |resp|
             @available_responses.keys.includes?(resp)
           end
@@ -52,8 +61,8 @@ module Amber::Controller::Helpers
 
     private def requested_responses
       req_responses = Array(String).new
-      if (ext = request.path.match(/\.(#{Content::TYPE.keys.join("|")})$/).try(&.[1]))
-        req_responses << Content::TYPE[ext]  
+      if (ext = request.path.match(Response::REGEX).try(&.[1]))
+        req_responses << Response::TYPE[ext]
       elsif (accept = context.request.headers["Accept"]?) && !accept.empty?
         accepts = accept.split(";").first?.try(&.split(/,|,\s/))
         req_responses.concat(accepts) if accepts.is_a?(Array) && accepts.any?
@@ -62,15 +71,15 @@ module Amber::Controller::Helpers
     end
 
     protected def respond_with(&block)
-      content = with Content.new(requested_responses) yield
+      content = with Response.new(requested_responses) yield
       if content.body
         set_response(body: content.body, status_code: 200, content_type: content.type)
       else
-        set_response(body: "Response unexceptable.", status_code: 406, content_type: Content::TYPE[:text])
+        set_response(body: "Response unexceptable.", status_code: 406, content_type: Response::TYPE[:text])
       end
     end
 
-    private def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
+    private def set_response(body, status_code = 200, content_type = Response::TYPE[:html])
       context.response.status_code = status_code
       context.response.content_type = content_type
       context.content = body
