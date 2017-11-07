@@ -77,7 +77,7 @@ module Amber::Controller::Helpers
       if content.body
         set_response(body: content.body, status_code: 200, content_type: content.type)
       else
-        set_response(body: "Response unexceptable.", status_code: 406, content_type: Content::TYPE[:text])
+        set_response(body: "Response Not Acceptable.", status_code: 406, content_type: Content::TYPE[:text])
       end
     end
 
