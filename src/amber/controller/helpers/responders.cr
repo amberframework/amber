@@ -10,6 +10,7 @@ module Amber::Controller::Helpers
       }
 
       REGEX = /\.(#{TYPE.keys.join("|")})$/
+      COMMA_OR_COMMASPACE_REGEX = /,|,\s/ 
 
       @requested_responses : Array(String)
       @available_responses = Hash(String, String).new
@@ -61,10 +62,11 @@ module Amber::Controller::Helpers
 
     private def requested_responses
       req_responses = Array(String).new
-      if (ext = request.path.match(Content::REGEX).try(&.[1]))
-        req_responses << Content::TYPE[ext]
+      path_ext = request.path.match(Content::REGEX).try(&.[1])
+      if (path_ext)
+        req_responses << Content::TYPE[path_ext]
       elsif (accept = context.request.headers["Accept"]?) && !accept.empty?
-        accepts = accept.split(";").first?.try(&.split(/,|,\s/))
+        accepts = accept.split(";").first?.try(&.split(Content::COMMA_OR_COMMASPACE_REGEX))
         req_responses.concat(accepts) if accepts.is_a?(Array) && accepts.any?
       end
       req_responses

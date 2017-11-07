@@ -29,7 +29,7 @@ module Amber::Router
     def parse_params
       parse_part(request.query)
       if content_type = request.headers["Content-Type"]?
-        parse_multipart if content_type.try(&.starts_with?(MULTIPART_FORM))
+          parse_multipart if content_type.try(&.starts_with?(MULTIPART_FORM))
         parse_part(request.body) if content_type.try(&.starts_with?(URL_ENCODED_FORM))
         parse_json if content_type.includes? APPLICATION_JSON
       end
@@ -78,13 +78,18 @@ module Amber::Router
     end
 
     def merge_route_params
-      route_params.each do |k, v|
-        if k == route_params.keys.last
-          params[k] = v.sub(Controller::Base::Content::REGEX, "")
-        else
-          params[k] = v
-        end
+      route_params_without_ext.each do |k, v|
+        params[k] = v
       end
+    end
+
+    def route_params_without_ext
+      rparams = route.params
+      unless rparams.empty?
+        key = rparams.keys.last
+        rparams[key] = r.params[key].sub(Controller::Base::Content::REGEX, "")
+      end
+      route.params
     end
 
     def route_params
