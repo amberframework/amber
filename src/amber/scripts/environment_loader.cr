@@ -34,41 +34,41 @@ str = String.build do |s|
   # Most of this logic can be cleaned up by just requiring environment files to contain valid params.
   # For now I have this here so that tests can still pass without having to load env files although they should.
   # This is a transistion.
-  s.puts %(@@name = "#{settings["name"]? || "Amber_App"}")
-  s.puts %(@@port_reuse = #{settings["port_reuse"]? == nil ? true : settings["port_reuse"]})
-  s.puts %(@@process_count = #{settings["process_count"]? || 1})
-  s.puts %(@@log = #{settings["log"]? || "::Logger.new(STDOUT)"})
-  s.puts %(@@log.level = #{settings["log_level"]? || "::Logger::INFO"})
-  s.puts %(@@color = #{settings["color"]? == nil ? true : settings["color"]})
-  s.puts %(@@redis_url = "#{settings["redis_url"]? || "redis://localhost:6379"}")
-  s.puts %(@@port = #{settings["port"]? || 3000})
-  s.puts %(@@host = "#{settings["host"]? || "127.0.0.1"}")
-  s.puts %(@@secret_key_base = "#{settings["secret_key_base"]? || SecureRandom.urlsafe_base64(32)}")
+  s.puts %(@name = "#{settings["name"]? || "Amber_App"}")
+  s.puts %(@port_reuse = #{settings["port_reuse"]? == nil ? true : settings["port_reuse"]})
+  s.puts %(@process_count = #{settings["process_count"]? || 1})
+  s.puts %(@log = #{settings["log"]? || "::Logger.new(STDOUT)"}.tap{|l| l.level = #{settings["log_level"]? || "::Logger::INFO"}})
+  #s.puts %(@log.level = #{settings["log_level"]? || "::Logger::INFO"})
+  s.puts %(@color = #{settings["color"]? == nil ? true : settings["color"]})
+  s.puts %(@redis_url = "#{settings["redis_url"]? || "redis://localhost:6379"}")
+  s.puts %(@port = #{settings["port"]? || 3000})
+  s.puts %(@host = "#{settings["host"]? || "127.0.0.1"}")
+  s.puts %(@secret_key_base = "#{settings["secret_key_base"]? || SecureRandom.urlsafe_base64(32)}")
 
   unless settings["ssl_key_file"]?.to_s.empty?
-    s.puts %(@@ssl_key_file = "#{settings["ssl_key_file"]?}")
+    s.puts %(@ssl_key_file = "#{settings["ssl_key_file"]?}")
   end
 
   unless settings["ssl_cert_file"]?.to_s.empty?
-    s.puts %(@@ssl_cert_file = "#{settings["ssl_cert_file"]?}")
+    s.puts %(@ssl_cert_file = "#{settings["ssl_cert_file"]?}")
   end
 
   if settings["session"]? && settings["session"].raw.is_a?(Hash(YAML::Type, YAML::Type))
     s.puts <<-SESSION
-    @@session = {
+    @session = {
       :key => "#{settings["session"]["key"]? ? settings["session"]["key"] : "amber.session"}",
       :store => #{settings["session"]["store"]? ? settings["session"]["store"] : ":signed_cookie"},
       :expires => #{settings["session"]["expires"]? ? settings["session"]["expires"] : 0}, 
     }
     SESSION
   else
-    s.puts %(@@session = {:key => "amber.session", :store => :signed_cookie, :expires => 0})
+    s.puts %(@session = {:key => "amber.session", :store => :signed_cookie, :expires => 0})
   end
 
   if settings["secrets"]? && settings["secrets"].raw.is_a?(Hash(YAML::Type, YAML::Type))
-    s.puts "class_getter secrets = #{settings["secrets"].inspect.gsub(/(\"[^\"]+\") \=\>/) { "#{$1}:" }}"
+    s.puts "getter secrets = #{settings["secrets"].inspect.gsub(/(\"[^\"]+\") \=\>/) { "#{$1}:" }}"
   else
-    s.puts %(class_getter secrets = {description: "Store your #{environment} secrets credentials and settings here."})
+    s.puts %(getter secrets = {description: "Store your #{environment} secrets credentials and settings here."})
   end
 end
 
