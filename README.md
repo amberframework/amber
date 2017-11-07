@@ -189,6 +189,9 @@ If you don't want to use Sentry, you can compile and run manually:
 2. Run with `./[your_app]`
 3. Visit `http://0.0.0.0:3000/`
 
+## Community
+
+Questions or suggestions? Join our IRC channel [#amber](http://webchat.freenode.net/?channels=#amber) at `chat.freenode.net` or ask on our [Gitter room](https://gitter.im/amberframework/amber).
 
 ## Amber Philosophy H.R.T.
 
