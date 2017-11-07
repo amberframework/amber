@@ -9,8 +9,8 @@ module Amber::Controller::Helpers
         xml:  "application/xml",
       }
 
-      REGEX                     = /\.(#{TYPE.keys.join("|")})$/
-      COMMA_OR_COMMASPACE_REGEX = /,|,\s/
+      TYPE_EXT_REGEX         = /\.(#{TYPE.keys.join("|")})$/
+      ACCEPT_SEPARATOR_REGEX = /,|,\s/
 
       @requested_responses : Array(String)
       @available_responses = Hash(String, String).new
@@ -41,7 +41,7 @@ module Amber::Controller::Helpers
       end
 
       def type
-        select_type.to_s
+        (@type ||= select_type).to_s
       end
 
       def body
@@ -49,24 +49,22 @@ module Amber::Controller::Helpers
       end
 
       private def select_type
-        @type ||= begin
-          raise "You must define at least one response_type." if @available_responses.empty?
-          # NOTE: If only one response is requested don't return something else.
-          @requested_responses << @available_responses.keys.first if @requested_responses.size != 1
-          @requested_responses.find do |resp|
-            @available_responses.keys.includes?(resp)
-          end
+        raise "You must define at least one response_type." if @available_responses.empty?
+        # NOTE: If only one response is requested don't return something else.
+        @requested_responses << @available_responses.keys.first if @requested_responses.size != 1
+        @requested_responses.find do |resp|
+          @available_responses.keys.includes?(resp)
         end
       end
     end
 
     private def requested_responses
       req_responses = Array(String).new
-      path_ext = request.path.match(Content::REGEX).try(&.[1])
+      path_ext = request.path.match(Content::TYPE_EXT_REGEX).try(&.[1])
       if (path_ext)
         req_responses << Content::TYPE[path_ext]
       elsif (accept = context.request.headers["Accept"]?) && !accept.empty?
-        accepts = accept.split(";").first?.try(&.split(Content::COMMA_OR_COMMASPACE_REGEX))
+        accepts = accept.split(";").first?.try(&.split(Content::ACCEPT_SEPARATOR_REGEX))
         req_responses.concat(accepts) if accepts.is_a?(Array) && accepts.any?
       end
       req_responses

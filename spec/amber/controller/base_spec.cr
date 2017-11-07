@@ -109,7 +109,7 @@ module Amber::Controller
       end
 
       it "responds with 406 for path.text when text hasn't been defined" do
-        expected_result = "Response unexceptable."
+        expected_result = "Response Not Acceptable."
         context.request.path = "/response/1.text"
         ResponsesController.new(context).show.should eq expected_result
         context.response.status_code.should eq 406
