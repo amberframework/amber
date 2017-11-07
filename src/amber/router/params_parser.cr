@@ -87,7 +87,7 @@ module Amber::Router
       rparams = route.params
       unless rparams.empty?
         key = rparams.keys.last
-        rparams[key] = r.params[key].sub(Controller::Base::Content::REGEX, "")
+        rparams[key] = rparams[key].sub(Controller::Base::Content::REGEX, "")
       end
       route.params
     end
