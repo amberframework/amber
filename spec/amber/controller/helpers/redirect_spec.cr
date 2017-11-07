@@ -56,12 +56,13 @@ module Amber::Controller::Helpers
     describe ".from_controller_action" do
       Amber::Server.router.draw :web do
         get "/redirect/:id", RedirectController, :show
+        get "/redirect/:id/edit", RedirectController, :edit
         get "/redirect", RedirectController, :index
       end
 
       it "raises an error for invalid controller/action" do
-        expect_raises Exceptions::Controller::Redirect do
-          redirector = Redirector.from_controller_action("bad", :bad)
+        expect_raises KeyError do
+          redirector = Redirector.from_controller_action(:bad, :bad)
         end
       end
 
@@ -79,18 +80,18 @@ module Amber::Controller::Helpers
         assert_expected_response?(controller, "/redirect/5", 302)
       end
 
-      it "redirects to correct location for given controller action" do
+      it "redirects to :show" do
         controller = build_controller
-        redirector = Redirector.from_controller_action("redirect", :show, params: {"id" => "11"})
+        redirector = Redirector.from_controller_action(:redirect, :show, params: {"id" => "11"})
         redirector.redirect(controller)
         assert_expected_response?(controller, "/redirect/11", 302)
       end
 
-      it "redirects to correct location for given controller action" do
+      it "redirects to edit action" do
         controller = build_controller
-        redirector = Redirector.from_controller_action("redirect", :index)
+        redirector = Redirector.from_controller_action(:redirect, :edit, params: {"id" => "123"})
         redirector.redirect(controller)
-        assert_expected_response?(controller, "/redirect", 302)
+        assert_expected_response?(controller, "/redirect/123/edit", 302)
       end
     end
 

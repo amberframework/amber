@@ -8,7 +8,7 @@ module Amber::Controller::Helpers
       Redirector.from_controller_action(controller_name, action, **args).redirect(self)
     end
 
-    def redirect_to(controller : String | Symbol | Class, action : Symbol, **args)
+    def redirect_to(controller : Symbol | Class, action : Symbol, **args)
       Redirector.from_controller_action(controller, action, **args).redirect(self)
     end
 
@@ -28,10 +28,8 @@ module Amber::Controller::Helpers
     @params : Hash(String, String)? = nil
     @flash : Hash(String, String)? = nil
 
-    def self.from_controller_action(controller : String | Symbol | Class, action : Symbol, **options)
-      controller = controller.to_s.sub(/Controller$/, "").downcase
+    def self.from_controller_action(controller : Symbol | Class, action : Symbol, **options)
       route = Amber::Server.router.match_by_controller_action(controller, action)
-      raise Exceptions::Controller::Redirect.new("#{controller}##{action} not found!") unless route
       params = options[:params]?
       location, params = route.not_nil!.substitute_keys_in_path(params)
       status = options[:status]? || DEFAULT_STATUS_CODE

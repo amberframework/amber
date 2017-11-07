@@ -49,7 +49,11 @@ module Amber
       {result, params}
     end
 
-    def match?(controller, action)
+    def match?(controller : Class, action : Symbol)
+      self.controller.downcase == controller.to_s.downcase && self.action == action
+    end
+
+    def match?(controller : Symbol, action : Symbol)
       self.controller.downcase == "#{controller}controller" && self.action == action
     end
   end
