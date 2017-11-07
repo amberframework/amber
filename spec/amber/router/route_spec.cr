@@ -2,10 +2,10 @@ require "../../../spec_helper"
 
 module Amber
   describe Route do
+    handler = ->(context : HTTP::Server::Context) {}
+    subject = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, "", "FakeController")
+
     it "Initializes correctly with Decendant controller" do
-      handler = ->(context : HTTP::Server::Context) {
-        context.content = "Hey yo world!"
-      }
       request = HTTP::Request.new("GET", "/?test=test")
       context = create_context(request)
 
@@ -16,79 +16,27 @@ module Amber
 
     describe "#substitute_keys)in_path" do
       it "parses route resource params" do
-        handler = ->(context : HTTP::Server::Context) {}
         params = {"id" => "123", "name" => "John"}
-        route = Route.new("GET",
-          "/fake/action/:id/:name",
-          handler,
-          :action,
-          :web,
-          "", "FakeController")
-
         empty_hash = {} of String => String
-        route.substitute_keys_in_path(params).should eq({"/fake/action/123/John", empty_hash})
+        subject.substitute_keys_in_path(params).should eq({"/fake/action/123/John", empty_hash})
       end
     end
 
     describe "#match?" do
       it "matches by controller and action" do
-        handler = ->(context : HTTP::Server::Context) {}
-        route = Route.new("GET",
-          "/fake/action/:id/:name",
-          handler,
-          :action,
-          :web,
-          "", "FakeController")
+        subject.match?(:fake, :action).should be_truthy
+      end
 
-        route.match?("fake", :action).should eq true
+      it "does not match with invalid action" do
+        subject.match?(:fake, :invalid).should be_falsey
       end
 
       it "does not match with invalid controller" do
-        handler = ->(context : HTTP::Server::Context) {}
-        route = Route.new("GET",
-          "/fake/action/:id/:name",
-          handler,
-          :action,
-          :web,
-          "", "FakeController")
-
-        route.match?("invalid", :action).should eq false
+        subject.match?(:invalid, :action).should be_falsey
       end
 
-      it "does not match with nil controller" do
-        handler = ->(context : HTTP::Server::Context) {}
-        route = Route.new("GET",
-          "/fake/action/:id/:name",
-          handler,
-          :action,
-          :web,
-          "", "FakeController")
-
-        route.match?(nil, :action).should eq false
-      end
-
-      it "does not match with nil action" do
-        handler = ->(context : HTTP::Server::Context) {}
-        route = Route.new("GET",
-          "/fake/action/:id/:name",
-          handler,
-          :action,
-          :web,
-          "", "FakeController")
-
-        route.match?("fake", nil).should eq false
-      end
-
-      it "does not match with invalid controller" do
-        handler = ->(context : HTTP::Server::Context) {}
-        route = Route.new("GET",
-          "/fake/action/:id/:name",
-          handler,
-          :action,
-          :web,
-          "", "FakeController")
-
-        route.match?("false", :invalid).should eq false
+      it "does not match with invalid controller and invalid action" do
+        subject.match?(:invalid, :invalid).should be_falsey
       end
     end
 
