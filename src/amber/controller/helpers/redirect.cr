@@ -28,8 +28,17 @@ module Amber::Controller::Helpers
     @params : Hash(String, String)? = nil
     @flash : Hash(String, String)? = nil
 
-    def self.from_controller_action(controller : Symbol | Class, action : Symbol, **options)
-      route = Amber::Server.router.match_by_controller_action(controller, action)
+    def self.from_controller_action(controller : Class, action : Symbol, **options)
+      route = Amber::Server.router.match_by_controller_action(controller.to_s.downcase, action)
+      redirect(route, **options)
+    end
+
+    def self.from_controller_action(controller : Symbol, action : Symbol, **options)
+      route = Amber::Server.router.match_by_controller_action("#{controller}controller", action)
+      redirect(route, **options)
+    end
+
+    def self.redirect(route, **options)
       params = options[:params]?
       location, params = route.not_nil!.substitute_keys_in_path(params)
       status = options[:status]? || DEFAULT_STATUS_CODE

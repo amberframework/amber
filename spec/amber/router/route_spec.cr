@@ -22,24 +22,6 @@ module Amber
       end
     end
 
-    describe "#match?" do
-      it "matches by controller and action" do
-        subject.match?(:fake, :action).should be_truthy
-      end
-
-      it "does not match with invalid action" do
-        subject.match?(:fake, :invalid).should be_falsey
-      end
-
-      it "does not match with invalid controller" do
-        subject.match?(:invalid, :action).should be_falsey
-      end
-
-      it "does not match with invalid controller and invalid action" do
-        subject.match?(:invalid, :invalid).should be_falsey
-      end
-    end
-
     describe "#call" do
       context "before action" do
         it "does not execute action" do

@@ -54,7 +54,7 @@ module Amber
       end
 
       def match_by_controller_action(controller, action)
-        @routes_hash["#{controller}controller##{action}"]
+        @routes_hash["#{controller}##{action}"]
       end
 
       def all

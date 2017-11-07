@@ -137,19 +137,19 @@ module Amber
         router.add routeD
 
         it "matches route by controller and action" do
-          router.match_by_controller_action(:fake, :index).should eq routeA
+          router.match_by_controller_action(:fakecontroller, :index).should eq routeA
         end
 
         it "matches controller new action" do
-          router.match_by_controller_action(:fake, :new).should eq routeB
+          router.match_by_controller_action(:fakecontroller, :new).should eq routeB
         end
 
         it "matches controller show action" do
-          router.match_by_controller_action(:fake, :show).should eq routeC
+          router.match_by_controller_action(:fakecontroller, :show).should eq routeC
         end
 
         it "matches controller another action" do
-          router.match_by_controller_action(:fake, :another).should eq routeD
+          router.match_by_controller_action(:fakecontroller, :another).should eq routeD
         end
       end
 
