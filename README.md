@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://github.com/amberframework/amber/blob/master/media/amber.png" width="200">
-  <p align="center">Easy Syntax. Reliable Static Typing. Compiled Speed.<p>
+  <p align="center">Productivity. Performance. Happiness.<p>
   <p align="center">
     <sup>
       <i>
@@ -189,6 +189,9 @@ If you don't want to use Sentry, you can compile and run manually:
 2. Run with `./[your_app]`
 3. Visit `http://0.0.0.0:3000/`
 
+## Community
+
+Questions or suggestions? Join our IRC channel [#amber](http://webchat.freenode.net/?channels=#amber) at `chat.freenode.net` or ask on our [Gitter room](https://gitter.im/amberframework/amber).
 
 ## Amber Philosophy H.R.T.
 
