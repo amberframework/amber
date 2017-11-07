@@ -17,26 +17,8 @@ describe Amber do
 
   describe Amber::Server do
     describe ".configure" do
-      it "loads environment settings from test.yml" do
-        settings = Amber::Server.settings
-
-        settings.name.should eq "amber_test_app"
-        settings.port_reuse.should eq true
-        settings.redis_url.should eq "#{ENV["REDIS_URL"]? || "redis://localhost:6379"}"
-        settings.port.should eq 3000
-        settings.color.should eq true
-        settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
-        # Sometimes settings get over written by other tests first and this fails
-        # expected_session = {:key => "amber.session", :store => "signed_cookie", :expires => "0"}
-        # settings.session.should eq expected_session
-        expected_secrets = {
-          description: "Store your test secrets credentials and settings here.",
-          database:    "mysql://root@localhost:3306/amber_test_app_test",
-        }
-        settings.secrets.should eq expected_secrets
-      end
-
       it "overrides enviroment settings" do
+        Amber::Server.instance.settings = Amber::Settings.new
         Amber::Server.configure do |server|
           server.name = "Hello World App"
           server.port = 8080
@@ -54,18 +36,22 @@ describe Amber do
       end
 
       it "retains environment.yml settings that haven't been overwritten" do
-        # NOTE: Any changes to settings here remain for all specs run afterwards.
-        # Added for convenience until settings is change to an instances
-        # instead of singleton this is still an "a problem".
+        Amber::Server.instance.settings = Amber::Settings.new
         Amber::Server.configure do |server|
-          server.name = "Hello World App"
+          server.name = "New name"
           server.port = 8080
         end
 
         settings = Amber::Server.settings
 
-        settings.name.should eq "Hello World App"
-        settings.port.should eq 8080
+        settings.name.should_not eq "Hello World App"
+        settings.port_reuse.should eq true
+        settings.redis_url.should eq "#{ENV["REDIS_URL"]? || "redis://localhost:6379"}"
+        settings.color.should eq true
+        settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
+        expected_session = {:key => "amber.session", :store => :signed_cookie, :expires => 0}
+        settings.session.should eq expected_session
+        settings.port.should_not eq 3000
         expected_secrets = {
           description: "Store your test secrets credentials and settings here.",
           database:    "mysql://root@localhost:3306/amber_test_app_test",
