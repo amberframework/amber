@@ -9,6 +9,7 @@ module Amber
 
       def initialize
         @routes = Radix::Tree(Route).new
+        @routes_hash = {} of String => Route
         @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new
       end
 
@@ -29,6 +30,7 @@ module Amber
       def add(route : Route)
         trail = build_node(route.verb, route.resource)
         node = @routes.add(route.trail, route)
+        @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route
         add_head(route) if route.verb == :GET
         node
       rescue Radix::Tree::DuplicateError
@@ -51,16 +53,8 @@ module Amber
         match(request.method, request.path)
       end
 
-      def match_by_controller_action(controller, action, node = @routes.root)
-        route = node.payload
-        if route.match?(controller, action)
-          return route
-        else
-          node.children.each do |current_node|
-            return current_node.payload if current_node.payload.match?(controller, action)
-            match_by_controller_action(controller, action, current_node)
-          end
-        end
+      def match_by_controller_action(controller, action)
+        @routes_hash["#{controller}controller##{action}"]
       end
 
       def all
