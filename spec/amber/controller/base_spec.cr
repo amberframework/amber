@@ -84,7 +84,6 @@ module Amber::Controller
         ResponsesController.new(context).index.should eq expected_result
       end
 
-
       it "responds with json for path.json" do
         expected_result = %({"type":"json","name":"Amberator"})
         context.request.path = "/response/1.json"
@@ -116,6 +115,12 @@ module Amber::Controller
         context.response.status_code.should eq 406
       end
 
+      it "respond_with default or accept header request if extension is invalid" do
+        expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+        context.request.path = "/response/1.texas"
+        context.request.headers["Accept"] = "text/html"
+        ResponsesController.new(context).index.should eq expected_result
+      end
     end
 
     describe "#render" do

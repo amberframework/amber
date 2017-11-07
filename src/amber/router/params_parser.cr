@@ -29,7 +29,7 @@ module Amber::Router
     def parse_params
       parse_part(request.query)
       if content_type = request.headers["Content-Type"]?
-          parse_multipart if content_type.try(&.starts_with?(MULTIPART_FORM))
+        parse_multipart if content_type.try(&.starts_with?(MULTIPART_FORM))
         parse_part(request.body) if content_type.try(&.starts_with?(URL_ENCODED_FORM))
         parse_json if content_type.includes? APPLICATION_JSON
       end

@@ -9,8 +9,8 @@ module Amber::Controller::Helpers
         xml:  "application/xml",
       }
 
-      REGEX = /\.(#{TYPE.keys.join("|")})$/
-      COMMA_OR_COMMASPACE_REGEX = /,|,\s/ 
+      REGEX                     = /\.(#{TYPE.keys.join("|")})$/
+      COMMA_OR_COMMASPACE_REGEX = /,|,\s/
 
       @requested_responses : Array(String)
       @available_responses = Hash(String, String).new
