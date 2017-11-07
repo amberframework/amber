@@ -58,16 +58,21 @@ module Amber::Controller::Helpers
       end
     end
 
-    private def requested_responses
-      req_responses = Array(String).new
+    private def extension_request_type
       path_ext = request.path.match(Content::TYPE_EXT_REGEX).try(&.[1])
-      if (path_ext)
-        req_responses << Content::TYPE[path_ext]
-      elsif (accept = context.request.headers["Accept"]?) && !accept.empty?
+      return [Content::TYPE[path_ext]] if path_ext
+    end
+
+    private def accepts_request_type
+      accept = context.request.headers["Accept"]?
+      if accept && !accept.empty?
         accepts = accept.split(";").first?.try(&.split(Content::ACCEPT_SEPARATOR_REGEX))
-        req_responses.concat(accepts) if accepts.is_a?(Array) && accepts.any?
+        return accepts if !accepts.nil? && accepts.any?
       end
-      req_responses
+    end
+
+    private def requested_responses
+      extension_request_type || accepts_request_type || [] of String
     end
 
     protected def respond_with(&block)
