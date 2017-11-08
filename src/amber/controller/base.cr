@@ -1,16 +1,17 @@
 require "http"
 
-require "./render"
 require "./filters"
-require "./redirect"
 require "./helpers/*"
 
 module Amber::Controller
   class Base
-    include Render
-    include RedirectMethods
+    include Helpers::CSRF
+    include Helpers::Redirect
+    include Helpers::Render
+    include Helpers::Responders
+    include Helpers::Route
+
     include Callbacks
-    include Helpers::Tag
 
     protected getter context : HTTP::Server::Context
     protected getter params : Amber::Validators::Params
@@ -21,10 +22,6 @@ module Amber::Controller
 
     def initialize(@context : HTTP::Server::Context)
       @params = Amber::Validators::Params.new(context.params)
-    end
-
-    def controller_name
-      self.class.name.gsub(/Controller/i, "")
     end
   end
 end

@@ -27,6 +27,10 @@ module Amber::Controller
       controller.responds_to?(:client_ip).should eq true
       controller.responds_to?(:request).should eq true
       controller.responds_to?(:response).should eq true
+      controller.responds_to?(:action_name).should eq true
+      controller.responds_to?(:route_resource).should eq true
+      controller.responds_to?(:route_scope).should eq true
+      controller.responds_to?(:controller_name).should eq true
     end
 
     describe "#redirect_back" do
@@ -50,33 +54,135 @@ module Amber::Controller
       end
     end
 
+    describe "#respond_with" do
+      request = HTTP::Request.new("GET", "")
+      request.headers["Accept"] = ""
+      context = create_context(request)
+
+      it "respond_with html as default option" do
+        expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "text/html"
+        context.response.status_code.should eq 200 
+      end
+
+      it "respond_with html" do
+        expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+        context.request.headers["Accept"] = "text/html"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "text/html"
+        context.response.status_code.should eq 200 
+      end
+
+      it "responds with json" do
+        expected_result = %({"type":"json","name":"Amberator"})
+        context.request.headers["Accept"] = "application/json"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "application/json"
+        context.response.status_code.should eq 200 
+      end
+
+      it "responds with xml" do
+        expected_result = "<xml><body><h1>Sort of xml</h1></body></xml>"
+        context.request.headers["Accept"] = "application/xml"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "application/xml"
+        context.response.status_code.should eq 200 
+      end
+
+      it "responds with text" do
+        expected_result = "Hello I'm text!"
+        context.request.headers["Accept"] = "text/plain"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "text/plain"
+        context.response.status_code.should eq 200 
+      end
+
+      it "responds with json for path.json" do
+        expected_result = %({"type":"json","name":"Amberator"})
+        context.request.path = "/response/1.json"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "application/json"
+        context.response.status_code.should eq 200 
+      end
+
+      it "responds with xml for path.xml" do
+        expected_result = "<xml><body><h1>Sort of xml</h1></body></xml>"
+        context.request.path = "/response/1.xml"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "application/xml"
+        context.response.status_code.should eq 200 
+      end
+
+      it "responds with text for path.txt" do
+        expected_result = "Hello I'm text!"
+        context.request.path = "/response/1.txt"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "text/plain"
+        context.response.status_code.should eq 200 
+      end
+
+      it "responds with text for path.text" do
+        expected_result = "Hello I'm text!"
+        context.request.path = "/response/1.text"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "text/plain"
+        context.response.status_code.should eq 200 
+      end
+
+      it "responds with 406 for path.text when text hasn't been defined" do
+        expected_result = "Response Not Acceptable."
+        context.request.path = "/response/1.text"
+        ResponsesController.new(context).show.should eq expected_result
+        context.response.status_code.should eq 406
+      end
+
+      it "respond with default if extension is invalid and accepts isn't defined" do
+        expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+        context.request.path = "/response/1.texas"
+        context.request.headers["Accept"] = "text/html"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "text/html"
+        context.response.status_code.should eq 200 
+      end
+
+      it "responds with or accept header request if extension is invalid" do
+        expected_result = %({"type":"json","name":"Amberator"})
+        context.request.headers["Accept"] = "application/json"
+        context.request.path = "/response/1.texas"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "application/json"
+        context.response.status_code.should eq 200 
+      end
+    end
+
     describe "#render" do
       request = HTTP::Request.new("GET", "")
       context = create_context(request)
       csrf_form = form_with_csrf(Amber::Pipe::CSRF.token(context))
 
       it "renders html from slang template" do
-        TestController.new(context).render_template_page.should eq page_template
+        RenderController.new(context).render_template_page.should eq page_template
       end
 
       it "renders partial without layout" do
-        TestController.new(context).render_partial.should eq partial_only
+        RenderController.new(context).render_partial.should eq partial_only
       end
 
       it "renders flash message" do
-        TestController.new(context).render_with_flash
+        RenderController.new(context).render_with_flash
       end
 
       it "renders html and layout from slang template" do
-        TestController.new(context).render_multiple_partials_in_layout.should eq layout_with_multiple_partials
+        RenderController.new(context).render_multiple_partials_in_layout.should eq layout_with_multiple_partials
       end
 
       it "renders html and layout from slang template" do
-        TestController.new(context).render_with_layout.should eq layout_with_template
+        RenderController.new(context).render_with_layout.should eq layout_with_template
       end
 
       it "renders a form with a csrf tag" do
-        TestController.new(context).render_with_csrf.should eq csrf_form
+        RenderController.new(context).render_with_csrf.should eq csrf_form
       end
     end
 

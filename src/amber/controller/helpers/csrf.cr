@@ -1,5 +1,5 @@
 module Amber::Controller::Helpers
-  module Tag
+  module CSRF
     def csrf_token
       Amber::Pipe::CSRF.token(context).to_s
     end
