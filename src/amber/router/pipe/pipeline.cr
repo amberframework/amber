@@ -29,7 +29,7 @@ module Amber
       # Connects pipes to a pipeline to process requests
       def build(valve : Symbol, &block)
         @valve = valve
-        @pipeline[valve] = [] of HTTP::Handler unless pipeline.key? valve
+        @pipeline[valve] = [] of HTTP::Handler unless pipeline.has_key? valve
         with DSL::Pipeline.new(self) yield
       end
 

@@ -1,3 +1,25 @@
+class RedirectController < Amber::Controller::Base
+  def index
+    "Index"
+  end
+
+  def show
+    "Show"
+  end
+
+  def edit
+    "Edit"
+  end
+
+  def update
+    "Update"
+  end
+
+  def destroy
+    "Destroy"
+  end
+end
+
 class HelloController < Amber::Controller::Base
   @total : Int32 = 0
 
