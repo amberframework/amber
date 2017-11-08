@@ -1,7 +1,17 @@
 module Amber::Controller::Helpers
   module Responders
     class Content
-      TYPE = {html: "text/html", json: "application/json", text: "text/plain", xml: "application/xml"}
+      TYPE = {
+        html: "text/html",
+        json: "application/json",
+        txt:  "text/plain",
+        text: "text/plain",
+        xml:  "application/xml",
+      }
+
+      TYPE_EXT_REGEX         = /\.(#{TYPE.keys.join("|")})$/
+      ACCEPT_SEPARATOR_REGEX = /,|,\s/
+
       @requested_responses : Array(String)
       @available_responses = Hash(String, String).new
       @type : String? = nil
@@ -31,32 +41,38 @@ module Amber::Controller::Helpers
       end
 
       def type
-        select_type.to_s
+        (@type ||= select_type).to_s
       end
 
       def body
-        @available_responses[type]
+        @available_responses[type]?
       end
 
       private def select_type
-        @type ||= begin
-          raise "You must define at least one response_type." if @available_responses.empty?
-          @requested_responses << @available_responses.keys.first
-          @requested_responses.find do |resp|
-            @available_responses.keys.includes?(resp)
-          end
+        raise "You must define at least one response_type." if @available_responses.empty?
+        # NOTE: If only one response is requested don't return something else.
+        @requested_responses << @available_responses.keys.first if @requested_responses.size != 1
+        @requested_responses.find do |resp|
+          @available_responses.keys.includes?(resp)
         end
       end
     end
 
-    private def requested_responses
-      req_responses = Array(String).new
+    private def extension_request_type
+      path_ext = request.path.match(Content::TYPE_EXT_REGEX).try(&.[1])
+      return [Content::TYPE[path_ext]] if path_ext
+    end
 
-      if (accept = context.request.headers["Accept"]?) && !accept.empty?
-        accepts = accept.split(";").first?.try(&.split(/,|,\s/))
-        req_responses.concat(accepts) if accepts.is_a?(Array) && accepts.any?
+    private def accepts_request_type
+      accept = context.request.headers["Accept"]?
+      if accept && !accept.empty?
+        accepts = accept.split(";").first?.try(&.split(Content::ACCEPT_SEPARATOR_REGEX))
+        return accepts if !accepts.nil? && accepts.any?
       end
-      req_responses
+    end
+
+    private def requested_responses
+      extension_request_type || accepts_request_type || [] of String
     end
 
     protected def respond_with(&block)
@@ -64,7 +80,7 @@ module Amber::Controller::Helpers
       if content.body
         set_response(body: content.body, status_code: 200, content_type: content.type)
       else
-        set_response(body: "Response unexceptable.", status_code: 406, content_type: Content::TYPE[:text])
+        set_response(body: "Response Not Acceptable.", status_code: 406, content_type: Content::TYPE[:text])
       end
     end
 
