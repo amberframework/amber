@@ -1,20 +1,23 @@
 module Amber
   module Configuration
     macro included
+      property settings = Settings.new
+
       def self.instance
         @@instance ||= new
       end
-
+      
+      # Configure should probably be deprecated in favor of settings.
       def self.configure
         with settings yield settings
       end
 
-      def self.settings
-        Settings
+      def self.settings(&block)
+        with settings yield settings
       end
 
-      def settings
-        Settings
+      def self.settings
+        instance.settings
       end
 
       def self.secret_key_base
