@@ -1,14 +1,14 @@
 module Amber::Validators
   # Holds a validation error message
-  record Error, param : String, value : Amber::Router::Params, message : String
+  record Error, param : String, value : String?, message : String
 
   # This struct holds the validation rules to be performed
   class BaseRule
-    getter predicate : (Amber::Router::Params -> Bool)
+    getter predicate : (String -> Bool)
     getter field : String
-    getter value = Amber::Router::Params.new
+    getter value : String?
 
-    def initialize(field : String | Symbol, @msg : String?, &block : Amber::Router::Params -> Bool)
+    def initialize(field : String | Symbol, @msg : String?, &block : String -> Bool)
       @field = field.to_s
       @predicate = block
     end
@@ -16,11 +16,11 @@ module Amber::Validators
     def apply(params : Amber::Router::Params)
       raise Exceptions::Validator::InvalidParam.new(@field) unless params.has_key? @field
       @value = params[@field]
-      @predicate.call @value.to_s unless @predicate.nil?
+      @predicate.call params[@field] unless @predicate.nil?
     end
 
     def error
-      Error.new @field, @value, error_message
+      Error.new @field, @value.to_s, error_message
     end
 
     private def error_message
@@ -33,7 +33,7 @@ module Amber::Validators
     def apply(params : Amber::Router::Params)
       return true unless params.has_key? @field
       @value = params[@field]
-      @predicate.call @value unless @predicate.nil?
+      @predicate.call params[@field] unless @predicate.nil?
     end
   end
 
@@ -42,11 +42,11 @@ module Amber::Validators
       _validator.add_rule BaseRule.new(param, msg)
     end
 
-    def required(param : String | Symbol, msg : String? = nil, &b : Amber::Router::Params -> Bool)
+    def required(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
       _validator.add_rule BaseRule.new(param, msg, &b)
     end
 
-    def optional(param : String | Symbol, msg : String? = nil, &b : Amber::Router::Params -> Bool)
+    def optional(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
       _validator.add_rule OptionalRule.new(param, msg, &b)
     end
   end
@@ -55,7 +55,7 @@ module Amber::Validators
     getter raw_params = Amber::Router::Params.new
     getter errors = [] of Error
     getter rules = [] of BaseRule
-    getter params = Amber::Router::Params.new
+    getter params = {} of String => String?
     getter errors = [] of Error
 
     def initialize(@raw_params); end

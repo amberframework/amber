@@ -99,7 +99,7 @@ module Amber::Router
           case json = JSON.parse_raw(body)
           when Hash
             json.each do |key, value|
-              if value.raw.is_a?(String)
+              if value.is_a?(String)
                 params[key.as(String)] = value
               else
                 params[key.as(String)] = value.to_json

@@ -19,7 +19,7 @@ module Amber::Router
       super(key.to_s, value)
     end
 
-    protected def find_entry(key : KeyType)
+    def find_entry(key : KeyType)
       super(key.to_s)
     end
   end

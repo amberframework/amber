@@ -59,7 +59,7 @@ module Amber::Controller
         expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "text/html"
-        context.response.status_code.should eq 200 
+        context.response.status_code.should eq 200
       end
 
       it "respond_with html" do
@@ -67,7 +67,7 @@ module Amber::Controller
         context.request.headers["Accept"] = "text/html"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "text/html"
-        context.response.status_code.should eq 200 
+        context.response.status_code.should eq 200
       end
 
       it "responds with json" do
@@ -75,7 +75,7 @@ module Amber::Controller
         context.request.headers["Accept"] = "application/json"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "application/json"
-        context.response.status_code.should eq 200 
+        context.response.status_code.should eq 200
       end
 
       it "responds with xml" do
@@ -83,7 +83,7 @@ module Amber::Controller
         context.request.headers["Accept"] = "application/xml"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "application/xml"
-        context.response.status_code.should eq 200 
+        context.response.status_code.should eq 200
       end
 
       it "responds with text" do
@@ -91,7 +91,7 @@ module Amber::Controller
         context.request.headers["Accept"] = "text/plain"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "text/plain"
-        context.response.status_code.should eq 200 
+        context.response.status_code.should eq 200
       end
 
       it "responds with json for path.json" do
@@ -99,7 +99,7 @@ module Amber::Controller
         context.request.path = "/response/1.json"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "application/json"
-        context.response.status_code.should eq 200 
+        context.response.status_code.should eq 200
       end
 
       it "responds with xml for path.xml" do
@@ -107,7 +107,7 @@ module Amber::Controller
         context.request.path = "/response/1.xml"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "application/xml"
-        context.response.status_code.should eq 200 
+        context.response.status_code.should eq 200
       end
 
       it "responds with text for path.txt" do
@@ -115,7 +115,7 @@ module Amber::Controller
         context.request.path = "/response/1.txt"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "text/plain"
-        context.response.status_code.should eq 200 
+        context.response.status_code.should eq 200
       end
 
       it "responds with text for path.text" do
@@ -123,7 +123,7 @@ module Amber::Controller
         context.request.path = "/response/1.text"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "text/plain"
-        context.response.status_code.should eq 200 
+        context.response.status_code.should eq 200
       end
 
       it "responds with 406 for path.text when text hasn't been defined" do
@@ -139,7 +139,7 @@ module Amber::Controller
         context.request.headers["Accept"] = "text/html"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "text/html"
-        context.response.status_code.should eq 200 
+        context.response.status_code.should eq 200
       end
 
       it "responds with or accept header request if extension is invalid" do
@@ -148,7 +148,7 @@ module Amber::Controller
         context.request.path = "/response/1.texas"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "application/json"
-        context.response.status_code.should eq 200 
+        context.response.status_code.should eq 200
       end
     end
 
