@@ -1,4 +1,4 @@
-module Amber::Controller
+module Amber::Controller::Helpers
   module Render
     LAYOUT = "application.slang"
 
@@ -8,7 +8,7 @@ module Amber::Controller
       {% end %}
 
       {{ filename = template || partial }}
-       
+
       # Render Template and return content
       {% if filename.id.split("/").size > 1 %}
         %content = render_template("#{{{filename}}}", {{path}})
@@ -20,7 +20,7 @@ module Amber::Controller
           %content = render_template("#{{{path}}}/#{{{short_path.gsub(/\_controller\.cr|\.cr/, "")}}}/#{{{filename}}}")
         {% end %}
       {% end %}
-      
+
       # Render Layout
       {% if layout && !partial %}
         content = %content

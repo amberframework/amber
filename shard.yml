@@ -27,7 +27,7 @@ dependencies:
 
   slang:
     github: jeromegn/slang
-    version: ~> 1.6.1
+    version: ~> 1.7.0
 
   redis:
     github: stefanwille/crystal-redis
@@ -43,7 +43,7 @@ dependencies:
 
   sentry:
     github: samueleaton/sentry
-    branch: master
+    version: ~> 0.1.0
 
   icr:
     github: crystal-community/icr
