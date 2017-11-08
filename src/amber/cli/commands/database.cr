@@ -58,23 +58,34 @@ module Amber::CLI
       end
 
       def drop_database
-        name = set_database_to_schema
-        Micrate::DB.connect do |db|
-          db.exec "DROP DATABASE #{name};"
+        url = Micrate::DB.connection_url.to_s
+        if url.starts_with? "sqlite3:"
+          path = url.gsub("sqlite3:", "")
+          File.delete(path)
+          puts "Deleted file #{path}"
+        else
+          name = set_database_to_schema url
+          Micrate::DB.connect do |db|
+            db.exec "DROP DATABASE #{name};"
+          end
+          puts "Dropped database #{name}"
         end
-        puts "Dropped database #{name}"
       end
 
       def create_database
-        name = set_database_to_schema
-        Micrate::DB.connect do |db|
-          db.exec "CREATE DATABASE #{name};"
+        url = Micrate::DB.connection_url.to_s
+        if url.starts_with? "sqlite3:"
+          puts "For sqlite3, the database will be created during the first migration."
+        else
+          name = set_database_to_schema url
+          Micrate::DB.connect do |db|
+            db.exec "CREATE DATABASE #{name};"
+          end
+          puts "Created database #{name}"
         end
-        puts "Created database #{name}"
       end
 
-      def set_database_to_schema
-        url = Micrate::DB.connection_url.to_s
+      def set_database_to_schema(url)
         uri = URI.parse(url)
         if path = uri.path
           Micrate::DB.connection_url = url.gsub(path, "/#{uri.scheme}")
