@@ -67,8 +67,8 @@ dependencies:
 
   mysql:
     github: crystal-lang/crystal-mysql
-    branch: master
+    version: ~> 0.3.3
 
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-    branch: master
+    version: ~> 0.8.3
