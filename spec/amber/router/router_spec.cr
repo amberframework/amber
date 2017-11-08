@@ -124,15 +124,32 @@ module Amber
       end
 
       describe "#match_by_controller_action" do
-        it "matches route by controller and action" do
-          router = Router.new
-          handler = ->(context : HTTP::Server::Context) {}
-          routeA = Route.new("GET", "/fake", handler, :index, :web, "", "FakeController")
-          route = Route.new("GET", "/fake/route", handler, :route, :web, "", "FakeController")
-          router.add routeA
-          router.add route
+        handler = ->(context : HTTP::Server::Context) {}
+        router = Router.new
+        routeA = Route.new("GET", "/fake", handler, :index, :web, "", "FakeController")
+        routeB = Route.new("GET", "/fake/new", handler, :new, :web, "", "FakeController")
+        routeC = Route.new("GET", "/fake/:id", handler, :show, :web, "", "FakeController")
+        routeD = Route.new("GET", "/another/:id", handler, :another, :web, "", "FakeController")
 
-          router.match_by_controller_action("fake", :route).should eq route
+        router.add routeA
+        router.add routeB
+        router.add routeC
+        router.add routeD
+
+        it "matches route by controller and action" do
+          router.match_by_controller_action(:fakecontroller, :index).should eq routeA
+        end
+
+        it "matches controller new action" do
+          router.match_by_controller_action(:fakecontroller, :new).should eq routeB
+        end
+
+        it "matches controller show action" do
+          router.match_by_controller_action(:fakecontroller, :show).should eq routeC
+        end
+
+        it "matches controller another action" do
+          router.match_by_controller_action(:fakecontroller, :another).should eq routeD
         end
       end
 
