@@ -5,6 +5,7 @@ module Amber
     # This is the main application handler all routers should finally hit this
     # handler.
     class Router
+      PATH_EXT_REGEX = /\.[^$\/]+$/
       property :routes, :socket_routes
 
       def initialize
@@ -81,7 +82,12 @@ module Amber
       end
 
       def match(http_verb, resource) : Radix::Result(Amber::Route)
-        @routes.find build_node(http_verb, resource)
+        result = @routes.find build_node(http_verb, resource)
+        if result.found?
+          result
+        else
+          @routes.find build_node(http_verb, resource.sub(PATH_EXT_REGEX, ""))
+        end
       end
 
       private def merge_params(params, context)

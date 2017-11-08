@@ -92,4 +92,11 @@ class ResponsesController < Amber::Controller::Base
       text "Hello I'm text!"
     end
   end
+
+  def show
+    respond_with do
+      html "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+      json type: "json", name: "Amberator"
+    end
+  end
 end
