@@ -5,10 +5,12 @@ module Amber
     # This is the main application handler all routers should finally hit this
     # handler.
     class Router
-      property :routes, :socket_routes
+      property :routes, :routes_hash, :socket_routes
+      PATH_EXT_REGEX = /\.[^$\/]+$/
 
       def initialize
         @routes = Radix::Tree(Route).new
+        @routes_hash = {} of String => Route
         @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new
       end
 
@@ -29,6 +31,7 @@ module Amber
       def add(route : Route)
         trail = build_node(route.verb, route.resource)
         node = @routes.add(route.trail, route)
+        @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route
         add_head(route) if route.verb == :GET
         node
       rescue Radix::Tree::DuplicateError
@@ -51,16 +54,8 @@ module Amber
         match(request.method, request.path)
       end
 
-      def match_by_controller_action(controller, action, node = @routes.root)
-        route = node.payload
-        if route.match?(controller, action)
-          return route
-        else
-          node.children.each do |current_node|
-            return current_node.payload if current_node.payload.match?(controller, action)
-            match_by_controller_action(controller, action, current_node)
-          end
-        end
+      def match_by_controller_action(controller, action)
+        @routes_hash["#{controller}##{action}"]
       end
 
       def all
@@ -81,7 +76,12 @@ module Amber
       end
 
       def match(http_verb, resource) : Radix::Result(Amber::Route)
-        @routes.find build_node(http_verb, resource)
+        result = @routes.find build_node(http_verb, resource)
+        if result.found?
+          result
+        else
+          @routes.find build_node(http_verb, resource.sub(PATH_EXT_REGEX, ""))
+        end
       end
 
       private def merge_params(params, context)

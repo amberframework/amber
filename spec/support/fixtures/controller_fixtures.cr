@@ -1,3 +1,25 @@
+class RedirectController < Amber::Controller::Base
+  def index
+    "Index"
+  end
+
+  def show
+    "Show"
+  end
+
+  def edit
+    "Edit"
+  end
+
+  def update
+    "Update"
+  end
+
+  def destroy
+    "Destroy"
+  end
+end
+
 class HelloController < Amber::Controller::Base
   @total : Int32 = 0
 
@@ -90,6 +112,13 @@ class ResponsesController < Amber::Controller::Base
       json type: "json", name: "Amberator"
       xml "<xml><body><h1>Sort of xml</h1></body></xml>"
       text "Hello I'm text!"
+    end
+  end
+
+  def show
+    respond_with do
+      html "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+      json type: "json", name: "Amberator"
     end
   end
 end

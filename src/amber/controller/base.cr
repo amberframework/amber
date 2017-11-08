@@ -9,6 +9,7 @@ module Amber::Controller
     include Helpers::Redirect
     include Helpers::Render
     include Helpers::Responders
+    include Helpers::Route
 
     include Callbacks
 
@@ -21,10 +22,6 @@ module Amber::Controller
 
     def initialize(@context : HTTP::Server::Context)
       @params = Amber::Validators::Params.new(context.params)
-    end
-
-    def controller_name
-      self.class.name.gsub(/Controller/i, "")
     end
   end
 end
