@@ -78,7 +78,18 @@ module Amber::Router
     end
 
     def merge_route_params
-      route_params.each { |k, v| params[k] = v }
+      route_params_without_ext.each do |k, v|
+        params[k] = v
+      end
+    end
+
+    def route_params_without_ext
+      rparams = route.params
+      unless rparams.empty?
+        key = rparams.keys.last
+        rparams[key] = rparams[key].sub(Controller::Base::Content::TYPE_EXT_REGEX, "")
+      end
+      route.params
     end
 
     def route_params
