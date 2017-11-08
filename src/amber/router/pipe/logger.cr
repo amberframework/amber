@@ -4,7 +4,7 @@ module Amber
   module Pipe
     class Logger < Base
       def colorize(text, color)
-        text.colorize(color).toggle(Amber::Settings.color).to_s
+        text.colorize(color).toggle(Amber::Server.settings.color).to_s
       end
 
       def initialize(io : IO = STDOUT)
