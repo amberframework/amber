@@ -4,7 +4,7 @@ require "../../../support/fixtures/tasks_fixtures"
 
 module Amber::CLI
   describe "amber perform" do
-    runner = MainCommand.run ["perform", "faketask"]
+    runner = MainCommand::Perform.run(["faketask"])
 
     it "performs a tasks via command line" do
       runner.should eq "Fake task completed!"
@@ -15,8 +15,7 @@ module Amber::CLI
     end
 
     context "listing all tasks" do
-      runner = MainCommand.run ["p", "-l", "faketask"]
-
+      runner = MainCommand::Perform.run(["-l", "faketask"])
       it "shows task description" do
         runner.should eq expected_tasks_output
       end
