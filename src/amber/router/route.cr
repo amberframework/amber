@@ -48,9 +48,5 @@ module Amber
       end
       {result, params}
     end
-
-    def match?(controller, action)
-      self.controller.downcase == "#{controller}controller" && self.action == action
-    end
   end
 end

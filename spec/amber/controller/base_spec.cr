@@ -27,6 +27,10 @@ module Amber::Controller
       controller.responds_to?(:client_ip).should eq true
       controller.responds_to?(:request).should eq true
       controller.responds_to?(:response).should eq true
+      controller.responds_to?(:action_name).should eq true
+      controller.responds_to?(:route_resource).should eq true
+      controller.responds_to?(:route_scope).should eq true
+      controller.responds_to?(:controller_name).should eq true
     end
 
     describe "#redirect_back" do
