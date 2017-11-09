@@ -23,7 +23,7 @@ dependencies:
 
   kilt:
     github: jeromegn/kilt
-    version: ~> 0.3.3
+    version: ~> 0.4.0
 
   slang:
     github: jeromegn/slang
@@ -35,7 +35,7 @@ dependencies:
 
   cli:
     github: mosop/cli
-    version: ~> 0.5.1
+    version: ~> 0.6.10
 
   teeplate:
     github: mosop/teeplate
@@ -67,8 +67,8 @@ dependencies:
 
   mysql:
     github: crystal-lang/crystal-mysql
-    branch: master
+    version: ~> 0.3.3
 
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-    branch: master
+    version: ~> 0.8.3
