@@ -153,7 +153,7 @@ describe HTTP::Server::Context do
     context = create_context(request)
 
     context.params["test"].should eq "test"
-    context.params["address"].as(Hash)["city"].should eq "New York"
+    context.params.json("address")["city"].should eq "New York"
   end
 
   it "parses json array" do
@@ -164,7 +164,7 @@ describe HTTP::Server::Context do
 
     context = create_context(request)
 
-    context.params["_json"].should eq %w(test test2)
+    context.params.json("_json").should eq %w(test test2)
   end
 
   it "parses files from multipart forms" do
