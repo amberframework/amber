@@ -19,7 +19,7 @@ module Amber::CLI
       end
 
       def run
-        if options.l?
+        if options.list?
           Amber::Tasks::Runner.definitions
         else
           Amber::Tasks::Runner.perform(args.task)
