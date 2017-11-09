@@ -221,7 +221,7 @@ module Amber::Validators
 end
 
 def params_builder(body = "")
-  params = {} of String | Symbol => Amber::Router::ParamsType
+  params = Amber::Router::Params.new
   return params if body.empty?
 
   body.tr("?", "").split("&").each_with_object(params) do |item, params|
