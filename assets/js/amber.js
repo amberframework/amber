@@ -215,7 +215,7 @@ export class Socket {
   handleMessage(msg) {
     if (msg.data === "ping") return this._handlePing()
 
-    parsed_msg = JSON.parse(msg.data)
+    let parsed_msg = JSON.parse(msg.data)
     this.channels.forEach((channel) => {
       if (channel.topic === parsed_msg.topic) channel.handleMessage(parsed_msg)
     })
