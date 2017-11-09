@@ -1,7 +1,7 @@
 {
   "name": "amber",
   "version": "0.3.0",
-  "description": "Front-end script for Amber Framework",
+  "description": "Front-end configuration for Amber Framework",
   "private": true,
   "author": "Amber",
   "license": "MIT",
