@@ -24,6 +24,28 @@ describe Amber::Server do
       {{run("../../../src/amber/scripts/environment_loader.cr", "test").stringify}}.should eq expected
     end
 
+    it "should load expected output" do
+      expected = <<-EXP
+      @name = "amber_test_app"
+      @port_reuse = true
+      @process_count = (ENV[%(AMBER_PROCESS_COUNT)]? || 1).to_i
+      @log = ::Logger.new(STDOUT).tap{|l| l.level = ::Logger::INFO}
+      @color = true
+      @redis_url = "\#{ENV[%(REDIS_URL)]? || %(redis://localhost:6379)}"
+      @port = 1337
+      @host = "0.0.0.0"
+      @secret_key_base = "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
+      @session = {
+        :key => "amber.session",
+        :store => :signed_cookie,
+        :expires => 0, 
+      }
+      getter secrets = {"description": "Store your test secrets credentials and settings here.", "database": "mysql://root@localhost:3306/amber_test_app_test"}
+
+      EXP
+      `PORT=1337 AMBER_ENV=test crystal ./src/amber/scripts/environment_loader.cr`.should eq expected
+    end
+
     it "should load default settings when environment file doesn't exist." do
       expected = <<-EXP
       @name = "Amber_App"
