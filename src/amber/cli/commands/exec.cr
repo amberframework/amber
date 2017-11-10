@@ -21,7 +21,6 @@ module Amber::CLI
         result = ""
         if args.size > 0 && args.code
           if args.code.ends_with?(".cr") && File.exists?(args.code)
-            system("#{options.editor} #{args.code}")
             result = `crystal eval 'require "../config/*"; require "./#{args.code}"'`
           else
             result = `crystal eval 'require "../config/*"; puts (#{args.code}).inspect'`
@@ -40,10 +39,10 @@ module Amber::CLI
         end
         if result.includes?("Error in line 1:") &&
            result.includes?("while requiring \"../config/*\": can't find file '../config/*' relative to '.'")
-          puts "error: 'amber exec' can only be used within the root of a valid amber project"
-        else
-          puts result
+          result = "error: 'amber exec' can only be used from the root of a valid amber project"
         end
+        puts result
+        result
       end
     end
   end
