@@ -38,10 +38,9 @@ str = String.build do |s|
   s.puts %(@port_reuse = #{settings["port_reuse"]? == nil ? true : settings["port_reuse"]})
   s.puts %(@process_count = #{settings["process_count"]? || 1})
   s.puts %(@log = #{settings["log"]? || "::Logger.new(STDOUT)"}.tap{|l| l.level = #{settings["log_level"]? || "::Logger::INFO"}})
-  #s.puts %(@log.level = #{settings["log_level"]? || "::Logger::INFO"})
   s.puts %(@color = #{settings["color"]? == nil ? true : settings["color"]})
   s.puts %(@redis_url = "#{settings["redis_url"]? || "redis://localhost:6379"}")
-  s.puts %(@port = #{ENV["PORT"]? || settings["port"]? || 3000})
+  s.puts %(@port = #{settings["port"]? || 3000})
   s.puts %(@host = "#{settings["host"]? || "127.0.0.1"}")
   s.puts %(@secret_key_base = "#{settings["secret_key_base"]? || SecureRandom.urlsafe_base64(32)}")
 
