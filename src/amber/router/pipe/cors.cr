@@ -7,7 +7,7 @@ module Amber
 
       def initialize
         @allow_origin = "*"
-        @allow_headers = "Accept, Content-Type"
+        @allow_headers = "accept, content-type"
         @allow_methods = "GET, HEAD, POST, DELETE, OPTIONS, PUT, PATCH"
         @allow_credentials = false
         @max_age = 0
@@ -47,7 +47,7 @@ module Amber
 
             if requested_headers = context.request.headers["Access-Control-Request-Headers"]
               requested_headers.split(",").each do |requested_header|
-                if allow_headers.includes? requested_header.strip
+                if allow_headers.includes? requested_header.strip.downcase
                   context.response.headers["Access-Control-Allow-Headers"] = allow_headers
                 else
                   context.response.status_code = 403
