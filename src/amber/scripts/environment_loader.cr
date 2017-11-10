@@ -41,7 +41,7 @@ str = String.build do |s|
   #s.puts %(@log.level = #{settings["log_level"]? || "::Logger::INFO"})
   s.puts %(@color = #{settings["color"]? == nil ? true : settings["color"]})
   s.puts %(@redis_url = "#{settings["redis_url"]? || "redis://localhost:6379"}")
-  s.puts %(@port = #{settings["port"]? || 3000})
+  s.puts %(@port = #{ENV["PORT"]? || settings["port"]? || 3000})
   s.puts %(@host = "#{settings["host"]? || "127.0.0.1"}")
   s.puts %(@secret_key_base = "#{settings["secret_key_base"]? || SecureRandom.urlsafe_base64(32)}")
 
