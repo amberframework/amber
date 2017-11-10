@@ -1,9 +1,6 @@
 require "json"
 
 module Amber::Router
-  alias ParamsType = String | JSON::Type
-  alias ParamsHash = Hash(String | Symbol, Amber::Router::ParamsType)
-
   # The Parameters module will parse parameters from a URL, a form post or a JSON
   # post and provide them in the self params hash.  This unifies access to
   # parameters into one place to simplify access to them.
@@ -18,12 +15,12 @@ module Amber::Router
     OVERRIDE_HEADER  = "X-HTTP-Method-Override"
     OVERRIDE_METHODS = %w(PATCH PUT DELETE)
 
-    property params = Hash(String | Symbol, ParamsType).new
+    property params = Amber::Router::Params.new
 
     @override_method : String?
 
     def clear_params
-      @params = Hash(String | Symbol, ParamsType).new
+      @params = Router::Params.new
     end
 
     def parse_params
@@ -102,10 +99,14 @@ module Amber::Router
           case json = JSON.parse_raw(body)
           when Hash
             json.each do |key, value|
-              params[key.as(String)] = value
+              if value.is_a?(String)
+                params[key.as(String)] = value
+              else
+                params[key.as(String)] = value.to_json
+              end
             end
           when Array
-            params["_json"] = json
+            params["_json"] = json.to_json
           end
         end
       end
