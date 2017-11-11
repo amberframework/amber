@@ -14,31 +14,28 @@ module Amber::CLI
       MainCommand.run(["exec", "[:a, :b, :c] + [:d]"])
 
       # This one weird trick, to make the specs pass in linux leaves scientists puzzled.
-      Dir.glob("tmp/*")
-      logs = Dir.glob("./tmp/*_console_result.log")
+      #Dir.glob("tmp/*")
+      logs = `ls tmp/*_console_result.log`.strip.split(/\s/)
       File.read(logs.last?.to_s).should eq expected_result
     end
 
     it "executes a .cr file from the first command-line argument" do
       File.write "amber_exec_spec_test.cr", "puts([:a] + [:b])"
       MainCommand.run(["exec", "amber_exec_spec_test.cr", "-e", "tail"])
-      Dir.glob("tmp/*")
-      logs = Dir.glob("./tmp/*_console_result.log")
+      logs = `ls tmp/*_console_result.log`.strip.split(/\s/)
       File.read(logs.last?.to_s).should eq "[:a, :b]\n"
       File.delete("amber_exec_spec_test.cr")
     end
 
     it "opens editor and executes .cr file on close" do
       MainCommand.run(["exec", "-e", "echo 'puts 1000' > "])
-      Dir.glob("tmp/*")
-      logs = Dir.glob("./tmp/*_console_result.log")
+      logs = `ls tmp/*_console_result.log`.strip.split(/\s/)
       File.read(logs.last?.to_s).should eq "1000\n"
     end
 
     it "copies previous run into new file for editing and runs it returning results" do
       MainCommand.run(["exec", "-e", "tail", "-b", "1"])
-      Dir.glob("tmp/*")
-      logs = Dir.glob("./tmp/*_console_result.log")
+      logs = `ls tmp/*_console_result.log`.strip.split(/\s/)
       File.read(logs.last?.to_s).should eq "1000\n"
     end
 
@@ -47,8 +44,7 @@ module Amber::CLI
     it "complains if not in the root of a project" do
       expected_result = "Error: 'amber exec' can only be used from the root of a valid amber project"
       MainCommand.run(["exec", ":hello"])
-      Dir.glob("tmp/*")
-      logs = Dir.glob("./tmp/*_console_result.log")
+      logs = `ls tmp/*_console_result.log`.strip.split(/\s/)
       File.read(logs.last?.to_s).should eq expected_result
     end
     cleanup
