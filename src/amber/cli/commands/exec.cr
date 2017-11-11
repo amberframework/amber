@@ -6,7 +6,7 @@ module Amber::CLI
 
     class Exec < ::Cli::Command
       command_name "exec"
-      @filename = "./tmp/#{Time.now.epoch}_console.cr"
+      @filename = "./tmp/#{Time.now.epoch_ms}_console.cr"
 
       class Options
         arg "code", desc: "Crystal code or .cr file to execute within the application scope", default: ""
