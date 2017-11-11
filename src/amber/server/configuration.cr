@@ -44,6 +44,10 @@ module Amber
         settings.router
       end
 
+      def self.handler
+        settings.handler
+      end
+
       def self.redis_url
         settings.redis_url
       end

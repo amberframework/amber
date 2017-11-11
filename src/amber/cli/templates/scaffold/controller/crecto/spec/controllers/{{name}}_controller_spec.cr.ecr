@@ -1,72 +1,106 @@
 <% field_name = @fields.first.name -%>
+<% human_name = @name.split("_").map(&.capitalize).join(" ") %>
 require "./spec_helper"
 
-def create_subject
-  subject = <%= class_name %>.new
-  subject.<%= field_name %> = "test"
-  subject.save
-  subject
+def hash_value
+<%= @fields_hash.to_s %>
 end
 
-describe <%= class_name %>Controller do
+def fields_as_params
+ params = [] of String
+ <%- @fields_hash.keys.map do |k| -%>
+ params << "<%= k %>=#{hash_value["<%= k %>"]}"
+ <%- end -%>
+ params.join("&")
+end
+
+def create_model
+  model = <%= class_name %>.new(hash_value)
+  model.save
+  model
+end
+
+class <%= class_name %>ControllerTest < Spec::Controller::Test
+  getter handler : Amber::Pipe::Pipeline
+
+  def initialize
+    @handler = Amber::Pipe::Pipeline.new
+    @handler.build :web do
+      plug Amber::Pipe::Error.new
+      plug Amber::Pipe::Logger.new
+      plug Amber::Pipe::Session.new
+      plug Amber::Pipe::Flash.new
+    end
+    @handler.prepare_pipelines
+  end
+end
+
+describe <%= class_name %>ControllerTest do
+  subject = <%= class_name %>ControllerTest.new
+
   Spec.before_each do
     <%= class_name %>.clear
   end
 
-  describe "index" do
-    it "renders all the <%= @name %>s" do
-      subject = create_subject
-      get "/<%= @name %>s"
-      response.body.should contain "test"
-    end
+  it "renders <%= @name %> index template" do
+    response = subject.get "/<%= @name %>s"
+
+    response.status_code.should eq(200)
+    response.body.should contain("<%= human_name %>s")
   end
 
-  describe "show" do
-    it "renders a single <%= @name %>" do
-      subject = create_subject
-      get "/<%= @name %>s/#{subject.id}"
-      response.body.should contain "test"
-    end
+  it "renders <%= @name %> show template" do
+    model = create_model
+    location = "/<%= @name %>s/#{model.id}"
+
+    response = subject.get location
+
+    response.status_code.should eq(200)
+    response.body.should contain("Show <%= human_name %>")
   end
 
-  describe "new" do
-    it "render new template" do
-      get "/<%= @name %>s/new"
-      response.body.should contain "New <%= class_name %>"
-    end
+  it "renders <%= @name %> new template" do
+    location = "/<%= @name %>s/new"
+
+    response = subject.get location
+
+    response.status_code.should eq(200)
+    response.body.should contain("New <%= human_name %>")
   end
 
-  describe "create" do
-    it "creates a <%= @name %>" do
-      post "/<%= @name %>s", body: "<%= field_name %>=testing"
-      subject_list = <%= class_name %>.all
-      subject_list.size.should eq 1
-    end
+  it "renders <%= @name %> edit template" do
+    model = create_model
+    location = "/<%= @name %>s/#{model.id}/edit"
+
+    response = subject.get location
+
+    response.status_code.should eq(200)
+    response.body.should contain("Edit <%= human_name %>")
   end
 
-  describe "edit" do
-    it "renders edit template" do
-      subject = create_subject
-      get "/<%= @name %>s/#{subject.id}/edit"
-      response.body.should contain "Edit <%= class_name %>"
-    end
+  it "creates a <%= @name %>" do
+    response = subject.post "/<%= @name %>s", body: fields_as_params
+
+    response.headers["Location"].should eq "/<%= @name %>s"
+    response.status_code.should eq(302)
+    response.body.should eq "302"
   end
 
-  describe "update" do
-    it "updates a <%= @name %>" do
-      subject = create_subject
-      patch "/<%= @name %>s/#{subject.id}", body: "<%= field_name %>=test2"
-      result = <%= class_name %>.find(subject.id).not_nil!
-      result.<%= field_name %>.should eq "test2"
-    end
+  it "updates a <%= @name %>" do
+    model = create_model
+    response = subject.patch "/<%= @name %>s/#{model.id}", body: fields_as_params
+
+    response.headers["Location"].should eq "/<%= @name %>s"
+    response.status_code.should eq(302)
+    response.body.should eq "302"
   end
 
-  describe "delete" do
-    it "deletes a <%= @name %>" do
-      subject = create_subject
-      delete "/<%= @name %>s/#{subject.id}"
-      result = <%= class_name %>.find subject.id
-      result.should eq nil
-    end
+  it "deletes a <%= @name %>" do
+    model = create_model
+    response = subject.delete "/<%= @name %>s/#{model.id}"
+
+    response.headers["Location"].should eq "/<%= @name %>s"
+    response.status_code.should eq(302)
+    response.body.should eq "302"
   end
 end
