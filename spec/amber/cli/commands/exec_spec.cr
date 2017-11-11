@@ -7,25 +7,39 @@ module Amber::CLI
   describe "amber exec" do
     cleanup
     scaffold_app(TESTING_APP)
+    `shards`
 
     it "executes one-liners from the first command-line argument" do
-      MainCommand.run(["exec", "[:a, :b, :c] + [:d]"]).should eq "[:a, :b, :c, :d]\n"
+      expected_result = "[:a, :b, :c, :d]\n"
+      MainCommand.run(["exec", "[:a, :b, :c] + [:d]"])
+      File.read(Dir.glob("./tmp/*_console_result.log").last?.to_s).should eq expected_result
     end
 
     it "executes a .cr file from the first command-line argument" do
       File.write "amber_exec_spec_test.cr", "puts([:a] + [:b])"
-      MainCommand.run(["exec", "amber_exec_spec_test.cr"]).should eq "[:a, :b]\n"
+      MainCommand.run(["exec", "amber_exec_spec_test.cr", "-e", "tail"])
+      File.read(Dir.glob("./tmp/*_console_result.log").last?.to_s).should eq "[:a, :b]\n"
       File.delete("amber_exec_spec_test.cr")
     end
 
-    it "attempts to run the specified editor in zero-arg mode" do
-      MainCommand.run(["exec", "-e", "a-non-existent-editor"]).should eq ""
+    it "opens editor and executes .cr file on close" do
+      MainCommand.run(["exec", "-e", "echo 'puts 1000' > "])
+      File.read(Dir.glob("./tmp/*_console_result.log").last?.to_s).should eq "1000\n"
+    end
+
+    it "copies previous run into new files for editing and runs it returning results" do
+      MainCommand.run(["exec", "1337"])
+      MainCommand.run(["exec", "-e", "tail", "-b", "1"])
+      File.read(Dir.glob("./tmp/*_console_result.log").last?.to_s).should eq "1337\n"
     end
 
     cleanup
 
     it "complains if not in the root of a project" do
-      MainCommand.run(["exec", ":hello"]).should eq "error: 'amber exec' can only be used from the root of a valid amber project"
+      expected_result = "Error: 'amber exec' can only be used from the root of a valid amber project"
+      MainCommand.run(["exec", ":hello"])
+      File.read(Dir.glob("./tmp/*_console_result.log").last?.to_s).should eq expected_result
     end
+    cleanup
   end
 end
