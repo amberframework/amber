@@ -24,16 +24,12 @@ module Amber::CLI
 
     it "opens editor and executes .cr file on close" do
       MainCommand.run(["exec", "-e", "echo 'puts 1000' > "])
-      sleep 1
       File.read(Dir.glob("./tmp/*_console_result.log").last?.to_s).should eq "1000\n"
     end
 
     it "copies previous run into new file for editing and runs it returning results" do
-      MainCommand.run(["exec", "1337"])
-      sleep 1
       MainCommand.run(["exec", "-e", "tail", "-b", "1"])
-      sleep 1
-      File.read(Dir.glob("./tmp/*_console_result.log").last?.to_s).should eq "1337\n"
+      File.read(Dir.glob("./tmp/*_console_result.log").last?.to_s).should eq "1000\n"
     end
 
     cleanup
