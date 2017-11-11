@@ -5,9 +5,11 @@ module Amber::DSL::Server
     end
   end
 
-  macro pipeline(valve)
-    handler.build {{valve}} do
-      {{yield}}
-    end
+  macro pipeline(*valves)
+    {% for valve in valves %}
+      handler.build {{valve}} do
+        {{yield}}
+      end
+    {% end %}
   end
 end
