@@ -20,7 +20,7 @@ secrets:
   when "mysql" -%>
   database: mysql://root@localhost:3306/<%= database_name_base %>
 <%when "pg" -%>
-  database: postgres://postgres:@pg:5432/<%= database_name_base %>
+  database: postgres://postgres:@localhost:5432/<%= database_name_base %>
 <%when "sqlite" -%>
   database: sqlite3:./db/<%= database_name_base %>.db
 <%end -%>

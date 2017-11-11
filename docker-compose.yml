@@ -1,5 +1,13 @@
 version: '2'
 services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=test_app_development
+  redis:
+    image: redis:3.2-alpine
+    command: redis-server
   spec:
     build: .
     command: 'bash -c "cd /app/user && crystal spec -D run_build_tests"'
@@ -7,9 +15,7 @@ services:
     environment:
       REDIS_URL: 'redis://redis:6379'
       AMBER_ENV: test
+      CI: "true"
     depends_on:
       - redis
-
-  redis:
-    image: redis:3.2-alpine
-    command: redis-server
+      - db
