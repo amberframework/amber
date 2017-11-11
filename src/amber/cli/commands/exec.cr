@@ -6,7 +6,7 @@ module Amber::CLI
 
     class Exec < ::Cli::Command
       command_name "exec"
-      @filename = "./tmp/#{Time.now.epoch}_console.cr"
+      @filename = "./tmp/#{Time.now.epoch_ms}_console.cr"
 
       class Options
         arg "code", desc: "Crystal code or .cr file to execute within the application scope", default: ""
@@ -22,7 +22,7 @@ module Amber::CLI
         _filename = if File.exists?(args.code)
                       args.code
                     elsif options.back.to_i(strict: false) > 0
-                      Dir.glob("./tmp/*_console.cr").reverse[options.back.to_i(strict: false) - 1]?
+                      Dir.glob("./tmp/*_console.cr").sort.reverse[options.back.to_i(strict: false) - 1]?
                     end
 
         system("cp #{_filename} #{@filename}") if _filename
