@@ -32,9 +32,10 @@ module Amber::CLI
     end
 
     it "copies previous run into new file for editing and runs it returning results" do
+      MainCommand.run(["exec", "1337"])
       MainCommand.run(["exec", "-e", "tail", "-b", "1"])
       logs = `ls tmp/*_console_result.log`.strip.split(/\s/)
-      File.read(logs.last?.to_s).should eq "1000\n"
+      File.read(logs.last?.to_s).should eq "1337\n"
     end
 
     cleanup
