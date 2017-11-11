@@ -27,7 +27,7 @@ module Amber::CLI
       File.read(Dir.glob("./tmp/*_console_result.log").last?.to_s).should eq "1000\n"
     end
 
-    it "copies previous run into new files for editing and runs it returning results" do
+    it "copies previous run into new file for editing and runs it returning results" do
       MainCommand.run(["exec", "1337"])
       MainCommand.run(["exec", "-e", "tail", "-b", "1"])
       File.read(Dir.glob("./tmp/*_console_result.log").last?.to_s).should eq "1337\n"
