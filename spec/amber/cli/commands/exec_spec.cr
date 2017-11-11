@@ -12,6 +12,8 @@ module Amber::CLI
     it "executes one-liners from the first command-line argument" do
       expected_result = "[:a, :b, :c, :d]\n"
       MainCommand.run(["exec", "[:a, :b, :c] + [:d]"])
+
+      # This one weird trick, to make the specs pass in linux leaves scientists puzzled.
       Dir.glob("tmp/*")
       logs = Dir.glob("./tmp/*_console_result.log")
       File.read(logs.last?.to_s).should eq expected_result
