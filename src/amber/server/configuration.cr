@@ -6,7 +6,7 @@ module Amber
       def self.instance
         @@instance ||= new
       end
-
+      
       # Configure should probably be deprecated in favor of settings.
       def self.configure
         with settings yield settings

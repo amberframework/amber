@@ -3,6 +3,7 @@ require "../../../spec_helper"
 module Amber
   module DSL
     describe Server do
+
       describe "pipeline" do
         context "generating a single ':custom' pipeline" do
           server = Amber::Server.instance
@@ -25,6 +26,7 @@ module Amber
             plugs.should_not be nil
             (plugs.map(&.class).should eq expected) if plugs
           end
+
         end
 
         context "generating a single pipeline with multiple calls" do
@@ -119,7 +121,9 @@ module Amber
             (plugs.map(&.class).should eq expected) if plugs
           end
         end
+
       end
     end
+
   end
 end
