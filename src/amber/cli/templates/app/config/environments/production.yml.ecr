@@ -1,5 +1,5 @@
 secret_key_base: <%= SecureRandom.urlsafe_base64(32) %>
-port: 80
+port: <%= (ENV["PORT"] ||= "80").to_i %>
 name: <%= @name %>
 log: "::Logger.new(STDOUT)"
 log_level: "::Logger::INFO"
