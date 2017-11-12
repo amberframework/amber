@@ -1,5 +1,3 @@
-<% field_name = @fields.first.name -%>
-<% human_name = @name.split("_").map(&.capitalize).join(" ") %>
 require "./spec_helper"
 
 def hash_value
@@ -14,7 +12,7 @@ def fields_as_params
  params.join("&")
 end
 
-def create_model
+def create_<%= @name.downcase %>
   model = <%= class_name %>.new(hash_value)
   model.save
   model
@@ -38,47 +36,48 @@ end
 describe <%= class_name %>ControllerTest do
   subject = <%= class_name %>ControllerTest.new
 
-  Spec.before_each do
-    <%= class_name %>.clear
-  end
-
   it "renders <%= @name %> index template" do
+    <%= class_name %>.clear
     response = subject.get "/<%= @name %>s"
 
     response.status_code.should eq(200)
-    response.body.should contain("<%= human_name %>s")
+    response.body.should contain("<%= display_name %>s")
   end
 
   it "renders <%= @name %> show template" do
-    model = create_model
+    <%= class_name %>.clear
+    model = create_<%= @name.downcase %>
     location = "/<%= @name %>s/#{model.id}"
 
     response = subject.get location
 
     response.status_code.should eq(200)
-    response.body.should contain("Show <%= human_name %>")
+    response.body.should contain("Show <%= display_name %>")
   end
 
   it "renders <%= @name %> new template" do
+    <%= class_name %>.clear
     location = "/<%= @name %>s/new"
 
     response = subject.get location
 
     response.status_code.should eq(200)
-    response.body.should contain("New <%= human_name %>")
+    response.body.should contain("New <%= display_name %>")
   end
 
   it "renders <%= @name %> edit template" do
-    model = create_model
+    <%= class_name %>.clear
+    model = create_<%= @name.downcase %>
     location = "/<%= @name %>s/#{model.id}/edit"
 
     response = subject.get location
 
     response.status_code.should eq(200)
-    response.body.should contain("Edit <%= human_name %>")
+    response.body.should contain("Edit <%= display_name %>")
   end
 
   it "creates a <%= @name %>" do
+    <%= class_name %>.clear
     response = subject.post "/<%= @name %>s", body: fields_as_params
 
     response.headers["Location"].should eq "/<%= @name %>s"
@@ -87,7 +86,8 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "updates a <%= @name %>" do
-    model = create_model
+    <%= class_name %>.clear
+    model = create_<%= @name.downcase %>
     response = subject.patch "/<%= @name %>s/#{model.id}", body: fields_as_params
 
     response.headers["Location"].should eq "/<%= @name %>s"
@@ -96,7 +96,8 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "deletes a <%= @name %>" do
-    model = create_model
+    <%= class_name %>.clear
+    model = create_<%= @name.downcase %>
     response = subject.delete "/<%= @name %>s/#{model.id}"
 
     response.headers["Location"].should eq "/<%= @name %>s"

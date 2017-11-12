@@ -39,7 +39,7 @@ module Amber::CLI
       build_result = `shards build #{TEST_APP_NAME}`
       puts "#{TESTING_APP} build completed..."
 
-      it `generates a binary` do
+      it "generates a binary" do
         puts build_result unless File.exists?("bin/#{TEST_APP_NAME}")
         File.exists?("bin/#{TEST_APP_NAME}").should be_true
       end
@@ -62,7 +62,6 @@ module Amber::CLI
       end
     end
   ensure
-    cleanup
   end
 end
 {% end %}
