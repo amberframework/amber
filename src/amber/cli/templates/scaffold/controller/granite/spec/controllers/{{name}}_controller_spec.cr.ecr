@@ -1,20 +1,22 @@
-<% field_name = @fields.first.name -%>
+<% params_name =  "#{@name.downcase}_params" -%>
+<% hash_name   =  "#{@name.downcase}_hash" -%>
+<% model_name  =  "create_#{@name.downcase}" -%>
 require "./spec_helper"
 
-def hash_value
-<%= @fields_hash.to_s %>
+def <%= hash_name %>
+  <%= @fields_hash.to_s %>
 end
 
-def fields_as_params
- params = [] of String
- <%- @fields_hash.keys.map do |k| -%>
- params << "<%= k %>=#{hash_value["<%= k %>"]}"
- <%- end -%>
- params.join("&")
+def <%= params_name %>
+  params = [] of String
+  <%- @fields_hash.keys.map do |k| -%>
+  params << "<%= k %>=#{<%= hash_name %>["<%= k %>"]}"
+  <%- end -%>
+  params.join("&")
 end
 
-def create_<%= @name.downcase %>
-  model = <%= class_name %>.new(hash_value)
+def <%= model_name %>
+  model = <%= class_name %>.new(<%= hash_name %>)
   model.save
   model
 end
@@ -68,7 +70,7 @@ describe <%= class_name %>ControllerTest do
 
   it "renders <%= @name %> edit template" do
     <%= class_name %>.clear
-    model = create_<%= @name.downcase %>
+    model = <%= model_name %>
     location = "/<%= @name %>s/#{model.id}/edit"
 
     response = subject.get location
@@ -79,7 +81,7 @@ describe <%= class_name %>ControllerTest do
 
   it "creates a <%= @name %>" do
     <%= class_name %>.clear
-    response = subject.post "/<%= @name %>s", body: fields_as_params
+    response = subject.post "/<%= @name %>s", body: <%= params_name %>
 
     response.headers["Location"].should eq "/<%= @name %>s"
     response.status_code.should eq(302)
@@ -88,8 +90,8 @@ describe <%= class_name %>ControllerTest do
 
   it "updates a <%= @name %>" do
     <%= class_name %>.clear
-    model = create_<%= @name.downcase %>
-    response = subject.patch "/<%= @name %>s/#{model.id}", body: fields_as_params
+    model = <%= model_name %>
+    response = subject.patch "/<%= @name %>s/#{model.id}", body: <%= params_name %>
 
     response.headers["Location"].should eq "/<%= @name %>s"
     response.status_code.should eq(302)
@@ -98,7 +100,7 @@ describe <%= class_name %>ControllerTest do
 
   it "deletes a <%= @name %>" do
     <%= class_name %>.clear
-    model = create_<%= @name.downcase %>
+    model = <%= model_name %>
     response = subject.delete "/<%= @name %>s/#{model.id}"
 
     response.headers["Location"].should eq "/<%= @name %>s"
