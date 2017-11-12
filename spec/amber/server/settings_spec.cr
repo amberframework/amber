@@ -18,4 +18,11 @@ describe Amber::Settings do
     }
     settings.secrets.should eq expected_secrets
   end
+
+  it "loads environment settings from test.yml with env overload for port." do
+    ENV["PORT"] = "1337"
+    settings = Amber::Settings.new
+
+    settings.port.should eq 1337
+  end
 end
