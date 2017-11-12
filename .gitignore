@@ -8,3 +8,5 @@ lib/
 /amber
 /tmp
 shard.lock
+package-lock.json
+node_modules
