@@ -62,6 +62,7 @@ module Amber::CLI
       end
     end
   ensure
+    cleanup
   end
 end
 {% end %}
