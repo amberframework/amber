@@ -1,5 +1,5 @@
 require "spec"
-require "amber_spec"
+require "garnet_spec"
 require "../config/*"
 
 module Spec
