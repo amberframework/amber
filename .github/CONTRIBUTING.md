@@ -105,6 +105,7 @@ Both issue lists are sorted by total number of comments. While not perfect, numb
 * Include thoughtfully-worded, well-structured
 * End files with a newline.
 * Format your code with `crystal tool format`
+* Build `amber.min.js` executing `npm install && npm run build` if `amber.js` has been changed
 * Specs Styleguide
 
 ## Coding Style Guides
