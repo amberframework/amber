@@ -41,7 +41,11 @@ module Amber
       end
 
       def self.router
-        settings.router
+        instance.router
+      end
+
+      def self.handler
+        instance.handler
       end
 
       def self.handler

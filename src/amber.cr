@@ -19,6 +19,8 @@ require "./amber/websockets/**"
 module Amber
   class Server
     include Amber::Configuration
+    getter handler = Pipe::Pipeline.new
+    getter router = Router::Router.new
 
     def initialize
       settings.log.level = ::Logger::INFO
