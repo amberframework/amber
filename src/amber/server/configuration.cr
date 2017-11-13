@@ -1,6 +1,9 @@
 module Amber
   module Configuration
     macro included
+      include Amber::DSL::Server
+      alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
+      property pubsub_adapter : WebSocketAdapter = WebSockets::Adapters::MemoryAdapter
       property settings = Settings.new
 
       def self.instance
@@ -9,11 +12,7 @@ module Amber
 
       # Configure should probably be deprecated in favor of settings.
       def self.configure
-        with settings yield settings
-      end
-
-      def self.settings(&block)
-        with settings yield settings
+        with self yield settings
       end
 
       def self.settings
@@ -37,7 +36,7 @@ module Amber
       end
 
       def self.pubsub_adapter
-        settings.pubsub_adapter.instance
+        instance.pubsub_adapter.instance
       end
 
       def self.router
