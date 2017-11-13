@@ -1,6 +1,6 @@
-<% params_name =  "#{@name.downcase}_params" -%>
-<% hash_name   =  "#{@name.downcase}_hash" -%>
-<% model_name  =  "create_#{@name.downcase}" -%>
+<% params_name =  "#{@name.underscore}_params" -%>
+<% hash_name   =  "#{@name.underscore}_hash" -%>
+<% create_model_method  =  "create_#{@name.underscore}" -%>
 require "./spec_helper"
 
 def <%= hash_name %>
@@ -15,7 +15,7 @@ def <%= params_name %>
   params.join("&")
 end
 
-def <%= model_name %>
+def <%= create_model_method %>
   model = <%= class_name %>.new(<%= hash_name %>)
   model.save
   model
@@ -70,7 +70,7 @@ describe <%= class_name %>ControllerTest do
 
   it "renders <%= @name %> edit template" do
     <%= class_name %>.clear
-    model = <%= model_name %>
+    model = <%= create_model_method %>
     location = "/<%= @name %>s/#{model.id}/edit"
 
     response = subject.get location
@@ -90,7 +90,7 @@ describe <%= class_name %>ControllerTest do
 
   it "updates a <%= @name %>" do
     <%= class_name %>.clear
-    model = <%= model_name %>
+    model = <%= create_model_method %>
     response = subject.patch "/<%= @name %>s/#{model.id}", body: <%= params_name %>
 
     response.headers["Location"].should eq "/<%= @name %>s"
@@ -100,7 +100,7 @@ describe <%= class_name %>ControllerTest do
 
   it "deletes a <%= @name %>" do
     <%= class_name %>.clear
-    model = <%= model_name %>
+    model = <%= create_model_method %>
     response = subject.delete "/<%= @name %>s/#{model.id}"
 
     response.headers["Location"].should eq "/<%= @name %>s"
