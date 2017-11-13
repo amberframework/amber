@@ -1,9 +1,6 @@
 module Amber
   module Configuration
     macro included
-      include Amber::DSL::Server
-      alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
-      property pubsub_adapter : WebSocketAdapter = WebSockets::Adapters::MemoryAdapter
       property settings = Settings.new
 
       def self.instance
@@ -45,10 +42,6 @@ module Amber
 
       def self.handler
         instance.handler
-      end
-
-      def self.handler
-        settings.handler
       end
 
       def self.redis_url
