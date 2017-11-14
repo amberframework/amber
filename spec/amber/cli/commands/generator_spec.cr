@@ -226,14 +226,6 @@ module Amber::CLI
         end
       end
     end
-
-    context "with the above generated files" do
-      it "builds and compile the App in bin directory" do
-        `shards build #{TEST_APP_NAME}`
-        File.exists?("bin/#{TEST_APP_NAME}").should be_true
-      end
-
-      cleanup
-    end
+    cleanup
   end
 end

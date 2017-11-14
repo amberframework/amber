@@ -6,4 +6,4 @@ ADD . /app/user
 
 RUN crystal deps
 
-CMD ["crystal", "spec"]
+CMD ["crystal", "spec", "-D", "run_build_tests"]

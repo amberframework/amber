@@ -5,10 +5,6 @@ require "./ssl"
 module Amber
   class Settings
     include Amber::DSL::Server
-    alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
-    getter handler = Pipe::Pipeline.new
-    getter router = Router::Router.new
-    property pubsub_adapter : WebSocketAdapter = WebSockets::Adapters::MemoryAdapter
     property port_reuse : Bool
     property log : ::Logger
     property color : Bool = true

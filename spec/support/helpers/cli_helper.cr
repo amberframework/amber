@@ -57,6 +57,13 @@ module CLIHelper
     File.write("#{path}/shard.yml", shard)
   end
 
+  def prepare_db_yml
+    yml_path = "./config/database.yml"
+    db_yml = File.read(yml_path)
+    db_yml = db_yml.gsub("@localhost:5432", "@db:5432")
+    File.write(yml_path, db_yml)
+  end
+
   def scaffold_app(app_name, *options)
     Amber::CLI::MainCommand.run ["new", app_name] | options.to_a
     Dir.cd(app_name)
