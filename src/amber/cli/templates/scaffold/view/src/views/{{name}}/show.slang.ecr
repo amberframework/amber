@@ -1,3 +1,4 @@
+h1 Show <%= display_name %>
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
 p = <%= @name %>.<%= field.name %><%= field.reference? ? ".id" : "" %>
 <% end -%>
