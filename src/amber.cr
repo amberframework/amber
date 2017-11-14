@@ -18,7 +18,12 @@ require "./amber/websockets/**"
 
 module Amber
   class Server
+    include Amber::DSL::Server
     include Amber::Configuration
+    alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
+    property pubsub_adapter : WebSocketAdapter = WebSockets::Adapters::MemoryAdapter
+    getter handler = Pipe::Pipeline.new
+    getter router = Router::Router.new
 
     def initialize
       settings.log.level = ::Logger::INFO
@@ -44,8 +49,8 @@ module Amber
     def start
       time = Time.now
       settings.log.info "#{version} serving application \"#{settings.name}\" at #{host_url}".to_s
-      settings.handler.prepare_pipelines
-      server = HTTP::Server.new(settings.host, settings.port, settings.handler)
+      handler.prepare_pipelines
+      server = HTTP::Server.new(settings.host, settings.port, handler)
       server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
 
       Signal::INT.trap do

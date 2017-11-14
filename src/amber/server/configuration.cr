@@ -9,11 +9,7 @@ module Amber
 
       # Configure should probably be deprecated in favor of settings.
       def self.configure
-        with settings yield settings
-      end
-
-      def self.settings(&block)
-        with settings yield settings
+        with self yield settings
       end
 
       def self.settings
@@ -37,15 +33,15 @@ module Amber
       end
 
       def self.pubsub_adapter
-        settings.pubsub_adapter.instance
+        instance.pubsub_adapter.instance
       end
 
       def self.router
-        settings.router
+        instance.router
       end
 
       def self.handler
-        settings.handler
+        instance.handler
       end
 
       def self.redis_url
