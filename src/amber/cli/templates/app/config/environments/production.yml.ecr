@@ -1,5 +1,5 @@
 secret_key_base: <%= SecureRandom.urlsafe_base64(32) %>
-port: 80
+port: <%= (ENV["PORT"] ||= "80").to_i %>
 name: <%= @name %>
 log: "::Logger.new(STDOUT)"
 log_level: "::Logger::INFO"
@@ -20,7 +20,7 @@ secrets:
   when "mysql" -%>
   database: mysql://root@localhost:3306/<%= database_name_base %>
 <%when "pg" -%>
-  database: postgres://postgres:@pg:5432/<%= database_name_base %>
+  database: postgres://postgres:@localhost:5432/<%= database_name_base %>
 <%when "sqlite" -%>
   database: sqlite3:./db/<%= database_name_base %>.db
 <%end -%>

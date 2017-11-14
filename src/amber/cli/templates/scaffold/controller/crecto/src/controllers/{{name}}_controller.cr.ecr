@@ -15,13 +15,13 @@ class <%= class_name %>Controller < ApplicationController
 
   def new
     <%= @name %> = <%= class_name %>.new
-    changeset = <%= class_name %>.changeset(<%= @name %>) 
+    changeset = <%= class_name %>.changeset(<%= @name %>)
     render("new.<%= @language %>")
   end
 
   def create
     <%= @name %> = <%= class_name %>.new
-    <%= @name %>.update_from_hash(params.to_h.select(<%= @visible_fields %>))
+    <%= @name %>.update_from_hash(params.to_h.select(<%= @name %>_params.validate!))
     changeset = Repo.insert(<%= @name %>)
 
     if changeset.errors.any?
@@ -45,7 +45,7 @@ class <%= class_name %>Controller < ApplicationController
 
   def update
     if <%= @name %> = Repo.get(<%= class_name %>, params["id"])
-      <%= @name %>.update_from_hash(params.to_h.select(<%= @visible_fields %>))
+      <%= @name %>.update_from_hash(params.to_h.select(<%= @name %>_params.validate!))
       changeset = Repo.update(<%= @name %>)
 
       if changeset.errors.any?
@@ -68,5 +68,13 @@ class <%= class_name %>Controller < ApplicationController
       flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
     end
     redirect_to "/<%= @name %>s"
+  end
+
+  def <%= @name %>_params
+    params.validation do
+      <%- @fields_hash.keys.each do |k| -%>
+      required(:<%= k %>) { |f| !f.nil? }
+      <%- end -%>
+    end
   end
 end
