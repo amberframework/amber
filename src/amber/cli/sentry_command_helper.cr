@@ -16,7 +16,7 @@ module Sentry
         {
           name:         name,
           process_name: "./bin/#{name}",
-          build:        "crystal build ./src/#{name}.cr -o bin/#{name}",
+          build:        "mkdir -p bin && crystal build ./src/#{name}.cr -o bin/#{name}",
           watch:        ["./src/**/*.cr", "./src/**/*.ecr"],
         }
       end
