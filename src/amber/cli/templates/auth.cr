@@ -22,7 +22,7 @@ module Amber::CLI
       @fields += %w(created_at:time updated_at:time).map do |f|
         Field.new(f, hidden: true, database: @database)
       end
-      @timestamp = Time.now.to_s("%Y%m%d%H%M%S")
+      @timestamp = Time.now.to_s("%Y%m%d%H%M%S%L")
       @primary_key = primary_key
       @visible_fields = @fields.reject(&.hidden).map(&.name)
 
