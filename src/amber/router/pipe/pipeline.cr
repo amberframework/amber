@@ -39,15 +39,11 @@ module Amber
 
       def prepare_pipelines
         pipeline.keys.each do |valve|
-          @drain[valve] ||= build_pipeline(
-            pipeline[valve],
-            ->(context : HTTP::Server::Context) {
-              context.process_request
-            })
+          @drain[valve] ||= build_pipeline(pipeline[valve], Amber::Pipe::Last.new)
         end
       end
 
-      def build_pipeline(pipes, last_pipe : (HTTP::Server::Context ->))
+      def build_pipeline(pipes, last_pipe : HTTP::Handler | (HTTP::Server::Context ->))
         if pipes.empty?
           last_pipe
         else
