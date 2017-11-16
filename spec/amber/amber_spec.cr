@@ -16,9 +16,12 @@ describe Amber do
   end
 
   describe Amber::Server do
+    server = Amber::Server.instance
+
     describe ".configure" do
       it "overrides enviroment settings" do
-        Amber::Server.instance.settings = Amber::Settings.new
+        server.settings = Amber::Settings.new
+
         Amber::Server.configure do |server|
           server.name = "Hello World App"
           server.port = 8080
@@ -36,7 +39,8 @@ describe Amber do
       end
 
       it "retains environment.yml settings that haven't been overwritten" do
-        Amber::Server.instance.settings = Amber::Settings.new
+        server.settings = Amber::Settings.new
+
         Amber::Server.configure do |server|
           server.name = "New name"
           server.port = 8080
@@ -61,7 +65,7 @@ describe Amber do
       end
 
       it "defines socket endpoint" do
-        Amber::Server.settings.router.socket_routes = [] of NamedTuple(path: String, handler: Amber::WebSockets::Server::Handler)
+        Amber::Server.router.socket_routes = [] of NamedTuple(path: String, handler: Amber::WebSockets::Server::Handler)
 
         Amber::Server.configure do |app|
           pipeline :web do
@@ -73,7 +77,7 @@ describe Amber do
           end
         end
 
-        router = Amber::Server.settings.router
+        router = Amber::Server.router
         websockets = router.socket_routes
 
         websockets[0][:path].should eq "/user"
