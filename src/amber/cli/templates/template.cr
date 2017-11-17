@@ -31,6 +31,11 @@ module Amber::CLI
       end
 
       @directory = File.join(directory)
+      
+      if !Dir.empty?(@directory)
+        raise "Directory #{@directory} is not empty"
+      end
+
       unless Dir.exists?(@directory)
         Dir.mkdir_p(@directory)
       end
