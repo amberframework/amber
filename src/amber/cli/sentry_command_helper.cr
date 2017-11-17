@@ -15,8 +15,8 @@ module Sentry
         name = Options.get_name
         {
           name:         name,
-          process_name: "./#{name}",
-          build:        "crystal build ./src/#{name}.cr",
+          process_name: "./bin/#{name}",
+          build:        "mkdir -p bin && crystal build ./src/#{name}.cr -o bin/#{name}",
           watch:        ["./src/**/*.cr", "./src/**/*.ecr"],
         }
       end
