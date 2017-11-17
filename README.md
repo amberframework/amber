@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/amberframework/amber/blob/master/media/amber.png" width="200">
+  <img src="https://github.com/amberframework/site-assets/blob/master/amber.png" width="200">
   <p align="center">Productivity. Performance. Happiness.<p>
   <p align="center">
     <sup>
