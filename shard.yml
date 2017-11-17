@@ -45,10 +45,6 @@ dependencies:
     github: samueleaton/sentry
     version: ~> 0.1.0
 
-  icr:
-    github: crystal-community/icr
-    version: ~> 0.3.0
-
   micrate:
     github: juanedi/micrate
     version: ~> 0.3.0

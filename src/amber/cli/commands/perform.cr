@@ -1,4 +1,3 @@
-require "icr"
 require "cli"
 require "../../tasks/runner"
 
