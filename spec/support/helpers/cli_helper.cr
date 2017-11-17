@@ -19,16 +19,16 @@ module CLIHelper
     path ? path.split('/').last : ""
   end
 
-  def db_yml
-    YAML.parse(File.read("#{TESTING_APP}/config/database.yml"))
+  def db_yml(path = TESTING_APP)
+    YAML.parse(File.read("#{path}/config/database.yml"))
   end
 
-  def amber_yml
-    YAML.parse(File.read("#{TESTING_APP}/.amber.yml"))
+  def amber_yml(path = TESTING_APP)
+    YAML.parse(File.read("#{path}/.amber.yml"))
   end
 
-  def shard_yml
-    YAML.parse(File.read("#{TESTING_APP}/shard.yml"))
+  def shard_yml(path = TESTING_APP)
+    YAML.parse(File.read("#{path}/shard.yml"))
   end
 
   def environment_yml(environment : String)
