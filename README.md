@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/amberframework/site-assets/blob/master/amber.png" width="200">
+  <img src="https://github.com/amberframework/site-assets/raw/master/images/amber.png" width="200">
   <p align="center">Productivity. Performance. Happiness.<p>
   <p align="center">
     <sup>
@@ -231,10 +231,11 @@ Amber is a community effort and we want You to be part of ours [Join Amber Commu
 
 ## Amber Core Team
 
-- [eliasjpr](https://github.com/eliasjpr) Elias Perez - Maintainer
-- [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
-- [elorest](https://github.com/elorest) Isaac Sloan - Maintainer
 - [drujensen](https://github.com/drujensen) Dru Jensen - Maintainer
+- [eliasjpr](https://github.com/eliasjpr) Elias Perez - Maintainer
+- [elorest](https://github.com/elorest) Isaac Sloan - Maintainer
+- [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
+
 
 ## License
 
