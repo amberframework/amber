@@ -9,8 +9,8 @@ module Amber::CLI
   describe "database" do
     describe "sqlite" do
       cleanup
-			scaffold_app(TESTING_APP, "-d", "sqlite")
-			db_filename = db_yml("./")["sqlite"]["database"].to_s.sub("sqlite3:", "")
+      scaffold_app(TESTING_APP, "-d", "sqlite")
+      db_filename = db_yml("./")["sqlite"]["database"].to_s.sub("sqlite3:", "")
 
       it "does not create the database when `db create`" do
         MainCommand.run ["db", "create"]
