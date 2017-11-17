@@ -1,4 +1,5 @@
 require "../version"
+require "cli"
 require "./commands/*"
 require "./templates/template"
 
