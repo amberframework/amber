@@ -1,13 +1,29 @@
 module CLIHelper
+  BASE_ENV_PATH = "./config/environments/"
+  ENV_CONFIG_PATH = "#{TESTING_APP}/config/environments/"
+  CURRENT_ENVIRONMENT = ENV["AMBER_ENV"] ||= "test"
+  ENVIRONMENTS = %w(development test)
+
   def cleanup
     puts "cleaning up..."
     Dir.cd CURRENT_DIR
-    `rm -rf #{TESTING_APP}`
+    `rm -rf ./tmp/`
   end
 
   def dirs(for app)
     gen_dirs = Dir.glob("#{app}/**/*").select { |e| Dir.exists? e }
     gen_dirs.map { |dir| dir[(app.size + 1)..-1] }
+  end
+
+  def expected_db_url(db_key, env)
+    case db_key
+    when "pg"
+      expected_db_url = "postgres://postgres:@localhost:5432/#{TEST_APP_NAME}_#{env}"
+    when "mysql"
+      expected_db_url = "#{db_key}://root@localhost:3306/#{TEST_APP_NAME}_#{env}"
+    else
+      expected_db_url = "#{db_key}:./db/#{TEST_APP_NAME}_#{env}.db"
+    end
   end
 
   def db_name(db_url : String) : String
@@ -19,8 +35,8 @@ module CLIHelper
     path ? path.split('/').last : ""
   end
 
-  def db_yml(path = TESTING_APP)
-    YAML.parse(File.read("#{path}/config/database.yml"))
+  def db_yml(path = CURRENT_ENV_PATH)
+    YAML.parse(File.read(path))
   end
 
   def amber_yml(path = TESTING_APP)
@@ -31,8 +47,8 @@ module CLIHelper
     YAML.parse(File.read("#{path}/shard.yml"))
   end
 
-  def environment_yml(environment : String)
-    YAML.parse(File.read("#{TESTING_APP}/config/environments/#{environment}.yml"))
+  def environment_yml(environment : String, path = ENV_CONFIG_PATH)
+    YAML.parse(File.read("#{path}#{environment}.yml"))
   end
 
   def development_yml
@@ -57,11 +73,10 @@ module CLIHelper
     File.write("#{path}/shard.yml", shard)
   end
 
-  def prepare_db_yml
-    yml_path = "./config/database.yml"
-    db_yml = File.read(yml_path)
+  def prepare_db_yml(path = ENV_CONFIG_PATH)
+    db_yml = File.read("#{path}#{CURRENT_ENVIRONMENT}.yml")
     db_yml = db_yml.gsub("@localhost:5432", "@db:5432")
-    File.write(yml_path, db_yml)
+    File.write("#{path}#{CURRENT_ENVIRONMENT}.yml", db_yml)
   end
 
   def scaffold_app(app_name, *options)
