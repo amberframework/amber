@@ -2,6 +2,7 @@ require "micrate"
 require "pg"
 require "mysql"
 require "sqlite3"
+require "../../../amber.cr"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
@@ -21,7 +22,7 @@ module Amber::CLI
 
       def run
         Micrate::Cli.setup_logger
-        Micrate::DB.connection_url = database_url
+        Micrate::DB.connection_url = Amber::Server.settings.database_url
         begin
           case args.command
           when "up"
@@ -46,25 +47,6 @@ module Amber::CLI
         rescue e : Exception
           puts e.message
           exit 1
-        end
-      end
-
-      def database_url
-        ENV["DATABASE_URL"]? || begin
-          yaml_file = File.read("config/database.yml")
-          yaml = YAML.parse(yaml_file)
-          db = yaml.first.to_s
-          settings = yaml[db]
-          env(settings["database"].to_s)
-        end
-      end
-
-      private def env(value)
-        env_var = value.gsub("${", "").gsub("}", "")
-        if ENV.has_key? env_var
-          return ENV[env_var]
-        else
-          return value
         end
       end
     end
