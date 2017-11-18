@@ -15,6 +15,7 @@ module Amber
     property host : String
     property ssl_key_file : String? = nil
     property ssl_cert_file : String? = nil
+    property database_url : String? = nil
     property redis_url = ""
     property session : Hash(Symbol, Symbol | String | Int32)
 

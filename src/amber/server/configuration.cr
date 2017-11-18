@@ -47,6 +47,10 @@ module Amber
       def self.redis_url
         settings.redis_url
       end
+
+      def self.database_url
+        settings.database_url
+      end
     end
   end
 end
