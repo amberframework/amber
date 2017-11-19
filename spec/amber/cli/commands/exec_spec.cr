@@ -12,8 +12,8 @@ module Amber::CLI
       `shards`
 
       it "executes one-liners from the first command-line argument" do
-        expected_result = "[:a, :b, :c, :d]\n"
-        MainCommand.run(["exec", "[:a, :b, :c] + [:d]"])
+        expected_result = "3000\n"
+        MainCommand.run(["exec", "Amber::Server.settings.port"])
         logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
         File.read(logs.last?.to_s).should eq expected_result
       end
@@ -43,13 +43,18 @@ module Amber::CLI
     end
 
     context "outside of project" do
-      it "complains if not in the root of a project" do
-        expected_result = "Error: 'amber exec' can only be used from the root of a valid amber project"
+      it "executes outside of project but without including project" do
+        expected_result = ":hello\n"
         MainCommand.run(["exec", ":hello"])
         logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
         File.read(logs.last?.to_s).should eq expected_result
       end
 
+      it "errors outside of project if referencing amber specific code" do
+        MainCommand.run(["exec", "Amber::Server.settings"])
+        logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
+        File.read(logs.last?.to_s).should contain "undefined constant Amber::Server"
+      end
       cleanup
     end
   end
