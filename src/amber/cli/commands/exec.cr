@@ -39,10 +39,11 @@ module Amber::CLI
         end
 
         result = ""
-        result = `crystal eval 'require "./config/*"; require "#{@filename}"'` if File.exists?(@filename)
-
-        if result.includes?("while requiring \"./config/*\": can't find file './config/*' relative to '.'")
-          result = "Error: 'amber exec' can only be used from the root of a valid amber project"
+        if File.exists?(@filename)
+          eval_cmd = Array(String).new
+          eval_cmd << %(require "./config/*";) if Dir.exists?("config")
+          eval_cmd << %(require "#{@filename}";)
+          result = `crystal eval '#{eval_cmd.join(" ")}'`
         end
 
         File.write(@filename.sub("console.cr", "console_result.log"), result) unless result.blank?
