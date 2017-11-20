@@ -21,15 +21,15 @@ module Amber::CLI
         encrypted_file = "config/environments/.#{env}.enc"
         unencrypted_file = "config/environments/#{env}.yml"
 
-        enc = Amber::Support::MessageEncryptor.new(secret_key)
+        encryptor = Amber::Support::MessageEncryptor.new(secret_key)
 
         if File.exists?(encrypted_file)
-          File.write(unencrypted_file, enc.decrypt(File.open(encrypted_file).gets_to_end.to_slice))
+          File.write(unencrypted_file, encryptor.verify_and_decrypt(File.open(encrypted_file).gets_to_end.to_slice))
           system("#{options.editor} #{unencrypted_file}") unless options.noedit?
         end
 
         if File.exists?(unencrypted_file)
-          File.write(encrypted_file, enc.encrypt(File.read(unencrypted_file)))
+          File.write(encrypted_file, encryptor.encrypt_and_sign(File.read(unencrypted_file)))
           File.delete(unencrypted_file)
         else
           puts "#{env}.yml doesn't exist. Loading defaults!"
