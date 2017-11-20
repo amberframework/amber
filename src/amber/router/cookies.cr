@@ -261,8 +261,8 @@ module Amber::Router
       end
 
       private def verify_and_decrypt(encrypted_message)
-        String.new(@encryptor.verify_and_decrypt(encrypted_message))
-      rescue e # TODO: This should probably actually raise the exception instead of rescueing from it.
+        String.new(@encryptor.verify_and_decrypt(Base64.decode(encrypted_message)))
+      rescue e # TODO: This should probably actually raise the exception instead of rescuing from it.
         ""
       end
     end

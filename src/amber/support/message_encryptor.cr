@@ -15,22 +15,8 @@ module Amber::Support
       @signature_size = 32
     end
 
-    # Encrypt and sign a message. We need to sign the message in order to avoid
-    # padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
-    def encrypt_and_sign(value : Slice(UInt8)) : String
-      verifier.generate(encrypt(value))
-    end
-
-    def encrypt_and_sign(value : String) : String
-      encrypt_and_sign(value.to_slice)
-    end
-
     # Verify and Decrypt a message. We need to verify the message in order to
     # avoid padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
-    def verify_and_decrypt(value : String) : Bytes
-      verify_and_decrypt(Base64.decode(value))
-    end
-
     def verify_and_decrypt(value : Bytes) : Bytes
       signature = value[value.size - @signature_size, @signature_size]
       data_iv = value[0, value.size - @signature_size]
@@ -39,6 +25,12 @@ module Amber::Support
       else
         raise "invalid encryption"
       end
+    end
+
+    # Encrypt and sign a message. We need to sign the message in order to avoid
+    # padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
+    def encrypt_and_sign(value)
+      encrypt(value, sign: true)
     end
 
     def encrypt(value, sign = false)
