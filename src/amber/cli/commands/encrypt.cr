@@ -29,7 +29,7 @@ module Amber::CLI
         end
 
         if File.exists?(unencrypted_file)
-          File.write(encrypted_file, enc.encrypt(File.read(unencrypted_file)))
+          File.write(encrypted_file, enc.encrypt(File.read(unencrypted_file), sign: true))
           File.delete(unencrypted_file)
         else
           puts "#{env}.yml doesn't exist. Loading defaults!"
