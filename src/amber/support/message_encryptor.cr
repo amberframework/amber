@@ -28,7 +28,7 @@ module Amber::Support
     # Verify and Decrypt a message. We need to verify the message in order to
     # avoid padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
     def verify_and_decrypt(value : String) : Bytes
-      verify_and_decrypt(Base64.decode(value)) 
+      verify_and_decrypt(Base64.decode(value))
     end
 
     def verify_and_decrypt(value : Bytes) : Bytes
