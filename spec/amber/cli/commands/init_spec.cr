@@ -71,7 +71,7 @@ module Amber::CLI
       describe "#{db}" do
         %w(development test).each do |env|
           db_key = db == "sqlite" ? "sqlite3" : db
-          db_url = environment_yml(env)["database"].as_s
+          db_url = environment_yml(env)["database_url"].as_s
 
           context "is #{env.upcase}" do
             it "sets #{db} shards dependencies" do
