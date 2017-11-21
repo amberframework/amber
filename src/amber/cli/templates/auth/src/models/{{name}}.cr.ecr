@@ -26,7 +26,7 @@ class <%= class_name %> < Granite::ORM::Base
   end
 
   def password
-    @password ||= (hash = hashed_password) ? Bcrypt::Password.new(hash) : nil
+    (hash = hashed_password) ? Bcrypt::Password.new(hash) : nil
   end
 
   def password_changed?
