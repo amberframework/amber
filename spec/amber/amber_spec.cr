@@ -15,12 +15,44 @@ describe Amber do
     end
   end
 
-  describe Amber::Server do
-    server = Amber::Server.instance
+  describe ".secret_key" do
+    it "load secret key from ENV variable" do
+      ENV[Amber::SECRET_KEY] = "fake encription key"
+      Amber.secret_key.should eq "fake encription key"
+    end
 
+    it "load secrect from .amber_secret_key file" do
+      ENV[Amber::SECRET_KEY] = nil
+      File.write("./.amber_secret_key", "fake secret key")
+      Amber.secret_key.should eq "fake secret key"
+      File.delete("./.amber_secret_key")
+    end
+  end
+
+  describe ".env=" do
+    context "switching environments" do
+      ENV[Amber::SECRET_KEY] = "mnDiAY4OyVjqg5u0wvpr0MoBkOGXBeYo7_ysjwsNzmw"
+
+      it "sets Amber environment from encrypted settings file" do
+        current_settings = Amber.settings
+        Amber.env = :production
+        current_settings.port.should eq 3000
+        Amber.settings.port.should eq 4000
+      end
+
+      it "sets Amber environment from yaml settings file" do
+        current_settings = Amber.settings = Amber.settings
+        Amber.env = :development
+        current_settings.name.should eq "test_settings"
+        Amber.settings.name.should eq "development_settings"
+      end
+    end
+  end
+
+  describe Amber::Server do
     describe ".configure" do
       it "overrides enviroment settings" do
-        server.settings = Amber::Settings.new
+        Amber.env = :test
 
         Amber::Server.configure do |server|
           server.name = "Hello World App"
@@ -30,38 +62,38 @@ describe Amber do
           server.color = false
         end
 
-        settings = Amber::Server.settings
+        settings = Ambe.settings
 
         settings.name.should eq "Hello World App"
         settings.port.should eq 8080
         settings.color.should eq false
-        settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
+        settings.secret_key_base.should eq "ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4"
       end
 
       it "retains environment.yml settings that haven't been overwritten" do
-        server.settings = Amber::Settings.new
+        Amber.env = :test
 
         Amber::Server.configure do |server|
           server.name = "New name"
           server.port = 8080
         end
 
-        settings = Amber::Server.settings
+        settings = Amber.settings
 
         settings.name.should_not eq "Hello World App"
         settings.port_reuse.should eq true
         settings.redis_url.should eq "#{ENV["REDIS_URL"]? || "redis://localhost:6379"}"
         settings.color.should eq true
-        settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
+        settings.secret_key_base.should eq "ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4"
         expected_session = {:key => "amber.session", :store => :signed_cookie, :expires => 0}
         settings.session.should eq expected_session
         settings.port.should_not eq 3000
         settings.database_url.should eq "mysql://root@localhost:3306/amber_test_app_test"
         expected_secrets = {
-          description: "Store your test secrets credentials and settings here.",
+          "description" => "Store your test secrets credentials and settings here.",
         }
         settings.secrets.should eq expected_secrets
-        settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
+        settings.secret_key_base.should eq "ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4"
       end
 
       it "defines socket endpoint" do

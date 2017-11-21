@@ -1,55 +1,33 @@
 module Amber
   module Configuration
     macro included
-      property settings = Settings.new
-
-      def self.instance
-        @@instance ||= new
-      end
-
-      # Configure should probably be deprecated in favor of settings.
-      def self.configure
-        with self yield settings
-      end
-
-      def self.settings
-        instance.settings
-      end
-
-      def self.secret_key_base
-        settings.secret_key_base
+      protected def self.instance
+        @@instance ||= new(Amber.settings)
       end
 
       def self.start
         instance.run
       end
 
-      def self.log
-        settings.log
+      # Configure should probably be deprecated in favor of settings.
+      protected def self.configure
+        with self yield settings
       end
 
-      def self.color
-        settings.color
+      protected def self.settings
+        instance.settings
       end
 
-      def self.pubsub_adapter
-        instance.pubsub_adapter.instance
+			protected def self.settings=(new_settings : Amber::Settings = Amber.settings)
+        instance.settings = new_settings
       end
 
-      def self.router
+      protected def self.router
         instance.router
       end
 
-      def self.handler
+      protected def self.handler
         instance.handler
-      end
-
-      def self.redis_url
-        settings.redis_url
-      end
-
-      def self.database_url
-        settings.database_url
       end
     end
   end

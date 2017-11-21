@@ -21,11 +21,13 @@ module Amber
     include Amber::DSL::Server
     include Amber::Configuration
     alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
+
     property pubsub_adapter : WebSocketAdapter = WebSockets::Adapters::MemoryAdapter
+    property settings : Amber::Settings
     getter handler = Pipe::Pipeline.new
     getter router = Router::Router.new
 
-    def initialize
+    def initialize(@settings)
       settings.log.level = ::Logger::INFO
     end
 
