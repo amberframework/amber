@@ -45,10 +45,10 @@ module Amber::CLI
     end
 
     def database
-      if File.exists?(DATABASE_YML) &&
-         (yaml = YAML.parse(File.read DATABASE_YML)) &&
-         (database = yaml.first)
-        database.to_s
+      if File.exists?(AMBER_YML) &&
+         (yaml = YAML.parse(File.read AMBER_YML)) &&
+         (language = yaml["database"]?)
+        language.to_s
       else
         return "pg"
       end

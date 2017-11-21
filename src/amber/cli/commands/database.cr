@@ -2,6 +2,7 @@ require "micrate"
 require "pg"
 require "mysql"
 require "sqlite3"
+require "../../../amber.cr"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
@@ -21,7 +22,7 @@ module Amber::CLI
       def run
         args.commands.each do |command|
           Micrate::Cli.setup_logger
-          Micrate::DB.connection_url = database_url
+          Micrate::DB.connection_url = Amber::Server.settings.database_url
           begin
             case command
             when "drop"
@@ -92,27 +93,6 @@ module Amber::CLI
           return path.gsub("/", "")
         else
           raise "could not determine database name"
-        end
-      end
-
-      def database_url
-        ENV["DATABASE_URL"]? || begin
-          yaml_file = File.read("config/database.yml")
-          yaml = YAML.parse(yaml_file)
-          db = yaml.first.to_s
-          settings = yaml[db]
-          env(settings["database"].to_s)
-        end
-      end
-
-      private def env(url)
-        regex = /\$\{(.*?)\}/
-        if regex.match(url)
-          url = url.gsub(regex) do |match|
-            ENV[match.gsub("${", "").gsub("}", "")]
-          end
-        else
-          return url
         end
       end
     end
