@@ -1,8 +1,10 @@
 require "./field.cr"
+require "../helpers/migration"
 
 module Amber::CLI
   class Auth < Teeplate::FileTree
     include Amber::CLI::Helpers
+    include Amber::CLI::MigrationHelpers
     directory "#{__DIR__}/auth"
 
     @name : String
