@@ -4,8 +4,8 @@ module Amber
   class_property environment_path = "./config/environments/"
   CURRENT_ENVIRONMENT = ENV["AMBER_ENV"] ||= "development"
 
-  def self.settings(env : EnvType = CURRENT_ENVIRONMENT, path = @@environment_path)
-    EnvironmentLoader.new(env, path).settings
+  def self.settings
+    EnvironmentLoader.new(CURRENT_ENVIRONMENT, @@environment_path).settings
   end
 
   def self.env=(env : EnvType)

@@ -1,7 +1,7 @@
 module Amber
   module Configuration
     macro included
-      protected def self.instance
+      def self.instance
         @@instance ||= new(Amber.settings)
       end
 
@@ -10,23 +10,27 @@ module Amber
       end
 
       # Configure should probably be deprecated in favor of settings.
-      protected def self.configure
+      def self.configure
         with self yield settings
       end
 
-      protected def self.settings
+      def self.settings
         instance.settings
       end
 
-			protected def self.settings=(new_settings : Amber::Settings = Amber.settings)
+			def self.settings=(new_settings : Amber::Settings = Amber.settings)
         instance.settings = new_settings
       end
 
-      protected def self.router
+      def self.pubsub_adapter
+        instance.pubsub_adapter.instance
+      end
+
+      def self.router
         instance.router
       end
 
-      protected def self.handler
+      def self.handler
         instance.handler
       end
     end
