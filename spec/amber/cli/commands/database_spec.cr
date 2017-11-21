@@ -14,10 +14,10 @@ module Amber::CLI
 
       context env do
         env_yml = environment_yml(env, path: CLIHelper::BASE_ENV_PATH)
-        db_filename = env_yml["database"].to_s.gsub("sqlite3:", "")
+        db_filename = env_yml["database_url"].to_s.gsub("sqlite3:", "")
 
         it "has connection settings in config/environments/env.yml" do
-          env_yml["database"].should eq expected_db_url("sqlite3", env)
+          env_yml["database_url"].should eq expected_db_url("sqlite3", env)
         end
 
         it "does not create the database when `db create`" do
@@ -47,7 +47,7 @@ module Amber::CLI
 
       context "when #{env} environment" do
         it "has #{env} environment connection settings" do
-          environment_yml(env, path: CLIHelper::BASE_ENV_PATH)["database"].should eq expected_db_url("pg", env)
+          environment_yml(env, path: CLIHelper::BASE_ENV_PATH)["database_url"].should eq expected_db_url("pg", env)
         end
       end
     end

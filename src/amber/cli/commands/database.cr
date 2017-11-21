@@ -99,7 +99,7 @@ module Amber::CLI
         ENV["DATABASE_URL"]? || begin
           yaml_file = File.read(ENV_CONFIG_PATH)
           yaml = YAML.parse(yaml_file)
-          yaml["database"].to_s
+          yaml["database_url"].to_s
         end
       end
     end

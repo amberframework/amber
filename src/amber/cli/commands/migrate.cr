@@ -49,22 +49,11 @@ module Amber::CLI
         end
       end
 
-      def database_url
+      private def database_url
         ENV["DATABASE_URL"]? || begin
-          yaml_file = File.read("config/database.yml")
+          yaml_file = File.read(ENV_CONFIG_PATH)
           yaml = YAML.parse(yaml_file)
-          db = yaml.first.to_s
-          settings = yaml[db]
-          env(settings["database"].to_s)
-        end
-      end
-
-      private def env(value)
-        env_var = value.gsub("${", "").gsub("}", "")
-        if ENV.has_key? env_var
-          return ENV[env_var]
-        else
-          return value
+          yaml["database_url"].to_s
         end
       end
     end
