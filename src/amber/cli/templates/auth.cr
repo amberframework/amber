@@ -18,7 +18,7 @@ module Amber::CLI
       @language = language
       @fields = fields.map { |field| Field.new(field, database: @database) }
       @fields << Field.new("email:string", hidden: false, database: @database)
-      @fields << Field.new("encrypted_password:password", hidden: false, database: @database)
+      @fields << Field.new("hashed_password:password", hidden: false, database: @database)
       @fields += %w(created_at:time updated_at:time).map do |f|
         Field.new(f, hidden: true, database: @database)
       end
@@ -27,6 +27,9 @@ module Amber::CLI
       @visible_fields = @fields.reject(&.hidden).map(&.name)
 
       add_routes :web, <<-ROUTES
+        get "/profile", #{class_name}Controller, :show
+        get "/profile/edit", #{class_name}Controller, :edit
+        patch "/profile", #{class_name}Controller, :update
         get "/signin", SessionController, :new
         post "/session", SessionController, :create
         get "/signout", SessionController, :delete

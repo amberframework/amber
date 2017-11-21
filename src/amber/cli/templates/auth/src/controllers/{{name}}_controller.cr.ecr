@@ -1,0 +1,45 @@
+class <%= class_name %>Controller < ApplicationController
+  def show
+    if (<%= @name %> = context.current_<%= @name %>)
+      render("show.slang")
+    else
+      flash[:info] = "Must be logged in"
+      redirect_to "/signin"
+    end
+  end
+
+  def edit
+    if (<%= @name %> = context.current_<%= @name %>)
+      render("edit.slang")
+    else
+      flash[:info] = "Must be logged in"
+      redirect_to "/signin"
+    end
+  end
+
+  def update
+    if (<%= @name %> = context.current_<%= @name %>)
+      update_<%= @name %>(<%= @name %>)
+    else
+      flash[:info] = "Must be logged in"
+      redirect_to "/signin"
+    end
+  end
+
+  private def update_<%= @name %>(<%= @name %>)
+    <%= @name %>.set_attributes(<%= @name %>_params.to_h)
+    if <%= @name %>.valid? && <%= @name %>.save
+      flash[:success] = "Updated Profile successfully."
+      redirect_to "/profile"
+    else
+      flash[:danger] = "Could not update Profile!"
+      render("edit.slang")
+    end
+  end
+
+  private def <%= @name %>_params
+    params.validation do
+      required(:email) {|f| !f.nil? && !f.empty? }
+    end
+  end
+end
