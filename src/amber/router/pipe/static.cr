@@ -7,8 +7,6 @@ module Amber
       @fallthrough = false
 
       def call(context : HTTP::Server::Context)
-        return call_next(context) if context.request.path.not_nil! == "/"
-
         unless context.request.method == "GET" || context.request.method == "HEAD"
           if @fallthrough
             call_next(context)
@@ -32,6 +30,7 @@ module Amber
         end
 
         expanded_path = File.expand_path(request_path, "/")
+
         if is_dir_path && !expanded_path.ends_with? "/"
           expanded_path = "#{expanded_path}/"
         end
@@ -39,6 +38,13 @@ module Amber
 
         file_path = File.join(@public_dir, expanded_path)
         is_dir = Dir.exists? file_path
+
+        root_file = (@public_dir + expanded_path + "index.html")
+        if is_dir_path && File.exists? root_file
+          return if etag(context, root_file)
+          return serve_file(context, root_file)
+        end
+
 
         if request_path != expanded_path || is_dir && !is_dir_path
           redirect_to context, "#{expanded_path}#{is_dir && !is_dir_path ? "/" : ""}"
