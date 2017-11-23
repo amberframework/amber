@@ -117,7 +117,7 @@ Commands:
   amber c console                 # Starts a amber console   
   amber g generate [SUBCOMMAND]   # Generate Amber classes
   amber n new                     # Generate a new amber project
-  amber m migrate [SUBCOMMAND]    # Performs database migrations tasks
+  amber db [SUBCOMMAND]           # Performs database operations such as drop, create, migrate and rollback
   amber w watch                   # Starts amber server and rebuilds on file changes
   amber routes                    # Prints the routes (In Development)
   amber r run [OPTION]            # Compiles and runs your project. Options: [-p --port | -e -environment]
