@@ -71,10 +71,14 @@ services:
       MYSQL_DATABASE: <%= "#{database_name_base}_development" %>
       MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
     volumes:
-      - 'db:/var/lib/mysql'
+    - 'db:/var/lib/mysql'
+<% elsif @database == "sqlite" -%>
+  db:
+    image: <%= @name %>
+    command: 'bash -c "ls > /dev/null"'
+    volumes:
+    - 'db:/app/local/db'
 <% end -%>
 
 volumes:
-<% if @database == "pg" || @database == "mysql"  -%>
   db:
-<% end -%>
