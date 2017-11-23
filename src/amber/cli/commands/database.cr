@@ -5,6 +5,9 @@ require "sqlite3"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
+    AMBER_ENV       = (ENV["AMBER_ENV"] ||= "development")
+    ENV_CONFIG_PATH = "./config/environments/#{AMBER_ENV}.yml"
+
     command "db", aliased: "database"
 
     class Database < ::Cli::Command
@@ -45,19 +48,16 @@ module Amber::CLI
               Micrate::Cli.print_help
             end
           rescue e : Micrate::UnorderedMigrationsException
-            Micrate::Cli.report_unordered_migrations(e.versions)
-            exit 1
+            exit! Micrate::Cli.report_unordered_migrations(e.versions), error: true
           rescue e : DB::ConnectionRefused
-            puts "Connection refused: #{Micrate::DB.connection_url}"
-            exit 1
+            exit! "Connection refused: #{Micrate::DB.connection_url}", error: true
           rescue e : Exception
-            puts e.message
-            exit 1
+            exit! e.message, error: true
           end
         end
       end
 
-      def drop_database
+      private def drop_database
         url = Micrate::DB.connection_url.to_s
         if url.starts_with? "sqlite3:"
           path = url.gsub("sqlite3:", "")
@@ -66,13 +66,13 @@ module Amber::CLI
         else
           name = set_database_to_schema url
           Micrate::DB.connect do |db|
-            db.exec "DROP DATABASE #{name};"
+            db.exec "DROP DATABASE IF EXISTS #{name};"
           end
           puts "Dropped database #{name}"
         end
       end
 
-      def create_database
+      private def create_database
         url = Micrate::DB.connection_url.to_s
         if url.starts_with? "sqlite3:"
           puts "For sqlite3, the database will be created during the first migration."
@@ -85,7 +85,7 @@ module Amber::CLI
         end
       end
 
-      def set_database_to_schema(url)
+      private def set_database_to_schema(url)
         uri = URI.parse(url)
         if path = uri.path
           Micrate::DB.connection_url = url.gsub(path, "/#{uri.scheme}")
@@ -95,24 +95,11 @@ module Amber::CLI
         end
       end
 
-      def database_url
+      private def database_url
         ENV["DATABASE_URL"]? || begin
-          yaml_file = File.read("config/database.yml")
+          yaml_file = File.read(ENV_CONFIG_PATH)
           yaml = YAML.parse(yaml_file)
-          db = yaml.first.to_s
-          settings = yaml[db]
-          env(settings["database"].to_s)
-        end
-      end
-
-      private def env(url)
-        regex = /\$\{(.*?)\}/
-        if regex.match(url)
-          url = url.gsub(regex) do |match|
-            ENV[match.gsub("${", "").gsub("}", "")]
-          end
-        else
-          return url
+          yaml["database_url"].to_s
         end
       end
     end

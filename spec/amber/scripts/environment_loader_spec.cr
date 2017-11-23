@@ -10,15 +10,16 @@ describe Amber::Server do
       @log = ::Logger.new(STDOUT).tap{|l| l.level = ::Logger::INFO}
       @color = true
       @redis_url = "\#{ENV[%(REDIS_URL)]? || %(redis://localhost:6379)}"
+      @database_url = "mysql://root@localhost:3306/amber_test_app_test"
       @port = (ENV["PORT"] ||= "3000").to_i
       @host = "0.0.0.0"
       @secret_key_base = "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
       @session = {
         :key => "amber.session",
         :store => :signed_cookie,
-        :expires => 0, 
+        :expires => 0,
       }
-      getter secrets = {"description": "Store your test secrets credentials and settings here.", "database": "mysql://root@localhost:3306/amber_test_app_test"}
+      getter secrets = {"description": "Store your test secrets credentials and settings here."}
 
       EXP
       {{run("../../../src/amber/scripts/environment_loader.cr", "test").stringify}}.should eq expected
@@ -32,6 +33,7 @@ describe Amber::Server do
       @log = ::Logger.new(STDOUT).tap{|l| l.level = ::Logger::INFO}
       @color = true
       @redis_url = "redis://localhost:6379"
+      @database_url = ""
       @port = 3000
       @host = "127.0.0.1"
       @session = {:key => "amber.session", :store => :signed_cookie, :expires => 0}

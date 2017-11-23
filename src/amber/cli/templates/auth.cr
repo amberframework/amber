@@ -45,9 +45,9 @@ module Amber::CLI
     end
 
     def database
-      if File.exists?(DATABASE_YML) &&
-         (yaml = YAML.parse(File.read DATABASE_YML)) &&
-         (database = yaml.first)
+      if File.exists?(AMBER_YML) &&
+         (yaml = YAML.parse(File.read AMBER_YML)) &&
+         (database = yaml["database"]?)
         database.to_s
       else
         return "pg"

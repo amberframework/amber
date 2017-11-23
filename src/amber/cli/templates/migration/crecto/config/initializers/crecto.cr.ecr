@@ -1,14 +1,5 @@
 require "<%= @database %>"
 require "crecto"
-require "yaml"
-
-db_url = ENV["DATABASE_URL"]?
-unless db_url
-  yaml = YAML.parse(File.read("config/database.yml"))
-  settings = yaml["<%= @database %>"]
-  db_url = settings["database"].to_s
-end
-
 Query = Crecto::Repo::Query
 
 module Repo
@@ -24,7 +15,7 @@ module Repo
     c.adapter = Crecto::Adapters::SQLite3
 <% end -%>
 
-    c.uri = db_url
+    c.uri = Amber::Server.settings.database_url
   end
 end
 

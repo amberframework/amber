@@ -40,6 +40,7 @@ str = String.build do |s|
   s.puts %(@log = #{settings["log"]? || "::Logger.new(STDOUT)"}.tap{|l| l.level = #{settings["log_level"]? || "::Logger::INFO"}})
   s.puts %(@color = #{settings["color"]? == nil ? true : settings["color"]})
   s.puts %(@redis_url = "#{settings["redis_url"]? || "redis://localhost:6379"}")
+  s.puts %(@database_url = "#{settings["database_url"]?}")
   s.puts %(@port = #{settings["port"]? || 3000})
   s.puts %(@host = "#{settings["host"]? || "127.0.0.1"}")
   s.puts %(@secret_key_base = "#{settings["secret_key_base"]? || SecureRandom.urlsafe_base64(32)}")
@@ -57,7 +58,7 @@ str = String.build do |s|
     @session = {
       :key => "#{settings["session"]["key"]? ? settings["session"]["key"] : "amber.session"}",
       :store => #{settings["session"]["store"]? ? settings["session"]["store"] : ":signed_cookie"},
-      :expires => #{settings["session"]["expires"]? ? settings["session"]["expires"] : 0}, 
+      :expires => #{settings["session"]["expires"]? ? settings["session"]["expires"] : 0},
     }
     SESSION
   else

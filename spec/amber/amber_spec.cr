@@ -56,9 +56,9 @@ describe Amber do
         expected_session = {:key => "amber.session", :store => :signed_cookie, :expires => 0}
         settings.session.should eq expected_session
         settings.port.should_not eq 3000
+        settings.database_url.should eq "mysql://root@localhost:3306/amber_test_app_test"
         expected_secrets = {
           description: "Store your test secrets credentials and settings here.",
-          database:    "mysql://root@localhost:3306/amber_test_app_test",
         }
         settings.secrets.should eq expected_secrets
         settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
