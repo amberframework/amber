@@ -41,7 +41,7 @@ module Amber::CLI
         result = ""
         if File.exists?(@filename)
           eval_cmd = Array(String).new
-          eval_cmd << %(require "./config/*";) if Dir.exists?("config")
+          eval_cmd << %(require "./config/application.cr";) if Dir.exists?("config")
           eval_cmd << %(require "#{@filename}";)
           result = `crystal eval '#{eval_cmd.join(" ")}'`
         end
