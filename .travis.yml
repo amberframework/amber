@@ -6,8 +6,21 @@ services:
 before_install:
   - docker build -t garnet-spec .
 
-script:
-  - docker-compose run spec
+env:
+  - TEST_SUITE=./spec/amber/cli
+  - TEST_SUITE=./spec/amber/controller
+  - TEST_SUITE=./spec/amber/dsl
+  - TEST_SUITE=./spec/amber/extensions
+  - TEST_SUITE=./spec/amber/router
+  - TEST_SUITE=./spec/amber/server
+  - TEST_SUITE=./spec/amber/tasks
+  - TEST_SUITE=./spec/amber/ssl
+  - TEST_SUITE=./spec/amber/validations
+  - TEST_SUITE=./spec/amber/websockets
+  - TEST_SUITE=./spec/amber/amber_spec.cr
+
+script: 
+  - docker-compose run --service-ports spec bash -c "cd /app/user && crystal spec $TEST_SUITE -D run_build_tests"
 
 notifications:
   webhooks:

@@ -7,8 +7,8 @@ port_reuse: true
 process_count: 16
 redis_url: "redis://localhost:6379"
 secret_key_base: ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4
-ssl_key_file: some key file
-ssl_cert_file: some cert file
+# ssl_key_file:
+# ssl_cert_file:
 session: {
   key: "amber.session",
   store: "encrypted_cookie",
