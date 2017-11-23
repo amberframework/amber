@@ -1,5 +1,4 @@
 require "./cluster"
-require "./configuration"
 require "./ssl"
 
 module Amber
@@ -7,7 +6,7 @@ module Amber
     include Amber::DSL::Server
     property log : ::Logger = Logger.new(STDOUT)
 
-    property color : Bool = true
+    property colorize_logging : Bool = true
     property database_url = ""
     property host : String = "localhost"
     property name : String = "Amber_App"
@@ -24,7 +23,7 @@ module Amber
     property ssl_cert_file : String? = nil
 
     YAML.mapping(
-      color: {type: Bool, default: true},
+      colorize_logging: {type: Bool, default: true},
       database_url: {type: String?, default: nil},
       host: {type: String, default: "localhost"},
       name: {type: String, default: "Amber_App"},

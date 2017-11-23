@@ -1,12 +1,10 @@
 secret_key_base: <%= SecureRandom.urlsafe_base64(32) %>
-port: <%= (ENV["PORT"] ||= "3000").to_i %>
+port: 3000
 name: <%= @name %>
-log: "::Logger.new(STDOUT)"
-log_level: "::Logger::INFO"
-color: true
-host: 0.0.0.0
+colorize_logging: true
+host: localhost
 port_reuse: false
-process_count: (ENV[%(AMBER_PROCESS_COUNT)]? || 1).to_i
+process_count: 1
 ssl_key_file:
 ssl_cert_file:
 redis_url: "redis://localhost:6379"
