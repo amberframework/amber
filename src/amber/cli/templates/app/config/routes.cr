@@ -12,7 +12,7 @@ Amber::Server.configure do |app|
   # All static content will run these transformations
   pipeline :static do
     plug Amber::Pipe::Error.new
-    plug HTTP::StaticFileHandler.new("./public")
+    plug Amber::Pipe::Static.new("./public")
     plug HTTP::CompressHandler.new
   end
 
