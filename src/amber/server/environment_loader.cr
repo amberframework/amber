@@ -1,27 +1,7 @@
 module Amber
-  SECRET_KEY          = "AMBER_SECRET_KEY"
-  SECRET_FILE         = "./.amber_secret_key"
-  class_property environment_path = "./config/environments/"
-  CURRENT_ENVIRONMENT = ENV["AMBER_ENV"] ||= "development"
-
-  def self.settings
-    EnvironmentLoader.new(CURRENT_ENVIRONMENT, @@environment_path).settings
-  end
-
-  def self.env=(env : EnvType)
-    ENV["AMBER_ENV"] = env.to_s
-    Amber::Server.settings = EnvironmentLoader.new(env, @@environment_path).settings
-  end
-
-  def self.secret_key
-    ENV[SECRET_KEY]? || begin
-      File.open(SECRET_FILE).gets_to_end.to_s if File.exists?(SECRET_FILE)
-    end
-  end
-
   class EnvironmentLoader
     def initialize(@environment : Amber::EnvType, @path : String)
-      raise Exceptions::Environment.new(@path, @environment) unless settings_file_exist?
+      raise Exceptions::Environment.new(expanded_path, @environment) unless settings_file_exist?
     end
 
     def settings
@@ -47,11 +27,15 @@ module Amber
     end
 
     private def yml_settings_file
-      @yml_settings ||= "#{@path}#{@environment}.yml"
+      @yml_settings ||= "#{expanded_path}#{@environment}.yml"
     end
 
     private def enc_settings_file
-      @enc_settings ||= "#{@path}.#{@environment}.enc"
+      @enc_settings ||= "#{expanded_path}.#{@environment}.enc"
+    end
+
+    private def expanded_path
+      File.expand_path(@path) + "/"
     end
   end
 end

@@ -18,9 +18,9 @@ module Amber
     setter session : Hash(String, Int32 | String) = {
       "key" => "amber.session", "store" => "signed_cookie", "expires" => 0,
     }
-    property secrets : Hash(String, String)? = nil
-    property ssl_key_file : String? = nil
-    property ssl_cert_file : String? = nil
+    property secrets : Hash(String, String)?
+    property ssl_key_file : String?
+    property ssl_cert_file : String?
 
     YAML.mapping(
       colorize_logging: {type: Bool, default: true},
