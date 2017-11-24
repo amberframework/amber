@@ -9,11 +9,10 @@ redis_url: "redis://localhost:6379"
 secret_key_base: ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4
 # ssl_key_file:
 # ssl_cert_file:
-session: {
-  key: "amber.session",
-  store: "signed_cookie",
+session:
+  key: "amber.session"
+  store: "signed_cookie"
   expires: 0
-}
-secrets:  {
-  description: "Store your test secrets credentials and settings here.",
-}
+
+secrets:
+  description: "Store your test secrets credentials and settings here."

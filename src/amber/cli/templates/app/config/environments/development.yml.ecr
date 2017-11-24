@@ -16,11 +16,11 @@ database_url: postgres://postgres:@localhost:5432/<%= database_name_base %>_deve
 <%when "sqlite" -%>
 database_url: sqlite3:./db/<%= database_name_base %>_development.db
 <%end -%>
-session: {
-  key: amber.session,
-  store: signed_cookie,
-  expires: 0,
-}
-secrets: {
-  description: Store your development secrets credentials and settings here.,
-}
+session:
+  key: amber.session
+  store: signed_cookie
+  expires: 0
+
+secrets:
+  description: Store your development secrets credentials and settings here.
+

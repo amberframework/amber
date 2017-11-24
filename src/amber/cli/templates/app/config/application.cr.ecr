@@ -5,7 +5,7 @@ require "../src/controllers/**"
 
 # About Application.cr File
 #
-# This is Amber application entry point. This file is responsible for loading
+# This is Amber application main entry point. This file is responsible for loading
 # initializers, classes, and all application related code in order to have
 # Amber::Server boot up.
 #
@@ -15,7 +15,11 @@ require "../src/controllers/**"
 # With `Amber::Server.configure` block you can redefine the Server configuration
 # settings and use ENVIRONMENT variables and/or values evaluated at runtime.
 #
-#
+# > Important! Yaml configurations are first class citizen and are loaded first before
+# this file, we recommend to use yaml configurations before changing any settings here.
+# Any uncommented setting here will override the YAML with the value set here.
+
+
 Amber::Server.configure do |settings|
   # Use your environment variables settings here.
   #
@@ -33,9 +37,9 @@ Amber::Server.configure do |settings|
   #
   # Secret Key Base: is used for specifying a key which allows sessions
   # for the application to be verified against a known secure key to
-  # prevent tampering. Applications get settings.secret_key_base
-  # initialized to a random key present in ENV["AMBER_SECRET_KEY"] or
-  # .amber_secret_key in this order.
+  # prevent tampering. Applications get Amber.secret_key
+  # initialized to a random key present in `ENV["AMBER_SECRET_KEY"]` or
+  # `.amber_secret_key` in this order.
   #
   # settings.secret_key_base= ENV["SECRET_KEY_BASE"]
   #
