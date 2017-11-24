@@ -30,7 +30,7 @@ module Amber
 
         context "Redis Store" do
           it "sets session value in controller" do
-            Amber::Server.settings.session = {
+            Amber.settings.session = {
               "key"     => "session_id",
               "store"   => "redis",
               "expires" => 120,

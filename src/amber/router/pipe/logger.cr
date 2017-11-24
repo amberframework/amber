@@ -42,7 +42,7 @@ module Amber
       end
 
       private def colorize(text, color)
-        text.colorize(color).toggle(Amber::Server.settings.colorize_logging).to_s
+        text.colorize(color).toggle(Amber.settings.colorize_logging).to_s
       end
     end
   end

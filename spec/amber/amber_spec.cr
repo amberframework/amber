@@ -34,16 +34,16 @@ describe Amber do
       ENV[Amber::SECRET_KEY] = "mnDiAY4OyVjqg5u0wvpr0MoBkOGXBeYo7_ysjwsNzmw"
 
       it "changes environment from TEST to PRODUCTION" do
-        current_settings = Amber::Server.settings
+        current_settings = Amber.settings
         Amber.env = :production
         current_settings.port.should eq 3000
-        Amber::Server.settings.port.should eq 4000
+        Amber.settings.port.should eq 4000
       end
 
       it "sets Amber environment from yaml settings file" do
-        current_settings = Amber::Server.settings
+        current_settings = Amber.settings
         Amber.env = :development
-        Amber::Server.settings.name.should eq "development_settings"
+        Amber.settings.name.should eq "development_settings"
       end
     end
   end
@@ -56,12 +56,12 @@ describe Amber do
         Amber::Server.configure do |server|
           server.name = "Hello World App"
           server.port = 8080
-          server.log = ::Logger.new(STDOUT)
-          server.log.level = ::Logger::INFO
+          server.logger = ::Logger.new(STDOUT)
+          server.logger.level = ::Logger::INFO
           server.colorize_logging = false
         end
 
-        settings = Amber::Server.settings
+        settings = Amber.settings
 
         settings.name.should eq "Hello World App"
         settings.port.should eq 8080
@@ -80,7 +80,7 @@ describe Amber do
           server.name = "Fake App Name"
           server.port = 8080
         end
-        settings = Amber::Server.settings
+        settings = Amber.settings
 
         settings.name.should eq "Fake App Name"
         settings.port_reuse.should eq true

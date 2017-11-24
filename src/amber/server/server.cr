@@ -3,12 +3,13 @@ module Amber
     include Amber::DSL::Server
     alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
     property pubsub_adapter : WebSocketAdapter = WebSockets::Adapters::MemoryAdapter
-    property settings : Amber::Settings
+    property settings : Amber::Settings = EnvironmentLoader.new(Amber::CURRENT_ENVIRONMENT, Amber.environment_path).settings
     getter handler = Pipe::Pipeline.new
     getter router = Router::Router.new
 
+
     def self.instance
-      @@instance ||= new(Amber.settings)
+      @@instance ||= new
     end
 
     def self.start
@@ -17,11 +18,7 @@ module Amber
 
     # Configure should probably be deprecated in favor of settings.
     def self.configure
-      with self yield settings
-    end
-
-    def self.settings
-      instance.settings
+      with self yield instance.settings
     end
 
     def self.pubsub_adapter
@@ -36,8 +33,7 @@ module Amber
       instance.handler
     end
 
-    def initialize(@settings)
-      settings.log.level = ::Logger::INFO
+    def initialize
     end
 
     def project_name
@@ -59,19 +55,19 @@ module Amber
 
     def start
       time = Time.now
-      settings.log.info "#{version} serving application \"#{settings.name}\" at #{host_url}".to_s
+      logger.info "#{version} serving application \"#{settings.name}\" at #{host_url}".to_s
       handler.prepare_pipelines
       server = HTTP::Server.new(settings.host, settings.port, handler)
       server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
 
       Signal::INT.trap do
-        settings.log.info "Shutting down Amber"
+        logger.info "Shutting down Amber"
         server.close
         exit
       end
 
-      settings.log.info "Server started in #{colorize(Amber.env, :yellow)}."
-      settings.log.info colorize("Startup Time #{Time.now - time}\n\n", :white)
+      logger.info "Server started in #{colorize(Amber.env, :yellow)}."
+      logger.info colorize("Startup Time #{Time.now - time}\n\n", :white)
       server.listen(settings.port_reuse)
     end
 
@@ -91,12 +87,16 @@ module Amber
       ssl_enabled? ? "https" : "http"
     end
 
-    def colorize(text, color)
+    private def colorize(text, color)
       text.colorize(color).toggle(settings.colorize_logging).to_s
     end
 
-    def colorize(text, color, mode)
+    private def colorize(text, color, mode)
       text.colorize(color).toggle(settings.colorize_logging).mode(mode).to_s
+    end
+
+    private def logger
+      settings.logger
     end
   end
 end

@@ -25,7 +25,11 @@ module Amber
   class_property environment_path = "./config/environments/"
 
   def self.settings
-    EnvironmentLoader.new(CURRENT_ENVIRONMENT, @@environment_path).settings
+    Amber::Server.instance.settings
+  end
+
+  def self.logger
+    settings.logger
   end
 
   def self.env=(env : EnvType)

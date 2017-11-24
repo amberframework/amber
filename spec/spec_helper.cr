@@ -11,7 +11,7 @@ CURRENT_DIR       = Dir.current
 
 Amber.environment_path = "./spec/support/config/"
 Amber.env=(ENV["AMBER_ENV"])
-Amber::Server.settings.redis_url = ENV["REDIS_URL"]? || Amber::Server.settings.redis_url
+Amber.settings.redis_url = ENV["REDIS_URL"]? || Amber.settings.redis_url
 
 require "http"
 require "spec"

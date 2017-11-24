@@ -15,7 +15,7 @@ module Repo
     c.adapter = Crecto::Adapters::SQLite3
 <% end -%>
 
-    c.uri = Amber::Server.settings.database_url
+    c.uri = Amber.settings.database_url
   end
 end
 
