@@ -34,4 +34,20 @@ module Amber::CLI::Helpers
     REQUIRES
     File.write("./config/application.cr", application.gsub("require \"amber\"", replacement))
   end
+
+  private def fetch_database : String
+    if File.exists?(DATABASE_YML) && (yaml = YAML.parse(File.read DATABASE_YML))
+      yaml.first.to_s
+    else
+      "pg"
+    end
+  end
+
+  private def fetch_language : String
+    language = "slang"
+    if File.exists?(AMBER_YML) && (yaml = YAML.parse(File.read AMBER_YML))
+      language = yaml["language"]?.to_s if yaml["language"]?
+    end
+    return language
+  end
 end
