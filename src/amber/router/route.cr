@@ -1,6 +1,13 @@
 module Amber
   class Route
-    property :handler, :action, :verb, :resource, :valve, :params, :scope, :controller
+    property handler
+    property action
+    property verb
+    property resource
+    property valve
+    property params : Amber::Router::Params
+    property scope
+    property controller
 
     def initialize(@verb : String,
                    @resource : String,
@@ -9,6 +16,8 @@ module Amber
                    @valve : Symbol = :web,
                    @scope : String = "",
                    @controller : String = "")
+
+      @params = Amber::Router::Params.new
     end
 
     def to_json
@@ -22,6 +31,14 @@ module Amber
           json.field "resource", resource
         end
       end
+    end
+
+    def payload
+      self
+    end
+
+    def payload?
+      self
     end
 
     def trail
