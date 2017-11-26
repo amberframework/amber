@@ -14,7 +14,7 @@ module Amber
         when "message" then message client_socket, message
         when "leave"   then leave client_socket, message
         else
-          Amber::Server.log.error "Uncaptured event #{event}"
+          Amber.logger.error "Uncaptured event #{event}"
         end
       end
 
