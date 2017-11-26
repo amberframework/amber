@@ -7,6 +7,7 @@ module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     AMBER_ENV       = (ENV["AMBER_ENV"] ||= "development")
     ENV_CONFIG_PATH = "./config/environments/#{AMBER_ENV}.yml"
+    ENC_CONFIG_PATH = "./config/environments/.#{AMBER_ENV}.enc"
 
     command "db", aliased: "database"
 
@@ -97,7 +98,12 @@ module Amber::CLI
 
       private def database_url
         ENV["DATABASE_URL"]? || begin
-          yaml_file = File.read(ENV_CONFIG_PATH)
+        yaml_file = ""
+        if File.exists?(ENV_CONFIG_PATH)
+          yaml_string = File.read(ENV_CONFIG_PATH)
+        elsif File.exists?(ENC_CONFIG_PATH)
+
+        end
           yaml = YAML.parse(yaml_file)
           yaml["database_url"].to_s
         end

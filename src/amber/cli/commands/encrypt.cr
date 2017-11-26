@@ -16,12 +16,11 @@ module Amber::CLI
       end
 
       def run
-        secret_key = ENV["AMBER_SECRET_KEY"]? || File.open(".amber_secret_key").gets_to_end.to_s
         env = args.env
         encrypted_file = "config/environments/.#{env}.enc"
         unencrypted_file = "config/environments/#{env}.yml"
 
-        encryptor = Amber::Support::MessageEncryptor.new(secret_key)
+        encryptor = Amber::Support::MessageEncryptor.new(AMBER::ENCRYPTION_KEY)
 
         if File.exists?(encrypted_file)
           File.write(unencrypted_file, encryptor.verify_and_decrypt(File.open(encrypted_file).gets_to_end.to_slice))
