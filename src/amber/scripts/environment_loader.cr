@@ -16,7 +16,7 @@ env_path = begin
 end
 
 secret_key = ENV["AMBER_SECRET_KEY"]? || begin
-  File.open(".amber_secret_key").gets_to_end.to_s if File.exists?(".amber_secret_key")
+  File.open(".encryption_key").gets_to_end.to_s if File.exists?(".encryption_key")
 end
 
 yml = if File.exists?(fn = "#{env_path}/#{environment}.yml")

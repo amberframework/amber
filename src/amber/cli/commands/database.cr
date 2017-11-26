@@ -2,6 +2,7 @@ require "micrate"
 require "pg"
 require "mysql"
 require "sqlite3"
+require "../../support/file_encryptor"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
@@ -98,13 +99,13 @@ module Amber::CLI
 
       private def database_url
         ENV["DATABASE_URL"]? || begin
-        yaml_file = ""
-        if File.exists?(ENV_CONFIG_PATH)
-          yaml_string = File.read(ENV_CONFIG_PATH)
-        elsif File.exists?(ENC_CONFIG_PATH)
-
-        end
-          yaml = YAML.parse(yaml_file)
+          yaml_string = ""
+          if File.exists?(ENV_CONFIG_PATH)
+            yaml_string = File.read(ENV_CONFIG_PATH)
+          elsif File.exists?(ENC_CONFIG_PATH)
+            yaml_string = String.new(Support::FileEncryptor.read(ENC_CONFIG_PATH))
+          end
+          yaml = YAML.parse(yaml_string)
           yaml["database_url"].to_s
         end
       end
