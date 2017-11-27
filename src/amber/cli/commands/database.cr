@@ -3,12 +3,12 @@ require "pg"
 require "mysql"
 require "sqlite3"
 require "../../support/file_encryptor"
+require "../../support/file_encryptor"
+require "../../server/environment_loader"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
-    AMBER_ENV       = (ENV["AMBER_ENV"] ||= "development")
-    ENV_CONFIG_PATH = "./config/environments/#{AMBER_ENV}.yml"
-    ENC_CONFIG_PATH = "./config/environments/.#{AMBER_ENV}.enc"
+    AMBER_ENV = (ENV["AMBER_ENV"] ||= "development")
 
     command "db", aliased: "database"
 
@@ -99,14 +99,7 @@ module Amber::CLI
 
       private def database_url
         ENV["DATABASE_URL"]? || begin
-          yaml_string = ""
-          if File.exists?(ENV_CONFIG_PATH)
-            yaml_string = File.read(ENV_CONFIG_PATH)
-          elsif File.exists?(ENC_CONFIG_PATH)
-            yaml_string = String.new(Support::FileEncryptor.read(ENC_CONFIG_PATH))
-          end
-          yaml = YAML.parse(yaml_string)
-          yaml["database_url"].to_s
+          EnvironmentLoader.new(AMBER_ENV).settings.database_url
         end
       end
     end

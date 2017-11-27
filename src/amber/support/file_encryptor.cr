@@ -29,5 +29,9 @@ module Amber::Support
         raise "Encryption key doesn't exist!"
       end
     end
+
+    def self.read_string(filename, encryption_key = global_encryption_key)
+      String.new(read(filename, encryption_key))
+    end
   end
 end
