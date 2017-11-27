@@ -10,7 +10,6 @@ services:
     command: redis-server
   spec:
     build: .
-    command: 'bash -c "cd /app/user && crystal spec -D run_build_tests"'
     working_dir: /app/user
     environment:
       REDIS_URL: 'redis://redis:6379'

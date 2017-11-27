@@ -4,7 +4,7 @@ module Amber
       extend self
 
       def create_endpoint(path, app_socket)
-        Amber::Server.log.info "Socket listening at #{path}"
+        Amber.logger.info "Socket listening at #{path}"
         Handler.new(path) do |socket, context|
           instance = app_socket.new(socket, context)
           socket.close && next unless instance.authorized?
