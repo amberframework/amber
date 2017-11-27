@@ -25,7 +25,7 @@ module Amber
   class_property environment_path = "./config/environments/"
 
   def self.settings
-    # @@settings should be stored here instead of Amber::Server so we can use it in the CLI.
+    # TODO: @@settings should be stored here instead of Amber::Server so we can use it in the CLI.
     Amber::Server.instance.settings
   end
 
@@ -33,7 +33,7 @@ module Amber
     settings.logger
   end
 
-  # Should be moved to file encryption module.
+  # TODO: Should be moved to file encryption module.
   def self.secret_key
     ENV[SECRET_KEY]? || begin
       File.open(SECRET_FILE).gets_to_end.to_s if File.exists?(SECRET_FILE)
