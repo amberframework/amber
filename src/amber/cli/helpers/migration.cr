@@ -30,7 +30,7 @@ module Amber::CLI::Helpers::Migration
   end
 
   def primary_key
-    case @database
+    case database
     when "pg"
       "id BIGSERIAL PRIMARY KEY"
     when "mysql"

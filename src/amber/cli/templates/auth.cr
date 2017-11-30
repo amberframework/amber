@@ -18,16 +18,20 @@ module Amber::CLI
     def initialize(@name, fields)
       @database = fetch_database
       @language = fetch_language
-      @fields = fields.map { |field| Field.new(field, database: @database) }
-      @fields << Field.new("email:string", hidden: false, database: @database)
-      @fields << Field.new("hashed_password:password", hidden: false, database: @database)
-      @fields += %w(created_at:time updated_at:time).map do |f|
-        Field.new(f, hidden: true, database: @database)
-      end
+      @fields = setup_fields(fields)
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S%L")
       @primary_key = primary_key
       @visible_fields = @fields.reject(&.hidden).map(&.name)
+      setup_routes
+      setup_plugs
+      setup_dependencies
+    end
 
+    def filter(entries)
+      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
+    end
+
+    private def setup_routes
       add_routes :web, <<-ROUTES
         get "/profile", #{class_name}Controller, :show
         get "/profile/edit", #{class_name}Controller, :edit
@@ -38,19 +42,37 @@ module Amber::CLI
         get "/signup", RegistrationController, :new
         post "/registration", RegistrationController, :create
       ROUTES
+    end
 
+    private def setup_plugs
       add_plugs :web, <<-PLUGS
         plug Authenticate.new
       PLUGS
+    end
 
+    private def setup_dependencies
       add_dependencies <<-DEPENDENCY
       require "../src/models/**"
       require "../src/handlers/**"
       DEPENDENCY
     end
 
-    def filter(entries)
-      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
+    private def setup_fields(fields)
+      fields.map { |field| Field.new(field, database: @database) } +
+      auth_fields +
+      timestamp_fields
+    end
+
+    private def auth_fields
+      %w(email:string hashed_password:password).map do |f|
+        Field.new(f, hidden: false, database: @database)
+      end
+    end
+
+    private def timestamp_fields
+      %w(created_at:time updated_at:time).map do |f|
+        Field.new(f, hidden: true, database: @database)
+      end
     end
   end
 end
