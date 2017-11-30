@@ -1,4 +1,4 @@
-require "../../support/message_encryptor"
+require "../../support/file_encryptor"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
@@ -17,26 +17,23 @@ module Amber::CLI
       end
 
       def run
-        secret_key = ENV["AMBER_SECRET_KEY"]? || File.open(".amber_secret_key").gets_to_end.to_s
         env = args.env
         encrypted_file = "config/environments/.#{env}.enc"
         unencrypted_file = "config/environments/#{env}.yml"
 
-        encryptor = Amber::Support::MessageEncryptor.new(secret_key)
-
         if File.exists?(encrypted_file)
-          File.write(unencrypted_file, encryptor.verify_and_decrypt(File.open(encrypted_file).gets_to_end.to_slice))
+          File.write(unencrypted_file, Support::FileEncryptor.read(encrypted_file))
           system("#{options.editor} #{unencrypted_file}") unless options.noedit?
         end
 
         if File.exists?(unencrypted_file)
-          File.write(encrypted_file, encryptor.encrypt_and_sign(File.read(unencrypted_file)))
+          Support::FileEncryptor.write(encrypted_file, File.read(unencrypted_file))
           File.delete(unencrypted_file)
         else
           puts "#{env}.yml doesn't exist. Loading defaults!"
         end
       rescue
-        puts "Failed! Make sure to set AMBER_SECRET_KEY env or add hidden file .amber_secret_key"
+        puts "Failed! Make sure to set AMBER_ENCRYPTION_KEY env or add hidden file .encryption_key"
       end
     end
   end

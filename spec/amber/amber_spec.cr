@@ -15,20 +15,6 @@ describe Amber do
     end
   end
 
-  describe ".secret_key" do
-    it "load secret key from ENV variable" do
-      ENV[Amber::SECRET_KEY] = "fake encription key"
-      Amber.secret_key.should eq "fake encription key"
-    end
-
-    it "load secrect from .amber_secret_key file" do
-      ENV[Amber::SECRET_KEY] = nil
-      File.write("./.amber_secret_key", "fake secret key")
-      Amber.secret_key.should eq "fake secret key"
-      File.delete("./.amber_secret_key")
-    end
-  end
-
   describe ".env=" do
     context "when switching environments" do
       ENV[Amber::SECRET_KEY] = "mnDiAY4OyVjqg5u0wvpr0MoBkOGXBeYo7_ysjwsNzmw"

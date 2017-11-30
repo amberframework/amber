@@ -1,5 +1,4 @@
-require "./cluster"
-require "./ssl"
+require "yaml"
 
 module Amber
   class Settings
