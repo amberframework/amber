@@ -1,3 +1,6 @@
+require "./cluster"
+require "./ssl"
+
 module Amber
   class Server
     include Amber::DSL::Server

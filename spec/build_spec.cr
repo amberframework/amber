@@ -14,6 +14,7 @@ module Amber::CLI
       options = ["user:reference", "name:string", "body:text", "age:integer", "published:bool"]
       temp_options = options - ["user:reference", "age:integer"]
       MainCommand.run ["generate", "auth", "User"] | (options - ["user:reference"])
+      MainCommand.run ["generate", "error"]
       MainCommand.run ["generate", "scaffold", "Animal"] | temp_options
       MainCommand.run ["generate", "scaffold", "Post"] | options
       MainCommand.run ["generate", "scaffold", "PostComment"] | (options + ["post:reference"])

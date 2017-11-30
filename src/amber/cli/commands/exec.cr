@@ -12,6 +12,7 @@ module Amber::CLI
         arg "code", desc: "Crystal code or .cr file to execute within the application scope", default: ""
         string ["-e", "--editor"], desc: "Prefered editor: [vim, nano, pico, etc], only used when no code or .cr file is specified", default: "vim"
         string ["-b", "--back"], desc: "Runs previous command files: 'amber exec -b [times_ago]'", default: "0"
+        help
       end
 
       class Help

@@ -12,7 +12,14 @@ module Amber
 
     class Environment < Base
       def initialize(path, environment)
-        super("Environment file not found for #{path}#{environment}")
+        super("environment file not found for #{path}#{environment}")
+      end
+    end
+
+    # NOTE: Any exeptions which aren't part of and http request cycle shouldn't inherit from Base.
+    class EncryptionKeyMissing < Exception
+      def initialize
+        super(%(Encryption key not found. Please set it via 'amber_project/.encryption_key' or 'ENV["AMBER_ENCRYPTION_KEY"]'.))
       end
     end
 

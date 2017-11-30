@@ -23,7 +23,7 @@ module Amber::Support
       if Crypto::Subtle.constant_time_compare(sign_bytes(data_iv), signature)
         decrypt(data_iv)
       else
-        raise "invalid encryption"
+        raise "Invalid Encryption!"
       end
     end
 

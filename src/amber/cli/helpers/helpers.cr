@@ -48,7 +48,7 @@ module Amber::CLI::Helpers
     if File.exists?(AMBER_YML) && (yaml = YAML.parse(File.read AMBER_YML))
       language = yaml["language"].to_s if yaml["language"]?
     end
-    return "slang"
+    return language
   end
 
 end
