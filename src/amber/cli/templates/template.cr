@@ -16,6 +16,7 @@ require "./mailer"
 require "./socket"
 require "./channel"
 require "./auth"
+require "./error"
 
 module Amber::CLI
   class Template
@@ -96,6 +97,10 @@ module Amber::CLI
           raise "Auth not supported for crecto yet"
         end
         Auth.new(name, fields).render(directory, list: true, color: true)
+      when "error"
+        puts "Rendering Error Template"
+        actions = ["forbidden", "not_found", "internal_server_error"]
+        ErrorTemplate.new("error", actions).render(directory, list: true, color: true)
       else
         raise "Template not found"
       end
