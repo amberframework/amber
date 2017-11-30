@@ -7,10 +7,11 @@ h1 Sign Up
 
 form action="/registration" method="post"
   == csrf_tag
-  div.form-group
+  .form-group
     input.form-control type="email" name="email" placeholder="Email"
-  div.form-group
+  .form-group
     input.form-control type="password" name="password" placeholder="Password"
-  button.btn.btn-primary.btn-xs type="submit" Register
+  button.btn.btn-primary.btn-xs type="submit"
+    | Register
 <hr/>
 == link_to("Already have an account?", "/signin")
