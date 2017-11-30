@@ -15,6 +15,7 @@ module Amber::CLI
 
       class Options
         arg_array "commands", desc: "drop create migrate rollback redo status version seed"
+        help
       end
 
       class Help

@@ -12,6 +12,7 @@ module Amber::CLI
         string "-m", desc: "model type", any_of: %w(granite crecto), default: "granite"
         bool "--deps", desc: "installs deps, (shards update)", default: false
         bool "--no-color", desc: "Disable colored output", default: false
+        help
       end
 
       class Help

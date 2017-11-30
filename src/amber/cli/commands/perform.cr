@@ -11,6 +11,7 @@ module Amber::CLI
       class Options
         bool ["-l", "--list"], desc: "# Displays all tasks available", default: false
         arg "task", desc: "Name of the task to execute", required: true
+        help
       end
 
       class Help
