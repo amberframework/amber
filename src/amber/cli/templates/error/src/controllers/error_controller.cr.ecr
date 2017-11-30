@@ -1,4 +1,4 @@
-class ErrorController < Amber::Controller::Error
+class <%= class_name %>Controller < Amber::Controller::Error
   LAYOUT = "application.<%= @language %>"
 
   def forbidden

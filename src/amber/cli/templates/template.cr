@@ -100,8 +100,7 @@ module Amber::CLI
       when "error"
         puts "Rendering Error Template"
         actions = ["forbidden", "not_found", "internal_server_error"]
-        ErrorTemplate::Controller.new("error", actions).render(directory, list: true, color: true)
-        ErrorTemplate::View.new("error", actions).render(directory, list: true, color: true)
+        ErrorTemplate.new("error", actions).render(directory, list: true, color: true)
       else
         raise "Template not found"
       end

@@ -1,2 +1,2 @@
 require "../spec_helper"
-require "amber_spec"
+require "garnet_spec"

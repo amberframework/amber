@@ -1,1 +1,21 @@
-require "./error/*"
+module Amber::CLI
+  class ErrorTemplate < Teeplate::FileTree
+    include Amber::CLI::Helpers
+    directory "#{__DIR__}/error"
+
+    @name : String
+    @actions : Hash(String, String)
+    @language : String
+
+    def initialize(@name, actions)
+      @language = fetch_language
+      @actions = actions.map{|action| [action, "get"] }.to_h
+      add_plugs
+    end
+
+    private def add_plugs
+      add_plugs :web, "plug Amber::Pipe::Error.new"
+    end
+
+  end
+end
