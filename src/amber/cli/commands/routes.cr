@@ -27,6 +27,7 @@ module Amber::CLI
 
       class Options
         bool "--no-color", desc: "Disable colored output", default: false
+        help
       end
 
       def run

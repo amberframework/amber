@@ -37,6 +37,7 @@ module Amber::CLI
         string ["-t", "--tag"], desc: "# Tag to use. Overrides branch."
         string ["-b", "--branch"], desc: "# Branch to use. Default master.", default: "master"
         bool "--no-color", desc: "# Disable colored output", default: false
+        help
       end
 
       def provision
