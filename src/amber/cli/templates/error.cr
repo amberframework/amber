@@ -17,5 +17,9 @@ module Amber::CLI
       add_plugs :web, "plug Amber::Pipe::Error.new"
     end
 
+    def filter(entries)
+      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
+    end
+
   end
 end
