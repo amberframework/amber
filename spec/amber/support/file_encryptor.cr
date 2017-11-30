@@ -2,16 +2,16 @@ require "../../../spec_helper"
 
 describe Amber::Support::FileEncryptor do
   Dir.mkdir_p("./tmp")
-  context "#global_encryption_key" do
+  context "#encryption_key" do
     it "load encryption_key from ENV variable" do
       ENV[Amber::SECRET_KEY] = "fake encryption key"
-      Amber::Support::FileEncryptor.global_encryption_key.should eq "fake encription key"
+      Amber::Support::FileEncryptor.encryption_key.should eq "fake encription key"
     end
 
     it "load encryption_key from .encryption_key file" do
       ENV[Amber::SECRET_KEY] = nil
       File.write(Amber::SECRET_FILE, "fake secret key")
-      Amber::Support::FileEncryptor.global_encryption_key.should eq "fake secret key"
+      Amber::Support::FileEncryptor.encryption_key.should eq "fake secret key"
 
       # TODO: This is dangerous as this file could be left over.
       File.delete(Amber::SECRET_FILE)
@@ -32,7 +32,7 @@ describe Amber::Support::FileEncryptor do
     end
 
     it "reads encrypted file to string" do
-      result = Amber::Support::FileEncryptor.read_string("./tmp/testenc.enc")
+      result = Amber::Support::FileEncryptor.read_as_string("./tmp/testenc.enc")
       result.should eq "name: elorest"
     end
   end

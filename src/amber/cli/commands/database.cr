@@ -3,7 +3,6 @@ require "pg"
 require "mysql"
 require "sqlite3"
 require "../../support/file_encryptor"
-require "../../support/file_encryptor"
 require "../../server/environment_loader"
 
 module Amber::CLI
@@ -99,7 +98,7 @@ module Amber::CLI
 
       private def database_url
         ENV["DATABASE_URL"]? || begin
-          EnvironmentLoader.new(AMBER_ENV).settings.database_url
+          EnvironmentLoader.new(AMBER_ENV, "./config/environments").settings.database_url
         end
       end
     end
