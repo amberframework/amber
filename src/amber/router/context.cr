@@ -39,11 +39,11 @@ class HTTP::Server::Context
   end
 
   def cookies
-    @cookies ||= Amber::Router::Cookies::Store.build(request, Amber::Server.secret_key_base)
+    @cookies ||= Amber::Router::Cookies::Store.build(request, Amber.settings.secret_key_base)
   end
 
   def session
-    @session ||= Amber::Router::Session::Store.new(cookies).build
+    @session ||= Amber::Router::Session::Store.new(cookies, Amber.settings.session).build
   end
 
   def flash

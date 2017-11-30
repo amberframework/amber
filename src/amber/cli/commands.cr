@@ -3,8 +3,7 @@ require "cli"
 require "./commands/*"
 require "./templates/template"
 
-AMBER_YML    = ".amber.yml"
-DATABASE_YML = "config/database.yml"
+AMBER_YML = ".amber.yml"
 
 class Cli::Command
   def colorize(text, color)

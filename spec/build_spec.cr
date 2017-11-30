@@ -1,6 +1,6 @@
 {% if flag?(:run_build_tests) %}
-require "../../spec_helper"
-require "../../../support/helpers/cli_helper"
+require "./spec_helper"
+require "./support/helpers/cli_helper"
 
 include CLIHelper
 
@@ -25,7 +25,7 @@ module Amber::CLI
 
       prepare_yaml(Dir.current)
 
-      prepare_db_yml if ENV["CI"]? == "true"
+      prepare_db_yml(CLIHelper::BASE_ENV_PATH) if ENV["CI"]? == "true"
 
       puts "====== START Creating database for #{TEST_APP_NAME} ======"
       MainCommand.run ["db", "drop"]

@@ -11,7 +11,7 @@ module Amber::CLI
       class Options
         arg "code", desc: "Crystal code or .cr file to execute within the application scope", default: ""
         string ["-e", "--editor"], desc: "Prefered editor: [vim, nano, pico, etc], only used when no code or .cr file is specified", default: "vim"
-        string ["-b", "--back"], desc: "Runs prevous command files: 'amber exec -b [times_ago]'", default: "0"
+        string ["-b", "--back"], desc: "Runs previous command files: 'amber exec -b [times_ago]'", default: "0"
       end
 
       class Help
@@ -41,7 +41,7 @@ module Amber::CLI
         result = ""
         if File.exists?(@filename)
           eval_cmd = Array(String).new
-          eval_cmd << %(require "./config/*";) if Dir.exists?("config")
+          eval_cmd << %(require "./config/application.cr";) if Dir.exists?("config")
           eval_cmd << %(require "#{@filename}";)
           result = `crystal eval '#{eval_cmd.join(" ")}'`
         end

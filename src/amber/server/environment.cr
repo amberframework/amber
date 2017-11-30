@@ -1,11 +1,5 @@
 module Amber
-  def self.env
-    @@env ||= Environment.new(ENV["AMBER_ENV"]? || "development")
-  end
-
   class Environment
-    alias EnvType = String | Symbol
-
     def initialize(@env : String)
     end
 

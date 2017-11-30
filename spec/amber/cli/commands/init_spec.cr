@@ -68,43 +68,18 @@ module Amber::CLI
       cleanup
       MainCommand.run ["new", TESTING_APP, "-d", db]
 
-      describe "database.yml config for #{db}" do
-        db_key = db == "sqlite" ? "sqlite3" : db
-        db_url = db_yml[db]["database"].as_s
-        db_name = db_name(db_url)
+      describe "#{db}" do
+        %w(development test).each do |env|
+          db_key = db == "sqlite" ? "sqlite3" : db
+          db_url = environment_yml(env)["database_url"].as_s
 
-        it "adds #{db} section" do
-          db_yml[db].should_not be_nil
-        end
+          context "is #{env.upcase}" do
+            it "sets #{db} shards dependencies" do
+              shard_yml["dependencies"][db_key].should_not be_nil
+            end
 
-        it "sets #{db} shards dependencies" do
-          shard_yml["dependencies"][db_key].should_not be_nil
-        end
-
-        it "has a database url" do
-          db_url.should_not be_nil
-          db_url.should_not eq ""
-        end
-
-        it "has correct db name" do
-          db_name.should_not contain "-"
-          db_name.should contain "development"
-        end
-
-        context "when environment" do
-          %w(development test).each do |env|
-            context "is #{env.upcase}" do
-              env_db_url = environment_yml(env)["secrets"]["database"].as_s
-              env_db_name = db_name(env_db_url)
-
-              it "has a database url" do
-                env_db_url.should contain env
-              end
-
-              it "hass correct name" do
-                env_db_name.should contain env
-                env_db_name.should_not contain "-"
-              end
+            it "has correct database connection string" do
+              db_url.should eq expected_db_url(db_key, env)
             end
           end
         end

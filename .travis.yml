@@ -6,8 +6,12 @@ services:
 before_install:
   - docker build -t garnet-spec .
 
-script:
-  - docker-compose run spec
+env:
+  - TEST_SUITE=./spec/build_spec.cr
+  - TEST_SUITE=./spec/amber
+
+script: 
+  - docker-compose run --service-ports spec bash -c "cd /app/user && crystal spec $TEST_SUITE -D run_build_tests"
 
 notifications:
   webhooks:

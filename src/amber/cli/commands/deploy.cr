@@ -128,7 +128,7 @@ module Amber::CLI
       def deploy_project
         setup_project if remote_cmd("docker ps").count("\n") < 3
         remote_cmd "docker exec -i amberweb crystal deps update"
-        remote_cmd "docker exec -i amberweb amber migrate up"
+        remote_cmd "docker exec -i amberweb amber db migrate"
         remote_cmd "docker exec -i amberweb crystal build src/#{project_name}.cr"
         remote_cmd "docker exec -i amberweb killall #{project_name}"
         remote_cmd "docker exec -id amberweb ./#{project_name}"

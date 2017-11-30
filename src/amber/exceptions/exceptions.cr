@@ -10,6 +10,12 @@ module Amber
       end
     end
 
+    class Environment < Base
+      def initialize(path, environment)
+        super("Environment file not found for #{path}#{environment}")
+      end
+    end
+
     # Raised when storing more than 4K of session data.
     class CookieOverflow < Base
     end

@@ -4,14 +4,13 @@ Your description here
 
 ## Installation
 
-Create a pg database called `<%= @name %>_development` and configure the
-`config/database.yml` to provide the credentials to access the table.
+Configure the `config/environments/development.yml` and set the `database_url` with your credentials to your database.
 
 Then:
 
 ```shellsession
 shards update
-amber migrate up
+amber db create migrate
 ```
 
 ## Usage
