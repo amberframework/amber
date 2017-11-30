@@ -3,8 +3,8 @@ require "../helpers/migration"
 
 module Amber::CLI
   class Auth < Teeplate::FileTree
-    include Amber::CLI::Helpers
-    include Amber::CLI::MigrationHelpers
+    include Helpers
+    include Helpers::Migration
     directory "#{__DIR__}/auth"
 
     @name : String
@@ -16,8 +16,8 @@ module Amber::CLI
     @primary_key : String
 
     def initialize(@name, fields)
-      @database = database
-      @language = language
+      @database = fetch_database
+      @language = fetch_language
       @fields = fields.map { |field| Field.new(field, database: @database) }
       @fields << Field.new("email:string", hidden: false, database: @database)
       @fields << Field.new("hashed_password:password", hidden: false, database: @database)
@@ -47,39 +47,6 @@ module Amber::CLI
       require "../src/models/**"
       require "../src/handlers/**"
       DEPENDENCY
-    end
-
-    def database
-      if File.exists?(AMBER_YML) &&
-         (yaml = YAML.parse(File.read AMBER_YML)) &&
-         (database = yaml["database"]?)
-        database.to_s
-      else
-        return "pg"
-      end
-    end
-
-    def language
-      if File.exists?(AMBER_YML) &&
-         (yaml = YAML.parse(File.read AMBER_YML)) &&
-         (language = yaml["language"]?)
-        language.to_s
-      else
-        return "slang"
-      end
-    end
-
-    def primary_key
-      case @database
-      when "pg"
-        "id BIGSERIAL PRIMARY KEY"
-      when "mysql"
-        "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY"
-      when "sqlite"
-        "id INTEGER NOT NULL PRIMARY KEY"
-      else
-        "id INTEGER NOT NULL PRIMARY KEY"
-      end
     end
 
     def filter(entries)

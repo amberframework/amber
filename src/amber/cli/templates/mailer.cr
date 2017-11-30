@@ -10,7 +10,7 @@ module Amber::CLI
     @fields : Array(Field)
 
     def initialize(@name, fields)
-      @language = language
+      @language = fetch_language
       @fields = fields.map { |field| Field.new(field) }
 
       add_dependencies <<-DEPENDENCY
@@ -18,15 +18,6 @@ module Amber::CLI
       DEPENDENCY
     end
 
-    def language
-      if File.exists?(AMBER_YML) &&
-         (yaml = YAML.parse(File.read AMBER_YML)) &&
-         (language = yaml["language"]?)
-        language.to_s
-      else
-        return "slang"
-      end
-    end
 
     def filter(entries)
       entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }

@@ -1,4 +1,4 @@
-module Amber::CLI::MigrationHelpers
+module Amber::CLI::Helpers::Migration
   def create_index_for_reference_fields_sql
     sql_statements = reference_fields.map do |field|
       create_index_for_reference_field_sql(field)

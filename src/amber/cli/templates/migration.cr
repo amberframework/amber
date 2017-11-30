@@ -3,8 +3,8 @@ require "../helpers/migration"
 
 module Amber::CLI
   class Migration < Teeplate::FileTree
-    include Amber::CLI::Helpers
-    include Amber::CLI::MigrationHelpers
+    include Helpers
+    include Helpers::Migration
     directory "#{__DIR__}/migration/empty"
 
     @name : String

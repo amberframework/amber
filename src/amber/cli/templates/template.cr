@@ -1,6 +1,6 @@
 require "teeplate"
 require "secure_random"
-require "./helpers.cr"
+require "../helpers/helpers.cr"
 require "./app"
 require "./migration"
 require "./crecto_migration"
