@@ -1,28 +1,24 @@
 require "../../../spec_helper"
 
 describe Amber::Settings do
-  it "loads environment settings from test.yml" do
-    settings = Amber::Settings.new
+  it "loads default environment settings from yaml file" do
+    settings = Amber::Settings.from_yaml(File.read("spec/support/config/test.yml"))
 
-    settings.name.should eq "amber_test_app"
-    settings.port_reuse.should eq true
-    settings.redis_url.should eq "#{ENV["REDIS_URL"]? || "redis://localhost:6379"}"
-    settings.database_url = ""
+    settings.logger.should be_a Logger
+    settings.colorize_logging.should eq true
+    settings.database_url.should eq "mysql://root@localhost:3306/test_settings_test"
+    settings.host.should eq "0.0.0.0"
+    settings.name.should eq "test_settings"
     settings.port.should eq 3000
-    settings.color.should eq true
-    settings.secret_key_base.should eq "mV6kTmG3k1yVFh-fPYpugSn0wbZveDvrvfQuv88DPF8"
-    expected_session = {:key => "amber.session", :store => :signed_cookie, :expires => 0}
-    settings.session.should eq expected_session
-    expected_secrets = {
-      description: "Store your test secrets credentials and settings here.",
-    }
-    settings.secrets.should eq expected_secrets
-  end
-
-  it "loads environment settings from test.yml with env overload for port." do
-    ENV["PORT"] = "1337"
-    settings = Amber::Settings.new
-
-    settings.port.should eq 1337
+    settings.port_reuse.should eq true
+    settings.process_count.should eq 1
+    settings.redis_url.should eq "redis://localhost:6379"
+    settings.secret_key_base.should_not be_nil
+    settings.secrets.should eq({"description" => "Store your test secrets credentials and settings here."})
+    settings.session.should eq({
+      :key => "amber.session", :store => :signed_cookie, :expires => 0
+    })
+    settings.ssl_key_file.should be_nil
+    settings.ssl_cert_file.should be_nil
   end
 end

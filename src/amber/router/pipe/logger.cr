@@ -3,10 +3,6 @@ require "colorize"
 module Amber
   module Pipe
     class Logger < Base
-      def colorize(text, color)
-        text.colorize(color).toggle(Amber::Server.settings.color).to_s
-      end
-
       def initialize(io : IO = STDOUT)
         @io = io
       end
@@ -43,6 +39,10 @@ module Amber
         millis = elapsed.total_milliseconds
         return "#{millis.round(2)}ms" if millis >= 1
         "#{(millis * 1000).round(2)}µs"
+      end
+
+      private def colorize(text, color)
+        text.colorize(color).toggle(Amber.settings.colorize_logging).to_s
       end
     end
   end

@@ -45,7 +45,6 @@ module Amber
           return serve_file(context, root_file)
         end
 
-
         if request_path != expanded_path || is_dir && !is_dir_path
           redirect_to context, "#{expanded_path}#{is_dir && !is_dir_path ? "/" : ""}"
         end

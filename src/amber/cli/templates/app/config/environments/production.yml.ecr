@@ -1,14 +1,12 @@
 secret_key_base: <%= SecureRandom.urlsafe_base64(32) %>
-port: <%= (ENV["PORT"] ||= "80").to_i %>
+port: 8080
 name: <%= @name %>
-log: "::Logger.new(STDOUT)"
-log_level: "::Logger::INFO"
-color: false
+colorize_logging: false
 host: 0.0.0.0
 port_reuse: true
-process_count: (ENV[%(AMBER_PROCESS_COUNT)]? || 1).to_i
-ssl_key_file:
-ssl_cert_file:
+process_count: 4
+# ssl_key_file:
+# ssl_cert_file:
 redis_url: "redis://localhost:6379"
 <%case @database
   when "mysql" -%>
@@ -20,7 +18,8 @@ database_url: sqlite3:./db/<%= database_name_base %>.db
 <%end -%>
 session:
   key: amber.session
-  store: :signed_cookie
+  store: signed_cookie
   expires: 0
+
 secrets:
-  description: Store your production secrets credentials and settings here.
+  description: Store your development secrets credentials and settings here.

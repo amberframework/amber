@@ -115,7 +115,7 @@ module Amber
 
       protected def on_message(message)
         if @socket.closed?
-          Amber::Server.log.error "Ignoring message sent to closed socket"
+          Amber.logger.error "Ignoring message sent to closed socket"
         else
           @subscription_manager.dispatch self, decode_message(message)
         end
