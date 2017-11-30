@@ -82,6 +82,7 @@ module Amber::CLI
 
     private def current_method_definition
       <<-AUTH
+
         def current_#{@name}
           context.current_#{@name}
         end
