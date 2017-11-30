@@ -11,6 +11,7 @@ module Amber::CLI
         string %w(-p --port), desc: "# PORT number to listen.", default: "3000"
         string %w(-e --environment), desc: "# AMBER_ENV environment (Production, Development, Staging).", default: "development"
         bool "--no-color", desc: "# Disable colored output", default: false
+        help
       end
 
       class Help

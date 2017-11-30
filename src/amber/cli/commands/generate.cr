@@ -10,6 +10,7 @@ module Amber::CLI
         arg "name", desc: "name of resource", required: true
         arg_array "fields", desc: "user:reference name:string body:text age:integer published:bool"
         bool "--no-color", desc: "Disable colored output", default: false
+        help
       end
 
       def run
