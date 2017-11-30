@@ -18,13 +18,14 @@ module Amber::CLI
     def initialize(@name, fields)
       @database = fetch_database
       @language = fetch_language
-      @fields = setup_fields(fields)
+      @fields = all_fields(fields)
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S%L")
       @primary_key = primary_key
       @visible_fields = @fields.reject(&.hidden).map(&.name)
       setup_routes
       setup_plugs
       setup_dependencies
+      setup_application_controller
     end
 
     def filter(entries)
@@ -57,7 +58,58 @@ module Amber::CLI
       DEPENDENCY
     end
 
-    private def setup_fields(fields)
+    private def setup_application_controller
+      filename = "./src/controllers/application_controller.cr"
+      controller = File.read(filename)
+      append_text = ""
+
+      unless controller.includes? "property current_#{@name}"
+        append_text += current_method_definition
+      end
+
+      unless controller.includes? "def signed_in?"
+        append_text += signed_in_method_definition
+      end
+
+      unless controller.includes? "def redirect_signed_out_#{@name}"
+        append_text += redirect_signed_out_method_definition
+      end
+
+      append_text = "#{append_text}\nend\n"
+      controller = controller.gsub(/end\s*\Z/, append_text)
+      File.write(filename, controller)
+    end
+
+    private def current_method_definition
+      <<-AUTH
+        def current_#{@name}
+          context.current_#{@name}
+        end
+      AUTH
+    end
+
+    private def signed_in_method_definition
+      <<-AUTH
+
+        def signed_in?
+          current_#{@name} ? true : false
+        end\n
+      AUTH
+    end
+
+    private def redirect_signed_out_method_definition
+      <<-AUTH
+
+        private def redirect_signed_out_#{@name}
+          unless signed_in?
+            flash[:info] = "Must be logged in"
+            redirect_to "/signin"
+          end
+        end\n
+      AUTH
+    end
+
+    private def all_fields(fields)
       fields.map { |field| Field.new(field, database: @database) } +
       auth_fields +
       timestamp_fields

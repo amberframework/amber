@@ -1,45 +1,40 @@
 class <%= class_name %>Controller < ApplicationController
+  before_action do
+    all { redirect_signed_out_<%= @name %> }
+  end
+
   def show
-    if (<%= @name %> = context.current_<%= @name %>)
-      render("show.slang")
-    else
-      flash[:info] = "Must be logged in"
-      redirect_to "/signin"
-    end
+    render("show.<%= @language %>") if (<%= @name %> = current_<%= @name %>)
   end
 
   def edit
-    if (<%= @name %> = context.current_<%= @name %>)
-      render("edit.slang")
-    else
-      flash[:info] = "Must be logged in"
-      redirect_to "/signin"
-    end
+    render("edit.<%= @language %>") if (<%= @name %> = current_<%= @name %>)
   end
 
   def update
-    if (<%= @name %> = context.current_<%= @name %>)
-      update_<%= @name %>(<%= @name %>)
+    <%= @name %> = current_<%= @name %>
+    if update(<%= @name %>)
+      flash[:success] = "Updated Profile successfully."
+      redirect_to "/profile"
+    elsif <%= @name %>
+      flash[:danger] = "Could not update Profile!"
+      render("edit.slang")
     else
       flash[:info] = "Must be logged in"
       redirect_to "/signin"
     end
   end
 
-  private def update_<%= @name %>(<%= @name %>)
+  private def update(<%= @name %>)
+    return false unless <%= @name %> && <%= @name %>_params.valid?
     <%= @name %>.set_attributes(<%= @name %>_params.to_h)
-    if <%= @name %>.valid? && <%= @name %>.save
-      flash[:success] = "Updated Profile successfully."
-      redirect_to "/profile"
-    else
-      flash[:danger] = "Could not update Profile!"
-      render("edit.slang")
-    end
+    <%= @name %>.valid? && <%= @name %>.save
   end
 
   private def <%= @name %>_params
     params.validation do
       required(:email) {|f| !f.nil? && !f.empty? }
+      optional(:password) {|f| !f.nil? && !f.empty? }
     end
   end
 end
