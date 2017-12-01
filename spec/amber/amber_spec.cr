@@ -17,8 +17,6 @@ describe Amber do
 
   describe ".env=" do
     context "when switching environments" do
-      ENV[Amber::SECRET_KEY] = "mnDiAY4OyVjqg5u0wvpr0MoBkOGXBeYo7_ysjwsNzmw"
-
       it "changes environment from TEST to PRODUCTION" do
         current_settings = Amber.settings
         Amber.env = :production

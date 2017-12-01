@@ -1,29 +1,37 @@
 require "./message_encryptor"
 
 module Amber::Support
-  module FileEncryptor
-    def self.encryption_key
-      ENV["AMBER_ENCRYPTION_KEY"]? || begin
-        if File.exists?(".encryption_key")
-          File.open(".encryption_key").gets_to_end.to_s
-        else
-          raise Exceptions::EncryptionKeyMissing.new
-        end
-      end
+  class FileEncryptor
+    def self.read(filename, encryption_key)
+      new(encryption_key).read(filename)
     end
 
-    def self.read(filename : String, encryption_key = self.encryption_key)
+    def self.write(filename, body, encryption_key)
+      new(encryption_key).write(filename, body)
+    end
+
+    def self.read_string(filename, encryption_key)
+      new(encryption_key).read_as_string(filename)
+    end
+
+    getter encryption_key
+
+    def initialize(@encryption_key : String)
+      raise "Encryption key doesn't exist!" unless encryption_key
+    end
+
+    def read(filename : String)
       encryptor = Amber::Support::MessageEncryptor.new(encryption_key)
       encryptor.verify_and_decrypt(File.open(filename).gets_to_end.to_slice)
     end
 
-    def self.write(filename : String, body : (String | Bytes), encryption_key = self.encryption_key)
-      encryptor = Amber::Support::MessageEncryptor.new(encryption_key)
+    def write(filename : String, body : (String | Bytes))
+      encryptor = MessageEncryptor.new(encryption_key)
       File.write(filename, encryptor.encrypt_and_sign(body))
     end
 
-    def self.read_as_string(filename, encryption_key = self.encryption_key)
-      String.new(read(filename, encryption_key))
+    def read_as_string(filename)
+      String.new(read(filename))
     end
   end
 end

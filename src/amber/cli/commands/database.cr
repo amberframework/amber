@@ -2,13 +2,9 @@ require "micrate"
 require "pg"
 require "mysql"
 require "sqlite3"
-require "../../support/file_encryptor"
-require "../../server/environment_loader"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
-    AMBER_ENV = (ENV["AMBER_ENV"] ||= "development")
-
     command "db", aliased: "database"
 
     class Database < ::Cli::Command
@@ -98,8 +94,8 @@ module Amber::CLI
       end
 
       private def database_url
-        ENV["DATABASE_URL"]? || begin
-          EnvironmentLoader.new(AMBER_ENV, "./config/environments").settings.database_url
+        ::ENV["DATABASE_URL"]? || begin
+          Amber::CLI.settings.database_url
         end
       end
     end

@@ -1,15 +1,11 @@
-require "./settings"
-
-module Amber
+module Amber::Environment
   class EnvironmentLoader
-    # TODO: Should probably use Amber::Env type here but can't until we refactor the Amber module.
-    # Should default path to Amber.environment_path
-    def initialize(@environment : String | Symbol = :development, @path : String = "./config/environments")
+    def initialize(@environment : Amber::Environment::EnvType, @path : String, @file_encryptor : Support::FileEncryptor)
       raise Exceptions::Environment.new(@path, @environment) unless settings_file_exist?
     end
 
     def settings
-      Amber::Settings.from_yaml(settings_content.to_s)
+      Settings.from_yaml(settings_content.to_s)
     end
 
     private def settings_file_exist?
@@ -20,16 +16,16 @@ module Amber
       if File.exists?(yml_settings_file)
         File.read(yml_settings_file)
       elsif File.exists?(enc_settings_file)
-        Support::FileEncryptor.read_as_string(enc_settings_file)
+        @file_encryptor.read_as_string(enc_settings_file)
       end
     end
 
     private def yml_settings_file
-      @yml_settings ||= "#{@path}/#{@environment}.yml"
+      @yml_settings ||= File.expand_path("#{@path}/#{@environment}.yml")
     end
 
     private def enc_settings_file
-      @enc_settings ||= "#{@path}/.#{@environment}.enc"
+      @enc_settings ||= File.expand_path("#{@path}/.#{@environment}.enc")
     end
   end
 end
