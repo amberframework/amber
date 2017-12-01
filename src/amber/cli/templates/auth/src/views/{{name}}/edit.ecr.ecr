@@ -1,0 +1,18 @@
+<h1>Edit Profile</h1>
+
+<%="<"%>%- if <%= @name %>.errors %>
+  <ul class="errors">
+  <%="<"%>%- <%= @name %>.errors.each do |error| %>
+    <li><%="<"%>%= error.to_s %></li>
+  <%="<"%>%- end %>
+  </ul>
+<%="<"%>%- end %>
+
+<%="<"%>%= form(action: "/profile", method: :patch) do %>
+  <%="<"%>%= csrf_tag %>
+  <div class="form-group">
+    <input class="form-control" type="email" name="email" placeholder="Email" value="<%="<"%>%= <%= @name %>.email %>" />
+  </div>
+  <%="<"%>%= submit("Update", class: "btn btn-primary btn-xs") %>
+  <%="<"%>%= link_to("profile", "/profile", class: "btn btn-default btn-xs") %>
+<%="<"%>%- end %>

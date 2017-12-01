@@ -2,18 +2,8 @@ require "granite_orm/adapter/<%= @database %>"
 require "crypto/bcrypt/password"
 
 class <%= class_name %> < Granite::ORM::Base
+  include Crypto
   adapter <%= @database %>
-  property password : String?
-  before_save :encrypt_password
-
-  validate :email, "is required", -> (<%= @name %> : <%= class_name %>) do
-    (<%= @name %>.email != nil) && (!<%= @name %>.email.not_nil!.empty?)
-  end
-
-  validate :password, "is to short", -> (<%= @name %> : <%= class_name %>) do
-    (<%= @name %>.password != nil) && (<%= @name %>.password.not_nil!.size >= 8)
-  end
-
   primary id : Int64
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
   field <%= field.name %> : <%= field.cr_type %>
@@ -22,16 +12,34 @@ class <%= class_name %> < Granite::ORM::Base
   timestamps
 <% end -%>
 
-  def encrypt_password
-    @encrypted_password = Crypto::Bcrypt::Password.create(@password.not_nil!, cost: 10).to_s
+  validate :email, "is required", -> (<%= @name %> : <%= class_name %>) do
+    (email = <%= @name %>.email) ? !email.empty? : false
+  end
+
+  validate :password, "is too short", -> (<%= @name %> : <%= class_name %>) do
+    <%= @name %>.password_changed? ? <%= @name %>.valid_password_size? : true
+  end
+
+  def password=(password)
+    @new_password = password
+    @hashed_password = Bcrypt::Password.create(password, cost: 10).to_s
+  end
+
+  def password
+    (hash = hashed_password) ? Bcrypt::Password.new(hash) : nil
+  end
+
+  def password_changed?
+    new_password ? true : false
+  end
+
+  def valid_password_size?
+    (pass = new_password) ? pass.size >= 8 : false
   end
 
   def authenticate(password : String)
-    if enc = @encrypted_password
-      bcrypt_password = Crypto::Bcrypt::Password.new(enc)
-      return bcrypt_password == password
-    else
-      return false
-    end
+    (bcrypt_pass = self.password) ? bcrypt_pass == password : false
   end
+
+  private getter new_password : String?
 end

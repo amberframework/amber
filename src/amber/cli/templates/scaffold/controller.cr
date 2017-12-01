@@ -12,8 +12,8 @@ module Amber::CLI::Scaffold
     @fields_hash = {} of String => String
 
     def initialize(@name, fields)
-      @language = language
-      @database = database
+      @language = fetch_language
+      @database = fetch_database
       @fields = fields.map { |field| Field.new(field, database: @database) }
       @fields += %w(created_at:time updated_at:time).map do |f|
         Field.new(f, hidden: true, database: @database)
@@ -32,26 +32,6 @@ module Amber::CLI::Scaffold
           field_name = f.reference? ? "#{f.name}_id" : f.name
           @fields_hash[field_name] = default_value(f.cr_type) unless f.nil?
         end
-      end
-    end
-
-    def language
-      if File.exists?(AMBER_YML) &&
-         (yaml = YAML.parse(File.read AMBER_YML)) &&
-         (language = yaml["language"]?)
-        language.to_s
-      else
-        return "slang"
-      end
-    end
-
-    def database
-      if File.exists?(AMBER_YML) &&
-         (yaml = YAML.parse(File.read AMBER_YML)) &&
-         (database = yaml["database"]?)
-        database.to_s
-      else
-        return "pg"
       end
     end
 
