@@ -10,14 +10,12 @@ module Amber::CLI
     @name : String
     @fields : Array(Field)
     @visible_fields : Array(String)
-    @database : String
-    @language : String
+    @database : String = CLI.config.database
+    @language : String = CLI.config.language
     @timestamp : String
     @primary_key : String
 
     def initialize(@name, fields)
-      @database = fetch_database
-      @language = fetch_language
       @fields = all_fields(fields)
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S%L")
       @primary_key = primary_key

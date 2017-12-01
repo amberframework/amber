@@ -15,22 +15,12 @@ module Amber::CLI::Helpers::Migration
     SQL
   end
 
-  def database
-    if File.exists?(AMBER_YML) &&
-       (yaml = YAML.parse(File.read AMBER_YML)) &&
-       (database = yaml["database"]?)
-      database.to_s
-    else
-      return "pg"
-    end
-  end
-
   def drop_table_sql
     "DROP TABLE IF EXISTS #{@name}s;"
   end
 
   def primary_key
-    case database
+    case CLI.config.database
     when "pg"
       "id BIGSERIAL PRIMARY KEY"
     when "mysql"
