@@ -104,6 +104,7 @@ export class Socket {
    * Tries to reconnect to the websocket server using a recursive timeout
    */
   _reconnect() {
+    clearTimeout(this.reconnectTimeout)
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectTries++
       this.connect(this.params)
