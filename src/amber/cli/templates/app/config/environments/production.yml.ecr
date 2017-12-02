@@ -1,5 +1,5 @@
 secret_key_base: <%= SecureRandom.urlsafe_base64(32) %>
-port: 8080
+port: (ENV["PORT"]? || 8080).to_i
 name: <%= @name %>
 colorize_logging: false
 host: 0.0.0.0
