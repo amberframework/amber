@@ -1,6 +1,6 @@
 require "../version"
 require "cli"
-require "./commands/**"
+require "./commands/*"
 require "./templates/template"
 
 AMBER_YML = ".amber.yml"

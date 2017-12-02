@@ -11,7 +11,7 @@ APP_TEMPLATE_PATH = "./src/amber/cli/templates/app"
 CURRENT_DIR       = Dir.current
 
 Amber.environment_path = "./spec/support/config"
-Amber.env=(ENV[AMBER_ENV])
+Amber.env=(ENV[Amber::AMBER_ENV])
 Amber.settings.redis_url = ENV["REDIS_URL"]? || Amber.settings.redis_url
 
 require "http"

@@ -94,8 +94,8 @@ module Amber::CLI
       end
 
       private def database_url
-        ::ENV["DATABASE_URL"]? || begin
-          Amber::CLI.settings.database_url
+        ENV["DATABASE_URL"]? || begin
+          CLI.settings.database_url
         end
       end
     end
