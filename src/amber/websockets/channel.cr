@@ -75,9 +75,8 @@ module Amber
       protected def setup_pubsub_adapter
         @@adapter = Amber::Server.pubsub_adapter
         if pubsub_adapter = @@adapter
-          pubsub_adapter.on_message(@topic_path, ->(client_socket_id : String, message : JSON::Any) {
+          pubsub_adapter.on_message(@topic_path, Proc(String, JSON::Any, Nil).new { |client_socket_id, message|
             self.on_message(client_socket_id, message)
-            nil
           })
           pubsub_adapter
         else
