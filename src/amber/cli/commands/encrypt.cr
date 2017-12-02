@@ -1,5 +1,3 @@
-require "../../support/file_encryptor"
-
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     command "e", aliased: "encrypt"
