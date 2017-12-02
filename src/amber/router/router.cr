@@ -9,7 +9,7 @@ module Amber
       PATH_EXT_REGEX = /\.[^$\/]+$/
 
       def initialize
-        @routes = Radix::Tree(Route).new
+        @routes = Amber::Router::RouteSet.new
         @routes_hash = {} of String => Route
         @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new
       end
@@ -34,8 +34,6 @@ module Amber
         @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route
         add_head(route) if route.verb == :GET
         node
-      rescue Radix::Tree::DuplicateError
-        raise Amber::Exceptions::DuplicateRouteError.new(route)
       end
 
       def add_socket_route(route, handler : WebSockets::Server::Handler)
@@ -43,7 +41,7 @@ module Amber
       end
 
       def route_defined?(request)
-        match_by_request(request).found?
+        ! match(request.method, request.path).nil?
       end
 
       def socket_route_defined?(request)
@@ -51,7 +49,11 @@ module Amber
       end
 
       def match_by_request(request)
-        match(request.method, request.path)
+        unless route = match?(request.method, request.path)
+          raise Exceptions::RouteNotFound.new(request)
+        end
+
+        route
       end
 
       def match_by_controller_action(controller, action)
@@ -75,13 +77,10 @@ module Amber
         end
       end
 
-      def match(http_verb, resource) : Radix::Result(Amber::Route)
+      def match?(http_verb, resource) : Amber::Route?
         result = @routes.find build_node(http_verb, resource)
-        if result.found?
-          result
-        else
-          @routes.find build_node(http_verb, resource.sub(PATH_EXT_REGEX, ""))
-        end
+        return result if result
+        @routes.find build_node(http_verb, resource.sub(PATH_EXT_REGEX, ""))
       end
 
       private def merge_params(params, context)

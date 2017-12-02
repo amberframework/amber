@@ -28,7 +28,7 @@ class HTTP::Server::Context
   setter cookies : Amber::Router::Cookies::Store?
   setter session : Amber::Router::Session::AbstractStore?
   property content : String?
-  property route : Radix::Result(Amber::Route)
+  property route : Amber::Route
 
   def initialize(@request : HTTP::Request, @response : HTTP::Server::Response)
     @router = Amber::Server.router
