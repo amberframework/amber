@@ -16,7 +16,7 @@ describe Amber::Settings do
     settings.secret_key_base.should_not be_nil
     settings.secrets.should eq({"description" => "Store your test secrets credentials and settings here."})
     settings.session.should eq({
-      :key => "amber.session", :store => :signed_cookie, :expires => 0
+      :key => "amber.session", :store => :signed_cookie, :expires => 0,
     })
     settings.ssl_key_file.should be_nil
     settings.ssl_cert_file.should be_nil

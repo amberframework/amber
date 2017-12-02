@@ -33,7 +33,6 @@ module Amber::CLI
               File.exists?("./src/views/error/#{view}.slang").should be_true
             end
           end
-
         end
       end
     ensure

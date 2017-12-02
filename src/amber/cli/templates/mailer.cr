@@ -18,7 +18,6 @@ module Amber::CLI
       DEPENDENCY
     end
 
-
     def filter(entries)
       entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }
     end

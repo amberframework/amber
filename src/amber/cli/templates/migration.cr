@@ -24,6 +24,5 @@ module Amber::CLI
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S%L")
       @primary_key = primary_key
     end
-
   end
 end

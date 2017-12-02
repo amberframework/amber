@@ -1,7 +1,7 @@
 module Fixtures::CLI::Generate
   module ErrorController
     extend self
-    
+
     def expected_error_controller
       <<-CONT
       class ErrorController < Amber::Controller::Error
@@ -22,6 +22,5 @@ module Fixtures::CLI::Generate
 
       CONT
     end
-
   end
 end

@@ -112,8 +112,8 @@ module Amber::CLI
 
     private def all_fields(fields)
       fields.map { |field| Field.new(field, database: @database) } +
-      auth_fields +
-      timestamp_fields
+        auth_fields +
+        timestamp_fields
     end
 
     private def auth_fields

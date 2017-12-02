@@ -50,5 +50,4 @@ module Amber::CLI::Helpers
     end
     return language
   end
-
 end

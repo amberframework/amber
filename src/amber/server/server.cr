@@ -10,7 +10,6 @@ module Amber
     getter handler = Pipe::Pipeline.new
     getter router = Router::Router.new
 
-
     def self.instance
       @@instance ||= new
     end

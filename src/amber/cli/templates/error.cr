@@ -9,7 +9,7 @@ module Amber::CLI
 
     def initialize(@name, actions)
       @language = fetch_language
-      @actions = actions.map{|action| [action, "get"] }.to_h
+      @actions = actions.map { |action| [action, "get"] }.to_h
       add_plugs
     end
 
@@ -20,6 +20,5 @@ module Amber::CLI
     def filter(entries)
       entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
     end
-
   end
 end
