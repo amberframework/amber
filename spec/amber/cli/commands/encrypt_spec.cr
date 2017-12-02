@@ -15,7 +15,7 @@ module Amber::CLI
     end
 
     it "unencrypts .test.enc" do
-      String.new(CLI.file_encryptor.read("./config/environments/.test.enc")).should contain "port: 3000"
+      String.new(Support::FileEncryptor.read("./config/environments/.test.enc")).should contain "port: 3000"
     end
 
     it "creates a 44 characters secret key in .encryption_key" do

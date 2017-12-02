@@ -1,7 +1,7 @@
 # NOTE: Constants should be set before require begins.
 
 ENV["AMBER_ENV"] = "test"
-ENV[Amber::SECRET_KEY] = "mnDiAY4OyVjqg5u0wvpr0MoBkOGXBeYo7_ysjwsNzmw"
+ENV[Amber::Support::SECRET_KEY] = "mnDiAY4OyVjqg5u0wvpr0MoBkOGXBeYo7_ysjwsNzmw"
 TEST_PATH         = "spec/support/sample"
 PUBLIC_PATH       = TEST_PATH + "/public"
 VIEWS_PATH        = TEST_PATH + "/views"
