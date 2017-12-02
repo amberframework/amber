@@ -79,6 +79,7 @@ module Amber
             self.on_message(client_socket_id, message)
             nil
           })
+          pubsub_adapter
         else
           raise "Invalid @@adapter on Amber::WebSockets::Channel"
         end
