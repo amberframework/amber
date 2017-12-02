@@ -13,7 +13,7 @@ module Amber::Environment
     @@_settings : Settings?
 
     def self.settings
-      @@_settings ||= EnvironmentLoader.new(CURRENT_ENVIRONMENT, @@environment_path, file_encryptor).settings
+      @@_settings ||= Loader.new(CURRENT_ENVIRONMENT, @@environment_path, file_encryptor).settings
     end
 
     def self.logger
@@ -22,11 +22,11 @@ module Amber::Environment
 
     def self.env=(env : EnvType)
       ENV["AMBER_ENV"] = env.to_s
-      @@_settings = EnvironmentLoader.new(env, @@environment_path, file_encryptor).settings
+      @@_settings = Loader.new(env, @@environment_path, file_encryptor).settings
     end
 
     def self.env
-      @@env ||= Environment::Environment.new(CURRENT_ENVIRONMENT)
+      @@env ||= Env.new(CURRENT_ENVIRONMENT)
     end
 
     def self.file_encryptor
