@@ -58,14 +58,14 @@ Amber::Server.configure do |settings|
   #
   # > Read more about Linux PORT REUSE https://lwn.net/Articles/542629/
   #
-  # settings.port_reuse = ENV["PORT_REUSE"] if ENV["PORT_REUSE"]?
+  # settings.port_reuse = true
   #
   #
   # Process Count: This will enable Amber to be used in cluster mode,
   # spinning an instance for each number of process specified here.
   # Rule of thumb, always leave at least 1 core available for system processes/resources.
   #
-  # settings.process_count = ENV["PROCESS_COUNT"] if ENV["PROCESS_COUNT"]?
+  # settings.process_count = ENV["PROCESS_COUNT"].to_i if ENV["PROCESS_COUNT"]?
   #
   #
   # PORT: This is the port that you're application will run on. Examples would be (80, 443, 3000, 8080)
