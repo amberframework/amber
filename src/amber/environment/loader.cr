@@ -1,6 +1,6 @@
 module Amber::Environment
   class Loader
-    def initialize(@environment : Amber::Environment::EnvType, @path : String, @file_encryptor : Support::FileEncryptor)
+    def initialize(@environment : Amber::Environment::EnvType, @path : String)
       raise Exceptions::Environment.new(@path, @environment) unless settings_file_exist?
     end
 
@@ -16,7 +16,7 @@ module Amber::Environment
       if File.exists?(yml_settings_file)
         File.read(yml_settings_file)
       elsif File.exists?(enc_settings_file)
-        @file_encryptor.read_as_string(enc_settings_file)
+        Support::FileEncryptor.read_as_string(enc_settings_file)
       end
     end
 
