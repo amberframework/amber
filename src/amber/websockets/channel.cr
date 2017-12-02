@@ -75,10 +75,10 @@ module Amber
       protected def setup_pubsub_adapter
         @@adapter = Amber::Server.pubsub_adapter
         if pubsub_adapter = @@adapter
-          listener = Proc(String, JSON::Any, Nil).new do |client_socket_id, message|
+          pubsub_adapter.on_message(@topic_path, ->(client_socket_id : String, message : JSON::Any) {
             self.on_message(client_socket_id, message)
-          end
-          pubsub_adapter.on_message(@topic_path, listener)
+            nil
+          })
         else
           raise "Invalid @@adapter on Amber::WebSockets::Channel"
         end
