@@ -1,6 +1,5 @@
-require "yaml"
 require "cli"
-
+require "yaml"
 require "sentry"
 
 module Sentry
