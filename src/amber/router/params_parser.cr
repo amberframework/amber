@@ -117,7 +117,7 @@ module Amber::Router
         next unless upload
         filename = upload.filename
         if filename.is_a?(String) && !filename.empty?
-          files[upload.name] = Files::File.new(upload: upload)
+          params[upload.name] = Files::File.new(upload: upload)
         else
           params[upload.name] = upload.body.gets_to_end
         end

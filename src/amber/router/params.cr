@@ -6,7 +6,7 @@ module Amber::Router
   # instead of here.  This removes a dependency on the router in case it is
   # replaced or not needed.
 
-  class Params < Hash(String, String)
+  class Params < Hash(String, String | Amber::Router::Files::File)
     alias KeyType = String | Symbol
 
     def json(key : KeyType)

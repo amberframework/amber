@@ -174,8 +174,10 @@ describe HTTP::Server::Context do
     request = HTTP::Request.new("POST", "/", headers, body)
 
     context = create_context(request)
+    file = context.params["picture"].as(Amber::Router::Files::File)
 
-    context.files["picture"].filename.should eq "index.html"
+    file.should be_a Amber::Router::Files::File
+    file.filename.should eq "index.html"
     context.params["title"].should eq "title field"
     context.params["_csrf"].should eq "PcCFp4oKJ1g-hZ-P7-phg0alC51pz7Pl12r0ZOncgxI"
   end
