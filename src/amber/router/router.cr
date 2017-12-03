@@ -1,4 +1,4 @@
-require "radix"
+require "amber_router"
 
 module Amber
   module Router
@@ -9,7 +9,7 @@ module Amber
       PATH_EXT_REGEX = /\.[^$\/]+$/
 
       def initialize
-        @routes = Radix::Tree(Route).new
+        @routes = RouteSet(Route).new
         @routes_hash = {} of String => Route
         @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new
       end
@@ -34,8 +34,6 @@ module Amber
         @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route
         add_head(route) if route.verb == :GET
         node
-      rescue Radix::Tree::DuplicateError
-        raise Amber::Exceptions::DuplicateRouteError.new(route)
       end
 
       def add_socket_route(route, handler : WebSockets::Server::Handler)
@@ -75,7 +73,7 @@ module Amber
         end
       end
 
-      def match(http_verb, resource) : Radix::Result(Amber::Route)
+      def match(http_verb, resource) : RoutedResult(Route)
         result = @routes.find build_node(http_verb, resource)
         if result.found?
           result
