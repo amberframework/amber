@@ -24,13 +24,5 @@ module Amber::Router
         @size = upload.size
       end
     end
-
-    def clear_files
-      @files = {} of String => File
-    end
-
-    def files
-      @files ||= {} of String => File
-    end
   end
 end

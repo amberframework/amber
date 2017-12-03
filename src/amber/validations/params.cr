@@ -4,11 +4,11 @@ module Amber::Validators
 
   # This struct holds the validation rules to be performed
   class BaseRule
-    getter predicate : (String | Amber::Router::Files::File -> Bool)
+    getter predicate : (String -> Bool)
     getter field : String
-    getter value : String? | Amber::Router::Files::File
+    getter value : String?
 
-    def initialize(field : String | Symbol, @msg : String?, &block : String | Amber::Router::Files::File -> Bool)
+    def initialize(field : String | Symbol, @msg : String?, &block : String -> Bool)
       @field = field.to_s
       @predicate = block
     end
@@ -42,11 +42,11 @@ module Amber::Validators
       _validator.add_rule BaseRule.new(param, msg)
     end
 
-    def required(param : String | Symbol, msg : String? = nil, &b : String | Amber::Router::Files::File -> Bool)
+    def required(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
       _validator.add_rule BaseRule.new(param, msg, &b)
     end
 
-    def optional(param : String | Symbol, msg : String? = nil, &b : String | Amber::Router::Files::File -> Bool)
+    def optional(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
       _validator.add_rule OptionalRule.new(param, msg, &b)
     end
   end
@@ -55,7 +55,7 @@ module Amber::Validators
     getter raw_params = Amber::Router::Params.new
     getter errors = [] of Error
     getter rules = [] of BaseRule
-    getter params = {} of String => String? | Amber::Router::Files::File
+    getter params = {} of String => String?
     getter errors = [] of Error
 
     def initialize(@raw_params); end
