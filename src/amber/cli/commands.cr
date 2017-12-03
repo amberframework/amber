@@ -2,8 +2,7 @@ require "../version"
 require "cli"
 require "./commands/*"
 require "./templates/template"
-
-AMBER_YML = ".amber.yml"
+require "./config"
 
 class Cli::Command
   def colorize(text, color)
@@ -17,6 +16,8 @@ end
 
 module Amber::CLI
   include Amber::Environment
+  
+  AMBER_YML = ".amber.yml"
 
   class MainCommand < ::Cli::Supercommand
     command_name "amber"

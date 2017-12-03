@@ -8,10 +8,9 @@ module Amber::CLI
 
     @name : String
     @actions = Hash(String, String).new
-    @language : String
+    getter language : String = CLI.config.language
 
     def initialize(@name, actions)
-      @language = fetch_language
       parse_actions(actions)
       add_routes :web, <<-ROUTES
         #{@actions.map { |action, verb| %Q(#{verb} "/#{@name}/#{action}", #{class_name}Controller, :#{action}) }.join("\n    ")}

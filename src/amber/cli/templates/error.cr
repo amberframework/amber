@@ -5,10 +5,9 @@ module Amber::CLI
 
     @name : String
     @actions : Hash(String, String)
-    @language : String
+    @language : String = CLI.config.language
 
     def initialize(@name, actions)
-      @language = fetch_language
       @actions = actions.map { |action| [action, "get"] }.to_h
       add_plugs
     end
