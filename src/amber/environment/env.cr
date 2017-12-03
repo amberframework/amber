@@ -1,5 +1,5 @@
-module Amber
-  class Environment
+module Amber::Environment
+  class Env
     def initialize(@env : String)
     end
 

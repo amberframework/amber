@@ -3,6 +3,8 @@ require "../../../../spec_helper"
 module Amber
   module Pipe
     describe CSRF do
+      Dir.cd CURRENT_DIR
+
       context "when requests have HTTP methods" do
         CSRF::CHECK_METHODS.each do |method|
           it "raises forbidden error for #{method} request" do
