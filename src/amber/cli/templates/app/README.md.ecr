@@ -1,6 +1,6 @@
 # <%= @name %>
 
-Your description here
+A new project using [Amber Framework](https://amberframework.org/)
 
 ## Installation
 
@@ -8,40 +8,69 @@ Configure the `config/environments/development.yml` and set the `database_url` w
 
 Then:
 
-```shellsession
-shards update
+```
+shards install
 amber db create migrate
 ```
 
 ## Usage
 
-To run the demo:
+### Development
 
-```shellsession
-$ shards build src/<%= @name %>.cr
-./<%= @name %>
+To build crystal files:
+
 ```
+shards install
+amber watch
+```
+
+To build assets:
+
+```
+npm install
+npm run watch
+```
+
+### Production
+
+To build a production release:
+
+```
+AMBER_ENV=production
+shards build --production --release <%= @name %>
+```
+
+To build production assets:
+
+```
+npm install
+npm run release
+```
+
+<% if @database == "pg" %>
 
 ## Docker Compose
 
-This will start an instance of postgres, migrate the database,
+This will start an instance of **postgres**, migrate the database,
 and launch the site at http://localhost:3000
 
-```shellsession
+```
 docker-compose up -d
 ```
 
 To view the logs:
 
-```shellsession
+```
 docker-compose logs -f
 ```
 
-Note: The Docker images are compatible with Heroku.
+> Note: The Docker images are compatible with Heroku.
+
+<% end %>
 
 ## Contributing
 
-1. Fork it ( https://github.com/[your-github-name]/your_project/fork )
+1. Fork it ( https://github.com/<%= @github_name %>/<%= @name %>/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
@@ -49,4 +78,4 @@ Note: The Docker images are compatible with Heroku.
 
 ## Contributors
 
-- [your_github_name](https://github.com/your_github_name) your_name - creator, maintainer
+- [<%= @github_name %>](https://github.com/<%= @github_name %>) <%= @author %> - creator, maintainer
