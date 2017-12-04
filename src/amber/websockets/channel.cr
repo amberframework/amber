@@ -42,8 +42,11 @@ module Amber
 
       # Helper method for retrieving the apdater not nillable
       protected def adapter
-        setup_pubsub_adapter if @@adapter.nil?
-        @@adapter.not_nil!
+        if pubsub_adapter = @@adapter
+          pubsub_adapter
+        else
+          setup_pubsub_adapter
+        end
       end
 
       # Called when a socket subscribes to a channel
@@ -68,10 +71,17 @@ module Amber
         subscribers.each_value(&.socket.send(message.to_json))
       end
 
-      # Ensure the pubsub adpater instance exists, and set up the on_message proc callback
+      # Ensure the pubsub adapter instance exists, and set up the on_message proc callback
       protected def setup_pubsub_adapter
         @@adapter = Amber::Server.pubsub_adapter
-        @@adapter.not_nil!.on_message(@topic_path, ->(client_socket_id : String, message : JSON::Any) { self.on_message(client_socket_id, message); nil })
+        if pubsub_adapter = @@adapter
+          pubsub_adapter.on_message(@topic_path, Proc(String, JSON::Any, Nil).new { |client_socket_id, message|
+            self.on_message(client_socket_id, message)
+          })
+          pubsub_adapter
+        else
+          raise "Invalid @@adapter on Amber::WebSockets::Channel"
+        end
       end
     end
   end
