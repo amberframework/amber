@@ -58,14 +58,14 @@ module Sentry
 
     def run
       if options.info?
-        puts "
-      name:       #{options.name?}
-      build:      #{options.build?}
-      build args: #{options.build_args?}
-      run:        #{options.run?}
-      run args:   #{options.run_args?}
-      files:      #{options.watch}
-    "
+        puts <<-INFO
+          name:       #{options.name?}
+          build:      #{options.build?}
+          build args: #{options.build_args?}
+          run:        #{options.run?}
+          run args:   #{options.run_args?}
+          files:      #{options.watch}
+        INFO
         exit! code: 0
       end
 
