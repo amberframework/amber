@@ -1,7 +1,5 @@
 module Amber::CLI
   class App < Teeplate::FileTree
-    WHICH_GIT_COMMAND = "which git >/dev/null"
-
     directory "#{__DIR__}/app"
     getter database_name_base
 
@@ -33,19 +31,27 @@ module Amber::CLI
       @name.gsub('-', '_')
     end
 
+    def which_git_command
+      `which git >/dev/null`
+    end
+
     def fetch_author
-      return "[your-name-here]" unless system(WHICH_GIT_COMMAND)
-      `git config --get user.name`.strip
+      default = "[your-name-here]"
+      return default unless which_git_command
+      user_name = `git config --get user.name`.strip
+      user_name.empty? ? default : user_name
     end
 
     def fetch_email
-      return "[your-email-here]" unless system(WHICH_GIT_COMMAND)
-      `git config --get user.email`.strip
+      default = "[your-email-here]"
+      return default unless which_git_command
+      user_email = `git config --get user.email`.strip
+      user_email.empty? ? default : user_email
     end
 
     def fetch_github_name
       default = "[your-github-name]"
-      return default unless system(WHICH_GIT_COMMAND)
+      return default unless which_git_command
       github_user = `git config --get github.user`.strip
       github_user.empty? ? default : github_user
     end
