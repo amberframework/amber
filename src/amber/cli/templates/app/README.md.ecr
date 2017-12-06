@@ -37,10 +37,15 @@ npm run watch
 
 ### Production
 
-To build a production release:
+To setup `AMBER_ENV`:
 
 ```
-AMBER_ENV=production
+export AMBER_ENV=production
+```
+
+To build a production release:
+  
+```
 shards build --production --release <%= @name %>
 ```
 
@@ -50,10 +55,11 @@ To build production assets:
 npm run release
 ```
 
+To use encrypted enviroment settings see [documentation](https://github.com/amberframework/online-docs/blob/master/getting-started/cli/encrypt.md#encrypt-command)
 
 ## Docker Compose
 
-This will start an instance of **postgres**, migrate the database,
+This will start an instance of <%= @database == "pg" ? "postgres" : "mysql" %>, migrate the database,
 and launch the site at http://localhost:3000
 
 ```
