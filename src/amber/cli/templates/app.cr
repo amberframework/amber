@@ -13,6 +13,7 @@ module Amber::CLI
     @author : String
     @email : String
     @github_name : String
+    @git_command : Bool
 
     def initialize(@name, @database = "pg", @language = "slang", @model = "granite")
       @db_url = ""
