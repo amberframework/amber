@@ -2,7 +2,7 @@ name: <%= @name %>
 version: 0.1.0
 
 authors:
-  - Amber <amberframework.org>
+  - <%= @fetch_author %> <<%= @fetch_email %>>
 
 crystal: <%= Crystal::VERSION %>
 
@@ -23,16 +23,16 @@ dependencies:
 <% case @model when "crecto" -%>
   crecto:
     github: Crecto/crecto
-    version: ~> 0.7.1
+    version: ~> 0.8.1
 <% else -%>
   granite_orm:
     github: amberframework/granite-orm
-    version: ~> 0.7.7
+    version: ~> 0.7.8
 <% end -%>
 
   quartz_mailer:
     github: amberframework/quartz-mailer
-    version: ~> 0.2.0
+    version: ~> 0.3.0
 
   jasper_helpers:
     github: amberframework/jasper-helpers
