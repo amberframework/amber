@@ -19,6 +19,8 @@ module Amber::CLI
       def run
         options.watch << "./config/**/*.cr"
         options.watch << "./src/views/**/*.slang"
+        options.watch << "./src/modules/**/*.cr"
+        options.watch << "./src/modules/**/*.slang"
         super
       end
     end
