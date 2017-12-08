@@ -6,7 +6,6 @@ module Amber::Environment
 
   macro included
     AMBER_ENV = "AMBER_ENV"
-    CURRENT_ENVIRONMENT = ENV[AMBER_ENV] ||= "development"
     class_property environment_path : String = "./config/environments/"
 
     @@settings : Settings?
@@ -25,7 +24,11 @@ module Amber::Environment
     end
 
     def self.env
-      @@env ||= Env.new(CURRENT_ENVIRONMENT)
+      @@env ||= Env.new(current_environment)
+    end
+    
+    def self.current_environment
+      ENV[AMBER_ENV]? || "development"
     end
   end
 end
