@@ -97,6 +97,8 @@ module Amber::CLI
         ENV["DATABASE_URL"]? || begin
           CLI.settings.database_url
         end
+      rescue e
+        puts e.message 
       end
     end
   end
