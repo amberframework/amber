@@ -10,7 +10,7 @@ module Amber::CLI
     @fields : Array(Field)
 
     def initialize(@name, fields)
-      @language = fetch_language
+      @language = CLI.config.language
       @fields = fields.map { |field| Field.new(field) }
 
       add_dependencies <<-DEPENDENCY

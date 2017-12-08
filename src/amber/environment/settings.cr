@@ -1,6 +1,7 @@
+require "logger"
 require "yaml"
 
-module Amber
+module Amber::Environment
   class Settings
     property logger : ::Logger = Logger.new(STDOUT)
     property colorize_logging : Bool

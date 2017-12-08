@@ -115,10 +115,18 @@ module Amber::Router
     def parse_multipart
       HTTP::FormData.parse(request) do |upload|
         next unless upload
+        # Note:
+        # Filename is followed by a string containing the original name of the file transmitted.
+        # The filename is always optional and must not be used blindly by the application:
+        # path information should be stripped, and conversion to the server file system rules
+        # should be done. This parameter provides mostly indicative information.
+        #
+        # See https://tools.ietf.org/html/rfc7578#section-4.2
         filename = upload.filename
         if filename.is_a?(String) && !filename.empty?
-          files[upload.name] = Files::File.new(upload: upload)
+          params.files[upload.name] = Files::File.new(upload: upload)
         else
+          # Parses form fields
           params[upload.name] = upload.body.gets_to_end
         end
       end

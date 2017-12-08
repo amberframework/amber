@@ -1,3 +1,5 @@
+require "colorize"
+
 module Amber
   module Exceptions
     class Base < Exception
@@ -18,8 +20,8 @@ module Amber
 
     # NOTE: Any exeptions which aren't part of and http request cycle shouldn't inherit from Base.
     class EncryptionKeyMissing < Exception
-      def initialize
-        super(%(Encryption key not found. Please set it via 'amber_project/.encryption_key' or 'ENV["AMBER_ENCRYPTION_KEY"]'.))
+      def initialize(file_path, encrypt_env)
+        super(%(Encryption key not found. Please set it via '#{file_path}' or 'ENV[#{encrypt_env}]'.\n\n).colorize(:yellow).to_s)
       end
     end
 

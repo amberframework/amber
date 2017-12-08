@@ -12,8 +12,8 @@ module Amber::CLI::Scaffold
     @fields_hash = {} of String => String
 
     def initialize(@name, fields)
-      @language = fetch_language
-      @database = fetch_database
+      @language = CLI.config.language
+      @database = CLI.config.database
       @fields = fields.map { |field| Field.new(field, database: @database) }
       @fields += %w(created_at:time updated_at:time).map do |f|
         Field.new(f, hidden: true, database: @database)

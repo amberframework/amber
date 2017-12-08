@@ -107,13 +107,7 @@ module Amber::CLI
     end
 
     def model
-      if File.exists?(AMBER_YML) &&
-         (yaml = YAML.parse(File.read AMBER_YML)) &&
-         (model = yaml["model"]?)
-        model.to_s
-      else
-        return "granite"
-      end
+      CLI.config.model
     end
   end
 end

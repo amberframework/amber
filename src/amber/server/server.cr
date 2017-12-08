@@ -6,7 +6,6 @@ module Amber
     include Amber::DSL::Server
     alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
     property pubsub_adapter : WebSocketAdapter = WebSockets::Adapters::MemoryAdapter
-    property settings : Amber::Settings = EnvironmentLoader.new(Amber::CURRENT_ENVIRONMENT, Amber.environment_path).settings
     getter handler = Pipe::Pipeline.new
     getter router = Router::Router.new
 
@@ -98,7 +97,11 @@ module Amber
     end
 
     private def logger
-      settings.logger
+      Amber.logger
+    end
+
+    def settings
+      Amber.settings
     end
   end
 end

@@ -2,8 +2,7 @@ require "../version"
 require "cli"
 require "./commands/*"
 require "./templates/template"
-
-AMBER_YML = ".amber.yml"
+require "./config"
 
 class Cli::Command
   def colorize(text, color)
@@ -16,6 +15,10 @@ class Cli::Command
 end
 
 module Amber::CLI
+  include Amber::Environment
+  
+  AMBER_YML = ".amber.yml"
+
   class MainCommand < ::Cli::Supercommand
     command_name "amber"
     version "Amber CLI (amberframework.org) - v#{VERSION}"
@@ -50,7 +53,6 @@ module Amber::CLI
       string ["-t", "--template"], desc: "# Preconfigure for selected template engine. Options: slang | ecr", default: "slang"
       string ["-d", "--database"], desc: "# Preconfigure for selected database. Options: pg | mysql | sqlite", default: "pg"
       string ["-m", "--model"], desc: "# Preconfigure for selected model. Options: granite | crecto", default: "granite"
-      help
     end
   end
 end

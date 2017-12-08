@@ -1,13 +1,7 @@
 module Amber::Router
-  # The Parameters module will parse parameters from a URL, a form post or a JSON
-  # post and provide them in the self params hash.  This unifies access to
-  # parameters into one place to simplify access to them.
-  # Note: other params from the router will be handled in the router handler
-  # instead of here.  This removes a dependency on the router in case it is
-  # replaced or not needed.
-
   class Params < Hash(String, String)
     alias KeyType = String | Symbol
+    property files = {} of String => Amber::Router::Files::File
 
     def json(key : KeyType)
       JSON.parse(self[key]?.to_s)

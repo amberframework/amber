@@ -175,7 +175,7 @@ describe HTTP::Server::Context do
 
     context = create_context(request)
 
-    context.files["picture"].filename.should eq "index.html"
+    context.params.files["picture"].filename.should eq "index.html"
     context.params["title"].should eq "title field"
     context.params["_csrf"].should eq "PcCFp4oKJ1g-hZ-P7-phg0alC51pz7Pl12r0ZOncgxI"
   end
