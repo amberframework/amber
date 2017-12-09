@@ -39,11 +39,12 @@ module Amber::CLI
         string ["-t", "--tag"], desc: "# Tag to use. Overrides branch."
         string ["-b", "--branch"], desc: "# Branch to use. Default master.", default: "master"
         bool "--no-color", desc: "# Disable colored output", default: false
+        bool "--remote-database", desc: "# Use Remote Database or Docker Image on same server.", default: false
         help
       end
 
       def provision
-        puts "Provisioning server #{server_name}"
+        puts "Provisioning server #{server_name}."
         create_cloud_server
         create_swapfile
         create_deploy_keys
@@ -118,10 +119,14 @@ module Amber::CLI
           remote_cmd("docker network create --driver bridge ambernet"),
           remote_cmd("docker build -t amberimage -f amberproject/config/deploy/Dockerfile amberproject")
         )
-        parallel(
-          remote_cmd("docker run -it --name amberdb -v /root/db_volume:/var/lib/postgresql/data --network=ambernet -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=crystaldo_development -d postgres"),
-          remote_cmd("docker run -it --name amberweb -v /root/amberproject:/app/user -p 80:3000 --network=ambernet -e DATABASE_URL=postgres://admin:password@amberdb:5432/crystaldo_development -d amberimage")
-        )
+        if options.remote_database?
+          remote_cmd("docker run -it --name amberweb -v /root/amberproject:/app/user -p 80:3000 --network=ambernet -d amberimage")
+        else
+          parallel(
+            remote_cmd("docker run -it --name amberdb -v /root/db_volume:/var/lib/postgresql/data --network=ambernet -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=crystaldo_development -d postgres"),
+            remote_cmd("docker run -it --name amberweb -v /root/amberproject:/app/user -p 80:3000 --network=ambernet -e DATABASE_URL=postgres://admin:password@amberdb:5432/crystaldo_development -d amberimage")
+          )
+        end
       end
 
       def update_project
