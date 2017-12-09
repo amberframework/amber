@@ -23,6 +23,8 @@ module Amber::CLI
           deploy
         end
         spinner.stop
+      rescue e
+        exit! e.message, error: true
       end
 
       class Help
@@ -107,6 +109,7 @@ module Amber::CLI
         repo = gets
         remote_cmd(%Q("ssh-keyscan github.com >> ~/.ssh/known_hosts"))
         remote_cmd(%Q(bash -c "yes yes | git clone #{repo} amberproject"))
+        remote_cmd(%Q(echo "#{Support::FileEncryptor.encryption_key}" > amberproject/.encryption_key))
       end
 
       def setup_project
