@@ -32,8 +32,8 @@ module Amber::CLI
           Support::FileEncryptor.write(encrypted_file, File.read(unencrypted_file))
           File.delete(unencrypted_file)
         end
-      rescue e
-        puts e.message 
+      rescue e : Exception
+        exit! e.message, error: true
       end
     end
   end
