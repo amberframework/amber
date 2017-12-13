@@ -1,47 +1,82 @@
 # <%= @name %>
 
-Your description here
+A new project using [Amber Framework](https://amberframework.org/)
 
 ## Installation
+
+Install back-end and front-end dependencies.
+
+```
+shards install
+npm install
+```
 
 Configure the `config/environments/development.yml` and set the `database_url` with your credentials to your database.
 
 Then:
 
-```shellsession
-shards update
+```
 amber db create migrate
 ```
 
 ## Usage
 
-To run the demo:
+### Development
 
-```shellsession
-$ shards build src/<%= @name %>.cr
-./<%= @name %>
+To build crystal files:
+
 ```
+amber watch
+```
+
+To build assets:
+
+```
+npm run watch
+```
+
+### Production
+
+To setup `AMBER_ENV`:
+
+```
+export AMBER_ENV=production
+```
+
+To build a production release:
+  
+```
+shards build --production --release <%= @name %>
+```
+
+To build production assets:
+
+```
+npm run release
+```
+
+To use encrypted enviroment settings see [documentation](https://github.com/amberframework/online-docs/blob/master/getting-started/cli/encrypt.md#encrypt-command)
 
 ## Docker Compose
 
-This will start an instance of postgres, migrate the database,
+This will start an instance of <%= @database == "pg" ? "postgres" : "mysql" %>, migrate the database,
 and launch the site at http://localhost:3000
 
-```shellsession
+```
 docker-compose up -d
 ```
 
 To view the logs:
 
-```shellsession
+```
 docker-compose logs -f
 ```
 
-Note: The Docker images are compatible with Heroku.
+> Note: The Docker images are compatible with Heroku.
 
 ## Contributing
 
-1. Fork it ( https://github.com/[your-github-name]/your_project/fork )
+1. Fork it ( https://github.com/<%= @github_name %>/<%= @name %>/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
@@ -49,4 +84,4 @@ Note: The Docker images are compatible with Heroku.
 
 ## Contributors
 
-- [your_github_name](https://github.com/your_github_name) your_name - creator, maintainer
+- [<%= @github_name %>](https://github.com/<%= @github_name %>) <%= @author %> - creator, maintainer
