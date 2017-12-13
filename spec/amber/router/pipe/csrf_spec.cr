@@ -4,6 +4,7 @@ module Amber
   module Pipe
     describe CSRF do
       Dir.cd CURRENT_DIR
+      Amber.env = :test
 
       context "when requests have HTTP methods" do
         CSRF::CHECK_METHODS.each do |method|
@@ -60,7 +61,6 @@ module Amber
 
       context "across requests" do
         it "is valid across request" do
-          csrf = CSRF.new
           request = HTTP::Request.new("GET", "/")
           context = create_context(request)
 
