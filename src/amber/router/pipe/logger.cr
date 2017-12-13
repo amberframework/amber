@@ -34,7 +34,6 @@ module Amber
       end
 
       private def log_other(other, name, color = :light_cyan)
-        return if other.nil?
         other.to_h.each do |key, val|
           next if @reject.includes? key
           if @filtered.includes? key.to_s

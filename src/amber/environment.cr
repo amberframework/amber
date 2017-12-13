@@ -42,5 +42,9 @@ module Amber::Environment
     private def self.justify
       settings.colorize_logging ? 20 : 12
     end
+
+    private def self.justify
+      settings.colorize_logging ? 20 : 12
+    end
   end
 end
