@@ -30,9 +30,9 @@ module Amber::CLI
             create_database
           when "seed"
             `crystal db/seeds.cr`
-            puts "Seeded database"
+            log "Seeded database"
           when "migrate"
-            Micrate::Cli.run_up
+            log Micrate::Cli.run_up
           when "rollback"
             Micrate::Cli.run_down
           when "redo"
@@ -58,26 +58,26 @@ module Amber::CLI
         if url.starts_with? "sqlite3:"
           path = url.gsub("sqlite3:", "")
           File.delete(path)
-          puts "Deleted file #{path}"
+          log "Deleted file #{path}"
         else
           name = set_database_to_schema url
           Micrate::DB.connect do |db|
             db.exec "DROP DATABASE IF EXISTS #{name};"
           end
-          puts "Dropped database #{name}"
+          log "Dropped database #{name.colorize(:light_cyan)}"
         end
       end
 
       private def create_database
         url = Micrate::DB.connection_url.to_s
         if url.starts_with? "sqlite3:"
-          puts "For sqlite3, the database will be created during the first migration."
+          log "For sqlite3, the database will be created during the first migration."
         else
           name = set_database_to_schema url
           Micrate::DB.connect do |db|
             db.exec "CREATE DATABASE #{name};"
           end
-          puts "Created database #{name}"
+          log "Created database #{name.colorize(:light_cyan)}"
         end
       end
 
@@ -87,7 +87,7 @@ module Amber::CLI
           Micrate::DB.connection_url = url.gsub(path, "/#{uri.scheme}")
           return path.gsub("/", "")
         else
-          raise "Could not determine database name"
+          CLI.logger.puts "Could not determine database name", "ERROR", :red
         end
       end
 
@@ -95,6 +95,10 @@ module Amber::CLI
         ENV["DATABASE_URL"]? || begin
           CLI.settings.database_url
         end
+      end
+
+      private def log(msg)
+        CLI.logger.puts msg, "DB", :light_cyan
       end
     end
   end

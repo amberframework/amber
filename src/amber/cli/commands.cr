@@ -4,20 +4,18 @@ require "./commands/*"
 require "./templates/template"
 require "./config"
 
-class Cli::Command
-  def colorize(text, color)
-    text.colorize(color).toggle(!options.no_color?).to_s
-  end
-
-  def colorize(text, color, mode)
-    text.colorize(color).toggle(!options.no_color?).mode(mode).to_s
-  end
-end
-
 module Amber::CLI
   include Amber::Environment
-  
+
   AMBER_YML = ".amber.yml"
+
+  settings.logger.formatter = Logger::Formatter.new do |severity, datetime, progname, message, io|
+    io << datetime.to_s("%Y-%m-%d") + " " if severity > Logger::Severity::DEBUG && severity < Logger::Severity::UNKNOWN
+    io << "(CLI)"
+    io << progname.rjust(justify)
+    io << " "
+    io << message
+  end
 
   class MainCommand < ::Cli::Supercommand
     command_name "amber"

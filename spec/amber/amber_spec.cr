@@ -40,8 +40,8 @@ describe Amber do
         Amber::Server.configure do |server|
           server.name = "Hello World App"
           server.port = 8080
-          server.logger = ::Logger.new(STDOUT)
-          server.logger.level = ::Logger::INFO
+          server.logger = Amber::Logger.new(STDOUT)
+          server.logger.level = Amber::Logger::INFO
           server.colorize_logging = false
         end
 

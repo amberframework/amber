@@ -1,9 +1,8 @@
-require "logger"
 require "yaml"
 
 module Amber::Environment
   class Settings
-    property logger : ::Logger = Logger.new(STDOUT)
+    property logger : Logger = Environment::Logger.new(STDOUT)
     property colorize_logging : Bool
     property database_url : String
     property host : String

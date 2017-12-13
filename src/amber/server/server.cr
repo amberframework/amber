@@ -56,28 +56,33 @@ module Amber
 
     def start
       time = Time.now
-      logger.info "#{version} serving application \"#{settings.name}\" at #{host_url}".to_s
+      log "#{version} serving application #{settings.name.capitalize.colorize(:white).mode(:underline)} at #{host_url}"
+
       handler.prepare_pipelines
       server = HTTP::Server.new(settings.host, settings.port, handler)
       server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
 
       Signal::INT.trap do
-        logger.info "Shutting down Amber"
+        log "Shutting down Amber"
         server.close
         exit
       end
 
-      logger.info "Server started in #{colorize(Amber.env, :yellow)}."
-      logger.info colorize("Startup Time #{Time.now - time}\n\n", :white)
+      log "Started in #{Amber.env.colorize(:yellow)}"
+      log "Startup Time #{Time.now - time}".colorize(:white)
       server.listen(settings.port_reuse)
     end
 
+    private def log(msg)
+      logger.puts msg, "Server", :blue
+    end
+
     private def version
-      colorize("[Amber #{Amber::VERSION}]", :light_cyan)
+      "Amber #{Amber::VERSION}".colorize(:light_cyan)
     end
 
     private def host_url
-      colorize("#{scheme}://#{settings.host}:#{settings.port}", :light_cyan, :underline)
+      "#{scheme}://#{settings.host}:#{settings.port}".colorize(:light_cyan).mode(:underline)
     end
 
     private def ssl_enabled?
@@ -86,14 +91,6 @@ module Amber
 
     private def scheme
       ssl_enabled? ? "https" : "http"
-    end
-
-    private def colorize(text, color)
-      text.colorize(color).toggle(settings.colorize_logging).to_s
-    end
-
-    private def colorize(text, color, mode)
-      text.colorize(color).toggle(settings.colorize_logging).mode(mode).to_s
     end
 
     private def logger
