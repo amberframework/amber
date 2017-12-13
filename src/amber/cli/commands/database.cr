@@ -23,36 +23,34 @@ module Amber::CLI
         args.commands.each do |command|
           Micrate::Cli.setup_logger
           Micrate::DB.connection_url = database_url
-          begin
-            case command
-            when "drop"
-              drop_database
-            when "create"
-              create_database
-            when "seed"
-              `crystal db/seeds.cr`
-              puts "Seeded database"
-            when "migrate"
-              Micrate::Cli.run_up
-            when "rollback"
-              Micrate::Cli.run_down
-            when "redo"
-              Micrate::Cli.run_redo
-            when "status"
-              Micrate::Cli.run_status
-            when "version"
-              Micrate::Cli.run_dbversion
-            else
-              Micrate::Cli.print_help
-            end
-          rescue e : Micrate::UnorderedMigrationsException
-            exit! Micrate::Cli.report_unordered_migrations(e.versions), error: true
-          rescue e : DB::ConnectionRefused
-            exit! "Connection refused: #{Micrate::DB.connection_url}", error: true
-          rescue e : Exception
-            exit! e.message, error: true
+          case command
+          when "drop"
+            drop_database
+          when "create"
+            create_database
+          when "seed"
+            `crystal db/seeds.cr`
+            puts "Seeded database"
+          when "migrate"
+            Micrate::Cli.run_up
+          when "rollback"
+            Micrate::Cli.run_down
+          when "redo"
+            Micrate::Cli.run_redo
+          when "status"
+            Micrate::Cli.run_status
+          when "version"
+            Micrate::Cli.run_dbversion
+          else
+            Micrate::Cli.print_help
           end
         end
+      rescue e : Micrate::UnorderedMigrationsException
+        exit! Micrate::Cli.report_unordered_migrations(e.versions), error: true
+      rescue e : DB::ConnectionRefused
+        exit! "Connection refused: #{Micrate::DB.connection_url}", error: true
+      rescue e : Exception
+        exit! e.message, error: true
       end
 
       private def drop_database
@@ -89,7 +87,7 @@ module Amber::CLI
           Micrate::DB.connection_url = url.gsub(path, "/#{uri.scheme}")
           return path.gsub("/", "")
         else
-          raise "could not determine database name"
+          raise "Could not determine database name"
         end
       end
 

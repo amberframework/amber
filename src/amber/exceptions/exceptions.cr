@@ -12,9 +12,9 @@ module Amber
       end
     end
 
-    class Environment < Base
+    class Environment < Exception
       def initialize(path, environment)
-        super("environment file not found for #{path}#{environment}")
+        super("Environment file not found for #{path}#{environment}")
       end
     end
 
