@@ -122,6 +122,12 @@ class HTTP::Server::Context
   end
 
   protected def finalize_response
+    if Amber.settings.http_keep_alive
+      response.headers["Connection"] = "Keep-Alive"
+      response.headers["Keep-Alive"] = "timeout=5, max=1000"
+    else
+      response.headers["Connection"] = "Close"
+    end
     response.print(@content)
   end
 end
