@@ -12,6 +12,23 @@ module Amber::CLI
       property server_name : String?
       property project_name : String?
 
+      class Help
+        caption "# Provisions server and deploys project."
+      end
+
+      class Options
+        bool "--init"
+        arg "server_suffix", desc: "# Name of server.", default: "production"
+        string ["-s", "--service"], desc: "# Deploy to cloud service: digitalocean | heroku | aws | azure", default: "digitalocean"
+        string ["-k", "--key"], desc: "# API Key for service"
+        string ["-t", "--tag"], desc: "# Tag to use. Overrides branch."
+        string ["-b", "--branch"], desc: "# Branch to use. Default master.", default: "master"
+        string ["-e", "--environment"], desc: "# Environment to deploy as.", default: "production"
+        bool "--no-color", desc: "# Disable colored output", default: false
+        bool "--remote-database", desc: "# Use Remote Database or Docker Image on same server.", default: false
+        help
+      end
+
       def run
         (spinner = Spin.new(0.1, Spinner::Charset[:arrow2].map { |c| colorize(c, :light_green) })).start
         shard = YAML.parse(File.read("./shard.yml"))
@@ -25,22 +42,6 @@ module Amber::CLI
         spinner.stop
       rescue e
         exit! e.message, error: true
-      end
-
-      class Help
-        caption "# Provisions server and deploys project."
-      end
-
-      class Options
-        bool "--init"
-        arg "server_suffix", desc: "# Name of server.", default: "production"
-        string ["-s", "--service"], desc: "# Deploy to cloud service: digitalocean | heroku | aws | azure", default: "digitalocean"
-        string ["-k", "--key"], desc: "# API Key for service"
-        string ["-t", "--tag"], desc: "# Tag to use. Overrides branch."
-        string ["-b", "--branch"], desc: "# Branch to use. Default master.", default: "master"
-        bool "--no-color", desc: "# Disable colored output", default: false
-        bool "--remote-database", desc: "# Use Remote Database or Docker Image on same server.", default: false
-        help
       end
 
       def provision
@@ -119,12 +120,15 @@ module Amber::CLI
           remote_cmd("docker network create --driver bridge ambernet"),
           remote_cmd("docker build -t amberimage -f amberproject/config/deploy/Dockerfile amberproject")
         )
+
+        amber_env = options.environment
+
         if options.remote_database?
-          remote_cmd("docker run -it --name amberweb -v /root/amberproject:/app/user -p 80:3000 --network=ambernet -d amberimage")
+          remote_cmd("docker run -it --name amberweb -v /root/amberproject:/app/user -p 80:3000 --network=ambernet -e #{amber_env} -d amberimage")
         else
           parallel(
             remote_cmd("docker run -it --name amberdb -v /root/db_volume:/var/lib/postgresql/data --network=ambernet -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=crystaldo_development -d postgres"),
-            remote_cmd("docker run -it --name amberweb -v /root/amberproject:/app/user -p 80:3000 --network=ambernet -e DATABASE_URL=postgres://admin:password@amberdb:5432/crystaldo_development -d amberimage")
+            remote_cmd("docker run -it --name amberweb -v /root/amberproject:/app/user -p 80:3000 --network=ambernet -e #{amber_env} -e DATABASE_URL=postgres://admin:password@amberdb:5432/crystaldo_development -d amberimage")
           )
         end
       end
