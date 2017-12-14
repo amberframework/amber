@@ -72,7 +72,8 @@ module Amber
           logger.info "Server started in #{colorize(Amber.env, :yellow)}."
           logger.info colorize("Startup Time #{Time.now - time}\n\n", :white)
           server.listen(settings.port_reuse)
-        rescue e
+          exit
+        rescue e : Errno
           logger.error e.message
           logger.info "Restarting server..."
         end

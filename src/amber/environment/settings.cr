@@ -8,7 +8,6 @@ module Amber::Environment
     property database_url : String
     property host : String
     property name : String
-    property http_keep_alive : Bool
     property port : Int32
     property port_reuse : Bool
     property process_count : Int32
@@ -24,7 +23,6 @@ module Amber::Environment
       database_url: {type: String?, default: nil},
       host: {type: String, default: "localhost"},
       name: {type: String, default: "Amber_App"},
-      http_keep_alive: {type: Bool, default: false},
       port: {type: Int32, default: 3000},
       port_reuse: {type: Bool, default: true},
       process_count: {type: Int32, default: 1},
