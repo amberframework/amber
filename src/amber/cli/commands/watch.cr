@@ -9,6 +9,7 @@ module Amber::CLI
       command_name "watch"
 
       class Options
+        bool "--no-color", desc: "# Disable colored output", default: false
         help
       end
 
@@ -17,6 +18,7 @@ module Amber::CLI
       end
 
       def run
+        CLI.toggle_colors(options.no_color?)
         options.watch << "./config/**/*.cr"
         options.watch << "./src/views/**/*.slang"
         super

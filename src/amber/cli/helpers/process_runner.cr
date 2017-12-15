@@ -4,7 +4,6 @@ module Sentry
   class ProcessRunner
     property processes = [] of Process
     property process_name : String
-    property should_build = true
     property files = [] of String
     @logger : Amber::Environment::Logger
 
@@ -15,19 +14,12 @@ module Sentry
                    @build_args : Array(String) = [] of String,
                    @run_args : Array(String) = [] of String,
                    files = [] of String,
-                   should_build = true,
                    @logger = Amber::CLI.logger)
       @files = files
-      @should_build = should_build
-      @should_kill = false
-      @app_built = false
     end
 
     def run
       loop do
-        if @should_kill
-          break
-        end
         scan_files
         sleep 1
       end
@@ -108,7 +100,7 @@ module Sentry
     end
 
     private def node_log(msg)
-      @logger.puts msg, "Node", :dark_gray
+      @logger.puts msg, "NodeJS", :dark_gray
     end
   end
 end

@@ -30,6 +30,7 @@ module Amber::CLI
       end
 
       def run
+        CLI.toggle_colors(options.no_color?)
         (spinner = Spin.new(0.1, Spinner::Charset[:arrow2].map { |c| c.colorize(:light_green).to_s })).start
         shard = YAML.parse(File.read("./shard.yml"))
         @project_name = shard["name"].to_s

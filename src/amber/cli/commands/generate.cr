@@ -1,6 +1,4 @@
 module Amber::CLI
-  class_property color = true
-
   class MainCommand < ::Cli::Supercommand
     command "g", aliased: "generate"
 
@@ -14,6 +12,7 @@ module Amber::CLI
       end
 
       def run
+        CLI.toggle_colors(options.no_color?)
         if args.type == "error"
           template = Template.new("error", ".")
         else
@@ -25,7 +24,7 @@ module Amber::CLI
 
       private def ensure_name_argument!
         unless args.name?
-          puts "Parsing Error: The NAME argument is required.\n\n"
+          CLI.logger.puts "Parsing Error: The NAME argument is required.\n\n"
           exit! help: true, error: true
         end
       end

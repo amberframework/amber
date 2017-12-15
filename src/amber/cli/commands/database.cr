@@ -5,7 +5,7 @@ require "sqlite3"
 
 module Amber::CLI
   Micrate.logger = settings.logger
-  Micrate.logger.progname = "DB"
+  Micrate.logger.progname = "Database"
 
   class MainCommand < ::Cli::Supercommand
     command "db", aliased: "database"
@@ -15,6 +15,7 @@ module Amber::CLI
 
       class Options
         arg_array "commands", desc: "drop create migrate rollback redo status version seed"
+        bool "--no-color", desc: "# Disable colored output", default: false
         help
       end
 
@@ -23,8 +24,8 @@ module Amber::CLI
       end
 
       def run
+        CLI.toggle_colors(options.no_color?)
         args.commands.each do |command|
-          Micrate::Cli.setup_logger
           Micrate::DB.connection_url = database_url
           case command
           when "drop"
@@ -35,7 +36,7 @@ module Amber::CLI
             `crystal db/seeds.cr`
             log "Seeded database"
           when "migrate"
-            Micrate::Cli.run_up
+            log Micrate::Cli.run_up
           when "rollback"
             Micrate::Cli.run_down
           when "redo"
@@ -101,7 +102,7 @@ module Amber::CLI
       end
 
       private def log(msg)
-        CLI.logger.puts msg, "DB", :light_cyan
+        CLI.logger.puts msg, "Database", :light_cyan
       end
     end
   end

@@ -8,6 +8,27 @@ module Amber::CLI
   include Amber::Environment
   AMBER_YML = ".amber.yml"
 
+  settings.logger.level = Logger::DEBUG
+  settings.logger.formatter = Logger::Formatter.new do |severity, datetime, progname, message, io|
+    if settings.logging["time"] == true
+      io << datetime.to_s("%Y-%m-%d %I:%M:%S")
+      io << " "
+    end
+
+    if settings.logging["level"] == true
+      io << severity
+      io << "  "
+    end
+
+    io << progname
+    io << " "
+    io << message
+  end
+
+  def self.toggle_colors(on_off)
+    Colorize.enabled = !on_off
+  end
+
   class MainCommand < ::Cli::Supercommand
     command_name "amber"
     version "Amber CLI (amberframework.org) - v#{VERSION}"
@@ -42,6 +63,7 @@ module Amber::CLI
       string ["-t", "--template"], desc: "# Preconfigure for selected template engine. Options: slang | ecr", default: "slang"
       string ["-d", "--database"], desc: "# Preconfigure for selected database. Options: pg | mysql | sqlite", default: "pg"
       string ["-m", "--model"], desc: "# Preconfigure for selected model. Options: granite | crecto", default: "granite"
+      bool "--no-color", desc: "# Disable colored output", default: false
     end
   end
 end

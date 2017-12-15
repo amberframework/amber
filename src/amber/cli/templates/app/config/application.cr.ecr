@@ -32,7 +32,7 @@ Amber::Server.configure do |settings|
   # Colorize Logging: specifies whether or not to use ANSI color codes
   # when logging information. Defaults to true.
   #
-  # settings.colorize_logging = true
+  # settings.logging["color"] = true
   #
   #
   # Secret Key Base: is used for specifying a key which allows sessions
@@ -121,5 +121,5 @@ Amber::Server.configure do |settings|
   # Log Level defines the verbosity of the Amber logger. This option defaults to
   # :debug for all environments. The available log levels are: :debug, :info, :warn,
   # :error, :fatal, and :unknown.
-  settings.logger.level        = Amber::Logger::DEBUG
+  settings.logger.level = ::Logger::DEBUG
 end

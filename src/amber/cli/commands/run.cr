@@ -19,6 +19,7 @@ module Amber::CLI
       end
 
       def run
+        CLI.toggle_colors(options.no_color?)
         name = Sentry::SentryCommand::Options.get_name
         Dir.mkdir_p("bin")
         compile_command = "crystal build $(ls ./src/*.cr | sort -n | head -1) -o bin/#{name}"

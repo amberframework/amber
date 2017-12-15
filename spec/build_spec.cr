@@ -10,7 +10,6 @@ module Amber::CLI
       ENV["AMBER_ENV"] = "test"
       cleanup
       scaffold_app(TESTING_APP)
-      # Load the environment for the generate app
 
       options = ["user:reference", "name:string", "body:text", "age:integer", "published:bool"]
       temp_options = options - ["user:reference", "age:integer"]
@@ -26,9 +25,8 @@ module Amber::CLI
       MainCommand.run ["generate", "channel", "Falcon"]
 
       prepare_yaml(Dir.current)
-
-      prepare_db_yml(CLIHelper::BASE_ENV_PATH, "development") if ENV["CI"]? == "true" 
-      Amber::CLI.environment_path = BASE_ENV_PATH
+      prepare_db_yml("#{Dir.current}/config/environments/", "development") if ENV["CI"]? == "true"
+      Amber::CLI.environment_path = "./config/environments/"
       Amber::CLI.env = "development"
 
       puts "====== START Creating database for #{TEST_APP_NAME} ======"
