@@ -40,8 +40,6 @@ module Amber::CLI
           deploy
         end
         spinner.stop
-      rescue e
-        exit! e.message, error: true
       end
 
       def provision

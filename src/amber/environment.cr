@@ -7,7 +7,6 @@ module Amber::Environment
   macro included
     AMBER_ENV = "AMBER_ENV"
     class_property environment_path : String = "./config/environments/"
-    Colorize.enabled = settings.colorize_logging
 
     @@settings : Settings?
 
@@ -16,12 +15,6 @@ module Amber::Environment
     end
 
     def self.logger
-      settings.logger.formatter = Logger::Formatter.new do |severity, datetime, progname, message, io|
-        io << datetime.to_s("%Y-%m-%d %I:%M:%S") + " " if severity > Logger::Severity::DEBUG && severity < Logger::Severity::UNKNOWN
-        io << progname.rjust(justify)
-        io << " "
-        io << message
-      end
       settings.logger
     end
 

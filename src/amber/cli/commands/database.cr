@@ -4,6 +4,9 @@ require "mysql"
 require "sqlite3"
 
 module Amber::CLI
+  Micrate.logger = settings.logger
+  Micrate.logger.progname = "DB"
+
   class MainCommand < ::Cli::Supercommand
     command "db", aliased: "database"
 
@@ -32,7 +35,7 @@ module Amber::CLI
             `crystal db/seeds.cr`
             log "Seeded database"
           when "migrate"
-            log Micrate::Cli.run_up
+            Micrate::Cli.run_up
           when "rollback"
             Micrate::Cli.run_down
           when "redo"

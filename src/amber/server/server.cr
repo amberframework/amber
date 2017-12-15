@@ -56,25 +56,21 @@ module Amber
 
     def start
       time = Time.now
-      log "#{version} serving application #{settings.name.capitalize.colorize(:white).mode(:underline)} at #{host_url}"
+      logger.info "#{version} serving application #{settings.name.capitalize.colorize(:white).mode(:underline)} at #{host_url}"
 
       handler.prepare_pipelines
       server = HTTP::Server.new(settings.host, settings.port, handler)
       server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
 
       Signal::INT.trap do
-        log "Shutting down Amber"
+        logger.info "Shutting down Amber"
         server.close
         exit
       end
 
-      log "Started in #{Amber.env.colorize(:yellow)}"
-      log "Startup Time #{Time.now - time}".colorize(:white)
+      loger.info "Started in #{Amber.env.colorize(:yellow)}"
+      loger.info "Startup Time #{Time.now - time}".colorize(:white)
       server.listen(settings.port_reuse)
-    end
-
-    private def log(msg)
-      logger.puts msg, "Server", :blue
     end
 
     private def version
