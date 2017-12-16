@@ -25,8 +25,9 @@ module Amber::CLI
       MainCommand.run ["generate", "channel", "Falcon"]
 
       prepare_yaml(Dir.current)
-
-      prepare_db_yml(CLIHelper::BASE_ENV_PATH) if ENV["CI"]? == "true"
+      prepare_db_yml("#{Dir.current}/config/environments/", "development") if ENV["CI"]? == "true"
+      Amber::CLI.environment_path = "./config/environments/"
+      Amber::CLI.env = "development"
 
       puts "====== START Creating database for #{TEST_APP_NAME} ======"
       MainCommand.run ["db", "drop"]

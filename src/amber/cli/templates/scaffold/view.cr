@@ -7,8 +7,8 @@ module Amber::CLI::Scaffold
 
     @name : String
     @fields : Array(Field)
-    @language : String  = CLI.config.language
-    @database : String  = CLI.config.database
+    @language : String = CLI.config.language
+    @database : String = CLI.config.database
     @model : String = CLI.config.model
 
     def initialize(@name, fields)

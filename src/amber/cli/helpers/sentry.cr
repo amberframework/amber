@@ -1,6 +1,6 @@
 require "cli"
 require "yaml"
-require "sentry"
+require "./process_runner"
 
 module Sentry
   class SentryCommand < Cli::Command
@@ -37,8 +37,6 @@ module Sentry
         default: Options.defaults[:build]
 
       string "--build-args", desc: "Specifies arguments for the build command"
-
-      bool "--no-build", desc: "Skips the build step", default: false
 
       string %w(-r --run), desc: "Overrides the default run command",
         default: Options.defaults[:process_name]
@@ -86,8 +84,8 @@ module Sentry
         run_command: options.run,
         build_args: build_args,
         run_args: run_args,
-        should_build: !options.no_build?,
-        files: options.watch
+        files: options.watch,
+        logger: Amber::CLI.logger
       )
 
       process_runner.run

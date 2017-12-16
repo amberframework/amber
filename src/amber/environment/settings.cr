@@ -1,10 +1,9 @@
-require "logger"
 require "yaml"
 
 module Amber::Environment
   class Settings
-    property logger : ::Logger = Logger.new(STDOUT)
-    property colorize_logging : Bool
+    property logger = Environment::Logger.new(STDOUT)
+    property logging : Hash(String, Bool)
     property database_url : String
     property host : String
     property name : String
@@ -19,7 +18,11 @@ module Amber::Environment
     property ssl_cert_file : String
 
     YAML.mapping(
-      colorize_logging: {type: Bool, default: true},
+      logging: {type: Hash(String, Bool), default: {
+        "color" => true,
+        "time"  => false,
+        "level" => false,
+      }},
       database_url: {type: String?, default: nil},
       host: {type: String, default: "localhost"},
       name: {type: String, default: "Amber_App"},

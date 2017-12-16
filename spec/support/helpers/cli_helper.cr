@@ -1,5 +1,4 @@
 module CLIHelper
-  BASE_ENV_PATH       = "./config/environments/"
   ENV_CONFIG_PATH     = "#{TESTING_APP}/config/environments/"
   CURRENT_ENVIRONMENT = ENV["AMBER_ENV"] ||= "test"
   ENVIRONMENTS        = %w(development test)
@@ -8,6 +7,13 @@ module CLIHelper
     puts "cleaning up..."
     Dir.cd CURRENT_DIR
     `rm -rf ./tmp/`
+  end
+
+  def prepare_test_app
+    puts "Environment: #{ENV["AMBER_ENV"]}"
+    cleanup
+    scaffold_app("#{TESTING_APP}", "-d", "sqlite")
+    environment_yml(ENV["AMBER_ENV"], "#{Dir.current}/config/environments/")
   end
 
   def dirs(for app)
@@ -73,10 +79,10 @@ module CLIHelper
     File.write("#{path}/shard.yml", shard)
   end
 
-  def prepare_db_yml(path = ENV_CONFIG_PATH)
-    db_yml = File.read("#{path}#{CURRENT_ENVIRONMENT}.yml")
+  def prepare_db_yml(path, env)
+    db_yml = File.read("#{path}#{env}.yml")
     db_yml = db_yml.gsub("@localhost:5432", "@db:5432")
-    File.write("#{path}#{CURRENT_ENVIRONMENT}.yml", db_yml)
+    File.write("#{path}#{env}.yml", db_yml)
   end
 
   def scaffold_app(app_name, *options)

@@ -20,7 +20,7 @@ module Amber::CLI
       end
 
       def run
-        Amber::CLI.color = !options.no_color?
+        CLI.toggle_colors(options.no_color?)
         name = File.basename(args.name)
         template = Template.new(name, "./#{args.name}")
         template.generate("app", options)
