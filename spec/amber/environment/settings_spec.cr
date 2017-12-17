@@ -9,7 +9,7 @@ module Amber::Environment
       settings = Amber::Settings.from_yaml(test_yaml)
 
       settings.logger.should be_a Logger
-      settings.colorize_logging.should eq true
+      settings.logging.should eq({ "color" => true, "time" => false, "level" => false})
       settings.database_url.should eq "mysql://root@localhost:3306/test_settings_test"
       settings.host.should eq "0.0.0.0"
       settings.name.should eq "test_settings"
