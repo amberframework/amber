@@ -33,9 +33,14 @@ Amber::Server.configure do |settings|
   # when logging information, display the time and/or to display the severity level.
   # Defaults to true.
   #
-  # settings.logging["color"] = true
-  # settings.logging["time"] = false
-  # settings.logging["level"] = false
+  # Log Level defines the verbosity of the Amber logger. This option defaults to
+  # debug for all environments. The available log levels are: debug, info, warn,
+  # error, fatal, and unknown.
+  #
+  # settings.logging.color = true
+  # settings.logging.time = false
+  # settings.logging.level = false
+  # settings.logging.severity = debug
   #
   #
   # Secret Key Base: is used for specifying a key which allows sessions
@@ -121,8 +126,4 @@ Amber::Server.configure do |settings|
   # settings.logger = ::Logger.new(STDOUT)
   #
   #
-  # Log Level defines the verbosity of the Amber logger. This option defaults to
-  # :debug for all environments. The available log levels are: :debug, :info, :warn,
-  # :error, :fatal, and :unknown.
-  settings.logger.level = ::Logger::DEBUG
 end

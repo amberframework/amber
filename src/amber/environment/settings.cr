@@ -1,10 +1,12 @@
-require "logger"
+require "./logger"
 require "yaml"
 
 module Amber::Environment
   class Settings
-    property logger : ::Logger = Logger.new(STDOUT)
-    property logging : Hash(String, Bool)
+    alias LoggingType = NamedTuple(severity: String, color: Bool, time: Bool, level: Bool)
+
+    setter session : Hash(String, Int32 | String)
+    property logging : LoggingType
     property database_url : String
     property host : String
     property name : String
@@ -13,15 +15,16 @@ module Amber::Environment
     property process_count : Int32
     property redis_url
     property secret_key_base : String
-    setter session : Hash(String, Int32 | String)
     property secrets : Hash(String, String)
     property ssl_key_file : String
     property ssl_cert_file : String
+    property logger : Amber::Environment::Logger = Logger.new(STDOUT)
+
 
     YAML.mapping(
-      logging: {type: Hash(String, Bool), default: {
-        "color" => true, "time" => false, "level" => false}
-      },
+      logging: {type: LoggingType, default: {
+        severity: "info", color: true, time: false, level: false,
+      }},
       database_url: {type: String?, default: nil},
       host: {type: String, default: "localhost"},
       name: {type: String, default: "Amber_App"},
@@ -52,6 +55,44 @@ module Amber::Environment
       when "redis"         then :redis
       else                      "encrypted_cookie"
       :encrypted_cookie
+      end
+    end
+
+    def logger
+      return @logger unless @logger
+      @logger = Logger.new(STDOUT)
+      @logger.level = logging.severity
+      Colorize.enabled = logging.color
+      @logger
+    end
+
+    def logging
+      @_logging ||= Logging.new(@logging)
+    end
+
+    class Logging
+      SEVERITY_MAP = {
+        "debug": Logger::DEBUG,
+        "info": Logger::INFO,
+        "warn": Logger::WARN,
+        "error": Logger::ERROR,
+        "fatal": Logger::FATAL,
+        "unknown": Logger::UNKNOWN
+      }
+      property color : Bool
+      property time : Bool
+      property level : Bool
+      property log_level : String
+
+      def initialize(logging : LoggingType)
+        @color = logging[:color]
+        @time = logging[:time]
+        @level = logging[:level]
+        @log_level = logging[:severity]
+      end
+
+      def severity
+        SEVERITY_MAP[log_level]
       end
     end
   end

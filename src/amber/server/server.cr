@@ -97,11 +97,11 @@ module Amber
     end
 
     private def colorize(text, color)
-      text.colorize(color).toggle(settings.logging["color"]).to_s
+      text.colorize(color).toggle(settings.logging.color).to_s
     end
 
     private def colorize(text, color, mode)
-      text.colorize(color).toggle(settings.logging["color"]).mode(mode).to_s
+      text.colorize(color).toggle(settings.logging.color).mode(mode).to_s
     end
 
     private def logger
