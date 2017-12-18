@@ -19,6 +19,10 @@ module Amber::CLI
         encrypted_file = "config/environments/.#{env}.enc"
         unencrypted_file = "config/environments/#{env}.yml"
 
+        unless File.exists?(unencrypted_file) || File.exists?(encrypted_file)
+          raise Exceptions::Environment.new("./config/environments/", env)
+        end
+
         if File.exists?(encrypted_file)
           File.write(unencrypted_file, Support::FileEncryptor.read(encrypted_file))
           system("#{options.editor} #{unencrypted_file}") unless options.noedit?
@@ -27,11 +31,9 @@ module Amber::CLI
         if File.exists?(unencrypted_file)
           Support::FileEncryptor.write(encrypted_file, File.read(unencrypted_file))
           File.delete(unencrypted_file)
-        else
-          puts "#{env}.yml doesn't exist. Loading defaults!"
         end
-      rescue
-        puts "Failed! Make sure to set AMBER_ENCRYPTION_KEY env or add hidden file .encryption_key"
+      rescue e : Exception
+        exit! e.message, error: true
       end
     end
   end

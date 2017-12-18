@@ -21,7 +21,7 @@ Do you want to ask a question? Are you looking for support? The Amber message bo
 
 ### Versions
 
-You can get this information from copy and pasting the output of `amber --version` and `amber --version` from the command line. Also, please include the OS and what version of the OS you're running.
+You can get this information from copy and pasting the output of `amber --version` and `crystal --version` from the command line. Also, please include the OS and what version of the OS you're running.
 
 ### Additional Information
 
