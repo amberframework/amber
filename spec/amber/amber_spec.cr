@@ -42,7 +42,7 @@ describe Amber do
           server.port = 8080
           server.logger = Amber::Environment::Logger.new(STDOUT)
           server.logger.level = ::Logger::INFO
-          server.logging.color = false
+          server.logging.colorize = false
         end
 
         settings = Amber.settings

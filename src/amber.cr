@@ -19,19 +19,4 @@ require "./amber/environment"
 
 module Amber
   include Amber::Environment
-  settings.logger.formatter = Logger::Formatter.new do |severity, datetime, progname, message, io|
-    if settings.logging.time == true
-      io << datetime.to_s("%Y-%m-%d %I:%M:%S")
-      io << " "
-    end
-
-    if settings.logging.level == true
-      io << severity
-      io << " "
-    end
-
-    io << progname
-    io << " "
-    io << message
-  end
 end

@@ -4,10 +4,9 @@ module Amber::Environment
   describe Loader do
     Dir.cd CURRENT_DIR
 
-    context "when path is empty" do
-      it "loads default settings for existent environment" do
-        loader = Loader.new("development", "")
-        loader.settings.should be_a Amber::Environment::Settings
+    it "raises error for non existent environment settings" do
+      expect_raises Amber::Exceptions::Environment do
+        Loader.new("unknown", "./spec/support/config/")
       end
     end
 
