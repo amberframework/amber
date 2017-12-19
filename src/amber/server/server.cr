@@ -56,7 +56,7 @@ module Amber
 
     def start
       time = Time.now
-      logger.info "#{version} serving application \"#{settings.name}\" at #{host_url}".to_s
+      logger.info "#{version} serving application \"#{settings.name.capitalize}\" at #{host_url}".to_s
       handler.prepare_pipelines
       server = HTTP::Server.new(settings.host, settings.port, handler)
       server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
@@ -69,8 +69,8 @@ module Amber
 
       loop do
         begin
-          logger.info "Server started in #{colorize(Amber.env, :yellow)}."
-          logger.info colorize("Startup Time #{Time.now - time}\n\n", :white)
+          logger.info "Server started in #{Amber.env.colorize(:yellow)}."
+          logger.info "Startup Time #{Time.now - time}\n\n".colorize(:white)
           server.listen(settings.port_reuse)
           exit
         rescue e : Errno
@@ -81,11 +81,11 @@ module Amber
     end
 
     private def version
-      colorize("[Amber #{Amber::VERSION}]", :light_cyan)
+      "[Amber #{Amber::VERSION}]".colorize(:light_cyan)
     end
 
     private def host_url
-      colorize("#{scheme}://#{settings.host}:#{settings.port}", :light_cyan, :underline)
+      "#{scheme}://#{settings.host}:#{settings.port}".colorize(:light_cyan).mode(:underline)
     end
 
     private def ssl_enabled?
@@ -94,14 +94,6 @@ module Amber
 
     private def scheme
       ssl_enabled? ? "https" : "http"
-    end
-
-    private def colorize(text, color)
-      text.colorize(color).toggle(settings.logging.color).to_s
-    end
-
-    private def colorize(text, color, mode)
-      text.colorize(color).toggle(settings.logging.color).mode(mode).to_s
     end
 
     private def logger

@@ -10,9 +10,7 @@ module Amber::Environment
 
       settings.logger.should be_a Logger
       settings.logging.severity.should eq Logger::WARN
-      settings.logging.color.should eq true
-      settings.logging.time.should eq false
-      settings.logging.level.should eq false
+      settings.logging.colorize.should eq true
       settings.database_url.should eq "mysql://root@localhost:3306/test_settings_test"
       settings.host.should eq "0.0.0.0"
       settings.name.should eq "test_settings"

@@ -3,7 +3,13 @@ require "yaml"
 
 module Amber::Environment
   class Settings
-    alias LoggingType = NamedTuple(severity: String, color: Bool, time: Bool, level: Bool)
+    alias LoggingType = NamedTuple(
+      severity: String,
+      colorize: Bool,
+      filter: Array(String),
+      skip: Array(String),
+      context: Array(String)
+    )
 
     setter session : Hash(String, Int32 | String)
     property logging : LoggingType
@@ -18,12 +24,15 @@ module Amber::Environment
     property secrets : Hash(String, String)
     property ssl_key_file : String
     property ssl_cert_file : String
-    property logger : Amber::Environment::Logger = Logger.new(STDOUT)
-
+    property logger : Logger?
 
     YAML.mapping(
       logging: {type: LoggingType, default: {
-        severity: "info", color: true, time: false, level: false,
+        severity: "info",
+        colorize:    true,
+        filter:   %w(password confirm_password),
+        skip:     %w(),
+        context:  %w(request headers cookies session params),
       }},
       database_url: {type: String?, default: nil},
       host: {type: String, default: "localhost"},
@@ -40,6 +49,14 @@ module Amber::Environment
       ssl_key_file: {type: String?, default: nil},
       ssl_cert_file: {type: String?, default: nil},
     )
+
+    def logger
+      @logger ||= LoggerBuilder.logger(STDOUT, logging)
+    end
+
+    def logger=(new_logger)
+      @logger = new_logger
+    end
 
     def session
       {
@@ -58,42 +75,62 @@ module Amber::Environment
       end
     end
 
-    def logger
-      return @logger unless @logger
-      @logger = Logger.new(STDOUT)
-      @logger.level = logging.severity
-      Colorize.enabled = logging.color
-      @logger
-    end
-
     def logging
       @_logging ||= Logging.new(@logging)
     end
+  end
 
-    class Logging
-      SEVERITY_MAP = {
-        "debug": Logger::DEBUG,
-        "info": Logger::INFO,
-        "warn": Logger::WARN,
-        "error": Logger::ERROR,
-        "fatal": Logger::FATAL,
-        "unknown": Logger::UNKNOWN
-      }
-      property color : Bool
-      property time : Bool
-      property level : Bool
-      property log_level : String
+  class LoggerBuilder
+    def self.logger(io, logging)
+      new(io, logging).logger
+    end
 
-      def initialize(logging : LoggingType)
-        @color = logging[:color]
-        @time = logging[:time]
-        @level = logging[:level]
-        @log_level = logging[:severity]
+    def initialize(io, logging)
+      Colorize.enabled = logging.colorize
+      @logger = Environment::Logger.new(io)
+      @logger.level = logging.severity
+      @logger.progname = "Server"
+      @logger.formatter = Logger::Formatter.new do |severity, datetime, progname, message, io|
+        io << datetime.to_s("%I:%M:%S")
+        io << "(#{severity})" unless severity != Logger::DEBUG
+        io << " "
+        io << progname
+        io << " "
+        io << message
       end
+    end
 
-      def severity
-        SEVERITY_MAP[log_level]
-      end
+    def logger
+      @logger
+    end
+  end
+
+  class Logging
+    SEVERITY_MAP = {
+      "debug":   Logger::DEBUG,
+      "info":    Logger::INFO,
+      "warn":    Logger::WARN,
+      "error":   Logger::ERROR,
+      "fatal":   Logger::FATAL,
+      "unknown": Logger::UNKNOWN,
+    }
+
+    setter severity : String
+    property colorize : Bool
+    property context : Array(String)
+    property skip : Array(String)
+    property filter : Array(String)
+
+    def initialize(logging : Settings::LoggingType)
+      @colorize = logging[:colorize]
+      @severity = logging[:severity]
+      @filter = logging[:filter]
+      @skip = logging[:skip]
+      @context = logging[:context]
+    end
+
+    def severity
+      SEVERITY_MAP[@severity]
     end
   end
 end

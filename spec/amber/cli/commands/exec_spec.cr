@@ -13,7 +13,8 @@ module Amber::CLI
       it "executes one-liners from the first command-line argument" do
         expected_result = "3000\n"
         MainCommand.run(["exec", "Amber.settings.port"])
-        logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
+        logs = Dir["./tmp/*_console_result.log"].sort
+
         File.read(logs.last?.to_s).should eq expected_result
       end
 
