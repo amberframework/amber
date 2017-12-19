@@ -5,7 +5,7 @@ module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     command "p", aliased: "perform"
 
-    class Perform < ::Cli::Command
+    class Perform < Command
       command_name "perform"
 
       class Options

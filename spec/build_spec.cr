@@ -8,6 +8,7 @@ module Amber::CLI
   begin
     describe "building a generated app" do
       ENV["AMBER_ENV"] = "test"
+
       cleanup
       scaffold_app(TESTING_APP)
 
@@ -25,8 +26,8 @@ module Amber::CLI
       MainCommand.run ["generate", "channel", "Falcon"]
 
       prepare_yaml(Dir.current)
-
       prepare_db_yml(CLIHelper::BASE_ENV_PATH) if ENV["CI"]? == "true"
+      Amber::CLI.env = "test"
 
       puts "====== START Creating database for #{TEST_APP_NAME} ======"
       MainCommand.run ["db", "drop"]

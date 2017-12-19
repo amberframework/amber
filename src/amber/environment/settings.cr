@@ -26,6 +26,10 @@ module Amber::Environment
     property ssl_cert_file : String
     property logger : Logger?
 
+    def logger
+      @logger ||= LoggerBuilder.new(STDOUT, logging).logger
+    end
+
     YAML.mapping(
       logging: {type: LoggingType, default: {
         severity: "info",
@@ -49,14 +53,6 @@ module Amber::Environment
       ssl_key_file: {type: String?, default: nil},
       ssl_cert_file: {type: String?, default: nil},
     )
-
-    def logger
-      @logger ||= LoggerBuilder.logger(STDOUT, logging)
-    end
-
-    def logger=(new_logger)
-      @logger = new_logger
-    end
 
     def session
       {
@@ -135,38 +131,6 @@ module Amber::Environment
 
     def logger
       @logger
-    end
-  end
-
-  class Logging
-    SEVERITY_MAP = {
-      "debug":   Logger::DEBUG,
-      "info":    Logger::INFO,
-      "warn":    Logger::WARN,
-      "error":   Logger::ERROR,
-      "fatal":   Logger::FATAL,
-      "unknown": Logger::UNKNOWN,
-    }
-    property color : Bool
-    property time : Bool
-    property level : Bool
-    property log_level : String
-    property context : Array(String)
-    property skip : Array(String)
-    property filter : Array(String)
-
-    def initialize(logging : Settings::LoggingType)
-      @color = logging[:color]
-      @time = logging[:time]
-      @level = logging[:level]
-      @log_level = logging[:severity]
-      @filter = logging[:filter]
-      @skip = logging[:skip]
-      @context = logging[:context]
-    end
-
-    def severity
-      SEVERITY_MAP[log_level]
     end
   end
 end

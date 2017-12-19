@@ -4,7 +4,7 @@ module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     command "x", aliased: "exec"
 
-    class Exec < ::Cli::Command
+    class Exec < Command
       command_name "exec"
       @filename = "./tmp/#{Time.now.epoch_ms}_console.cr"
 
@@ -48,7 +48,7 @@ module Amber::CLI
         end
 
         File.write(@filename.sub("console.cr", "console_result.log"), result) unless result.blank?
-        puts result
+        puts result, "Exec"
       end
     end
   end

@@ -4,7 +4,7 @@ module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     command "n", aliased: "new"
 
-    class New < ::Cli::Command
+    class New < Command
       class Options
         arg "name", desc: "name of project", required: true
         string "-d", desc: "database", any_of: %w(pg mysql sqlite), default: "pg"

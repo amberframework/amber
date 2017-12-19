@@ -4,7 +4,7 @@ module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     command "r", aliased: "run"
 
-    class Run < ::Cli::Command
+    class Run < Command
       command_name "run"
 
       class Options
@@ -20,12 +20,10 @@ module Amber::CLI
 
       def run
         name = Sentry::SentryCommand::Options.get_name
-        puts colorize("💎  Crystalizing...", :dark_gray)
         Dir.mkdir_p("bin")
         compile_command = "crystal build $(ls ./src/*.cr | sort -n | head -1) -o bin/#{name}"
         compile_command += " --release --no-debug" unless %w(development test).includes?(options.e.downcase)
         system(compile_command)
-        puts colorize("💎  Crystalization complete!", :dark_gray)
         Process.run(
           "PORT=#{options.p} AMBER_ENV=#{options.e} ./bin/#{name}",
           shell: true, output: true, error: true
