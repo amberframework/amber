@@ -1,8 +1,0 @@
-require "./spec_helper"
-require "../../src/models/<%= @name %>.cr"
-
-describe <%= class_name %> do
-  Spec.before_each do
-    <%= class_name %>.clear
-  end
-end

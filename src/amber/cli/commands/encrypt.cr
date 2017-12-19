@@ -2,7 +2,7 @@ module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     command "e", aliased: "encrypt"
 
-    class Encrypt < ::Cli::Command
+    class Encrypt < Command
       class Options
         arg "env", desc: "environment file to encrypt", default: "production"
         string ["-e", "--editor"], desc: "Prefered Editor: [vim, nano, pico, etc]", default: "vim"

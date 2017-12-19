@@ -1,6 +1,9 @@
 module Amber::Environment
   class Env
-    def initialize(@env : String)
+    AMBER_ENV = "AMBER_ENV"
+
+    def initialize(@env : String = ENV[AMBER_ENV]? || "development")
+      ENV[AMBER_ENV] = @env
     end
 
     def in?(env_list : Array(EnvType))

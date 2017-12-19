@@ -1,23 +1,17 @@
 require "../version"
 require "cli"
-require "./commands/*"
 require "./templates/template"
 require "./config"
-
-class Cli::Command
-  def colorize(text, color)
-    text.colorize(color).toggle(!options.no_color?).to_s
-  end
-
-  def colorize(text, color, mode)
-    text.colorize(color).toggle(!options.no_color?).mode(mode).to_s
-  end
-end
+require "./command"
+require "./commands/*"
 
 module Amber::CLI
   include Amber::Environment
-  
   AMBER_YML = ".amber.yml"
+
+  def self.toggle_colors(on_off)
+    Colorize.enabled = !on_off
+  end
 
   class MainCommand < ::Cli::Supercommand
     command_name "amber"
