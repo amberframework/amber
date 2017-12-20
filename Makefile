@@ -4,7 +4,7 @@ PREFIX ?= /usr/local
 all: build force_link
 
 install: build
-	sudo cp `pwd`/bin/amber /usr/local/bin/amber
+	sudo cp `pwd`/bin/amber $(PREFIX)/bin/amber
 
 build:
 	@echo "Building amber in $(shell pwd)"
