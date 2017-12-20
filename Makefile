@@ -4,7 +4,7 @@ PREFIX ?= /usr/local
 all: build force_link
 
 install: build
-	sudo cp `pwd`/bin/amber $(PREFIX)/bin/amber
+	cp ./bin/amber $(PREFIX)/bin
 
 build:
 	@echo "Building amber in $(shell pwd)"
@@ -18,8 +18,8 @@ clean:
 	rm -rf  $(OUT_DIR) .crystal .shards libs lib
 
 link:
-	@ln -s `pwd`/bin/amber $(PREFIX)/bin/amber
+	@ln -s ./bin/amber $(PREFIX)/bin/amber
 
 force_link:
-	@echo "Symlinking `pwd`/bin/amber to $(PREFIX)/bin/amber"
-	@ln -sf `pwd`/bin/amber $(PREFIX)/bin/amber
+	@echo "Symlinking ./bin/amber to $(PREFIX)/bin/amber"
+	@ln -sf ./bin/amber $(PREFIX)/bin/amber
