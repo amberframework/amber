@@ -13,7 +13,6 @@ Amber::Server.configure do |app|
   pipeline :static do
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Static.new("./public")
-    plug HTTP::CompressHandler.new
   end
 
   routes :static do
