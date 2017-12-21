@@ -22,7 +22,8 @@ module Amber::CLI
       property current_scope : String?
 
       class Help
-        caption "# Print out all defined routes in match order, with names"
+        header "Prints all defined application routes"
+        caption "# Prints all defined application routes"
       end
 
       class Options

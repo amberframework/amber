@@ -13,6 +13,7 @@ module Amber::CLI
       property project_name : String?
 
       class Help
+        header "Provisions server and deploys project."
         caption "# Provisions server and deploys project."
       end
 
