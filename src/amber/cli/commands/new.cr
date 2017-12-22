@@ -16,6 +16,7 @@ module Amber::CLI
       end
 
       class Help
+        header "Generates a new Amber project"
         caption "# Generates a new Amber project"
       end
 

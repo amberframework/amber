@@ -71,7 +71,9 @@ module Amber::CLI
       private def create_database
         url = Micrate::DB.connection_url.to_s
         if url.starts_with? "sqlite3:"
-          puts "For sqlite3, the database will be created during the first migration."
+          puts <<-MSG
+          No migration files were found. For sqlite3, the database will be created during the first migration.
+          MSG
         else
           name = set_database_to_schema url
           Micrate::DB.connect do |db|

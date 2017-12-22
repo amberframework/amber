@@ -13,7 +13,8 @@ module Amber::CLI
       end
 
       class Help
-        caption "# Starts amber server and rebuilds on file changes"
+        header "Starts amber development server and rebuilds on file changes"
+        caption "# Starts amber development server and rebuilds on file changes"
       end
 
       def run

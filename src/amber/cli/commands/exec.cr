@@ -16,7 +16,8 @@ module Amber::CLI
       end
 
       class Help
-        caption "# It runs Crystal code within the application scope"
+        header "Executes Crystal code within the application scope"
+        caption "# Executes Crystal code within the application scope"
       end
 
       def prepare_file

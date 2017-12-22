@@ -11,7 +11,8 @@ module Amber::CLI
       end
 
       class Help
-        caption "# Encrypts Environment"
+        header "Encrypts environment YAML file."
+        caption "# Encrypts environment YAML file. [env | -e --editor | --noedit]"
       end
 
       def run

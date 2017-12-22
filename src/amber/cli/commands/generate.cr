@@ -13,6 +13,11 @@ module Amber::CLI
         help
       end
 
+      class Help
+        header "Generates application based on templates"
+        caption "# Generates application based on templates"
+      end
+
       def run
         if args.type == "error"
           template = Template.new("error", ".")
