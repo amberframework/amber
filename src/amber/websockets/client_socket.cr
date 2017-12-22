@@ -63,7 +63,11 @@ module Amber
       end
 
       def initialize(@socket, @context)
+        {% if Crystal::VERSION == "0.24.1" %}
+        @id = Random::Secure.uuid
+        {% else %}
         @id = SecureRandom.uuid
+        {% end %}
         @subscription_manager = SubscriptionManager.new
         @raw_params = @context.params
         @params = Amber::Validators::Params.new(@raw_params)

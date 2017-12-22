@@ -2,6 +2,12 @@ require "logger"
 require "yaml"
 
 module Amber::Environment
+  {% if Crystal::VERSION == "0.24.1" %}
+  SECRET_KEY_BASE=Random::Secure.urlsafe_base64(32)
+  {% else %}
+  SECRET_KEY_BASE=SecureRandom.urlsafe_base64(32)
+  {% end %}
+
   class Settings
     property logger : ::Logger = Logger.new(STDOUT)
     property colorize_logging : Bool
@@ -27,7 +33,7 @@ module Amber::Environment
       port_reuse: {type: Bool, default: true},
       process_count: {type: Int32, default: 1},
       redis_url: {type: String?, default: nil},
-      secret_key_base: {type: String, default: SecureRandom.urlsafe_base64(32)},
+      secret_key_base: {type: String, default: SECRET_KEY_BASE},
       secrets: {type: Hash(String, String)?, default: nil},
       session: {type: Hash(String, Int32 | String), default: {
         "key" => "amber.session", "store" => "signed_cookie", "expires" => 0,

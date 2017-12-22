@@ -103,9 +103,15 @@ module Amber
             end
           elsif request_headers.includes_word?("Accept-Encoding", "deflate") && config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Support::MimeTypes.zip_types(file_path)
             env.response.headers["Content-Encoding"] = "deflate"
+            {% if Crystal::VERSION == "0.24.1" %}
+            Flate::Writer.open(env.response) do |deflate|
+              IO.copy(file, deflate)
+            end
+            {% else %}
             Flate::Writer.new(env.response) do |deflate|
               IO.copy(file, deflate)
             end
+            {% end %}
           else
             env.response.content_length = filesize
             IO.copy(file, env.response)

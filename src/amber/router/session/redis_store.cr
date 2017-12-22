@@ -17,7 +17,11 @@ module Amber::Router::Session
     end
 
     def id
+      {% if Crystal::VERSION == "0.24.1" %}
+      @id ||= Random::Secure.uuid
+      {% else %}
       @id ||= SecureRandom.uuid
+      {% end %}
     end
 
     def changed?

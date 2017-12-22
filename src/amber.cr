@@ -2,7 +2,11 @@ require "http"
 require "logger"
 require "json"
 require "colorize"
+{% if Crystal::VERSION == "0.24.1" %}
+require "random/secure"
+{% else %}
 require "secure_random"
+{% end %}
 require "kilt"
 require "kilt/slang"
 require "redis"

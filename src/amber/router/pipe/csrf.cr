@@ -1,4 +1,8 @@
+{% if Crystal::VERSION == "0.24.1" %}
+require "random/secure"
+{% else %}
 require "secure_random"
+{% end %}
 
 module Amber
   module Pipe
@@ -27,7 +31,11 @@ module Amber
       end
 
       def self.token(context)
+        {% if Crystal::VERSION == "0.24.1" %}
+        context.session[CSRF_KEY] ||= Random::Secure.urlsafe_base64(32)
+        {% else %}
         context.session[CSRF_KEY] ||= SecureRandom.urlsafe_base64(32)
+        {% end %}
       end
 
       def self.tag(context)

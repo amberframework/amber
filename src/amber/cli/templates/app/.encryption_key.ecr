@@ -1,1 +1,5 @@
+<% if Crystal::VERSION == "0.24.1" %>
+<%= Random::Secure.urlsafe_base64(32) %>
+<% else %>
 <%= SecureRandom.urlsafe_base64(32) %>
+<% end %>
