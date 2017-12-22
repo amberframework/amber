@@ -28,7 +28,7 @@ module Amber::CLI
         puts colorize("💎  Crystalization complete!", :dark_gray)
         Process.run(
           "PORT=#{options.p} AMBER_ENV=#{options.e} ./bin/#{name}",
-          shell: true, output: true, error: true
+          shell: true, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit
         )
       end
     end
