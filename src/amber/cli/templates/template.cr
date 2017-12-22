@@ -1,9 +1,5 @@
 require "teeplate"
-{% if Crystal::VERSION == "0.24.1" %}
 require "random/secure"
-{% else %}
-require "secure_random"
-{% end %}
 require "../helpers/helpers.cr"
 require "./app"
 require "./migration"

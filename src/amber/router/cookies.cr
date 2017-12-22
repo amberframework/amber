@@ -32,12 +32,7 @@ module Amber::Router
       getter secret : String
       property host : String?
       property secure : Bool = false
-      {% if Crystal::VERSION == "0.24.1" %}
-      SECRET = Random::Secure.urlsafe_base64(32)
-      {% else %}
-      SECRET = SecureRandom.urlsafe_base64(32)
-      {% end %}
-      def initialize(@host = nil, @secret = SECRET, @secure = false)
+      def initialize(@host = nil, @secret = Random::Secure.urlsafe_base64(32), @secure = false)
         @cookies = {} of String => String
         @set_cookies = {} of String => HTTP::Cookie
         @delete_cookies = {} of String => HTTP::Cookie
