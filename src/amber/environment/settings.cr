@@ -32,7 +32,7 @@ module Amber::Environment
 
     YAML.mapping(
       logging: {type: LoggingType, default: {
-        severity: "info",
+        severity: "debug",
         colorize:    true,
         filter:   %w(password confirm_password),
         skip:     %w(),
@@ -88,7 +88,7 @@ module Amber::Environment
       @logger.progname = "Server"
       @logger.formatter = Logger::Formatter.new do |severity, datetime, progname, message, io|
         io << datetime.to_s("%I:%M:%S")
-        io << "(#{severity})" unless severity != Logger::DEBUG
+        io << " (#{severity})" if severity > Logger::DEBUG
         io << " "
         io << progname
         io << " "
