@@ -40,16 +40,16 @@ describe Amber do
         Amber::Server.configure do |server|
           server.name = "Hello World App"
           server.port = 8080
-          server.logger = ::Logger.new(STDOUT)
+          server.logger = Amber::Environment::Logger.new(STDOUT)
           server.logger.level = ::Logger::INFO
-          server.colorize_logging = false
+          server.logging.colorize = false
         end
 
         settings = Amber.settings
 
         settings.name.should eq "Hello World App"
         settings.port.should eq 8080
-        settings.colorize_logging.should eq false
+        settings.logging.colorize.should eq false
         settings.secret_key_base.should eq "ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4"
       end
 
@@ -69,7 +69,7 @@ describe Amber do
         settings.name.should eq "Fake App Name"
         settings.port_reuse.should eq true
         settings.redis_url.should eq "redis://localhost:6379"
-        settings.colorize_logging.should eq true
+        settings.logging.colorize.should eq true
         settings.secret_key_base.should eq "ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4"
         settings.session.should eq expected_session
         settings.port.should eq 8080

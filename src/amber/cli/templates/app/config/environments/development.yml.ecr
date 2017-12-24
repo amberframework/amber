@@ -1,7 +1,21 @@
 secret_key_base: <%= SecureRandom.urlsafe_base64(32) %>
 port: 3000
 name: <%= @name %>
-colorize_logging: true
+logging:
+  severity: debug
+  colorize: true
+  filter:
+    - password
+    - confirm_password
+  skip:
+    -
+  context:
+    - request
+    - session
+    - headers
+    - cookies
+    - params
+
 host: localhost
 port_reuse: true
 process_count: 1

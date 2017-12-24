@@ -1,10 +1,18 @@
-require "logger"
+require "./logger"
 require "yaml"
 
 module Amber::Environment
   class Settings
-    property logger : ::Logger = Logger.new(STDOUT)
-    property colorize_logging : Bool
+    alias LoggingType = NamedTuple(
+      severity: String,
+      colorize: Bool,
+      filter: Array(String),
+      skip: Array(String),
+      context: Array(String)
+    )
+
+    setter session : Hash(String, Int32 | String)
+    property logging : LoggingType
     property database_url : String
     property host : String
     property name : String
@@ -13,13 +21,19 @@ module Amber::Environment
     property process_count : Int32
     property redis_url
     property secret_key_base : String
-    setter session : Hash(String, Int32 | String)
     property secrets : Hash(String, String)
     property ssl_key_file : String
     property ssl_cert_file : String
+    property logger : Logger?
 
     YAML.mapping(
-      colorize_logging: {type: Bool, default: true},
+      logging: {type: LoggingType, default: {
+        severity: "info",
+        colorize:    true,
+        filter:   %w(password confirm_password),
+        skip:     %w(),
+        context:  %w(request headers cookies session params),
+      }},
       database_url: {type: String?, default: nil},
       host: {type: String, default: "localhost"},
       name: {type: String, default: "Amber_App"},
@@ -36,6 +50,14 @@ module Amber::Environment
       ssl_cert_file: {type: String?, default: nil},
     )
 
+    def logger
+      @logger ||= LoggerBuilder.logger(STDOUT, logging)
+    end
+
+    def logger=(new_logger)
+      @logger = new_logger
+    end
+
     def session
       {
         :key     => @session["key"].to_s,
@@ -51,6 +73,64 @@ module Amber::Environment
       else                      "encrypted_cookie"
       :encrypted_cookie
       end
+    end
+
+    def logging
+      @_logging ||= Logging.new(@logging)
+    end
+  end
+
+  class LoggerBuilder
+    def self.logger(io, logging)
+      new(io, logging).logger
+    end
+
+    def initialize(io, logging)
+      Colorize.enabled = logging.colorize
+      @logger = Environment::Logger.new(io)
+      @logger.level = logging.severity
+      @logger.progname = "Server"
+      @logger.formatter = Logger::Formatter.new do |severity, datetime, progname, message, io|
+        io << datetime.to_s("%I:%M:%S")
+        io << "(#{severity})" unless severity != Logger::DEBUG
+        io << " "
+        io << progname
+        io << " "
+        io << message
+      end
+    end
+
+    def logger
+      @logger
+    end
+  end
+
+  class Logging
+    SEVERITY_MAP = {
+      "debug":   Logger::DEBUG,
+      "info":    Logger::INFO,
+      "warn":    Logger::WARN,
+      "error":   Logger::ERROR,
+      "fatal":   Logger::FATAL,
+      "unknown": Logger::UNKNOWN,
+    }
+
+    setter severity : String
+    property colorize : Bool
+    property context : Array(String)
+    property skip : Array(String)
+    property filter : Array(String)
+
+    def initialize(logging : Settings::LoggingType)
+      @colorize = logging[:colorize]
+      @severity = logging[:severity]
+      @filter = logging[:filter]
+      @skip = logging[:skip]
+      @context = logging[:context]
+    end
+
+    def severity
+      SEVERITY_MAP[@severity]
     end
   end
 end

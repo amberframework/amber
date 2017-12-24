@@ -28,7 +28,6 @@ class <%= class_name %>ControllerTest < GarnetSpec::Controller::Test
     @handler = Amber::Pipe::Pipeline.new
     @handler.build :web do
       plug Amber::Pipe::Error.new
-      plug Amber::Pipe::Logger.new
       plug Amber::Pipe::Session.new
       plug Amber::Pipe::Flash.new
     end

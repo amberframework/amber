@@ -1,7 +1,21 @@
 secret_key_base: <%= SecureRandom.urlsafe_base64(32) %>
 port: 8080
 name: <%= @name %>
-colorize_logging: false
+logging:
+  severity: debug
+  colorize: true
+  filter:
+    - password
+    - confirm_password
+  skip:
+    -
+  context:
+    - request
+    - session
+    - headers
+    - cookies
+    - params
+
 host: 0.0.0.0
 port_reuse: true
 process_count: 4
