@@ -8,11 +8,11 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends libpq-dev l
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get install -y nodejs
 
-WORKDIR /app
+WORKDIR /opt/amber
 
 # Build Amber
-ENV PATH /app/bin:$PATH
-ADD . /app
+ENV PATH /opt/amber/bin:$PATH
+ADD . /opt/amber
 RUN shards build amber
 
 CMD ["crystal", "spec", "-D", "run_build_tests"]
