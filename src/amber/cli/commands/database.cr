@@ -7,7 +7,7 @@ module Amber::CLI
   CLI.logger.progname = "Database"
   Micrate.logger = settings.logger
   Micrate.logger.progname = "Database"
-  Micrate.logger.level = Logger::Debug
+  Micrate.logger.level = Logger::DEBUG
 
   class MainCommand < ::Cli::Supercommand
     command "db", aliased: "database"
