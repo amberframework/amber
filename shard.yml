@@ -27,7 +27,7 @@ dependencies:
 
   slang:
     github: jeromegn/slang
-    branch: master 
+    branch: master
 
   redis:
     github: stefanwille/crystal-redis
@@ -40,10 +40,6 @@ dependencies:
   teeplate:
     github: amberframework/teeplate
     version: ~> 0.5.0
-
-  sentry:
-    github: samueleaton/sentry
-    version: ~> 0.1.0
 
   micrate:
     github: juanedi/micrate
@@ -67,8 +63,18 @@ dependencies:
 
   sqlite3:
     github: crystal-lang/crystal-sqlite3
+<<<<<<< HEAD
     version: ~> 0.9.0
 
 development_dependencies:
   ameba:
     github: veelenga/ameba
+||||||| parent of 7c3a6b4... Cleanup
+    version: ~> 0.8.3
+
+  watcher:
+    github: faustinoaq/watcher
+    version: ~> 0.2.0
+=======
+    version: ~> 0.8.3
+>>>>>>> 7c3a6b4... Cleanup
