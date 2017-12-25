@@ -2,7 +2,7 @@ FROM amberframework/amber:<%= Amber::VERSION %>
 
 WORKDIR /app
 
-COPY shard.yml shard.lock /app/
+COPY shard.* /app/
 RUN crystal deps
 
 ADD . /app
