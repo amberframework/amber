@@ -11,7 +11,7 @@ env:
   - TEST_SUITE=./spec/amber
 
 script: 
-  - docker-compose run --service-ports spec bash -c "cd /app/user && crystal spec $TEST_SUITE -D run_build_tests"
+  - docker-compose run --service-ports spec bash -c "cd /opt/amber && crystal spec $TEST_SUITE -D run_build_tests"
 
 notifications:
   webhooks:
