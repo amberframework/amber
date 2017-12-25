@@ -632,6 +632,10 @@ module Amber
       def self.format(accepts)
         MIME_TYPES.key?(accepts)
       end
+
+      def self.default
+        DEFAULT_MIME_TYPE
+      end
     end
   end
 end
