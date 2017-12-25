@@ -2,8 +2,9 @@ FROM amberframework/amber:<%= Amber::VERSION %>
 
 WORKDIR /app
 
-ADD . /app
-
+COPY shard.yml shard.lock /app/
 RUN crystal deps
+
+ADD . /app
 
 CMD amber watch
