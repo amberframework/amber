@@ -2,11 +2,8 @@ FROM amberframework/amber:<%= Amber::VERSION %>
 
 WORKDIR /app
 
-# Add Dependencies
-COPY shard.yml shard.lock /app/
-RUN shards install
-
-# Add Project
 ADD . /app
+
+RUN crystal deps
 
 CMD amber watch
