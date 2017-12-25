@@ -63,7 +63,7 @@ module Amber
       end
 
       def initialize(@socket, @context)
-        @id = SecureRandom.uuid
+        @id = UUID.random.to_s
         @subscription_manager = SubscriptionManager.new
         @raw_params = @context.params
         @params = Amber::Validators::Params.new(@raw_params)

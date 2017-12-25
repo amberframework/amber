@@ -1,5 +1,5 @@
 require "teeplate"
-require "secure_random"
+require "random/secure"
 require "../helpers/helpers.cr"
 require "./app"
 require "./migration"

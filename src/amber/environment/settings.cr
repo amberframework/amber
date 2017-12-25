@@ -45,7 +45,7 @@ module Amber::Environment
       port_reuse: {type: Bool, default: true},
       process_count: {type: Int32, default: 1},
       redis_url: {type: String?, default: nil},
-      secret_key_base: {type: String, default: SecureRandom.urlsafe_base64(32)},
+      secret_key_base: {type: String, default: Random::Secure.urlsafe_base64(32)},
       secrets: {type: Hash(String, String)?, default: nil},
       session: {type: Hash(String, Int32 | String), default: {
         "key" => "amber.session", "store" => "signed_cookie", "expires" => 0,

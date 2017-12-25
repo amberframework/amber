@@ -50,7 +50,7 @@ Amber::Server.configure do |settings|
   # initialized to a random key present in `ENV["AMBER_SECRET_KEY"]` or
   # `.amber_secret_key` in this order.
   #
-  # settings.secret_key_base= <%= SecureRandom.urlsafe_base64(32) %>
+  # settings.secret_key_base= <%= Random::Secure.urlsafe_base64(32) %>
   #
   #
   # Host: is the application server host address or ip address. Useful for when

@@ -1,7 +1,9 @@
 require "redis"
+require "uuid"
 
 module Amber::Router::Session
   class RedisStore < AbstractStore
+    @id : String?
     getter store : Redis
     property expires : Int32
     property key : String
@@ -17,7 +19,7 @@ module Amber::Router::Session
     end
 
     def id
-      @id ||= SecureRandom.uuid
+      @id ||= UUID.random.to_s
     end
 
     def changed?

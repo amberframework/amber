@@ -1,4 +1,4 @@
-secret_key_base: <%= SecureRandom.urlsafe_base64(32) %>
+secret_key_base: <%= Random::Secure.urlsafe_base64(32) %>
 port: 3000
 name: <%= @name %>
 logging:
