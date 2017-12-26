@@ -3,7 +3,7 @@ require "../../../spec_helper"
 module Amber::Extensions
   describe NumberExtension do
     it "negative number test" do
-      (-5.5423).negative?.should eq(true)
+      (-5.542_3).negative?.should eq(true)
     end
 
     it "positive number test" do
