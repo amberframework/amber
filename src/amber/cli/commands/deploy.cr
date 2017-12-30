@@ -120,17 +120,17 @@ module Amber::CLI
         puts "Deploying project..."
         parallel(
           remote_cmd("docker network create --driver bridge ambernet"),
-          remote_cmd("docker build -t amberimage -f amberproject/config/deploy/Dockerfile amberproject")
+          remote_cmd("docker build -t amberimage -f amberproject/Dockerfile amberproject")
         )
 
         amber_env = options.environment
 
         if options.remote_database?
-          remote_cmd("docker run -it --name amberweb -v /root/amberproject:/app/user -p 80:3000 --network=ambernet -e #{amber_env} -d amberimage")
+          remote_cmd("docker run -it --name amberweb -v /root/amberproject:/app -p 80:3000 --network=ambernet -e #{amber_env} -d amberimage")
         else
           parallel(
             remote_cmd("docker run -it --name amberdb -v /root/db_volume:/var/lib/postgresql/data --network=ambernet -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=crystaldo_development -d postgres"),
-            remote_cmd("docker run -it --name amberweb -v /root/amberproject:/app/user -p 80:3000 --network=ambernet -e #{amber_env} -e DATABASE_URL=postgres://admin:password@amberdb:5432/crystaldo_development -d amberimage")
+            remote_cmd("docker run -it --name amberweb -v /root/amberproject:/app -p 80:3000 --network=ambernet -e #{amber_env} -e DATABASE_URL=postgres://admin:password@amberdb:5432/crystaldo_development -d amberimage")
           )
         end
       end
