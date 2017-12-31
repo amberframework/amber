@@ -7,7 +7,7 @@ module Amber::Environment
       severity: String,
       colorize: Bool,
       filter: Array(String),
-      skip: Array(String),
+      skip: Array(String?),
       context: Array(String)
     )
 
@@ -35,7 +35,7 @@ module Amber::Environment
         severity: "debug",
         colorize:    true,
         filter:   %w(password confirm_password),
-        skip:     %w(),
+        skip:     Array(String?).new,
         context:  %w(request headers cookies session params),
       }},
       database_url: {type: String?, default: nil},
@@ -114,7 +114,7 @@ module Amber::Environment
     setter severity : String
     property colorize : Bool
     property context : Array(String)
-    property skip : Array(String)
+    property skip : Array(String?)
     property filter : Array(String)
 
     def initialize(logging : Settings::LoggingType)

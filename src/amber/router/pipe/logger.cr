@@ -6,7 +6,7 @@ module Amber
       FILTERED_TEXT = "FILTERED".colorize(:white).mode(:underline)
 
       def initialize(@filter : Params = log_config.filter,
-                     @skip : Params = log_config.skip,
+                     @skip : Array(String?) = log_config.skip,
                      @context : Params = log_config.context)
       end
 

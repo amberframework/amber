@@ -27,7 +27,7 @@ dependencies:
 
   slang:
     github: jeromegn/slang
-    version: ~> 1.7.0
+    branch: master 
 
   redis:
     github: stefanwille/crystal-redis
@@ -39,7 +39,7 @@ dependencies:
 
   teeplate:
     github: amberframework/teeplate
-    branch: master
+    version: ~> 0.5.0
 
   sentry:
     github: samueleaton/sentry
@@ -59,12 +59,12 @@ dependencies:
 
   pg:
     github: will/crystal-pg
-    version: ~> 0.13.4
+    version: ~> 0.14.1
 
   mysql:
     github: crystal-lang/crystal-mysql
-    version: ~> 0.3.3
+    version: ~> 0.4.0
 
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-    version: ~> 0.8.3
+    version: ~> 0.9.0
