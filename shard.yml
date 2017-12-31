@@ -38,8 +38,8 @@ dependencies:
     version: ~> 0.6.10
 
   teeplate:
-    github: mosop/teeplate
-    version: ~> 0.4.5
+    github: amberframework/teeplate
+    branch: master
 
   sentry:
     github: samueleaton/sentry
