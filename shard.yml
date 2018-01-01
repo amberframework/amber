@@ -34,8 +34,8 @@ dependencies:
     version: ~> 1.9.0
 
   cli:
-    github: mosop/cli
-    version: ~> 0.6.10
+    github: amberframework/cli
+    version: ~> 0.7.0
 
   teeplate:
     github: amberframework/teeplate
