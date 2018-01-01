@@ -1,4 +1,4 @@
-FROM drujensen/crystal:0.24.1
+FROM crystallang/crystal:0.24.1
 
 # Install Dependencies
 ARG DEBIAN_FRONTEND=noninteractive
