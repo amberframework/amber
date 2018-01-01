@@ -1,5 +1,8 @@
 language: generic
 
+install:
+  - crystal deps
+
 services:
   - docker
 
@@ -11,6 +14,8 @@ env:
   - TEST_SUITE=./spec/amber
 
 script: 
+  - crystal spec
+  - bin/ameba
   - docker-compose run --service-ports spec bash -c "cd /app/user && crystal spec $TEST_SUITE -D run_build_tests"
 
 notifications:
