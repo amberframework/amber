@@ -8,7 +8,7 @@ authors:
   - Nick Franken <<shnick@gmail.com>>
   - Benoit de Chezelles <<benoit.dechezelles@gmail.com>>
 
-crystal: 0.23.1
+crystal: 0.24.1
 
 license: MIT
 
@@ -27,19 +27,19 @@ dependencies:
 
   slang:
     github: jeromegn/slang
-    version: ~> 1.7.0
+    branch: master 
 
   redis:
     github: stefanwille/crystal-redis
     version: ~> 1.9.0
 
   cli:
-    github: mosop/cli
-    version: ~> 0.6.10
+    github: amberframework/cli
+    version: ~> 0.7.0
 
   teeplate:
-    github: mosop/teeplate
-    version: ~> 0.4.5
+    github: amberframework/teeplate
+    version: ~> 0.5.0
 
   sentry:
     github: samueleaton/sentry
@@ -59,12 +59,12 @@ dependencies:
 
   pg:
     github: will/crystal-pg
-    version: ~> 0.13.4
+    version: ~> 0.14.1
 
   mysql:
     github: crystal-lang/crystal-mysql
-    version: ~> 0.3.3
+    version: ~> 0.4.0
 
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-    version: ~> 0.8.3
+    version: ~> 0.9.0

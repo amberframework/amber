@@ -6,10 +6,9 @@ module Amber::Environment
     alias LoggingType = NamedTuple(
       severity: String,
       colorize: Bool,
-      filter: Array(String),
-      skip: Array(String),
-      context: Array(String)
-    )
+      filter: Array(String?),
+      skip: Array(String?),
+      context: Array(String?))
 
     setter session : Hash(String, Int32 | String)
     property logging : LoggingType
@@ -33,10 +32,10 @@ module Amber::Environment
     YAML.mapping(
       logging: {type: LoggingType, default: {
         severity: "debug",
-        colorize:    true,
-        filter:   %w(password confirm_password),
-        skip:     %w(),
-        context:  %w(request headers cookies session params),
+        colorize: true,
+        filter:   ["password", "confirm_password"] of String?,
+        skip:     [] of String?,
+        context:  ["request", "headers", "cookies", "session", "params"] of String?,
       }},
       database_url: {type: String?, default: nil},
       host: {type: String, default: "localhost"},
@@ -45,7 +44,7 @@ module Amber::Environment
       port_reuse: {type: Bool, default: true},
       process_count: {type: Int32, default: 1},
       redis_url: {type: String?, default: nil},
-      secret_key_base: {type: String, default: SecureRandom.urlsafe_base64(32)},
+      secret_key_base: {type: String, default: Random::Secure.urlsafe_base64(32)},
       secrets: {type: Hash(String, String)?, default: nil},
       session: {type: Hash(String, Int32 | String), default: {
         "key" => "amber.session", "store" => "signed_cookie", "expires" => 0,
@@ -113,9 +112,9 @@ module Amber::Environment
 
     setter severity : String
     property colorize : Bool
-    property context : Array(String)
-    property skip : Array(String)
-    property filter : Array(String)
+    property context : Array(String?)
+    property skip : Array(String?)
+    property filter : Array(String?)
 
     def initialize(logging : Settings::LoggingType)
       @colorize = logging[:colorize]
