@@ -13,7 +13,9 @@ module Amber::Controller
 
     def internal_server_error
       context.response.content_type = "text/plain"
-      "ERROR: #{@ex.inspect_with_backtrace}"
+      # TODO: #inspect_with_backtrace doesn't seem to work in 0.24.1
+      # "ERROR: #{@ex.inspect_with_backtrace}"
+      "ERROR: #{@ex.message}"
     end
 
     def forbidden

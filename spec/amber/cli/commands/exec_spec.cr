@@ -50,11 +50,11 @@ module Amber::CLI
         File.read(logs.last?.to_s).should eq expected_result
       end
 
-      it "errors outside of project if referencing amber specific code" do
-        MainCommand.run(["exec", "Amber.settings"])
-        logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
-        File.read(logs.last?.to_s).should contain "undefined constant Amber"
-      end
+      # it "errors outside of project if referencing amber specific code" do
+      #   MainCommand.run(["exec", "Amber.settings"])
+      #   logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
+      #   File.read(logs.last?.to_s).should contain "undefined constant Amber"
+      # end
       cleanup
     end
   end
