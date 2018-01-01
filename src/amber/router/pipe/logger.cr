@@ -1,7 +1,7 @@
 module Amber
   module Pipe
     class Logger < Base
-      alias Params = Array(String)
+      alias Params = Array(String?)
       Colorize.enabled = Amber.settings.logging.colorize
       FILTERED_TEXT = "FILTERED".colorize(:white).mode(:underline)
 

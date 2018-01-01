@@ -15,35 +15,28 @@ services:
   app:
     build: .
     image: <%= @name %>
-    command: 'amber watch'
-    working_dir: /app/local
+    command: amber watch
     environment:
       DATABASE_URL: <%= @db_url %>
-      SMTP_URL: mail:1025
     ports:
-      - '3000:3000'
+      - 3000:3000
     links:
       - db
-      - mail
     volumes:
-      - '.:/app/local'
+    - .:/app
+    - nodes:/app/node_modules
+    - shards:/app/lib
 
   migrate:
     build: .
     image: <%= @name %>
     command: bash -c '<%= @wait_for %>amber db migrate seed'
-    working_dir: /app/local
     environment:
       DATABASE_URL: <%= @db_url %>
     volumes:
-      - '.:/app/local'
+      - .:/app
     links:
       - db
-
-  mail:
-    image: drujensen/mailcatcher:latest
-    ports:
-      - '1080:1080'
 
 <% if @database == "pg" -%>
   db:
@@ -53,7 +46,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: <%= "#{database_name_base}_development" %>
     volumes:
-      - 'db:/var/lib/postgres/data'
+      - db:/var/lib/postgres/data
 <% elsif @database == "mysql" -%>
   db:
     image: mysql:5.6
@@ -63,14 +56,16 @@ services:
       MYSQL_DATABASE: <%= "#{database_name_base}_development" %>
       MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
     volumes:
-    - 'db:/var/lib/mysql'
+    - db:/var/lib/mysql
 <% elsif @database == "sqlite" -%>
   db:
     image: <%= @name %>
     command: 'bash -c "ls > /dev/null"'
     volumes:
-    - 'db:/app/local/db'
+    - db:/app/local/db
 <% end -%>
 
 volumes:
   db:
+  nodes:
+  shards:

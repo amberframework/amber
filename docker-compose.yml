@@ -10,7 +10,7 @@ services:
     command: redis-server
   spec:
     build: .
-    working_dir: /app/user
+    working_dir: /opt/amber
     environment:
       REDIS_URL: 'redis://redis:6379'
       AMBER_ENV: test

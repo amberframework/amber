@@ -21,7 +21,6 @@ module Amber
           request = HTTP::Request.new("OPTIONS", "/test")
           request.headers["Access-Control-Request-Method"] = "OPTIONS"
           request.headers["Access-Control-Request-Headers"] = "cOnTeNt-TyPe"
-
           response = create_request_and_return_io(pipeline, request)
 
           response.status_code.should eq 200
