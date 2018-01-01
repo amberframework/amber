@@ -74,8 +74,14 @@ module Amber
           server.listen(settings.port_reuse)
           exit
         rescue e : Errno
-          logger.error e.message
-          logger.info "Restarting server..."
+          if e.message == "accept: Too many open files"
+            logger.error e.message
+            logger.info "Restarting server..."
+            sleep 1
+          else
+            logger.error e.message
+            exit
+          end
         end
       end
     end
