@@ -4,7 +4,7 @@ module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     command "x", aliased: "exec"
 
-    class Exec < ::Cli::Command
+    class Exec < Command
       command_name "exec"
       @filename = "./tmp/#{Time.now.epoch_ms}_console.cr"
 
@@ -16,7 +16,8 @@ module Amber::CLI
       end
 
       class Help
-        caption "# It runs Crystal code within the application scope"
+        header "Executes Crystal code within the application scope"
+        caption "# Executes Crystal code within the application scope"
       end
 
       def prepare_file
@@ -48,7 +49,7 @@ module Amber::CLI
         end
 
         File.write(@filename.sub("console.cr", "console_result.log"), result) unless result.blank?
-        puts result
+        puts result, "Exec"
       end
     end
   end

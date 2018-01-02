@@ -4,7 +4,7 @@ require "../helpers/sentry"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
-    class Routes < Sentry::SentryCommand
+    class Routes < Command
       RESOURCE_ROUTE_REGEX = /(\w+)\s+\"([^\"]+)\",\s*(\w+)(?:,\s*(\w+)\:\s*\[([^\]]+)\])?/
       VERB_ROUTE_REGEX     = /(\w+)\s+\"([^\"]+)\",\s*(\w+),\s*:(\w+)/
       PIPE_SCOPE_REGEX     = /routes\s+\:(\w+)(?:,\s+\"([^\"]+)\")?/
@@ -22,7 +22,8 @@ module Amber::CLI
       property current_scope : String?
 
       class Help
-        caption "# Print out all defined routes in match order, with names"
+        header "Prints all defined application routes"
+        caption "# Prints all defined application routes"
       end
 
       class Options
@@ -34,8 +35,8 @@ module Amber::CLI
         parse_routes
         print_routes_table
       rescue
-        puts colorize("Error: Not valid project root directory.", :red)
-        puts colorize("Run `amber routes` in project root directory.", :light_blue)
+        puts "Error: Not valid project root directory.".colorize(:red)
+        puts "Run `amber routes` in project root directory.".colorize(:light_blue)
         puts "Good bye :("
         exit 1
       end

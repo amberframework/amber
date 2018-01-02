@@ -70,14 +70,20 @@ class HTTP::Server::Context
   {% end %}
 
   def format
-    content_type = request.headers[FORMAT_HEADER].split(",").first
-    type = if content_type.includes?(";")
-             content_type.split(";").first
-           else
-             content_type
-           end
+    content_type = request.headers[FORMAT_HEADER]?
 
-    Amber::Support::MimeTypes.format(type)
+    if content_type
+      content_type = content_type.split(",").first
+      type = if content_type.includes?(";")
+        content_type.split(";").first
+      else
+        content_type
+      end
+
+      Amber::Support::MimeTypes.format(type)
+    else
+      Amber::Support::MimeTypes.default
+    end
   end
 
   def port
@@ -122,6 +128,8 @@ class HTTP::Server::Context
   end
 
   protected def finalize_response
+    response.headers["Connection"] = "Keep-Alive"
+    response.headers.add("Keep-Alive", "timeout=5, max=10000")
     response.print(@content)
   end
 end

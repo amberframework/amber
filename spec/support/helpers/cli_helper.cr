@@ -10,6 +10,13 @@ module CLIHelper
     `rm -rf ./tmp/`
   end
 
+  def prepare_test_app
+    puts "Environment: #{ENV["AMBER_ENV"]}"
+    cleanup
+    scaffold_app("#{TESTING_APP}", "-d", "sqlite")
+    environment_yml(ENV["AMBER_ENV"], "#{Dir.current}/config/environments/")
+  end
+
   def dirs(for app)
     gen_dirs = Dir.glob("#{app}/**/*").select { |e| Dir.exists? e }
     gen_dirs.map { |dir| dir[(app.size + 1)..-1] }

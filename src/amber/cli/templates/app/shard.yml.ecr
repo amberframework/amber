@@ -12,14 +12,10 @@ targets:
   <%= @name %>:
     main: src/<%= @name %>.cr
 
-  amber:
-    main: lib/amber/src/amber/cli.cr
-
 dependencies:
   amber:
     github: amberframework/amber
-    branch: master
-    #version: <%= Amber::VERSION %>
+    version: <%= Amber::VERSION %>
 
 <% case @model when "crecto" -%>
   crecto:
@@ -28,12 +24,12 @@ dependencies:
 <% else -%>
   granite_orm:
     github: amberframework/granite-orm
-    version: ~> 0.7.8
+    version: ~> 0.8.0
 <% end -%>
 
   quartz_mailer:
     github: amberframework/quartz-mailer
-    version: ~> 0.3.0
+    version: ~> 0.4.0
 
   jasper_helpers:
     github: amberframework/jasper-helpers
@@ -42,15 +38,15 @@ dependencies:
 <% case @database when "pg" -%>
   pg:
     github: will/crystal-pg
-    version: ~> 0.13.4
+    version: ~> 0.14.1
 <% when "mysql" -%>
   mysql:
     github: crystal-lang/crystal-mysql
-    version: ~> 0.3.3
+    version: ~> 0.4.0
 <% when "sqlite" -%>
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-    version: ~> 0.8.3
+    version: ~> 0.9.0
 <% end -%>
 
 development_dependencies:

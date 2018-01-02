@@ -4,13 +4,18 @@ module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     command "g", aliased: "generate"
 
-    class Generate < ::Cli::Command
+    class Generate < Command
       class Options
         arg "type", desc: "scaffold, model, controller, migration, mailer, socket, channel, auth, error", required: true
         arg "name", desc: "name of resource", required: false
         arg_array "fields", desc: "user:reference name:string body:text age:integer published:bool"
         bool "--no-color", desc: "Disable colored output", default: false
         help
+      end
+
+      class Help
+        header "Generates application based on templates"
+        caption "# Generates application based on templates"
       end
 
       def run
@@ -25,7 +30,7 @@ module Amber::CLI
 
       private def ensure_name_argument!
         unless args.name?
-          puts "Parsing Error: The NAME argument is required.\n\n"
+          CLI.logger.puts "Parsing Error: The NAME argument is required.", "Error", :red
           exit! help: true, error: true
         end
       end
