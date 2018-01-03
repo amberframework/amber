@@ -221,8 +221,16 @@ describe HTTP::Server::Context do
      ics:   "text/calendar"}.each do |format, content_type|
       it "gets request format for #{content_type}" do
         headers = HTTP::Headers.new
-        headers[HTTP::Server::Context::FORMAT_HEADER] = content_type
+        headers[Amber::Support::MimeTypes::FORMAT_HEADER] = content_type
         request = HTTP::Request.new("GET", "/", headers)
+        context = create_context(request)
+        context.format.should eq format.to_s
+      end
+    end
+
+    %w(html json txt text xml).each do |format|
+      it "get format #{format} from path extension" do
+        request = HTTP::Request.new("GET", "/index.#{format}")
         context = create_context(request)
         context.format.should eq format.to_s
       end

@@ -11,14 +11,13 @@ module Amber
     # end
     # ```
     class Reload < Base
-      def initialize
+      def initialize(@env : Amber::Environment::Env = Amber.env)
         Support::ClientReload.new
-        super
       end
 
       def call(context : HTTP::Server::Context)
-        if context.format == "html"
-          context.response.print Support::ClientReload::INJECTED_CODE
+        if @env.development? && context.format == "html"
+          context.response << Support::ClientReload::INJECTED_CODE
         end
         call_next(context)
       end

@@ -9,9 +9,7 @@ Amber::Server.configure do |app|
     plug Amber::Pipe::CSRF.new
 
     # Reload clients browsers (development only)
-    if Amber.env.development?
-      plug Amber::Pipe::Reload.new
-    end
+    plug Amber::Pipe::Reload.new
   end
 
   # All static content will run these transformations

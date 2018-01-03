@@ -13,6 +13,8 @@ CURRENT_DIR       = Dir.current
 Amber.path = "./spec/support/config"
 Amber.env=(ENV["AMBER_ENV"])
 Amber.settings.redis_url = ENV["REDIS_URL"] if ENV["REDIS_URL"]?
+Amber::CLI.logger.level = Logger::UNKNOWN
+Amber.logger.level = Logger::UNKNOWN
 
 require "http"
 require "spec"
