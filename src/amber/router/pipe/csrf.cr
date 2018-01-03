@@ -1,4 +1,5 @@
 require "random/secure"
+require "crypto/subtle"
 
 module Amber
   module Pipe
@@ -9,9 +10,12 @@ module Amber
       PARAM_KEY     = "_csrf"
       CSRF_KEY      = "csrf.token"
 
+      def initialize(@refresh_token : Bool = true)
+      end
+
       def call(context : HTTP::Server::Context)
         if valid_http_method?(context) || valid_token?(context)
-          context.session.delete(CSRF_KEY)
+          context.session.delete(CSRF_KEY) if @refresh_token
           call_next(context)
         else
           raise Amber::Exceptions::Forbidden.new("CSRF check failed.")
@@ -23,7 +27,10 @@ module Amber
       end
 
       def valid_token?(context)
-        (context.params[PARAM_KEY]? || context.request.headers[HEADER_KEY]?) == self.class.token(context)
+        request_token = context.params[PARAM_KEY]? || context.request.headers[HEADER_KEY]?
+        session_token = self.class.token(context).to_s
+
+        request_token && Crypto::Subtle.constant_time_compare(request_token, session_token)
       end
 
       def self.token(context)
