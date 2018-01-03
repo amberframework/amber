@@ -17,8 +17,8 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
-        if context.format == "html"
-          context.response.print Support::ClientReload::INJECTED_CODE
+        if Amber.env.development? && context.format == "html"
+          context.response << Support::ClientReload::INJECTED_CODE
         end
         call_next(context)
       end

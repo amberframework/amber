@@ -14,6 +14,7 @@ module Amber::Router
     METHOD           = "_method"
     OVERRIDE_HEADER  = "X-HTTP-Method-Override"
     OVERRIDE_METHODS = %w(PATCH PUT DELETE)
+    TYPE_EXT_REGEX   = Amber::Support::MimeTypes::TYPE_EXT_REGEX
 
     property params = Amber::Router::Params.new
 
@@ -84,7 +85,7 @@ module Amber::Router
       rparams = route.params
       unless rparams.empty?
         key = rparams.keys.last
-        rparams[key] = rparams[key].sub(Controller::Base::Content::TYPE_EXT_REGEX, "")
+        rparams[key] = rparams[key].sub(TYPE_EXT_REGEX, "")
       end
       route.params
     end
