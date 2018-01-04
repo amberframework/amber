@@ -9,12 +9,12 @@ module Amber
       HEADER_KEY    = "X-CSRF-TOKEN"
       PARAM_KEY     = "_csrf"
       CSRF_KEY      = "csrf.token"
-      TOKEN_LENGTH = 32
+      TOKEN_LENGTH  = 32
 
-      class_property token_strategry = PersistantToken
+      class_property token_strategy : PersistantToken | RefreshableToken = PersistantToken
 
       def call(context : HTTP::Server::Context)
-        if valid_http_method?(context) || self.class.token_strategry.valid_token?(context)
+        if valid_http_method?(context) || self.class.token_strategy.valid_token?(context)
           call_next(context)
         else
           raise Amber::Exceptions::Forbidden.new("CSRF check failed.")
@@ -26,7 +26,7 @@ module Amber
       end
 
       def self.token(context)
-        token_strategry.token(context)
+        token_strategy.token(context)
       end
 
       def self.tag(context)
@@ -60,7 +60,7 @@ module Amber
 
           request_token &&
             Crypto::Subtle.constant_time_compare(request_token, token(context)) &&
-            context.session.delete(CSRF_KEY)
+            !!context.session.delete(CSRF_KEY)
         end
       end
 
