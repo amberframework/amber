@@ -68,3 +68,7 @@ dependencies:
   sqlite3:
     github: crystal-lang/crystal-sqlite3
     version: ~> 0.9.0
+
+development_dependencies:
+  ameba:
+    github: veelenga/ameba

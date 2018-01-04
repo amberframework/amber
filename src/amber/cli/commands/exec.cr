@@ -33,11 +33,11 @@ module Amber::CLI
       def run
         Dir.mkdir("tmp") unless Dir.exists?("tmp")
 
-        unless args.code.blank? || File.exists?(args.code)
-          File.write(@filename, "puts (#{args.code}).inspect")
-        else
+        if args.code.blank? || File.exists?(args.code)
           prepare_file
           system("#{options.editor} #{@filename}")
+        else
+          File.write(@filename, "puts (#{args.code}).inspect")
         end
 
         result = ""
