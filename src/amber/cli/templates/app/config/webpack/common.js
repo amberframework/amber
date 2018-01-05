@@ -46,7 +46,7 @@ let config = {
         test: /\.(woff|woff2|eot|ttf|otf)$/,
         exclude: /node_modules/,
         use: [
-          'file-loader'
+          'file-loader?name=/[name].[ext]'
         ]
       },
       {
