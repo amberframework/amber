@@ -1,6 +1,6 @@
 module Amber
   module WebSockets
-    # Sockets subscribe to Channel's, where the communication log is handled.  The channel provides funcionality
+    # Sockets subscribe to Channels, where the communication log is handled.  The channel provides functionality
     # to handle socket join `handle_joined` and socket messages `handle_message(msg)`.
     #
     # Example:
@@ -8,7 +8,7 @@ module Amber
     # ```crystal
     # class ChatChannel < Amber::Websockets::Channel
     #   def handle_joined(client_socket)
-    #     # functionality when the user joines the channel, optional
+    #     # functionality when the user joins the channel, optional
     #   end
     #
     #   def handle_leave(client_socket)
@@ -40,7 +40,7 @@ module Amber
         handle_message(client_socket, message)
       end
 
-      # Helper method for retrieving the apdater not nillable
+      # Helper method for retrieving the adapter not nillable
       protected def adapter
         if pubsub_adapter = @@adapter
           pubsub_adapter
