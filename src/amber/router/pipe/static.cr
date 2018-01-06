@@ -3,8 +3,9 @@ require "zlib"
 module Amber
   module Pipe
     class Static < HTTP::StaticFileHandler
-      @directory_listing = false
-      @fallthrough = false
+      def initialize(public_dir : String, fallthrough = false, directory_listing = false)
+        super
+      end
 
       def call(context : HTTP::Server::Context)
         unless context.request.method == "GET" || context.request.method == "HEAD"
