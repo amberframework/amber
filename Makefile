@@ -11,7 +11,7 @@ $(OUT_DIR)/amber:
 	@crystal build -o $(OUT_DIR)/amber src/amber/cli.cr -p --no-debug
 
 lib:
-	@shards
+	@crystal deps
 
 install: build
 	@mkdir -p $(PREFIX)/bin
