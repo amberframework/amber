@@ -54,7 +54,7 @@ module Amber::CLI
       rescue e : Micrate::UnorderedMigrationsException
         exit! Micrate::Cli.report_unordered_migrations(e.versions), error: true
       rescue e : DB::ConnectionRefused
-        exit! "Connection refused: #{Micrate::DB.connection_url.colorize(:light_blue)}", error: true
+        exit! "Connection unsuccessful: #{Micrate::DB.connection_url.colorize(:light_blue)}", error: true
       rescue e : Exception
         exit! e.message, error: true
       end

@@ -1,3 +1,4 @@
+require "file_utils"
 require "./field.cr"
 
 module Amber::CLI
@@ -28,8 +29,8 @@ module Amber::CLI
 
     def add_views
       @actions.each do |action, verb|
-        `mkdir -p src/views/#{@name}`
-        `touch src/views/#{@name}/#{action}.#{language}`
+        FileUtils.mkdir_p("src/views/#{@name}")
+        File.touch("src/views/#{@name}/#{action}.#{language}")
       end
     end
   end
