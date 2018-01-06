@@ -1,26 +1,33 @@
-OUT_DIR=bin
-PREFIX ?=/usr/local
+OUT_DIR=$(shell pwd)/bin
+PREFIX=/usr/local
 
-all: build force_link
+all: build
+
+build: lib $(OUT_DIR)/amber
+
+$(OUT_DIR)/amber:
+	@echo "Building amber in $(shell pwd)"
+	@mkdir -p $(OUT_DIR)
+	@crystal build -o $(OUT_DIR)/amber src/amber/cli.cr -p --no-debug
+
+lib:
+	@crystal deps
 
 install: build
 	@mkdir -p $(PREFIX)/bin
-	cp `pwd`/bin/amber  $(PREFIX)/bin/amber
-
-build:
-	@echo "Building amber in $(shell pwd)"
-	@mkdir -p `pwd`/$(OUT_DIR)
-	@crystal build -o `pwd`/$(OUT_DIR)/amber src/amber/cli.cr -p --no-debug
+	@rm $(PREFIX)/bin/amber
+	@cp $(OUT_DIR)/amber $(PREFIX)/bin/amber
 
 run:
-	`pwd`/$(OUT_DIR)/amber
+	$(OUT_DIR)/amber
+
+link: build
+	@echo "Symlinking $(OUT_DIR)/amber to $(PREFIX)/bin/amber"
+	@ln -s $(OUT_DIR)/amber $(PREFIX)/bin/amber
+
+force_link: build
+	@echo "Symlinking $(OUT_DIR)/amber to $(PREFIX)/bin/amber"
+	@ln -sf $(OUT_DIR)/amber $(PREFIX)/bin/amber
 
 clean:
-	rm -rf `pwd`/$(OUT_DIR) .crystal .shards libs lib
-
-link:
-	@ln -s ./bin/amber $(PREFIX)/bin/amber
-
-force_link:
-	@echo "Symlinking `pwd`/bin/amber to $(PREFIX)/bin/amber"
-	@ln -sf `pwd`/bin/amber $(PREFIX)/bin/amber
+	rm -rf $(OUT_DIR) .crystal .shards libs lib
