@@ -162,7 +162,7 @@ module Amber
           IO.copy(file, env.response, content_length)
         else
           env.response.content_length = fileb
-          env.response.status_code = 200 # Range not satisfable, see 4.4 Note
+          env.response.status_code = 200 # Range not satisfiable, see 4.4 Note
           IO.copy(file, env.response)
         end
       end
