@@ -15,7 +15,7 @@ module Amber::Extensions
       (10/5 - 2).zero?.should eq(true)
     end
 
-    it "returns true when number is divisable by X" do
+    it "returns true when number is divisible by X" do
       (10).div?(5).should eq(true)
     end
 

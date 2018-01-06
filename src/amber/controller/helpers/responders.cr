@@ -19,7 +19,7 @@ module Amber::Controller::Helpers
       def initialize(@requested_responses)
       end
 
-      # TODO: add JS type simlar to rails.
+      # TODO: add JS type similar to rails.
       def html(html : String)
         @available_responses[TYPE[:html]] = html; self
       end

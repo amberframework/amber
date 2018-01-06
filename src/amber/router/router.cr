@@ -66,12 +66,12 @@ module Amber
         all_routes
       end
 
-      def add_children(node, accomulator = {} of String => String)
+      def add_children(node, accumulator = {} of String => String)
         node.children.each do |c|
           if c.payload?
-            accomulator[c.payload.verb + c.payload.resource] = c.payload.to_json
+            accumulator[c.payload.verb + c.payload.resource] = c.payload.to_json
           end
-          add_children(c, accomulator)
+          add_children(c, accumulator)
         end
       end
 

@@ -21,7 +21,7 @@ module Amber::Extensions
       "https://crystal-lang.org/?page=demo&id=17".url?.should eq(true)
     end
 
-    it "returns true for valid ALPHA charecters" do
+    it "returns true for valid ALPHA characters" do
       "WeLoveCrystal".alpha?.should eq(true)
       "İzniBurakDemirtaş".alpha?("tr-TR").should eq(true)
     end
