@@ -21,11 +21,11 @@ install: build
 run:
 	$(OUT_DIR)/amber
 
-link:
+link: build
 	@echo "Symlinking $(OUT_DIR)/amber to $(PREFIX)/bin/amber"
 	@ln -s $(OUT_DIR)/amber $(PREFIX)/bin/amber
 
-force_link:
+force_link: build
 	@echo "Symlinking $(OUT_DIR)/amber to $(PREFIX)/bin/amber"
 	@ln -sf $(OUT_DIR)/amber $(PREFIX)/bin/amber
 
