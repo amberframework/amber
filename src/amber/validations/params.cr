@@ -89,7 +89,7 @@ module Amber::Validators
       raise Amber::Exceptions::Validator::ValidationFailed.new errors
     end
 
-    # Returns True or false wether the validation passed
+    # Returns True or false whether the validation passed
     #
     # ```crystal
     # unless params.valid?
