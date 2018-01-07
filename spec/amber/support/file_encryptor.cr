@@ -5,7 +5,7 @@ describe Amber::Support::FileEncryptor do
   context "#encryption_key" do
     it "load encryption_key from ENV variable" do
       ENV[Amber::SECRET_KEY] = "fake encryption key"
-      Amber::Support::FileEncryptor.encryption_key.should eq "fake encription key"
+      Amber::Support::FileEncryptor.encryption_key.should eq "fake encryption key"
     end
 
     it "load encryption_key from .encryption_key file" do

@@ -46,7 +46,7 @@ module Amber
         return topic_channels[0][:channel] if topic_channels.any?
       end
 
-      # Broadcast a message to all subscribres of the topic
+      # Broadcast a message to all subscribers of the topic
       #
       # ```crystal
       # UserSocket.broadcast("message", "chats_room:1", "msg:new", {"message" => "test"})

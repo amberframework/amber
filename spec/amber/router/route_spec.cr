@@ -5,7 +5,7 @@ module Amber
     handler = ->(context : HTTP::Server::Context) {}
     subject = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, "", "FakeController")
 
-    it "Initializes correctly with Decendant controller" do
+    it "Initializes correctly with Descendant controller" do
       request = HTTP::Request.new("GET", "/?test=test")
       context = create_context(request)
 

@@ -79,7 +79,7 @@ module Amber
       end
 
       context "when tokens don't match" do
-        it "raises a forbbiden error for params token" do
+        it "raises a forbidden error for params token" do
           csrf = CSRF.new
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
@@ -92,7 +92,7 @@ module Amber
           end
         end
 
-        it "raises a forbbiden error for header token" do
+        it "raises a forbidden error for header token" do
           csrf = CSRF.new
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)

@@ -94,7 +94,7 @@ class HTTP::Server::Context
     request.url
   end
 
-  # Attemps to retrieve client IP Address from headers
+  # Attempts to retrieve client IP Address from headers
   #
   # REMOTE_ADDR contains the real IP address of the connecting party.
   # That is the most reliable value you can find. However, they can be
