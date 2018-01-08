@@ -197,7 +197,7 @@ module Amber::Router
       cookie_header(cookies).should eq "user_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
     end
 
-    it "allow deleting a unexisting cookie" do
+    it "allow deleting a nonexistent cookie" do
       cookies = new_cookie_store
 
       cookies.delete "invalid"

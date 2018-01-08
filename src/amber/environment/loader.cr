@@ -1,7 +1,7 @@
 module Amber::Environment
   class Loader
     def initialize(@environment : Amber::Environment::EnvType = Amber.env.to_s,
-                   @path : String = Amber.environemnt_path)
+                   @path : String = Amber.environment_path)
       raise Exceptions::Environment.new(@path, @environment) unless settings_file_exist?
     end
 

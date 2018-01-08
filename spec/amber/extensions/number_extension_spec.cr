@@ -3,7 +3,7 @@ require "../../../spec_helper"
 module Amber::Extensions
   describe NumberExtension do
     it "negative number test" do
-      (-5.5423).negative?.should eq(true)
+      (-5.542_3).negative?.should eq(true)
     end
 
     it "positive number test" do
@@ -15,7 +15,7 @@ module Amber::Extensions
       (10/5 - 2).zero?.should eq(true)
     end
 
-    it "returns true when number is divisable by X" do
+    it "returns true when number is divisible by X" do
       (10).div?(5).should eq(true)
     end
 

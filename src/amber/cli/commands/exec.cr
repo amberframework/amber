@@ -10,7 +10,7 @@ module Amber::CLI
 
       class Options
         arg "code", desc: "Crystal code or .cr file to execute within the application scope", default: ""
-        string ["-e", "--editor"], desc: "Prefered editor: [vim, nano, pico, etc], only used when no code or .cr file is specified", default: "vim"
+        string ["-e", "--editor"], desc: "Preferred editor: [vim, nano, pico, etc], only used when no code or .cr file is specified", default: "vim"
         string ["-b", "--back"], desc: "Runs previous command files: 'amber exec -b [times_ago]'", default: "0"
         help
       end
@@ -33,11 +33,11 @@ module Amber::CLI
       def run
         Dir.mkdir("tmp") unless Dir.exists?("tmp")
 
-        unless args.code.blank? || File.exists?(args.code)
-          File.write(@filename, "puts (#{args.code}).inspect")
-        else
+        if args.code.blank? || File.exists?(args.code)
           prepare_file
           system("#{options.editor} #{@filename}")
+        else
+          File.write(@filename, "puts (#{args.code}).inspect")
         end
 
         result = ""

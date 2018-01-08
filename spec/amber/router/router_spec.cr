@@ -126,30 +126,30 @@ module Amber
       describe "#match_by_controller_action" do
         handler = ->(context : HTTP::Server::Context) {}
         router = Router.new
-        routeA = Route.new("GET", "/fake", handler, :index, :web, "", "FakeController")
-        routeB = Route.new("GET", "/fake/new", handler, :new, :web, "", "FakeController")
-        routeC = Route.new("GET", "/fake/:id", handler, :show, :web, "", "FakeController")
-        routeD = Route.new("GET", "/another/:id", handler, :another, :web, "", "FakeController")
+        route_a = Route.new("GET", "/fake", handler, :index, :web, "", "FakeController")
+        route_b = Route.new("GET", "/fake/new", handler, :new, :web, "", "FakeController")
+        route_c = Route.new("GET", "/fake/:id", handler, :show, :web, "", "FakeController")
+        route_d = Route.new("GET", "/another/:id", handler, :another, :web, "", "FakeController")
 
-        router.add routeA
-        router.add routeB
-        router.add routeC
-        router.add routeD
+        router.add route_a
+        router.add route_b
+        router.add route_c
+        router.add route_d
 
         it "matches route by controller and action" do
-          router.match_by_controller_action(:fakecontroller, :index).should eq routeA
+          router.match_by_controller_action(:fakecontroller, :index).should eq route_a
         end
 
         it "matches controller new action" do
-          router.match_by_controller_action(:fakecontroller, :new).should eq routeB
+          router.match_by_controller_action(:fakecontroller, :new).should eq route_b
         end
 
         it "matches controller show action" do
-          router.match_by_controller_action(:fakecontroller, :show).should eq routeC
+          router.match_by_controller_action(:fakecontroller, :show).should eq route_c
         end
 
         it "matches controller another action" do
-          router.match_by_controller_action(:fakecontroller, :another).should eq routeD
+          router.match_by_controller_action(:fakecontroller, :another).should eq route_d
         end
       end
 

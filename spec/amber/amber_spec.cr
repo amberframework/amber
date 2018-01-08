@@ -34,7 +34,7 @@ describe Amber do
 
   describe Amber::Server do
     describe ".configure" do
-      it "overrides current enviroment settings" do
+      it "overrides current environment settings" do
         Amber.env = :test
 
         Amber::Server.configure do |server|
