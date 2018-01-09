@@ -5,9 +5,10 @@ require "../helpers/sentry"
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     class Routes < Command
-      RESOURCE_ROUTE_REGEX = /(\w+)\s+\"([^\"]+)\",\s*(\w+)(?:,\s*(\w+)\:\s*\[([^\]]+)\])?/
-      VERB_ROUTE_REGEX     = /(\w+)\s+\"([^\"]+)\",\s*(\w+),\s*:(\w+)/
-      PIPE_SCOPE_REGEX     = /routes\s+\:(\w+)(?:,\s+\"([^\"]+)\")?/
+      RESOURCE_ROUTE_REGEX = /(\w+)\s+\"([^\"]+)\",\s*([\w:]+)(?:,\s*(\w+)\:\s*\[([^\]]+)\])?/
+      VERB_ROUTE_REGEX     = /(\w+)\s+\"([^\"]+)\",\s*([\w:]+),\s*:(\w+)/
+      WEBSOCKET_ROUTE_REGEX= /(websocket)\s+\"([^\"]+)\",\s*([\w:]+)/
+      PIPE_SCOPE_REGEX     = /(routes)\s+\:(\w+)(?:,\s+\"([^\"]+)\")?/
 
       LABELS         = ["Verb", "Controller", "Action", "Pipeline", "Scope", "URI Pattern"]
       ACTION_MAPPING = {
@@ -57,11 +58,9 @@ module Amber::CLI
       private def set_route(route_string)
         if route_match = route_string.to_s.match(VERB_ROUTE_REGEX)
           return unless ACTION_MAPPING.keys.includes?(route_match[1]?.to_s)
-          build_route(
-            verb: route_match[1]?, controller: route_match[3]?,
-            action: route_match[4]?, pipeline: current_pipe,
-            scope: current_scope, uri_pattern: route_match[2]?
-          )
+          build_route(route_match)
+        elsif route_match = route_string.to_s.match(WEBSOCKET_ROUTE_REGEX)
+          build_route(route_match)
         end
       end
 
@@ -97,6 +96,14 @@ module Amber::CLI
         routes << route
       end
 
+      private def build_route(route_match)
+        build_route(
+          verb: route_match[1]?, controller: route_match[3]?,
+          action: route_match[4]? || "", pipeline: current_pipe,
+          scope: current_scope, uri_pattern: route_match[2]?
+        )
+      end
+
       private def build_uri_pattern(route, action, scope)
         route_end = {"show" => ":id", "new" => "new", "edit" => ":id/edit", "update" => ":id", "destroy" => ":id"}
         [scope, route, route_end[action]?].compact.join("/").gsub("//", "/")
@@ -104,8 +111,8 @@ module Amber::CLI
 
       private def set_pipe(pipe_string)
         if route_match = pipe_string.to_s.match(PIPE_SCOPE_REGEX)
-          @current_pipe = route_match[1]?
-          @current_scope = route_match[2]?
+          @current_pipe = route_match[2]?
+          @current_scope = route_match[3]?
         end
       end
 
@@ -120,8 +127,7 @@ module Amber::CLI
             row.add_column route[l].to_s
           end
         end
-        puts table
-        exit
+        puts "\n", table
       end
     end
   end

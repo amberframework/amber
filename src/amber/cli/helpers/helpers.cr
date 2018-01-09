@@ -3,7 +3,7 @@ module Amber::CLI::Helpers
     routes = File.read("./config/routes.cr")
     replacement = <<-ROUTES
     routes :#{pipeline.to_s} do
-      #{route}
+        #{route}
     ROUTES
     File.write("./config/routes.cr", routes.gsub("routes :#{pipeline.to_s} do", replacement))
   end
