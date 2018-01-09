@@ -58,17 +58,9 @@ module Amber::CLI
       private def set_route(route_string)
         if route_match = route_string.to_s.match(VERB_ROUTE_REGEX)
           return unless ACTION_MAPPING.keys.includes?(route_match[1]?.to_s)
-          build_route(
-            verb: route_match[1]?, controller: route_match[3]?,
-            action: route_match[4]?, pipeline: current_pipe,
-            scope: current_scope, uri_pattern: route_match[2]?
-          )
+          build_route(route_match)
         elsif route_match = route_string.to_s.match(WEBSOCKET_ROUTE_REGEX)
-          build_route(
-            verb: route_match[1]?, controller: route_match[3]?,
-            action: "", pipeline: current_pipe,
-            scope: current_scope, uri_pattern: route_match[2]?
-          )
+          build_route(route_match)
         end
       end
 
@@ -102,6 +94,14 @@ module Amber::CLI
         route["Pipeline"] = pipeline.to_s
         route["Scope"] = scope.to_s
         routes << route
+      end
+
+      private def build_route(route_match)
+        build_route(
+          verb: route_match[1]?, controller: route_match[3]?,
+          action: route_match[4]? || "", pipeline: current_pipe,
+          scope: current_scope, uri_pattern: route_match[2]?
+        )
       end
 
       private def build_uri_pattern(route, action, scope)
