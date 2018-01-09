@@ -5,9 +5,10 @@ require "../helpers/sentry"
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     class Routes < Command
-      RESOURCE_ROUTE_REGEX = /(\w+)\s+\"([^\"]+)\",\s*(\w+)(?:,\s*(\w+)\:\s*\[([^\]]+)\])?/
-      VERB_ROUTE_REGEX     = /(\w+)\s+\"([^\"]+)\",\s*(\w+),\s*:(\w+)/
-      PIPE_SCOPE_REGEX     = /routes\s+\:(\w+)(?:,\s+\"([^\"]+)\")?/
+      RESOURCE_ROUTE_REGEX = /(\w+)\s+\"([^\"]+)\",\s*([\w:]+)(?:,\s*(\w+)\:\s*\[([^\]]+)\])?/
+      VERB_ROUTE_REGEX     = /(\w+)\s+\"([^\"]+)\",\s*([\w:]+),\s*:(\w+)/
+      WEBSOCKET_ROUTE_REGEX= /(websocket)\s+\"([^\"]+)\",\s*([\w:]+)/
+      PIPE_SCOPE_REGEX     = /(routes)\s+\:(\w+)(?:,\s+\"([^\"]+)\")?/
 
       LABELS         = ["Verb", "Controller", "Action", "Pipeline", "Scope", "URI Pattern"]
       ACTION_MAPPING = {
@@ -34,6 +35,7 @@ module Amber::CLI
       def run
         parse_routes
         print_routes_table
+        exit 0
       rescue
         puts "Error: Not valid project root directory.".colorize(:red)
         puts "Run `amber routes` in project root directory.".colorize(:light_blue)
@@ -60,6 +62,12 @@ module Amber::CLI
           build_route(
             verb: route_match[1]?, controller: route_match[3]?,
             action: route_match[4]?, pipeline: current_pipe,
+            scope: current_scope, uri_pattern: route_match[2]?
+          )
+        elsif route_match = route_string.to_s.match(WEBSOCKET_ROUTE_REGEX)
+          build_route(
+            verb: route_match[1]?, controller: route_match[3]?,
+            action: "", pipeline: current_pipe,
             scope: current_scope, uri_pattern: route_match[2]?
           )
         end
@@ -104,8 +112,8 @@ module Amber::CLI
 
       private def set_pipe(pipe_string)
         if route_match = pipe_string.to_s.match(PIPE_SCOPE_REGEX)
-          @current_pipe = route_match[1]?
-          @current_scope = route_match[2]?
+          @current_pipe = route_match[2]?
+          @current_scope = route_match[3]?
         end
       end
 
@@ -120,8 +128,7 @@ module Amber::CLI
             row.add_column route[l].to_s
           end
         end
-        puts table
-        exit
+        puts "\n", table
       end
     end
   end
