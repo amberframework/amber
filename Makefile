@@ -24,7 +24,7 @@ run:
 	$(AMBER)
 
 install: build | $(INSTALL_DIR)
-	@-rm $(INSTALL_DIR)/amber
+	@-rm $(AMBER_SYSTEM)
 	@cp $(AMBER) $(AMBER_SYSTEM)
 
 link: build | $(INSTALL_DIR)
