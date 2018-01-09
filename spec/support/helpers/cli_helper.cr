@@ -95,4 +95,8 @@ module CLIHelper
   def build_route(controller, action, method)
     %(#{method} "/#{controller.downcase}/#{action}", #{controller.capitalize}Controller, :#{action})
   end
+
+  def route_table_rows(route_table_text)
+    route_table_text.split("\n").reject { |line| line =~ /(─┼─|═╦═|═╩═)/ }
+  end
 end

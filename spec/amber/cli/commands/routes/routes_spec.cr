@@ -7,6 +7,7 @@ include CLIHelper
 include Cli::Spec::Helper
 
 module Amber::CLI
+  extend Helpers
   describe "amber routes" do
     begin
       context "in an `amber new` app with default options" do
@@ -14,12 +15,8 @@ module Amber::CLI
         scaffold_app(TESTING_APP)
         output = ""
         ENV["CRYSTAL_CLI_ENV"] = "test"
-        MainCommand.run %w(routes) do |cmd|
-          output = cmd.out.gets_to_end
-        end
-        output_lines = output.split("\n").reject do |line|
-          line =~ /(─┼─|═╦═|═╩═)/
-        end
+        MainCommand.run %w(routes) { |cmd| output = cmd.out.gets_to_end }
+        output_lines = route_table_rows(output)
 
         it "outputs the correct headers" do
           headers = %w(Verb Controller Action Pipeline Scope) << "URI Pattern"
@@ -45,6 +42,22 @@ module Amber::CLI
           expectations = %w(get HomeController index web /)
           expectations.each do |expectation|
             line.should contain expectation
+          end
+        end
+
+        describe "with a websocket route" do
+          add_routes :web, %(websocket "/electric", ElectricSocket)
+          MainCommand.run %w(routes) { |cmd| output = cmd.out.gets_to_end }
+          output_lines = route_table_rows(output)
+
+          it "outputs the web socket route" do
+            expected = "websocket"
+            output.should contain expected
+            line = output_lines.find(""){ |line| line.includes? expected }
+            expectations = %w(websocket ElectricSocket web /electric)
+            expectations.each do |expectation|
+              line.should contain expectation
+            end
           end
         end
 
