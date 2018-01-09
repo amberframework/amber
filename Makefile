@@ -17,8 +17,8 @@ $(AMBER): $(AMBER_SOURCES) | $(OUT_DIR)
 	@echo "Building amber in $@"
 	@crystal build -o $@ src/amber/cli.cr -p --no-debug
 
-$(OUT_DIR):
-	@mkdir -p $(OUT_DIR)
+$(OUT_DIR) $(INSTALL_DIR):
+	 @mkdir -p $@
 
 run:
 	$(AMBER)
@@ -34,9 +34,6 @@ link: build | $(INSTALL_DIR)
 force_link: build | $(INSTALL_DIR)
 	@echo "Symlinking $(AMBER) to $(AMBER_SYSTEM)"
 	@ln -sf $(AMBER) $(AMBER_SYSTEM)
-
-$(INSTALL_DIR):
-	 @mkdir -p $@
 
 clean:
 	rm -rf $(AMBER)
