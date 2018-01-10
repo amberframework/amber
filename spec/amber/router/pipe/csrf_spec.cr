@@ -132,8 +132,8 @@ module Amber
           context = create_context(request)
           decoded_token = Base64.decode_string(CSRF.token_strategy.real_session_token(context))
 
-          masked = CSRF::PersistantToken::TokenOperations.mask(decoded_token)
-          unmasked = CSRF::PersistantToken::TokenOperations.unmask(masked)
+          masked = CSRF::PersistentToken::TokenOperations.mask(decoded_token)
+          unmasked = CSRF::PersistentToken::TokenOperations.unmask(masked)
 
           decoded_token.should eq unmasked
         end

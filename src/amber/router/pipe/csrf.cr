@@ -11,7 +11,7 @@ module Amber
       CSRF_KEY      = "csrf.token"
       TOKEN_LENGTH  = 32
 
-      class_property token_strategy : PersistantToken | RefreshableToken = PersistantToken
+      class_property token_strategy : PersistentToken | RefreshableToken = PersistentToken
 
       def call(context : HTTP::Server::Context)
         if valid_http_method?(context) || self.class.token_strategy.valid_token?(context)
@@ -64,7 +64,7 @@ module Amber
         end
       end
 
-      module PersistantToken
+      module PersistentToken
         extend self
         extend BaseToken
 
