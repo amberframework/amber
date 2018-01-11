@@ -1,3 +1,5 @@
+ENV["AMBER_ENV"] ||= "test"
+
 require "spec"
 require "garnet_spec"
 require "../config/*"
