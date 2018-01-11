@@ -135,7 +135,7 @@ module Amber
           masked = CSRF::PersistentToken::TokenOperations.mask(decoded_token)
           unmasked = CSRF::PersistentToken::TokenOperations.unmask(masked)
 
-          decoded_token.should eq unmasked
+          decoded_token.should eq String.new(unmasked)
         end
       end
     end

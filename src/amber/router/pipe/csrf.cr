@@ -91,21 +91,26 @@ module Amber
           # Creates a masked version of the authenticity token that varies
           # on each request. The masking is used to mitigate SSL attacks
           # like BREACH.
-          def mask(unmasked_token)
+          def mask(unmasked_token : Bytes | String) : Bytes
             one_time_pad = Bytes.new(TOKEN_LENGTH).tap { |buf| Random::Secure.random_bytes(buf) }
-            encrypted_csrf_token = xor_byte_strings(one_time_pad, unmasked_token.bytes)
-            "#{String.new(one_time_pad)}#{encrypted_csrf_token}"
+            encrypted_csrf_token = xor_bytes_arrays(one_time_pad, unmasked_token.to_slice)
+
+            Slice.new((one_time_pad.to_a + encrypted_csrf_token.to_a).to_unsafe, TOKEN_LENGTH * 2)
           end
 
-          def unmask(masked_token)
-            one_time_pad = masked_token.bytes[0...TOKEN_LENGTH]
-            encrypted_csrf_token = masked_token.bytes[TOKEN_LENGTH..-1]
-            xor_byte_strings(one_time_pad, encrypted_csrf_token)
+          def unmask(masked_token : Bytes | String) : Bytes
+            slice = masked_token.to_slice
+            one_time_pad = slice[0, TOKEN_LENGTH]
+            encrypted_csrf_token = slice[TOKEN_LENGTH, TOKEN_LENGTH]
+            xor_bytes_arrays(one_time_pad, encrypted_csrf_token)
           end
 
-          def xor_byte_strings(s1, s2) : String
-            s1.each_with_index { |c1, i| s2[i] ^= c1 }
-            String.new(s2.to_unsafe, TOKEN_LENGTH)
+          def xor_bytes_arrays(s1 : Bytes , s2 : Bytes) : Bytes
+            result = Bytes.new(TOKEN_LENGTH)
+
+            s1.each_with_index { |c1, i| result[i] = s2[i] ^ c1 }
+
+            result
           end
         end
       end
