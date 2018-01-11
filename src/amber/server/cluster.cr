@@ -2,6 +2,7 @@ module Amber
   class Cluster
     def self.fork(env : Hash)
       env["FORKED"] = "1"
+      env["AMBER_ENV"] = Amber.env.to_s
       Process.fork { Process.run(PROGRAM_NAME, nil, env, true, false, input: Process::Redirect::Inherit, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit) }
     end
 
