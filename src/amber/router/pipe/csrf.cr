@@ -73,10 +73,10 @@ module Amber
           return false if request_token.nil?
           decoded_request_token = Base64.decode_string(request_token)
           return false if decoded_request_token.bytesize != 2 * TOKEN_LENGTH
-          unmaseked_request_token = TokenOperations.unmask(decoded_request_token)
+          unmasked_request_token = TokenOperations.unmask(decoded_request_token)
           decoded_session_token = Base64.decode_string(real_session_token(context))
 
-          Crypto::Subtle.constant_time_compare(unmaseked_request_token, decoded_session_token)
+          Crypto::Subtle.constant_time_compare(unmasked_request_token, decoded_session_token)
         end
 
         def token(context) : String
