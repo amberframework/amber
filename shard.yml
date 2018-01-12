@@ -27,7 +27,7 @@ dependencies:
 
   slang:
     github: jeromegn/slang
-    branch: master 
+    branch: master
 
   redis:
     github: stefanwille/crystal-redis
@@ -43,7 +43,7 @@ dependencies:
 
   sentry:
     github: samueleaton/sentry
-    version: ~> 0.1.0
+    version: ~> 0.2.0
 
   micrate:
     github: juanedi/micrate
