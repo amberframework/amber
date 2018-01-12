@@ -116,6 +116,6 @@ class HTTP::Server::Context
   protected def finalize_response
     response.headers["Connection"] = "Keep-Alive"
     response.headers.add("Keep-Alive", "timeout=5, max=10000")
-    response.print(@content)
+    response.print(@content) unless request.method == "HEAD"
   end
 end
