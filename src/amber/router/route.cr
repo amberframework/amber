@@ -1,5 +1,5 @@
 module Amber
-  struct Route
+  class Route
     property :handler, :action, :verb, :resource, :valve, :params, :scope, :controller
 
     def initialize(@verb : String,
