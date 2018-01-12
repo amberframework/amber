@@ -159,7 +159,6 @@ module Amber::Controller
     describe "#render" do
       request = HTTP::Request.new("GET", "")
       context = create_context(request)
-      csrf_form = form_with_csrf(Amber::Pipe::CSRF.token(context))
 
       it "renders html from slang template" do
         RenderController.new(context).render_template_page.should eq page_template
@@ -182,7 +181,9 @@ module Amber::Controller
       end
 
       it "renders a form with a csrf tag" do
-        RenderController.new(context).render_with_csrf.should eq csrf_form
+        reuslt = RenderController.new(context).render_with_csrf
+        reuslt.should contain "<form"
+        reuslt.should contain "<input type=\"hidden\" name=\"_csrf\" value="
       end
     end
 

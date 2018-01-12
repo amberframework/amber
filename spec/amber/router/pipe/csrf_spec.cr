@@ -72,9 +72,7 @@ module Amber
           request2 = HTTP::Request.new("post", "/?_csrf=#{token}", context.response.headers)
           context2 = create_context(request2)
 
-          context2.params["_csrf"].should eq token
-          context2.session["csrf.token"].should eq token
-          CSRF.new.valid_token?(context2).should eq true
+          CSRF.token_strategy.valid_token?(context2).should eq true
         end
       end
 
@@ -103,6 +101,41 @@ module Amber
           expect_raises Exceptions::Forbidden do
             csrf.call(context)
           end
+        end
+      end
+
+      context "generator" do
+        it "masks token for client" do
+          request = HTTP::Request.new("GET", "/")
+          context = create_context(request)
+
+          token = CSRF.token(context)
+          real_session_token = CSRF.token_strategy.real_session_token(context)
+
+          token.should_not eq real_session_token
+        end
+
+        it "generates random tokens for client" do
+          request = HTTP::Request.new("GET", "/")
+          context = create_context(request)
+
+          token1 = CSRF.token(context)
+          token2 = CSRF.token(context)
+
+          token1.should_not eq token2
+        end
+      end
+
+      context "TokenOperations" do
+        it "properly unmasks masked token" do
+          request = HTTP::Request.new("GET", "/")
+          context = create_context(request)
+          decoded_token = Base64.decode_string(CSRF.token_strategy.real_session_token(context))
+
+          masked = CSRF::PersistentToken::TokenOperations.mask(decoded_token)
+          unmasked = CSRF::PersistentToken::TokenOperations.unmask(masked)
+
+          decoded_token.should eq String.new(unmasked)
         end
       end
     end
