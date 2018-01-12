@@ -67,6 +67,13 @@ module Amber
           response.body.should eq "Destroy"
         end
 
+        it "perform HEAD request" do
+          request = HTTP::Request.new("HEAD", "/hello/1")
+          response = create_request_and_return_io(pipeline, request)
+          response.headers["Content-Length"].should eq "0"
+          response.body.empty?.should be_true
+        end
+
         it "initializes context with X-Powered-By: Amber" do
           request = HTTP::Request.new("GET", "/index/faustino")
           response = create_request_and_return_io(pipeline, request)
