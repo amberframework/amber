@@ -8,7 +8,7 @@ module Amber
 
       # Execution of this handler.
       def call(context : HTTP::Server::Context)
-        call_next context
+        call_next(context)
       end
     end
   end
