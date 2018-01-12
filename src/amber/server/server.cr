@@ -70,7 +70,7 @@ module Amber
       loop do
         begin
           logger.info "Server started in #{Amber.env.colorize(:yellow)}."
-          logger.info "Startup Time #{Time.now - time}\n\n".colorize(:white)
+          logger.info "Startup Time #{Time.now - time}".colorize(:white)
           server.listen(settings.port_reuse)
           exit
         rescue e : Errno

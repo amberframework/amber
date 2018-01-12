@@ -16,8 +16,15 @@ module Amber
         error = Error.new
         pipeline = Pipeline.new
         request = HTTP::Request.new("GET", "/")
-        Amber::Server.router.draw :web { get "/", HelloController, :index }
-        pipeline.build :web { plug Amber::Pipe::Logger.new }
+
+        Amber::Server.router.draw :web do
+          get "/", HelloController, :index
+        end
+
+        pipeline.build :web do
+          plug Amber::Pipe::Logger.new
+        end
+
         error.next = ->(context : HTTP::Server::Context) { raise "Oops!" }
         response = create_request_and_return_io(error, request)
 

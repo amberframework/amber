@@ -27,7 +27,7 @@ dependencies:
 
   slang:
     github: jeromegn/slang
-    branch: master 
+    branch: master
 
   redis:
     github: stefanwille/crystal-redis
@@ -40,10 +40,6 @@ dependencies:
   teeplate:
     github: amberframework/teeplate
     version: ~> 0.5.0
-
-  sentry:
-    github: samueleaton/sentry
-    version: ~> 0.1.0
 
   micrate:
     github: juanedi/micrate
@@ -72,3 +68,4 @@ dependencies:
 development_dependencies:
   ameba:
     github: veelenga/ameba
+    version: ~> 0.4.0
