@@ -9,11 +9,15 @@ module Amber::Support
 
     def initialize
       create_reload_server
-      spawn do
-        loop do
-          scan_files
-          sleep 1
-        end
+      @app_running = false
+      spawn run
+    end
+
+    def run
+      loop do
+        scan_files
+        @app_running = true
+        sleep 1
       end
     end
 
@@ -46,15 +50,20 @@ module Amber::Support
     end
 
     private def scan_files
+      file_counter = 0
       Dir.glob(["public/**/*"]) do |file|
         timestamp = get_timestamp(file)
-        msg_prefix = FILE_TIMESTAMPS[file]? ? "" : "Watching file: "
-
         if FILE_TIMESTAMPS[file]? != timestamp
+          if @app_running
+            Amber.logger.puts "File changed: ./#{file.colorize(:light_gray)}", "Watcher", :light_gray
+          end
           FILE_TIMESTAMPS[file] = timestamp
-          Amber.logger.puts "#{msg_prefix}./#{file.colorize(:light_gray)}", "Watcher", :light_gray
+          file_counter += 1
           check_file(file)
         end
+      end
+      if file_counter > 0
+        log "Watching #{file_counter} files...", "Watcher", :light_gray
       end
     end
 
