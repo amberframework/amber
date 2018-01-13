@@ -56,7 +56,7 @@ module Sentry
         end
       end
       if file_counter > 0
-        log "Watching #{file_counter} files..."
+        log "Watching #{file_counter} files (server reload)..."
         start_app
       end
     end
