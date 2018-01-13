@@ -28,6 +28,7 @@ module Amber::CLI
       prepare_yaml(Dir.current)
       prepare_db_yml(CLIHelper::BASE_ENV_PATH) if ENV["CI"]? == "true"
       Amber::CLI.env = "test"
+      Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
 
       puts "====== START Creating database for #{TEST_APP_NAME} ======"
       MainCommand.run ["db", "drop"]
