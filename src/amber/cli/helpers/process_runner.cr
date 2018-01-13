@@ -7,13 +7,14 @@ module Sentry
     FILE_TIMESTAMPS = {} of String => String
 
     def initialize(
-                   @process_name : String,
-                   @build_command : String,
-                   @run_command : String,
-                   @build_args : Array(String) = [] of String,
-                   @run_args : Array(String) = [] of String,
-                   files = [] of String,
-                   @logger = Amber::CLI.logger)
+      @process_name : String,
+      @build_command : String,
+      @run_command : String,
+      @build_args : Array(String) = [] of String,
+      @run_args : Array(String) = [] of String,
+      files = [] of String,
+      @logger = Amber::CLI.logger
+    )
       @files = files
       @npm_process = false
       @app_running = false
@@ -43,19 +44,21 @@ module Sentry
     end
 
     private def scan_files
-      file_changed = false
+      file_counter = 0
       Dir.glob(files) do |file|
         timestamp = get_timestamp(file)
-        msg_prefix = FILE_TIMESTAMPS[file]? ? "" : "Watching file: "
-
         if FILE_TIMESTAMPS[file]? != timestamp
+          if @app_running
+            log "File changed: ./#{file.colorize(:light_gray)}"
+          end
           FILE_TIMESTAMPS[file] = timestamp
-          log "#{msg_prefix}./#{file.colorize(:light_gray)}"
-          file_changed = true
+          file_counter += 1
         end
       end
-
-      start_app if file_changed
+      if file_counter > 0
+        log "Watching #{file_counter} files..."
+        start_app
+      end
     end
 
     private def stop_all_processes

@@ -130,12 +130,12 @@ module Amber
         it "properly unmasks masked token" do
           request = HTTP::Request.new("GET", "/")
           context = create_context(request)
-          decoded_token = Base64.decode_string(CSRF.token_strategy.real_session_token(context))
+          decoded_token = Base64.decode(CSRF.token_strategy.real_session_token(context))
 
           masked = CSRF::PersistentToken::TokenOperations.mask(decoded_token)
-          unmasked = CSRF::PersistentToken::TokenOperations.unmask(masked)
+          unmasked = CSRF::PersistentToken::TokenOperations.unmask(Base64.decode(masked))
 
-          decoded_token.should eq String.new(unmasked)
+          decoded_token.should eq unmasked
         end
       end
     end

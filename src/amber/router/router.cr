@@ -32,7 +32,7 @@ module Amber
         trail = build_node(route.verb, route.resource)
         node = @routes.add(route.trail, route)
         @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route
-        add_head(route) if route.verb == :GET
+        add_head(route) if route.verb == "GET"
         node
       rescue Radix::Tree::DuplicateError
         raise Amber::Exceptions::DuplicateRouteError.new(route)

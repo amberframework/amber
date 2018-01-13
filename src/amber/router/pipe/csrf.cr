@@ -56,7 +56,7 @@ module Amber
         end
 
         def valid_token?(context)
-          (request_token(context) == token(context)) && !!context.session.delete(CSRF_KEY)
+          (request_token(context) == token(context)) && context.session.delete(CSRF_KEY)
         end
       end
 
@@ -65,20 +65,20 @@ module Amber
         extend BaseToken
 
         def valid_token?(context)
-          request_token = request_token(context)
-          return false if request_token.nil?
-          decoded_request_token = Base64.decode_string(request_token)
-          return false if decoded_request_token.bytesize != 2 * TOKEN_LENGTH
-          unmasked_request_token = TokenOperations.unmask(decoded_request_token)
-          decoded_session_token = Base64.decode_string(real_session_token(context))
+          if request_token(context) && real_session_token(context)
+            decoded_request = Base64.decode(request_token(context).to_s)
+            return false unless decoded_request.size == TOKEN_LENGTH * 2
 
-          Crypto::Subtle.constant_time_compare(unmasked_request_token, decoded_session_token)
+            unmasked = TokenOperations.unmask(decoded_request)
+            session_token = Base64.decode(real_session_token(context))
+            return Crypto::Subtle.constant_time_compare(unmasked, session_token)
+          end
+          return false
         end
 
         def token(context) : String
-          unmask_token = Base64.decode_string(real_session_token(context))
-          masked_token = TokenOperations.mask(unmask_token)
-          Base64.urlsafe_encode(masked_token)
+          unmask_token = Base64.decode(real_session_token(context))
+          TokenOperations.mask(unmask_token)
         end
 
         module TokenOperations
@@ -87,26 +87,24 @@ module Amber
           # Creates a masked version of the authenticity token that varies
           # on each request. The masking is used to mitigate SSL attacks
           # like BREACH.
-          def mask(unmasked_token : Bytes | String) : Bytes
+          def mask(unmasked_token : Bytes) : String
             one_time_pad = Bytes.new(TOKEN_LENGTH).tap { |buf| Random::Secure.random_bytes(buf) }
-            encrypted_csrf_token = xor_bytes_arrays(one_time_pad, unmasked_token.to_slice)
+            encrypted_csrf_token = xor_bytes_arrays(unmasked_token, one_time_pad)
 
-            Slice.new((one_time_pad.to_a + encrypted_csrf_token.to_a).to_unsafe, TOKEN_LENGTH * 2)
+            masked_token = IO::Memory.new
+            masked_token.write(one_time_pad)
+            masked_token.write(encrypted_csrf_token)
+            Base64.urlsafe_encode(masked_token.to_slice)
           end
 
-          def unmask(masked_token : Bytes | String) : Bytes
-            slice = masked_token.to_slice
-            one_time_pad = slice[0, TOKEN_LENGTH]
-            encrypted_csrf_token = slice[TOKEN_LENGTH, TOKEN_LENGTH]
-            xor_bytes_arrays(one_time_pad, encrypted_csrf_token)
+          def unmask(masked_token : Bytes) : Bytes
+            one_time_pad = masked_token[0, TOKEN_LENGTH]
+            encrypted_csrf_token = masked_token[TOKEN_LENGTH, TOKEN_LENGTH]
+            xor_bytes_arrays(encrypted_csrf_token, one_time_pad)
           end
 
-          def xor_bytes_arrays(s1 : Bytes , s2 : Bytes) : Bytes
-            result = Bytes.new(TOKEN_LENGTH)
-
-            s1.each_with_index { |c1, i| result[i] = s2[i] ^ c1 }
-
-            result
+          def xor_bytes_arrays(token : Bytes, pad : Bytes) : Bytes
+            token.map_with_index { |b, i| b ^ pad[i] }
           end
         end
       end
