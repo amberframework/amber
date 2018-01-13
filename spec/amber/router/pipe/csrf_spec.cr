@@ -1,7 +1,6 @@
 require "../../../../spec_helper"
 
 module Amber
-
   module Pipe
     describe CSRF do
       Dir.cd CURRENT_DIR
@@ -64,7 +63,6 @@ module Amber
         it "is valid across request" do
           request = HTTP::Request.new("GET", "/")
           context = create_context(request)
-
 
           token = CSRF.token(context)
           Session.new.call(context)
