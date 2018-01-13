@@ -38,7 +38,6 @@ module Amber::Support
       cipher.encrypt
       cipher.key = @secret
       iv = cipher.random_iv
-
       encrypted_data = IO::Memory.new
       encrypted_data.write(cipher.update(value))
       encrypted_data.write(cipher.final)
