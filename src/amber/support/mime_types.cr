@@ -1,9 +1,13 @@
 module Amber
   module Support
     module MimeTypes
-      DEFAULT_MIME_TYPE   = "application/octet-stream"
-      ZIP_FILE_EXTENSIONS = %w(.htm .html .txt .css .js .svg .json .xml .otf .ttf .woff .woff2)
-      MIME_TYPES          = {
+      DEFAULT_MIME_TYPE      = "application/octet-stream"
+      ZIP_FILE_EXTENSIONS    = %w(.htm .html .txt .css .js .svg .json .xml .otf .ttf .woff .woff2)
+      ACCEPT_SEPARATOR_REGEX = /,|,\s/
+      TYPE_EXT_REGEX         = /\.(#{MIME_TYPES.keys.join("|")})$/
+      FORMAT_HEADER          = "Accept"
+
+      MIME_TYPES = {
         "123"       => "application/vnd.lotus-1-2-3",
         "3dml"      => "text/vnd.in3d.3dml",
         "3g2"       => "video/3gpp2",
@@ -635,6 +639,19 @@ module Amber
 
       def self.default
         DEFAULT_MIME_TYPE
+      end
+
+      def self.get_request_format(request)
+        path_ext = request.path.match(TYPE_EXT_REGEX).try(&.[1])
+        return path_ext if path_ext
+
+        accept = request.headers[FORMAT_HEADER]?
+        if accept && !accept.empty?
+          accept = accept.split(";").first?.try(&.split(ACCEPT_SEPARATOR_REGEX)).try &.first
+          return format(accept) if accept
+        end
+
+        "html"
       end
     end
   end

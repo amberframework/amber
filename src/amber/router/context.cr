@@ -15,7 +15,6 @@ end
 # response object.  Params and Session hash can be accessed from the Context.
 class HTTP::Server::Context
   METHODS            = %i(get post put patch delete head)
-  FORMAT_HEADER      = "Accept"
   IP_ADDRESS_HEADERS = %w(REMOTE_ADDR CLIENT_IP X_FORWARDED_FOR X_FORWARDED X_CLUSTER_CLIENT_IP FORWARDED)
 
   include Amber::Router::Files
@@ -70,20 +69,7 @@ class HTTP::Server::Context
   {% end %}
 
   def format
-    content_type = request.headers[FORMAT_HEADER]?
-
-    if content_type
-      content_type = content_type.split(",").first
-      type = if content_type.includes?(";")
-        content_type.split(";").first
-      else
-        content_type
-      end
-
-      Amber::Support::MimeTypes.format(type)
-    else
-      Amber::Support::MimeTypes.default
-    end
+    Amber::Support::MimeTypes.get_request_format(request)
   end
 
   def port
