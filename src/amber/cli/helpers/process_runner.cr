@@ -43,19 +43,21 @@ module Sentry
     end
 
     private def scan_files
-      file_changed = false
+      file_counter = 0
       Dir.glob(files) do |file|
         timestamp = get_timestamp(file)
-        msg_prefix = FILE_TIMESTAMPS[file]? ? "" : "Watching file: "
-
         if FILE_TIMESTAMPS[file]? != timestamp
+          if @app_running
+            log "File changed: ./#{file.colorize(:light_gray)}"
+          end
           FILE_TIMESTAMPS[file] = timestamp
-          log "#{msg_prefix}./#{file.colorize(:light_gray)}"
-          file_changed = true
+          file_counter += 1
         end
       end
-
-      start_app if file_changed
+      if file_counter > 0
+        log "Watching #{file_counter} files..."
+        start_app
+      end
     end
 
     private def stop_all_processes
