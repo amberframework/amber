@@ -37,34 +37,41 @@ module Amber
           response.body.should eq "Hello World!"
         end
 
-        it "perform GET request" do
+        it "responds to GET request" do
           request = HTTP::Request.new("GET", "/hello")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Index"
         end
 
-        it "perform PUT request" do
+        it "responds to PUT request" do
           request = HTTP::Request.new("PUT", "/hello/1")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Update"
         end
 
-        it "perform PATCH request" do
+        it "responds to PATCH request" do
           request = HTTP::Request.new("PATCH", "/hello/1")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Update"
         end
 
-        it "perform POST request" do
+        it "responds to POST request" do
           request = HTTP::Request.new("POST", "/hello")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Create"
         end
 
-        it "perform DELETE request" do
+        it "responds to DELETE request" do
           request = HTTP::Request.new("DELETE", "/hello/1")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Destroy"
+        end
+
+        it "responds to HEAD request" do
+          request = HTTP::Request.new("HEAD", "/hello/1")
+          response = create_request_and_return_io(pipeline, request)
+          response.headers["Content-Length"].should eq "0"
+          response.body.empty?.should be_true
         end
 
         it "initializes context with X-Powered-By: Amber" do
