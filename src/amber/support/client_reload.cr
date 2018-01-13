@@ -55,7 +55,7 @@ module Amber::Support
         timestamp = get_timestamp(file)
         if FILE_TIMESTAMPS[file]? != timestamp
           if @app_running
-            Amber.logger.puts "File changed: ./#{file.colorize(:light_gray)}", "Watcher", :light_gray
+            log "File changed: ./#{file.colorize(:light_gray)}"
           end
           FILE_TIMESTAMPS[file] = timestamp
           file_counter += 1
@@ -63,8 +63,12 @@ module Amber::Support
         end
       end
       if file_counter > 0
-        log "Watching #{file_counter} files...", "Watcher", :light_gray
+        log "Watching #{file_counter} files..."
       end
+    end
+
+    def log(message)
+      Amber.logger.puts(message, "Watcher", :light_gray)
     end
 
     # Code from https://github.com/tapio/live-server/blob/master/injected.html
