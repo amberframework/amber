@@ -7,13 +7,14 @@ module Sentry
     FILE_TIMESTAMPS = {} of String => String
 
     def initialize(
-                   @process_name : String,
-                   @build_command : String,
-                   @run_command : String,
-                   @build_args : Array(String) = [] of String,
-                   @run_args : Array(String) = [] of String,
-                   files = [] of String,
-                   @logger = Amber::CLI.logger)
+      @process_name : String,
+      @build_command : String,
+      @run_command : String,
+      @build_args : Array(String) = [] of String,
+      @run_args : Array(String) = [] of String,
+      files = [] of String,
+      @logger = Amber::CLI.logger
+    )
       @files = files
       @npm_process = false
       @app_running = false
