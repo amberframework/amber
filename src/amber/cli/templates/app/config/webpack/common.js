@@ -61,7 +61,9 @@ let config = {
   },
   plugins: [
     new ExtractTextPlugin('main.bundle.css'),
-  ]
+  ],
+  // For more info about webpack logs see: https://webpack.js.org/configuration/stats/
+  stats: 'errors-only'
 };
 
 module.exports = config;
