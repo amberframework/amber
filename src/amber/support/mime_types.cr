@@ -569,7 +569,7 @@ module Amber
         "wmx"       => "video/x-ms-wmx",
         "wmz"       => "application/x-ms-wmz",
         "woff"      => "application/font-woff",
-        "woff2"     => "application/font-woff2",
+        "woff2"     => "application/font-woff",
         "wpd"       => "application/vnd.wordperfect",
         "wpl"       => "application/vnd.ms-wpl",
         "wps"       => "application/vnd.ms-works",
