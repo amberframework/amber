@@ -63,7 +63,7 @@ module Amber::Support
         end
       end
       if file_counter > 0
-        log "Watching #{file_counter} files..."
+        log "Watching #{file_counter} files (browser reload)..."
       end
     end
 

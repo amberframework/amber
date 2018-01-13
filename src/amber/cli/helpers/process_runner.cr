@@ -49,14 +49,14 @@ module Sentry
         timestamp = get_timestamp(file)
         if FILE_TIMESTAMPS[file]? != timestamp
           if @app_running
-            log "File changed: ./#{file.colorize(:light_gray)}"
+            log "File changed: #{file.colorize(:light_gray)}"
           end
           FILE_TIMESTAMPS[file] = timestamp
           file_counter += 1
         end
       end
       if file_counter > 0
-        log "Watching #{file_counter} files..."
+        log "Watching #{file_counter} files (server reload)..."
         start_app
       end
     end
