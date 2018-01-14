@@ -44,7 +44,12 @@ module Amber::CLI
           when "redo"
             Micrate::Cli.run_redo
           when "status"
-            Micrate::Cli.run_status
+            dir = "./db/migrations"
+            if Dir.exists?(dir)
+              Micrate::Cli.run_status
+            else
+              exit! "Directory #{dir} does not exist. Please run `amber db create migrate` in project root directory."
+            end
           when "version"
             Micrate::Cli.run_dbversion
           else
