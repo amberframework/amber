@@ -66,14 +66,16 @@ module Amber
 
         def valid_token?(context)
           if request_token(context) && real_session_token(context)
-            decoded_request = Base64.decode(request_token(context).to_s) rescue nil
-            return false if decoded_request.nil? || decoded_request.size != TOKEN_LENGTH * 2
+            decoded_request = Base64.decode(request_token(context).to_s)
+            return false unless decoded_request.size == TOKEN_LENGTH * 2
 
             unmasked = TokenOperations.unmask(decoded_request)
             session_token = Base64.decode(real_session_token(context))
             return Crypto::Subtle.constant_time_compare(unmasked, session_token)
           end
-          return false
+          false
+        rescue Base64::Error
+          false
         end
 
         def token(context) : String
