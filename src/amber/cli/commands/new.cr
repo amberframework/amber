@@ -24,7 +24,8 @@ module Amber::CLI
         Amber::CLI.color = !options.no_color?
         full_path_name = File.join(`pwd`.sub("\n", ""), args.name)
         if full_path_name.includes?(" ")
-          puts "Error: #{full_path_name} must not contain a space.\nUnderscores are fine though."
+          puts "Error:  Path and project name can't contain a space. Underscores are fine though."
+          puts "Error: #{full_path_name} should be #{full_path_name.gsub(/\s+/, "_")}"
           exit 1
         end
         name = File.basename(args.name)
