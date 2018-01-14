@@ -37,9 +37,6 @@ module Sentry
       elsif !@app_running
         log "Compile time errors detected. Shutting down..."
         exit 1
-      else
-        log "Unknown error occurred, Shutting down..."
-        exit 1
       end
     end
 
