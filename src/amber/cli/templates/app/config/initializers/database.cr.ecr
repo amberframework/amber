@@ -1,3 +1,10 @@
+<% if @model == "granite" -%>
+require "granite_orm/adapter/<%= @database %>"
+
+Granite::ORM.settings.database_url = Amber.settings.database_url
+Granite::ORM.settings.logger = Amber.settings.logger
+
+<% else -%>
 require "<%= @database %>"
 require "crecto"
 Query = Crecto::Repo::Query
@@ -19,4 +26,5 @@ module Repo
   end
 end
 
-Crecto::DbLogger.set_handler(STDOUT)
+Crecto::DbLogger.set_handler(Amber.settings.logger)
+<% end -%>
