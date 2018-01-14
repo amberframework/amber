@@ -22,6 +22,11 @@ module Amber::CLI
 
       def run
         Amber::CLI.color = !options.no_color?
+        full_path_name = `pwd`.sub("\n", "") + "/name"
+        if full_path_name.includes?(" ")
+          puts "Error: #{full_path_name} must not contain a space.\nUnderscores are fine though."
+          exit 1
+        end
         name = File.basename(args.name)
         template = Template.new(name, "./#{args.name}")
         template.generate("app", options)
