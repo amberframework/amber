@@ -22,7 +22,7 @@ module Amber::CLI
 
       def run
         Amber::CLI.color = !options.no_color?
-        full_path_name = `pwd`.sub("\n", "") + "/name"
+        full_path_name = File.join(`pwd`.sub("\n", ""), args.name)
         if full_path_name.includes?(" ")
           puts "Error: #{full_path_name} must not contain a space.\nUnderscores are fine though."
           exit 1
