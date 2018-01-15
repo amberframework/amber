@@ -1,5 +1,5 @@
 Amber::Server.configure do |app|
-  pipeline :web, :dev do
+  pipeline :web do
     # Plug is the method to use connect a pipe (middleware)
     # A plug accepts an instance of HTTP::Handler
     plug Amber::Pipe::Error.new
@@ -7,14 +7,8 @@ Amber::Server.configure do |app|
     plug Amber::Pipe::Session.new
     plug Amber::Pipe::Flash.new
     plug Amber::Pipe::CSRF.new
-  end
-
-  # All development tools should go here
-  pipeline :dev do
-    if Amber.env.development?
-      # Reload clients browsers (development only)
-      plug Amber::Pipe::Reload.new
-    end
+    # Reload clients browsers (development only)
+    plug Amber::Pipe::Reload.new if Amber.env.development?
   end
 
   # All static content will run these transformations
