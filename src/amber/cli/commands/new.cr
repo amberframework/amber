@@ -24,7 +24,7 @@ module Amber::CLI
         Amber::CLI.color = !options.no_color?
         full_path_name = File.join(Dir.current, args.name)
         if full_path_name =~ /\s+/
-          CLI.logger.error "Path and project name can't contain a space." 
+          CLI.logger.error "Path and project name can't contain a space."
           CLI.logger.error "Replace spaces with underscores or dashes."
           CLI.logger.error "#{full_path_name} should be #{full_path_name.gsub(/\s+/, "_")}"
           exit 1
