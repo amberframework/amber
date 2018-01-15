@@ -100,7 +100,7 @@ module Amber::CLI
           Micrate::DB.connection_url = url.gsub(path, "/#{uri.scheme}")
           return path.gsub("/", "")
         else
-          CLI.logger.puts "Could not determine database name", "Error", :red
+          CLI.logger.info "Could not determine database name", "Error", :red
         end
       end
 

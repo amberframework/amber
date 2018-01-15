@@ -99,11 +99,11 @@ module Sentry
     end
 
     private def log(msg)
-      @logger.puts msg, "Watcher", :light_gray
+      @logger.info msg, "Watcher", :light_gray
     end
 
     private def node_log(msg)
-      @logger.puts msg, "NodeJS", :dark_gray
+      @logger.info msg, "NodeJS", :dark_gray
     end
   end
 end

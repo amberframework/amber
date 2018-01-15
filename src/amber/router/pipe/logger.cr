@@ -66,7 +66,7 @@ module Amber
       end
 
       private def log(msg, prog, color = :white)
-        Amber.logger.puts msg, prog, color
+        Amber.logger.debug msg, prog, color
       end
 
       private def log_config

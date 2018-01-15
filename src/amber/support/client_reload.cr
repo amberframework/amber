@@ -68,7 +68,7 @@ module Amber::Support
     end
 
     def log(message)
-      Amber.logger.puts(message, "Watcher", :light_gray)
+      Amber.logger.info(message, "Watcher", :light_gray)
     end
 
     # Code from https://github.com/tapio/live-server/blob/master/injected.html
