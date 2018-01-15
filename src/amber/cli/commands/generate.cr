@@ -30,7 +30,7 @@ module Amber::CLI
 
       private def ensure_name_argument!
         unless args.name?
-          CLI.logger.puts "Parsing Error: The NAME argument is required.", "Error", :red
+          CLI.logger.info "Parsing Error: The NAME argument is required.", "Error", :red
           exit! help: true, error: true
         end
       end

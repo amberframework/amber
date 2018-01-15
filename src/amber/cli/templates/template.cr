@@ -111,7 +111,7 @@ module Amber::CLI
     end
 
     def puts(msg)
-      CLI.logger.puts msg, "Generate", :light_cyan
+      CLI.logger.info msg, "Generate", :light_cyan
     end
   end
 end
@@ -134,7 +134,7 @@ class Teeplate::RenderingEntry
   end
 
   def list(s, color)
-    Amber::CLI.logger.puts s.colorize.fore(color).to_s + local_path, "Generate", :light_cyan
+    Amber::CLI.logger.info s.colorize.fore(color).to_s + local_path, "Generate", :light_cyan
   end
 end
 
