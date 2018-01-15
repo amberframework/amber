@@ -103,7 +103,7 @@ module Amber
           end
         end
 
-        it "raises a forbidden error for not valid base64 token" do
+        it "raises a forbidden error for an invalid base64 token" do
           csrf = CSRF.new
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
