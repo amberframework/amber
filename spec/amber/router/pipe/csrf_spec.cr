@@ -102,6 +102,19 @@ module Amber
             csrf.call(context)
           end
         end
+
+        it "raises a forbidden error for an invalid base64 token" do
+          csrf = CSRF.new
+          request = HTTP::Request.new("PUT", "/")
+          context = create_context(request)
+
+          context.session["csrf.token"] = "good_token"
+          context.params["_csrf"] = "invalid_token"
+
+          expect_raises Exceptions::Forbidden do
+            csrf.call(context)
+          end
+        end
       end
 
       context "generator" do

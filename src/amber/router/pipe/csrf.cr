@@ -73,7 +73,9 @@ module Amber
             session_token = Base64.decode(real_session_token(context))
             return Crypto::Subtle.constant_time_compare(unmasked, session_token)
           end
-          return false
+          false
+        rescue Base64::Error
+          false
         end
 
         def token(context) : String
