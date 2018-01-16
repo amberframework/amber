@@ -28,7 +28,7 @@ dependencies:
 
   slang:
     github: jeromegn/slang
-    branch: master
+    version: ~> 1.7.1 
 
   redis:
     github: stefanwille/crystal-redis
