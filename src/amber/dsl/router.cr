@@ -45,7 +45,7 @@ module Amber::DSL
       {% end %}
     end
 
-    macro define_action(path, controller, action)
+    private macro define_action(path, controller, action)
       {% if action == :index %}
         get "{{path.id}}", {{controller}}, :index
       {% elsif action == :show %}

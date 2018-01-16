@@ -17,7 +17,6 @@ module Amber::CLI
         output = ""
 
         describe "with the default routes" do
-
           MainCommand.run %w(routes) { |cmd| output = cmd.out.gets_to_end }
           output_lines = route_table_rows(output)
 
@@ -31,7 +30,7 @@ module Amber::CLI
           it "outputs the static file handler" do
             expected = "Amber::Controller::Static"
             output.should contain expected
-            line = output_lines.find(""){ |line| line.includes? expected }
+            line = output_lines.find("") { |line| line.includes? expected }
             expectations = %w(get Amber::Controller::Static index static /*)
             expectations.each do |expectation|
               line.should contain expectation
@@ -41,7 +40,7 @@ module Amber::CLI
           it "outputs the HomeController index action" do
             expected = "HomeController"
             output.should contain expected
-            line = output_lines.find(""){ |line| line.includes? expected }
+            line = output_lines.find("") { |line| line.includes? expected }
             expectations = %w(get HomeController index web /)
             expectations.each do |expectation|
               line.should contain expectation
@@ -57,14 +56,13 @@ module Amber::CLI
           it "outputs the web socket route" do
             expected = "websocket"
             output.should contain expected
-            line = output_lines.find(""){ |line| line.includes? expected }
+            line = output_lines.find("") { |line| line.includes? expected }
             expectations = %w(websocket ElectricSocket web /electric)
             expectations.each do |expectation|
               line.should contain expectation
             end
           end
         end
-
       end
     ensure
       cleanup

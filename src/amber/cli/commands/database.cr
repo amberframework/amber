@@ -14,6 +14,7 @@ module Amber::CLI
 
     class Database < Command
       command_name "database"
+      MIGRATIONS_DIR = "./db/migrations"
 
       class Options
         arg_array "commands", desc: "drop create migrate rollback redo status version seed"
@@ -44,7 +45,11 @@ module Amber::CLI
           when "redo"
             Micrate::Cli.run_redo
           when "status"
-            Micrate::Cli.run_status
+            if Dir.exists?(MIGRATIONS_DIR)
+              Micrate::Cli.run_status
+            else
+              exit! "Directory #{MIGRATIONS_DIR} does not exist. Please run `amber db create migrate` in project root directory."
+            end
           when "version"
             Micrate::Cli.run_dbversion
           else
@@ -95,7 +100,7 @@ module Amber::CLI
           Micrate::DB.connection_url = url.gsub(path, "/#{uri.scheme}")
           return path.gsub("/", "")
         else
-          CLI.logger.puts "Could not determine database name", "Error", :red
+          CLI.logger.info "Could not determine database name", "Error", :red
         end
       end
 

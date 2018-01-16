@@ -1,14 +1,13 @@
 # <%= @name %>
 
-A new project using [Amber Framework](https://amberframework.org/)
+<%= @name %> is a new project using [Amber Framework](https://amberframework.org/)
 
 ## Installation
 
-Install back-end and front-end dependencies.
+Install shard dependencies.
 
 ```
 shards install
-npm install
 ```
 
 Configure the `config/environments/development.yml` and set the `database_url` with your credentials to your database.
@@ -23,16 +22,10 @@ amber db create migrate
 
 ### Development
 
-To build crystal files:
+To run amber development server:
 
 ```
 amber watch
-```
-
-To build assets:
-
-```
-npm run watch
 ```
 
 ### Production

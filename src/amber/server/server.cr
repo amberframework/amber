@@ -87,7 +87,7 @@ module Amber
     end
 
     private def version
-      "[Amber #{Amber::VERSION}]".colorize(:light_cyan)
+      "Amber #{Amber::VERSION}".colorize(:light_cyan)
     end
 
     private def host_url
