@@ -5,12 +5,12 @@ module Amber
       property allow_origin, allow_headers, allow_methods, allow_credentials,
         max_age
 
-      def initialize
-        @allow_origin = "*"
-        @allow_headers = "accept, content-type"
-        @allow_methods = "GET, HEAD, POST, DELETE, OPTIONS, PUT, PATCH"
-        @allow_credentials = false
-        @max_age = 0
+      def initialize(
+        @allow_origin = "*",
+        @allow_headers = "accept, content-type",
+        @allow_methods = "GET, HEAD, POST, DELETE, OPTIONS, PUT, PATCH",
+        @allow_credentials = false,
+        @max_age = 0)
       end
 
       def call(context : HTTP::Server::Context)
