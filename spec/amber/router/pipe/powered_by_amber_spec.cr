@@ -11,13 +11,13 @@ module Amber
         end
 
         Amber::Server.router.draw :web do
-          options "/test", HelloController, :world
+          options "/poweredbyamber", HelloController, :world
         end
 
         pipeline.prepare_pipelines
 
         it "should contain X-Powered-By in response" do
-          request = HTTP::Request.new("OPTIONS", "/test")
+          request = HTTP::Request.new("OPTIONS", "/poweredbyamber")
           response = create_request_and_return_io(pipeline, request)
 
           response.status_code.should eq 200
