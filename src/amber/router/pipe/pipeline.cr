@@ -6,8 +6,7 @@ module Amber
       getter pipeline
       getter valve : Symbol
 
-      def initialize
-        @valve = :web
+      def initialize(@valve = :web)
         @pipeline = {} of Symbol => Array(HTTP::Handler)
         @pipeline[@valve] = [] of HTTP::Handler
         @drain = {} of Symbol => (HTTP::Handler | (HTTP::Server::Context ->))
