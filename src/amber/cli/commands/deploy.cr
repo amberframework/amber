@@ -35,7 +35,7 @@ module Amber::CLI
         (spinner = Spin.new(0.1, Spinner::Charset[:arrow2].map { |c| c.colorize(:light_green).to_s })).start
         shard = YAML.parse(File.read("./shard.yml"))
         @project_name = shard["name"].to_s
-        @server_name = "#{project_name}-#{args.server_suffix}".gsub(/[^\w\d\-]|_/, "")
+        @server_name = "#{project_name}-#{args.server_suffix}".gsub(/[^\w\d]/, "-")
         if options.init?
           provision
         else
@@ -47,7 +47,7 @@ module Amber::CLI
       end
 
       private def provision
-        puts "Provisioning server #{server_name}."
+        puts "Provisioning server #{colored_server_name}."
         create_cloud_server
         create_swapfile
         create_deploy_keys
@@ -58,15 +58,15 @@ module Amber::CLI
       end
 
       private def deploy
-        puts "Deploying latest changes to server #{server_name}"
+        puts "Deploying latest changes to server #{colored_server_name}"
         update_project
         deploy_project
         display_helper_links
       end
 
       private def display_helper_links
-        ip = `docker-machine ip #{server_name}`.strip
-        puts "ssh root@#{ip} -i ~/.docker/machine/machines/#{server_name}/id_rsa"
+        ip = `docker-machine ip #{@server_name}`.strip
+        puts "ssh root@#{ip} -i ~/.docker/machine/machines/#{@server_name}/id_rsa"
         puts "open http://#{ip}"
       end
 
@@ -84,17 +84,17 @@ module Amber::CLI
       end
 
       private def create_cloud_server
-        puts "Deploying #{server_name}"
-        puts "Creating docker machine: #{server_name}"
+        puts "Deploying #{colored_server_name}"
+        puts "Creating docker machine: #{@server_name}"
         puts "Enter your write enabled Digital Ocean API KEY or create on with the link below."
         puts "https://cloud.digitalocean.com/settings/api/tokens/new"
         do_token = options.key? || getsecret("DigitalOcean Token")
-        `docker-machine create #{server_name} --driver=digitalocean --digitalocean-access-token=#{do_token}`
+        `docker-machine create #{@server_name} --driver=digitalocean --digitalocean-access-token=#{do_token}`
         puts "Done creating machine!"
       end
 
       private def remote_cmd(cmd)
-        `docker-machine ssh #{server_name} #{cmd}`
+        `docker-machine ssh #{@server_name} #{cmd}`
       end
 
       private def create_swapfile
@@ -159,8 +159,9 @@ module Amber::CLI
         remote_cmd(%Q("cd amberproject && git pull"))
       end
 
-      private def server_name
-        @server_name.colorize(:green)
+      private def colored_server_name
+        server = "#{@server_name}"
+        server.colorize(:green)
       end
     end
   end
