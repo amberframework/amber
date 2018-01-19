@@ -23,8 +23,8 @@ module Amber
         @allow_credentials = false,
         @max_age = 0)
 
-        @allow_methods = allow_methods.split /[\s,]+/
-        @allow_headers = allow_headers.split /[\s,]+/
+        @allow_methods = allow_methods.strip.split /[\s,]+/
+        @allow_headers = allow_headers.strip.split /[\s,]+/
       end
 
       def call(context : HTTP::Server::Context)
