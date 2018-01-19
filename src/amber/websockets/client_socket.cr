@@ -51,7 +51,7 @@ module Amber
       # ```crystal
       # UserSocket.broadcast("message", "chats_room:1", "msg:new", {"message" => "test"})
       # ```
-      protected def self.broadcast(event : String, topic : String, subject : String, payload : Hash)
+      def self.broadcast(event : String, topic : String, subject : String, payload : Hash)
         if channel = get_topic_channel(WebSockets.topic_path(topic))
           channel.rebroadcast!({
             "event"   => event,
