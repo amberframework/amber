@@ -241,6 +241,8 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 - [eliasjpr](https://github.com/eliasjpr) Elias Perez - Maintainer
 - [elorest](https://github.com/elorest) Isaac Sloan - Maintainer
 - [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
+- [marksiemers](https://github.com/marksiemers) Mark Siemers - Maintainer
+- [robacarp](https://github.com/robacarp) Robert Carpenter - Maintainer
 
 
 ## License
