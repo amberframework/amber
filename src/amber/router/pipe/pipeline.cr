@@ -39,7 +39,7 @@ module Amber
 
       def prepare_pipelines
         pipeline.keys.each do |valve|
-          @drain[valve] ||= build_pipeline(pipeline[valve], Amber::Pipe::Last.new)
+          @drain[valve] ||= build_pipeline(pipeline[valve], Amber::Pipe::Controller.new)
         end
       end
 
