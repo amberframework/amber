@@ -244,6 +244,9 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 - [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
 - [marksiemers](https://github.com/marksiemers) Mark Siemers - Maintainer
 - [robacarp](https://github.com/robacarp) Robert Carpenter - Maintainer
+
+## Amber Collaborators
+
 - [c910335](https://github.com/c910335) Tatsujin Chin - Collaborator
 - [migeorge](https://github.com/migeorge) Mike George - Collaborator
 - [veelenga](https://github.com/veelenga) V. Elenhaupt - Collaborator
