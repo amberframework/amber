@@ -3,13 +3,7 @@ name: amber
 version: 0.6.4
 
 authors:
-  - Dru Jensen <drujensen@gmail.com>
-  - Elias Perez <eliasjpr@gmail.com>
-  - Faustino Aguilar <faustinoaq@gmail.com>
-  - Isaac Sloan <isaac@isaacsloan.com>
-  - Mark Siemers <mark.siemers@gmail.com>
-  - Nick Franken <shnick@gmail.com>
-  - Robert Carpenter <codemonkey@robacarp.com>
+  - Amber Team and Contributors <amberframework.org>
 
 crystal: 0.24.1
 
