@@ -235,7 +235,7 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 4. Push to the branch (git push origin my-new-feature)
 5. Create a new Pull Request
 
-## Amber Maintainers
+## Amber Core Team
 
 - Dru Jensen [drujensen](https://github.com/drujensen) 
 - Elias Perez [eliasjpr](https://github.com/eliasjpr) 
@@ -245,11 +245,7 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 - Mark Siemers [marksiemers](https://github.com/marksiemers)
 - Robert Carpenter [robacarp](https://github.com/robacarp) 
 
-## Amber Contributors
-
-- Mike George [migeorge](https://github.com/migeorge)
-- Tatsujin Chin [c910335](https://github.com/c910335)
-- V. Elenhaupt [veelenga](https://github.com/veelenga)
+See more Amber contribuitors [here](https://github.com/amberframework/amber/graphs/contributors)
 
 ## License
 
