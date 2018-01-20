@@ -22,6 +22,7 @@ module Amber
 
           response.status_code.should eq 200
           response.headers["X-Powered-By"].should eq "Amber"
+          response.body.should contain "Hello World!"
         end
       end
     end
