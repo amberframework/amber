@@ -10,10 +10,12 @@ module Amber::CLI
 
       class Options
         bool "--no-color", desc: "Disable colored output", default: false
+        bool "--no-plugs", desc: "Don't output the plugs", default: false
         help
       end
 
-      LABELS     = ["Pipe", "Plug"]
+      LABELS = %w(Pipe Plug)
+      LABELS_WITHOUT_PLUGS = %w(Pipe)
       PIPE_REGEX = /(pipeline)\s+\:(\w+)(?:,\s+\"([^\"]+)\")?/
       PLUG_REGEX = /(plug)\s+([\w:]+)?/
 
@@ -67,19 +69,21 @@ module Amber::CLI
       private def print_pipelines
         table = ShellTable.new
 
-        table.labels = LABELS
+        table.labels = options.no_plugs? ? LABELS_WITHOUT_PLUGS : LABELS
         table.label_color = :light_red unless options.no_color?
         table.border_color = :dark_gray unless options.no_color?
 
         result.each do |pipe, plugs|
           row = table.add_row
           row.add_column(pipe)
-          row.add_column("")
+          row.add_column("") unless options.no_plugs?
 
-          plugs.each do |plug|
-            row = table.add_row
-            row.add_column("")
-            row.add_column(plug)
+          unless options.no_plugs?
+            plugs.each do |plug|
+              row = table.add_row
+              row.add_column("")
+              row.add_column(plug)
+            end
           end
         end
         puts "\n", table
