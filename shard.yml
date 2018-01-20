@@ -54,6 +54,7 @@ dependencies:
     github: askn/spinner
     version: ~> 0.1.1
 
+development_dependencies:
   pg:
     github: will/crystal-pg
     version: ~> 0.14.1
