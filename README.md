@@ -245,7 +245,7 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 - Mark Siemers [marksiemers](https://github.com/marksiemers)
 - Robert Carpenter [robacarp](https://github.com/robacarp) 
 
-## Amber Cointributors
+## Amber Contributors
 
 - Mike George [migeorge](https://github.com/migeorge)
 - Tatsujin Chin [c910335](https://github.com/c910335)
