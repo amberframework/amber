@@ -1,59 +1,34 @@
 # <%= @name %>
 
-<%= @name %> is a new project using [Amber Framework](https://amberframework.org/)
+This is a project written using [Amber Framework](https://amberframework.org/).
 
 ## Installation
 
-Install shard dependencies.
-
-```
-shards install
-```
-
-Configure the `config/environments/development.yml` and set the `database_url` with your credentials to your database.
-
-Then:
-
-```
-amber db create migrate
-```
+1. [Install required dependencies](https://github.com/amberframework/online-docs/blob/master/getting-started/quick-start.md#install-crystal-and-amber)
+2. Run `shards install`
 
 ## Usage
 
-### Development
-
-To run amber development server:
+This will run a development server:
 
 ```
+amber db create migrate
 amber watch
 ```
 
-### Production
-
-To setup `AMBER_ENV`:
+To build and run a production release:
 
 ```
 export AMBER_ENV=production
-```
-
-To build a production release:
-  
-```
-shards build --production --release <%= @name %>
-```
-
-To build production assets:
-
-```
+amber db create migrate
 npm run release
+shards build
+./bin/<%= @name %>
 ```
 
-To use encrypted environment settings see [documentation](https://github.com/amberframework/online-docs/blob/master/getting-started/cli/encrypt.md#encrypt-command)
+## Docker
 
-## Docker Compose
-
-This will start an instance of <%= @database == "pg" ? "postgres" : "mysql" %>, migrate the database,
-and launch the site at http://localhost:3000
+This will setup a <%= @database == "pg" ? "postgres" : @database %> database and launch the server:
 
 ```
 docker-compose up -d
@@ -65,7 +40,7 @@ To view the logs:
 docker-compose logs -f
 ```
 
-> Note: The Docker images are compatible with Heroku.
+> **Note:** The Docker images are compatible with Heroku.
 
 ## Contributing
 
