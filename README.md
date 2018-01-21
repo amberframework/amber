@@ -237,13 +237,15 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 
 ## Amber Core Team
 
-- [drujensen](https://github.com/drujensen) Dru Jensen - Maintainer
-- [eliasjpr](https://github.com/eliasjpr) Elias Perez - Maintainer
-- [elorest](https://github.com/elorest) Isaac Sloan - Maintainer
-- [fridgerator](https://github.com/fridgerator) Nick Franken - Maintainer
-- [marksiemers](https://github.com/marksiemers) Mark Siemers - Maintainer
-- [robacarp](https://github.com/robacarp) Robert Carpenter - Maintainer
+- Dru Jensen [drujensen](https://github.com/drujensen) 
+- Elias Perez [eliasjpr](https://github.com/eliasjpr) 
+- Isaac Sloan [elorest](https://github.com/elorest) 
+- Faustino Aguilar [faustinoaq](https://github.com/faustinoaq) 
+- Nick Franken [fridgerator](https://github.com/fridgerator)
+- Mark Siemers [marksiemers](https://github.com/marksiemers)
+- Robert Carpenter [robacarp](https://github.com/robacarp) 
 
+See more [Amber contributors](https://github.com/amberframework/amber/graphs/contributors)
 
 ## License
 
