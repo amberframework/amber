@@ -7,4 +7,6 @@ RUN crystal deps
 
 ADD . /app
 
+RUN rm -rf /app/node_modules
+
 CMD amber watch
