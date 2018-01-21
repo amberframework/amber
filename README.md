@@ -245,7 +245,7 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 - Mark Siemers [marksiemers](https://github.com/marksiemers)
 - Robert Carpenter [robacarp](https://github.com/robacarp) 
 
-See more Amber contribuitors [here](https://github.com/amberframework/amber/graphs/contributors)
+See more [Amber contributors](https://github.com/amberframework/amber/graphs/contributors)
 
 ## License
 
