@@ -22,9 +22,7 @@
     <%="<"%>%= text_area(name: "<%= field.name -%>", content: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control", size: "30x10") -%>
 <% when "boolean" -%>
     <div class="checkbox">
-      <%="<"%>%= label(<%=":#{field.name}"%>) do -%>
-        <%="<"%>%= check_box(<%=":#{field.name}, checked: #{@name}.#{field.name}.to_s == \"1\""%>) -%>
-      <%="<"%>%- end %>
+      <%="<"%>%= label(<%=":#{field.name}"%>) { check_box(<%=":#{field.name}, checked: #{@name}.#{field.name}.to_s == \"1\""%>) } -%>
     </div>
 <% when "reference" -%>
     <%="<"%>%= label(<%=":#{field.name}"%>) -%>

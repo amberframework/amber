@@ -18,7 +18,7 @@ class <%= class_name %>Controller < ApplicationController
       redirect_to "/profile"
     elsif <%= @name %>
       flash[:danger] = "Could not update Profile!"
-      render("edit.slang")
+      render("edit.<%= @language %>")
     else
       flash[:info] = "Must be logged in"
       redirect_to "/signin"

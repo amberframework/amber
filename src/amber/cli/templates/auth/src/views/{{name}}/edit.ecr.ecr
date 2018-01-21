@@ -8,11 +8,11 @@
   </ul>
 <%="<"%>%- end %>
 
-<%="<"%>%= form(action: "/profile", method: :patch) do %>
+<form action="/profile" method="patch">
   <%="<"%>%= csrf_tag %>
   <div class="form-group">
     <input class="form-control" type="email" name="email" placeholder="Email" value="<%="<"%>%= <%= @name %>.email %>" />
   </div>
   <%="<"%>%= submit("Update", class: "btn btn-primary btn-xs") %>
   <%="<"%>%= link_to("profile", "/profile", class: "btn btn-default btn-xs") %>
-<%="<"%>%- end %>
+</form>
