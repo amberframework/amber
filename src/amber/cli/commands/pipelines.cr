@@ -14,27 +14,38 @@ module Amber::CLI
         help
       end
 
-      LABELS = %w(Pipe Plug)
+      class BadRoutesException < Exception
+      end
+
+      ROUTES_PATH          = "config/routes.cr"
+      LABELS               = %w(Pipe Plug)
       LABELS_WITHOUT_PLUGS = %w(Pipe)
+
       PIPE_REGEX = /(pipeline)\s+\:(\w+)(?:,\s+\"([^\"]+)\")?/
       PLUG_REGEX = /(plug)\s+([\w:]+)?/
+
+      FAILED_TO_PARSE_ERROR = "Could not parse pipeline/plugs in #{ROUTES_PATH}"
 
       command_name "pipelines"
 
       def run
         parse_routes
         print_pipelines
+      rescue ex : BadRoutesException
+        CLI.logger.error(ex.message.colorize(:red))
+        CLI.logger.error "Good bye :("
+        exit 1
       rescue
-        puts "Error: Not valid project root directory.".colorize(:red)
-        puts "Run `amber pipelines` in project root directory.".colorize(:light_blue)
-        puts "Good bye :("
+        CLI.logger.error "Error: Not valid project root directory.".colorize(:red)
+        CLI.logger.error "Run `amber pipelines` in project root directory.".colorize(:light_blue)
+        CLI.logger.error "Good bye :("
         exit 1
       end
 
       private def parse_routes
-        lines = File.read_lines("config/routes.cr")
-        lines = lines.map { |line| line.strip }
-        lines.each do |line|
+        lines = File.read_lines(ROUTES_PATH)
+
+        lines.map(&.strip).each do |line|
           case line
           when .starts_with?("pipeline")
             set_pipe(line)
@@ -45,24 +56,18 @@ module Amber::CLI
       end
 
       private def set_pipe(line)
-        match = line.match(PIPE_REGEX)
-        if match
-          @current_pipe = match[2]
-
-          if @current_pipe
-            result[@current_pipe] = [] of String
-          end
+        if ((match = line.match(PIPE_REGEX)) && (@current_pipe = match[2]))
+          result[@current_pipe] = [] of String
+        else
+          raise BadRoutesException.new(FAILED_TO_PARSE_ERROR)
         end
       end
 
       private def set_plug(line)
-        match = line.match(PLUG_REGEX)
-        if match
-          plug = match[2]
-
-          if @current_pipe
-            result[@current_pipe] << plug
-          end
+        if (match = line.match(PLUG_REGEX)) && (plug = match[2]) && @current_pipe
+          result[@current_pipe] << plug
+        else
+          raise BadRoutesException.new(FAILED_TO_PARSE_ERROR)
         end
       end
 
