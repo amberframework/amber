@@ -34,6 +34,7 @@ dependencies:
     github: stefanwille/crystal-redis
     version: ~> 1.9.0
 
+development_dependencies:
   cli:
     github: amberframework/cli
     version: ~> 0.7.0
@@ -54,7 +55,6 @@ dependencies:
     github: askn/spinner
     version: ~> 0.1.1
 
-development_dependencies:
   pg:
     github: will/crystal-pg
     version: ~> 0.14.1
@@ -67,7 +67,6 @@ development_dependencies:
     github: crystal-lang/crystal-sqlite3
     version: ~> 0.9.0
 
-development_dependencies:
   ameba:
     github: veelenga/ameba
     version: ~> 0.4.0
