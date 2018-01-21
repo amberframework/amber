@@ -18,6 +18,25 @@ module Amber::CLI
         scaffold_app(TESTING_APP)
         output = ""
 
+        pipeline_names = %w(web static)
+
+        web_default_plugs = %w(
+          Amber::Pipe::PoweredByAmber
+          Amber::Pipe::Error
+          Amber::Pipe::Logger
+          Amber::Pipe::Session
+          Amber::Pipe::Flash
+          Amber::Pipe::CSRF
+          Amber::Pipe::Reload
+        )
+
+        static_default_plugs = %w(
+          Amber::Pipe::PoweredByAmber
+          Amber::Pipe::Error
+          Amber::Pipe::Static
+        )
+
+
         describe "with the default routes" do
           MainCommand.run %w(pipelines) { |cmd| output = cmd.out.gets_to_end }
           output_lines = route_table_rows(output)
@@ -30,26 +49,24 @@ module Amber::CLI
           end
 
           it "outputs the default pipeline names" do
-            pipeline_names = %w(web static)
             pipeline_names.each do |pipeline|
               output.should contain pipeline
             end
           end
 
           it "outputs the plugs for the pipelines" do
-            plugs = %w(
-              Amber::Pipe::Error
-              Amber::Pipe::Logger
-              Amber::Pipe::Session
-              Amber::Pipe::Flash
-              Amber::Pipe::CSRF
-              Amber::Pipe::Reload
-              Amber::Pipe::Error
-              Amber::Pipe::Static
-            )
-
-            plugs.each do |plug|
+            (web_default_plugs + static_default_plugs).each do |plug|
               output.should contain plug
+            end
+          end
+
+          it "maintains the correct order of pipelines and plugs" do
+            in_correct_order = %w(Plug) + %w(web) + web_default_plugs + %w(static) + static_default_plugs
+
+            output_lines
+            .reject { |line| line.empty? }
+            .each_with_index do |line, index|
+              line.should contain (in_correct_order[index])
             end
           end
         end
