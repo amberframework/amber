@@ -9,20 +9,26 @@ This project is powered by [Amber Framework](https://amberframework.org/).
 
 ## Usage
 
-To run amber server in a development enviroment:
+To setup your database edit `database_url` inside `config/environments/development.yml` file.
+
+To edit your production settings use `amber encrypt`. [See encrypt command guide](https://github.com/amberframework/online-docs/blob/master/getting-started/cli/encrypt.md#encrypt-command)
+
+To run amber server in a **development** enviroment:
 
 ```
 amber db create migrate
 amber watch
 ```
 
-To build and run a production release:
+To build and run a **production** release:
+
+1. Add an environment variable `AMBER_ENV` with a value of `production`
+2. Run these commands:
 
 ```
-export AMBER_ENV=production
-amber db create migrate
 npm run release
-shards build
+amber db create migrate
+shards build --production
 ./bin/<%= @name %>
 ```
 
