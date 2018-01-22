@@ -1,59 +1,40 @@
 # <%= @name %>
 
-<%= @name %> is a new project using [Amber Framework](https://amberframework.org/)
+This project is powered by [Amber Framework](https://amberframework.org/).
 
 ## Installation
 
-Install shard dependencies.
-
-```
-shards install
-```
-
-Configure the `config/environments/development.yml` and set the `database_url` with your credentials to your database.
-
-Then:
-
-```
-amber db create migrate
-```
+1. [Install required dependencies](https://github.com/amberframework/online-docs/blob/master/getting-started/quick-start.md#install-crystal-and-amber)
+2. Run `shards install`
 
 ## Usage
 
-### Development
+To setup your database edit `database_url` inside `config/environments/development.yml` file.
 
-To run amber development server:
+To edit your production settings use `amber encrypt`. [See encrypt command guide](https://github.com/amberframework/online-docs/blob/master/getting-started/cli/encrypt.md#encrypt-command)
+
+To run amber server in a **development** enviroment:
 
 ```
+amber db create migrate
 amber watch
 ```
 
-### Production
+To build and run a **production** release:
 
-To setup `AMBER_ENV`:
-
-```
-export AMBER_ENV=production
-```
-
-To build a production release:
-  
-```
-shards build --production --release <%= @name %>
-```
-
-To build production assets:
+1. Add an environment variable `AMBER_ENV` with a value of `production`
+2. Run these commands:
 
 ```
 npm run release
+amber db create migrate
+shards build --production
+./bin/<%= @name %>
 ```
-
-To use encrypted environment settings see [documentation](https://github.com/amberframework/online-docs/blob/master/getting-started/cli/encrypt.md#encrypt-command)
 
 ## Docker Compose
 
-This will start an instance of <%= @database == "pg" ? "postgres" : "mysql" %>, migrate the database,
-and launch the site at http://localhost:3000
+To set up the database and launch the server:
 
 ```
 docker-compose up -d
@@ -65,7 +46,7 @@ To view the logs:
 docker-compose logs -f
 ```
 
-> Note: The Docker images are compatible with Heroku.
+> **Note:** The Docker images are compatible with Heroku.
 
 ## Contributing
 
