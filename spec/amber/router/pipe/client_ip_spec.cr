@@ -28,7 +28,7 @@ module Amber
         it "gets client IP from first custom header found" do
           pipeline = Pipeline.new
           pipeline.build :web do
-            plug ClientIp.new(["X-Forwarded", "X-Client-IP"])
+            plug ClientIp.new(["X-Unmatched", "X-Client-IP"])
           end
           pipeline.prepare_pipelines
 
