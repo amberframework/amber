@@ -1,6 +1,6 @@
 module Amber
-  module Extensions
-    module NumberExtension
+  module Extension
+    module Number
       # the positive number validation
       def positive?
         self.sign === 1

@@ -1,6 +1,6 @@
 module Amber
-  module Extensions
-    module HTTPServerContextExtension
+  module Extension
+    module HTTPServerContext
       property client_ip : Socket::IPAddress?
     end
   end
