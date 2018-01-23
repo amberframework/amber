@@ -12,10 +12,9 @@ module Amber::Controller
     end
 
     def internal_server_error
-      context.response.content_type = "text/plain"
       # TODO: #inspect_with_backtrace doesn't seem to work in 0.24.1
       # "ERROR: #{@ex.inspect_with_backtrace}"
-      "ERROR: #{@ex.message}"
+      response_format("ERROR: #{@ex.message}")
     end
 
     def forbidden
@@ -26,7 +25,7 @@ module Amber::Controller
       if context.request.headers["Accept"]?
         request.headers["Accept"].split(",").first
       else
-        "text/plain"
+        "text/html"
       end
     end
 
