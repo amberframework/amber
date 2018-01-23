@@ -55,7 +55,7 @@ module Amber::CLI
             begin
               Micrate::Cli.run_up
             rescue e : IndexError
-              exit! "no migrations to run"
+              exit! "No migrations to run in #{MIGRATIONS_DIR}."
             end
           when "rollback"
             Micrate::Cli.run_down
