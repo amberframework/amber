@@ -42,13 +42,7 @@ let config = {
             options: {
               name: 'images/[name]-[hash].[ext]'
             }
-          },
-          // {
-          //   loader: 'image-webpack-loader',
-          //   options: {
-          //     bypassOnDebug: true,
-          //   }
-          // }
+          }
         ]
       },
       {
