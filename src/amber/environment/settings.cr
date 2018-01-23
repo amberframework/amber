@@ -37,7 +37,7 @@ module Amber::Environment
         skip:     [] of String?,
         context:  ["request", "headers", "cookies", "session", "params"] of String?,
       }},
-      database_url: {type: String?, default: nil},
+      database_url: {type: String, default: ""},
       host: {type: String, default: "localhost"},
       name: {type: String, default: "Amber_App"},
       port: {type: Int32, default: 3000},

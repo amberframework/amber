@@ -1,9 +1,4 @@
-require "../../../../spec_helper"
-
-def assert_expected_response?(controller, location, status_code)
-  controller.response.headers["location"].should eq location
-  controller.response.status_code.should eq status_code
-end
+require "../../../spec_helper"
 
 module Amber::Controller::Helpers
   describe Redirector do

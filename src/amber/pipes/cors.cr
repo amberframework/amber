@@ -5,12 +5,26 @@ module Amber
       property allow_origin, allow_headers, allow_methods, allow_credentials,
         max_age
 
-      def initialize
-        @allow_origin = "*"
-        @allow_headers = "accept, content-type"
-        @allow_methods = "GET, HEAD, POST, DELETE, OPTIONS, PUT, PATCH"
-        @allow_credentials = false
-        @max_age = 0
+      ALLOW_METHODS = %w(GET HEAD POST DELETE OPTIONS PUT PATCH)
+      ALLOW_HEADERS = %w(accept content-type)
+
+      def initialize(
+        @allow_origin = "*",
+        @allow_methods = ALLOW_METHODS,
+        @allow_headers = ALLOW_HEADERS,
+        @allow_credentials = false,
+        @max_age = 0)
+      end
+
+      def initialize(
+        @allow_origin = "*",
+        allow_methods : String = ALLOW_METHODS.join(", "),
+        allow_headers : String = ALLOW_HEADERS.join(", "),
+        @allow_credentials = false,
+        @max_age = 0)
+
+        @allow_methods = allow_methods.strip.split /[\s,]+/
+        @allow_headers = allow_headers.strip.split /[\s,]+/
       end
 
       def call(context : HTTP::Server::Context)
@@ -37,7 +51,7 @@ module Amber
 
           if requested_method = context.request.headers["Access-Control-Request-Method"]
             if allow_methods.includes? requested_method.strip
-              context.response.headers["Access-Control-Allow-Methods"] = allow_methods
+              context.response.headers["Access-Control-Allow-Methods"] = allow_methods.join(", ")
             else
               context.response.status_code = 403
               response = "Method #{requested_method} not allowed."
@@ -47,7 +61,7 @@ module Amber
           if requested_headers = context.request.headers["Access-Control-Request-Headers"]
             requested_headers.split(",").each do |requested_header|
               if allow_headers.includes? requested_header.strip.downcase
-                context.response.headers["Access-Control-Allow-Headers"] = allow_headers
+                context.response.headers["Access-Control-Allow-Headers"] = allow_headers.join(", ")
               else
                 context.response.status_code = 403
                 response = "Headers #{requested_headers} not allowed."
