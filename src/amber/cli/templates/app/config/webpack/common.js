@@ -28,8 +28,8 @@ let config = {
         use: ExtractTextPlugin.extract({
           fallback: { loader: 'style-loader', options: {sourceMap: true} },
           use: [
-            { loader: 'css-loader', options: { sourceMap: true, importLoaders: 2 } },
-            { loader: 'sass-loader' }
+            { loader: 'css-loader', options: { sourceMap: true, importLoaders: 1 } },
+            { loader: 'sass-loader', options: { sourceMap: true } }
           ]
         })
       },
