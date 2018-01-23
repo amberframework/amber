@@ -10,3 +10,7 @@ end
 abstract struct Number
   include Amber::Extensions::NumberExtension
 end
+
+class HTTP::Server::Context
+  include Amber::Extensions::HTTPServerContextExtension
+end

@@ -1,16 +1,16 @@
 module Amber
   module Pipe
-    # Handler to determine real client IP address when Amber is behind a
-    # reverse proxy and save it to context.client_ip.
+    # Handler to determine real client IP address when Amber is behind
+    # trusted reverse proxy or proxies, and save it to context.client_ip.
     #
-    # The proxy should pass client IP in a header such as "X-Forwarded-For".
-    # In case of multiple values in a header, the first one is used.
+    # Reverse proxy should pass client IP in a header such as "X-Forwarded-For".
+    # In case of multiple values in a header, the leftmost one is used.
     #
-    # Crystal does not currently make remote IP available, so it is impossible
-    # to accept the header value only when coming from trusted proxy IPs.
-    # For that and other benefits, it is suggested to always run Amber apps
-    # behind proxies such as HAProxy or Nginx.
+    # For this functionality to not cause security concerns, all trusted,
+    # public-facing reverse proxies should delete the header if request is
+    # coming from an untrusted client before appending their own, valid value.
     class ClientIp < Base
+
       def initialize(header : String = "X-Forwarded-For")
         @headers = [header]
       end
@@ -27,8 +27,4 @@ module Amber
       end
     end
   end
-end
-
-class HTTP::Server::Context
-  property client_ip : Socket::IPAddress?
 end
