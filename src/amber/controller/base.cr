@@ -15,9 +15,27 @@ module Amber::Controller
     protected getter context : HTTP::Server::Context
     protected getter params : Amber::Validators::Params
 
-    delegate :cookies, :format, :flash, :port, :requested_url, :session, :valve,
-      :request_handler, :route, :websocket?, :get?, :post?, :patch?,
-      :put?, :delete?, :head?, :client_ip, :request, :response, :halt!, to: context
+    delegate :client_ip,
+      :cookies,
+      :delete?,
+      :flash,
+      :format,
+      :get?,
+      :halt!,
+      :head?,
+      :patch?,
+      :port,
+      :post?,
+      :put?,
+      :request,
+      :requested_url,
+      :request_handler,
+      :response,
+      :route,
+      :session,
+      :valve,
+      :websocket?,
+    to: context
 
     def initialize(@context : HTTP::Server::Context)
       @params = Amber::Validators::Params.new(context.params)
