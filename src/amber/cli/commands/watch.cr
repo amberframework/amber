@@ -22,6 +22,7 @@ module Amber::CLI
         CLI.toggle_colors(options.no_color?)
         options.watch << "./config/**/*.cr"
         options.watch << "./src/views/**/*.slang"
+        options.watch << "./config/webpack/manifest.json"
         super
       end
     end

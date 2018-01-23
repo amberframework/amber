@@ -5,6 +5,7 @@ require "./helpers/*"
 
 module Amber::Controller
   class Base
+    include Helpers::Asset
     include Helpers::CSRF
     include Helpers::Redirect
     include Helpers::Render
