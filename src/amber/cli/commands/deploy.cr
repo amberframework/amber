@@ -89,7 +89,7 @@ module Amber::CLI
         puts "Enter your write enabled Digital Ocean API KEY or create on with the link below."
         puts "https://cloud.digitalocean.com/settings/api/tokens/new"
         do_token = options.key? || getsecret("DigitalOcean Token")
-        `docker-machine create #{@server_name} --driver=digitalocean --digitalocean-access-token=#{do_token}`
+        `docker-machine create #{@server_name} --driver=digitalocean --digitalocean-access-token=#{do_token} --digitalocean-size=s-1vcpu-1gb`
         puts "Done creating machine!"
       end
 
