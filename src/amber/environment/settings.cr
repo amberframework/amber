@@ -24,6 +24,7 @@ module Amber::Environment
     property ssl_key_file : String
     property ssl_cert_file : String
     property logger : Logger?
+    property public_assets_base_path : String
 
     def logger
       @logger ||= LoggerBuilder.new(STDOUT, logging).logger
@@ -51,6 +52,7 @@ module Amber::Environment
       }},
       ssl_key_file: {type: String?, default: nil},
       ssl_cert_file: {type: String?, default: nil},
+      public_assets_base_path: {type: String?, default: "/dist"},
     )
 
     def session

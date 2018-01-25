@@ -6,8 +6,8 @@ module Amber::Controller::Helpers
 
     macro asset_path(path)
       {% if path.is_a?(StringLiteral) %}
-        {% if Amber::Controller::Helpers::Asset::ASSET_MANIFEST[path] %}
-          {{ "/dist" + Amber::Controller::Helpers::Asset::ASSET_MANIFEST[path] }}
+        {% if ASSET_MANIFEST[path] %}
+          "#{Amber.settings.public_assets_base_path}#{ {{ ASSET_MANIFEST[path] }} }"
         {% else %}
           {{ run "../../run_macros/missing_asset", path }}
         {% end %}
@@ -33,9 +33,9 @@ module Amber::Controller::Helpers
     end
 
     def dynamic_asset_path(path)
-      fingerprinted_path = Amber::Controller::Helpers::Asset::ASSET_MANIFEST[path]?
+      fingerprinted_path = ASSET_MANIFEST[path]?
       if fingerprinted_path
-        "/dist" + fingerprinted_path
+        Amber.settings.public_assets_base_path + fingerprinted_path
       else
         raise "Missing asset: #{path}"
       end
