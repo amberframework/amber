@@ -37,7 +37,7 @@ module Amber::CLI
           prepare_file
           system("#{options.editor} #{@filename}")
         else
-          File.write(@filename, "puts (#{args.code}).inspect")
+        File.write(@filename, "result = begin\n#{args.code})\nend\nputs result.inspect\n")
         end
 
         result = ""
