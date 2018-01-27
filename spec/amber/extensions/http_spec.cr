@@ -2,7 +2,7 @@ require "../../../spec_helper"
 
 module Amber::Extensions
   describe HTTPServerContext do
-    it "client_ip should exist and be nil" do
+    it "defaults client_ip to nil" do
       request = HTTP::Request.new("GET", "/")
       io = IO::Memory.new
       response = HTTP::Server::Response.new(io)
