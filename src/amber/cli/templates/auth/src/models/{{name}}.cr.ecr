@@ -12,12 +12,12 @@ class <%= class_name %> < Granite::ORM::Base
   timestamps
 <% end -%>
 
-  validate :email, "is required", -> (<%= @name %> : <%= class_name %>) do
-    (email = <%= @name %>.email) ? !email.empty? : false
+  validate :email, "is required" do
+    !email.to_s.blank?
   end
 
-  validate :password, "is too short", -> (<%= @name %> : <%= class_name %>) do
-    <%= @name %>.password_changed? ? <%= @name %>.valid_password_size? : true
+  validate :password, "is too short" do
+    password_changed? ? valid_password_size? : true
   end
 
   def password=(password)
