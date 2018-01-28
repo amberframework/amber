@@ -13,7 +13,7 @@ class <%= class_name %> < Granite::ORM::Base
 <% end -%>
 
   validate :email, "is required" do
-    (email = @email) ? email.blank? : false
+    !email.not_nil!.blank?
   end
 
   validate :password, "is too short" do
