@@ -192,6 +192,7 @@ module Amber::CLI
           File.read("./src/handlers/authenticate.cr").should contain camel_case
           File.read("./src/handlers/authenticate.cr").should contain snake_case
           File.read("./src/models/admin_user.cr").should contain class_definition_prefix
+          File.read("./src/models/admin_user.cr").should contain snake_case
           File.read("./src/views/registration/new.slang").should contain snake_case
           File.read("./src/views/session/new.slang").should contain snake_case
         end
