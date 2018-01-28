@@ -13,21 +13,18 @@ class <%= class_name %> < Granite::ORM::Base
 <% end -%>
 
   validate :email, "is required" do
-    blank = email.to_s.blank?
-    !blank
+    return true unless email.to_s.blank?
+    false
   end
 
   validate :password, "is too short" do
-    if password_changed?
-      valid_password_size?
-    else
-      true
-    end
+    return true unless password_changed?
+    valid_password_size?
   end
 
   validate :email, "already in use" do
-    existing = User.find_by :email, email
-    !existing
+    return true unless User.find_by(:email, email)
+    false
   end
 
   def password=(password)
