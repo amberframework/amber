@@ -13,8 +13,14 @@ module Amber::Validators
       @predicate = block
     end
 
-    def apply(params : Amber::Router::Params)
-      raise Exceptions::Validator::InvalidParam.new(@field) unless params.has_key? @field
+    def apply(params : Amber::Router::Params, raise_on_error = true)
+      unless params.has_key? @field
+        if raise_on_error
+          raise Exceptions::Validator::InvalidParam.new(@field)
+        else
+          return false
+        end
+      end
       @value = params[@field]
       @predicate.call params[@field] unless @predicate.nil?
     end
@@ -30,7 +36,7 @@ module Amber::Validators
 
   # OptionalRule only validates if the key is present.
   class OptionalRule < BaseRule
-    def apply(params : Amber::Router::Params)
+    def apply(params : Amber::Router::Params, raise_on_error = true)
       return true unless params.has_key? @field
       @value = params[@field]
       @predicate.call params[@field] unless @predicate.nil?
@@ -85,7 +91,7 @@ module Amber::Validators
     # user = User.new params.validate!
     # ```
     def validate!
-      return params if valid?
+      return params if valid?(raise_on_error: true)
       raise Amber::Exceptions::Validator::ValidationFailed.new errors
     end
 
@@ -97,12 +103,12 @@ module Amber::Validators
     #   response.status_code 400
     # end
     # ```
-    def valid?
+    def valid?(raise_on_error = false)
       @errors.clear
       @params.clear
 
       @rules.each do |rule|
-        unless rule.apply(raw_params)
+        unless rule.apply(raw_params, raise_on_error)
           @errors << rule.error
         end
 
