@@ -30,6 +30,15 @@ module Amber::CLI
         system("cp #{_filename} #{@filename}") if _filename
       end
 
+      def code(args)
+        <<-CRYSTAL
+        result = begin
+          #{args.code}
+        end
+        puts result
+        CRYSTAL
+      end
+
       def run
         Dir.mkdir("tmp") unless Dir.exists?("tmp")
 
@@ -37,7 +46,7 @@ module Amber::CLI
           prepare_file
           system("#{options.editor} #{@filename}")
         else
-        File.write(@filename, "result = begin\n#{args.code}\nend\nputs result.inspect\n")
+        File.write(@filename, code(args))
         end
 
         result = ""
