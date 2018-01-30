@@ -13,20 +13,18 @@ module Amber::Validators
       @predicate = block
     end
 
-    def apply(params : Amber::Router::Params, raise_on_error = true)
-      unless params.has_key? @field
-        if raise_on_error
-          raise Exceptions::Validator::InvalidParam.new(@field)
-        else
-          return false
-        end
-      end
-      @value = params[@field]
-      @predicate.call params[@field] unless @predicate.nil?
+    def apply(params : Amber::Router::Params)
+      raise Exceptions::Validator::InvalidParam.new(@field) unless params.has_key? @field
+      call_predicate(params)
     end
 
     def error
       Error.new @field, @value.to_s, error_message
+    end
+
+    private def call_predicate(params : Amber::Router::Params)
+      @value = params[@field]
+      @predicate.call params[@field] unless @predicate.nil?
     end
 
     private def error_message
@@ -34,22 +32,28 @@ module Amber::Validators
     end
   end
 
+  class RequiredRule < BaseRule
+    def apply(params : Amber::Router::Params)
+      return false unless params.has_key? @field
+      call_predicate(params)
+    end
+  end
+
   # OptionalRule only validates if the key is present.
   class OptionalRule < BaseRule
-    def apply(params : Amber::Router::Params, raise_on_error = true)
+    def apply(params : Amber::Router::Params)
       return true unless params.has_key? @field
-      @value = params[@field]
-      @predicate.call params[@field] unless @predicate.nil?
+      call_predicate(params)
     end
   end
 
   record ValidationBuilder, _validator : Params do
     def required(param : String | Symbol, msg : String? = nil)
-      _validator.add_rule BaseRule.new(param, msg)
+      _validator.add_rule RequiredRule.new(param, msg)
     end
 
     def required(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
-      _validator.add_rule BaseRule.new(param, msg, &b)
+      _validator.add_rule RequiredRule.new(param, msg, &b)
     end
 
     def optional(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
@@ -91,7 +95,7 @@ module Amber::Validators
     # user = User.new params.validate!
     # ```
     def validate!
-      return params if valid?(raise_on_error: true)
+      return params if valid?
       raise Amber::Exceptions::Validator::ValidationFailed.new errors
     end
 
@@ -103,12 +107,12 @@ module Amber::Validators
     #   response.status_code 400
     # end
     # ```
-    def valid?(raise_on_error = false)
+    def valid?
       @errors.clear
       @params.clear
 
       @rules.each do |rule|
-        unless rule.apply(raw_params, raise_on_error)
+        unless rule.apply(raw_params)
           @errors << rule.error
         end
 
