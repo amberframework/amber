@@ -15,7 +15,6 @@ end
 # response object.  Params and Session hash can be accessed from the Context.
 class HTTP::Server::Context
   METHODS            = %i(get post put patch delete head)
-  IP_ADDRESS_HEADERS = %w(REMOTE_ADDR CLIENT_IP X_FORWARDED_FOR X_FORWARDED X_CLUSTER_CLIENT_IP FORWARDED)
 
   include Amber::Router::Files
   include Amber::Router::Session
@@ -78,22 +77,6 @@ class HTTP::Server::Context
 
   def requested_url
     request.url
-  end
-
-  # Attempts to retrieve client IP Address from headers
-  #
-  # REMOTE_ADDR contains the real IP address of the connecting party.
-  # That is the most reliable value you can find. However, they can be
-  # behind a proxy server in which case the proxy may have set the HTTP_X_FORWARDED_FOR,
-  # but this value is easily spoofed.
-  def client_ip
-    headers = request.headers
-    val = {} of String => String
-    IP_ADDRESS_HEADERS.find { |header|
-      dashed_header = header.tr("_", "-")
-      val = headers[header]? || headers[dashed_header]? || headers["HTTP_#{header}"]? || headers["Http-#{dashed_header}"]?
-    }
-    val
   end
 
   def halt!(status_code : Int32 = 200, @content = "")

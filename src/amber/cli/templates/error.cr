@@ -10,10 +10,17 @@ module Amber::CLI
     def initialize(@name, actions)
       @actions = actions.map { |action| [action, "get"] }.to_h
       add_plugs
+      add_dependencies
     end
 
     private def add_plugs
       add_plugs :web, "plug Amber::Pipe::Error.new"
+    end
+
+    private def add_dependencies
+      add_dependencies <<-DEPENDENCY
+      require "../src/handlers/error.cr"
+      DEPENDENCY
     end
 
     def filter(entries)

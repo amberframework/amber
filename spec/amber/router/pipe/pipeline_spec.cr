@@ -73,12 +73,6 @@ module Amber
           response.headers["Content-Length"].should eq "0"
           response.body.empty?.should be_true
         end
-
-        it "initializes context with X-Powered-By: Amber" do
-          request = HTTP::Request.new("GET", "/index/faustino")
-          response = create_request_and_return_io(pipeline, request)
-          response.headers["X-Powered-By"].should eq "Amber"
-        end
       end
     end
   end

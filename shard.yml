@@ -1,13 +1,9 @@
 name: amber
 
-version: 0.6.3
+version: 0.6.4
 
 authors:
-  - Elias Perez <<eliasjpr@gmail.com>>
-  - Isaac Sloan <<isaac@isaacsloan.com>>
-  - Dru Jensen <<drujensen@gmail.com>>
-  - Nick Franken <<shnick@gmail.com>>
-  - Benoit de Chezelles <<benoit.dechezelles@gmail.com>>
+  - Amber Team and Contributors <amberframework.org>
 
 crystal: 0.24.1
 
@@ -28,7 +24,7 @@ dependencies:
 
   slang:
     github: jeromegn/slang
-    branch: master
+    version: ~> 1.7.1 
 
   redis:
     github: stefanwille/crystal-redis
