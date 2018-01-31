@@ -7,8 +7,8 @@
   == csrf_tag
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
   div.form-group
-  <% case field.type -%>
-  <% when "text" -%>
+  <% case field.type
+     when "text" -%>
     == text_area(name: "<%= field.name -%>", content: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control", size: "30x10")
   <% when "boolean" -%>
     div.checkbox
