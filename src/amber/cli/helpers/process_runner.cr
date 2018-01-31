@@ -32,7 +32,7 @@ module Sentry
     # Compiles and starts the application
     def start_app
       build_result = build_app_process
-      if build_result.is_a? Process:Status
+      if build_result.is_a? Process::Status
         if build_result.success?
           stop_all_processes
           create_all_processes
