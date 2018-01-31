@@ -1,3 +1,5 @@
+require "./helpers"
+
 module Sentry
   class ProcessRunner
     property processes = [] of Process
@@ -76,17 +78,17 @@ module Sentry
 
     private def build_app_process
       log "Building project #{project_name}..."
-      Process.run(@build_command, shell: true, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
+      Amber::CLI::Helpers.run(@build_command)
     end
 
     private def create_watch_process
       log "Starting #{project_name}..."
-      Process.new(@run_command, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
+      Amber::CLI::Helpers.run(@run_command, wait: false, shell: false)
     end
 
     private def create_npm_process
       node_log "Installing dependencies..."
-      Process.new("npm install --loglevel=error && npm run watch", shell: true, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
+      Amber::CLI::Helpers.run("npm install --loglevel=error && npm run watch", wait: false)
       node_log "Watching public directory"
     end
 
