@@ -32,13 +32,15 @@ module Sentry
     # Compiles and starts the application
     def start_app
       build_result = build_app_process
-      if build_result && build_result.success?
-        stop_all_processes
-        create_all_processes
-        @app_running = true
-      elsif !@app_running
-        log "Compile time errors detected. Shutting down..."
-        exit 1
+      if build_result.is_a? Process:Status
+        if build_result.success?
+          stop_all_processes
+          create_all_processes
+          @app_running = true
+        elsif !@app_running
+          log "Compile time errors detected. Shutting down..."
+          exit 1
+        end
       end
     end
 
