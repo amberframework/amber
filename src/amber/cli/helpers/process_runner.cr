@@ -71,7 +71,8 @@ module Sentry
     end
 
     private def create_all_processes
-      @processes << create_watch_process
+      process = create_watch_process
+      @processes << process if process.is_a? Process::Status
       unless @npm_process
         create_npm_process
         @npm_process = true
