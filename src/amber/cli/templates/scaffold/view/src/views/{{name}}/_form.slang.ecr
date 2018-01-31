@@ -1,7 +1,7 @@
 - if <%= @model == "crecto" ? "changeset" : @name %>.errors
   ul.errors
-  - <%= @model == "crecto" ? "changeset" : @name %>.errors.each do |error|
-    li = error.to_s
+    - <%= @model == "crecto" ? "changeset" : @name %>.errors.each do |error|
+      li = error.to_s
 
 == form(action: "/<%= @name -%>s/#{<%= @name -%>.id.to_s}", method: <%= @name %>.id ? :patch : :post) do
   == csrf_tag
