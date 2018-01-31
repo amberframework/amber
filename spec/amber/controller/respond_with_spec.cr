@@ -14,6 +14,14 @@ module Amber::Controller
         context.response.status_code.should eq 200
       end
 
+      it "respond_with html as default option with */* header" do
+        expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+        context.request.headers["Accept"] = "*/*"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "text/html"
+        context.response.status_code.should eq 200
+      end
+
       it "respond_with html" do
         expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
         context.request.headers["Accept"] = "text/html"
@@ -25,6 +33,14 @@ module Amber::Controller
       it "responds with json" do
         expected_result = %({"type":"json","name":"Amberator"})
         context.request.headers["Accept"] = "application/json"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "application/json"
+        context.response.status_code.should eq 200
+      end
+
+      it "responds with json having */* at end" do
+        expected_result = %({"type":"json","name":"Amberator"})
+        context.request.headers["Accept"] = "application/json,*/*"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "application/json"
         context.response.status_code.should eq 200
@@ -100,6 +116,14 @@ module Amber::Controller
         context.request.path = "/response/1.texas"
         ResponsesController.new(context).index.should eq expected_result
         context.response.headers["Content-Type"].should eq "application/json"
+        context.response.status_code.should eq 200
+      end
+
+      it "responds html as default with invalid extension but having */* at end" do
+        expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+        context.request.headers["Accept"] = "unsupported/extension,*/*"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "text/html"
         context.response.status_code.should eq 200
       end
     end
