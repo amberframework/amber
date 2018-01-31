@@ -50,8 +50,10 @@ module Amber::Controller::Helpers
 
       private def select_type
         raise "You must define at least one response_type." if @available_responses.empty?
-        # NOTE: If only one response is requested don't return something else.
-        @requested_responses << @available_responses.keys.first if @requested_responses.size != 1
+        # NOTE: If only one response is requested or */* is present don't return anything else.
+        if @requested_responses.size != 1 || @requested_responses.includes?("*/*")
+          @requested_responses << @available_responses.keys.first
+        end
         @requested_responses.find do |resp|
           @available_responses.keys.includes?(resp)
         end
