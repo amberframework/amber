@@ -24,8 +24,8 @@ module Amber::CLI
       PIPELINE_REGEX =
         /^
           \s*
-          pipeline  # match 'pipeline'
-          \s+       # require at least one whitespace character after 'pipeline'
+          pipeline  # match pipeline
+          \s+       # require at least one whitespace character after pipeline
           (
             (?:
               (?:
@@ -41,13 +41,13 @@ module Amber::CLI
       PLUG_REGEX =
         /^
           \s*
-          plug        # match 'plug'
-          \s+         # require at least one whitespace character after 'plug'
+          plug        # match plug
+          \s+         # require at least one whitespace character after plug
           (
             [\w:]+    # match at least one words with maybe a colon
           )?
           (?:
-            [\.\s*\(] # until we reach '.', spaces, or braces
+            [\.\s*\(] # until we reach ., spaces, or braces
           )?
         /x
 
