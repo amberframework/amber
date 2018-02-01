@@ -16,7 +16,7 @@ module Amber::CLI
       end
 
       add_dependencies <<-DEPENDENCY
-      require "../src/models/**"
+      require "../src/models/*"
       DEPENDENCY
     end
 
