@@ -7,18 +7,18 @@ div.table-responsive
   table.table.table-striped
     thead
       tr
-<% @fields.reject{|f| f.hidden }.each do |field| -%>
+        <% @fields.reject{|f| f.hidden }.each do |field| -%>
         th <%= field.name.capitalize %>
-<% end -%>
+        <% end -%>
         th Actions
     tbody
-    - <%= @name %>s.each do |<%= @name %>|
-      tr
-<% @fields.reject{|f| f.hidden }.each do |field| -%>
-        td = <%= @name %>.<%= field.name %><%= field.reference? ? ".id" : "" %>
-<% end -%>
-        td
-          span
-            == link_to("read", "/<%= @name %>s/#{<%= @name %>.id}", class: "btn btn-success btn-xs")
-            == link_to("edit", "/<%= @name %>s/#{<%= @name %>.id}/edit", class: "btn btn-success btn-xs")
-            == link_to("delete", "/<%= @name %>s/#{ <%= @name %>.id }?_method=delete&_csrf=#{csrf_token}", class: "btn btn-danger btn-xs", onclick: "return confirm('Are you sure?');")
+      - <%= @name %>s.each do |<%= @name %>|
+        tr
+          <% @fields.reject{|f| f.hidden }.each do |field| -%>
+          td = <%= @name %>.<%= field.name %><%= field.reference? ? ".id" : "" %>
+          <% end -%>
+          td
+            span
+              == link_to("read", "/<%= @name %>s/#{<%= @name %>.id}", class: "btn btn-success btn-xs")
+              == link_to("edit", "/<%= @name %>s/#{<%= @name %>.id}/edit", class: "btn btn-success btn-xs")
+              == link_to("delete", "/<%= @name %>s/#{ <%= @name %>.id }?_method=delete&_csrf=#{csrf_token}", class: "btn btn-danger btn-xs", onclick: "return confirm('Are you sure?');")
