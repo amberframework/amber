@@ -51,8 +51,8 @@ module Amber::CLI
 
     private def setup_dependencies
       add_dependencies <<-DEPENDENCY
-      require "../src/models/*"
-      require "../src/handlers/*"
+      require "../src/models/**"
+      require "../src/handlers/**"
       DEPENDENCY
     end
 
