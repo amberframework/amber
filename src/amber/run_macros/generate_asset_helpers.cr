@@ -1,3 +1,4 @@
+# Originally inspired by luckyframework.org
 require "json"
 require "colorize"
 
