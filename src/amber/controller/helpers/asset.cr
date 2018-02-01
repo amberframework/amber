@@ -1,3 +1,4 @@
+# Originally inspired by luckyframework.org
 module Amber::Controller::Helpers
   module Asset
     ASSET_MANIFEST = {} of String => String
