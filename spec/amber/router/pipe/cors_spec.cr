@@ -4,7 +4,6 @@ module Amber
   module Pipe
     describe CORS do
       context "allowed headers" do
-
         # Pipeline with default settings
         pipeline = Pipeline.new
         pipeline.build :cors do
