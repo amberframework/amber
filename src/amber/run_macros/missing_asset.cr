@@ -1,3 +1,4 @@
+# Originally inspired by luckyframework.org
 require "colorize"
 require "json"
 require "levenshtein"
