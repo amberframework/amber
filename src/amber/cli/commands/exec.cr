@@ -37,7 +37,7 @@ module Amber::CLI
           prepare_file
           system("#{options.editor} #{@filename}")
         else
-        File.write(@filename, "result = begin\n#{args.code}\nend\nputs result.inspect\n")
+        File.write(@filename, "result = (\n#{args.code}\n)\nputs result.inspect\n")
         end
 
         result = ""
@@ -48,8 +48,12 @@ module Amber::CLI
           result = `crystal eval '#{eval_cmd.join(" ")}'`
         end
 
-        File.write(@filename.sub("console.cr", "console_result.log"), result) unless result.blank?
-        puts result, "Exec"
+        STDOUT.puts result
+        if result.blank?
+          STDOUT.puts "Info: if `unexpected token: )` then probably a `end` token is missing"
+        else
+          File.write(@filename.sub("console.cr", "console_result.log"), result)
+        end
       end
     end
   end
