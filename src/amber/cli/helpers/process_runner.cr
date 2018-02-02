@@ -1,3 +1,5 @@
+require "./helpers"
+
 module Sentry
   class ProcessRunner
     property processes = [] of Process
@@ -30,13 +32,15 @@ module Sentry
     # Compiles and starts the application
     def start_app
       build_result = build_app_process
-      if build_result && build_result.success?
-        stop_all_processes
-        create_all_processes
-        @app_running = true
-      elsif !@app_running
-        log "Compile time errors detected. Shutting down..."
-        exit 1
+      if build_result.is_a? Process::Status
+        if build_result.success?
+          stop_all_processes
+          create_all_processes
+          @app_running = true
+        elsif !@app_running
+          log "Compile time errors detected. Shutting down..."
+          exit 1
+        end
       end
     end
 
@@ -67,7 +71,8 @@ module Sentry
     end
 
     private def create_all_processes
-      @processes << create_watch_process
+      process = create_watch_process
+      @processes << process if process.is_a? Process
       unless @npm_process
         create_npm_process
         @npm_process = true
@@ -76,17 +81,17 @@ module Sentry
 
     private def build_app_process
       log "Building project #{project_name}..."
-      Process.run(@build_command, shell: true, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
+      Amber::CLI::Helpers.run(@build_command)
     end
 
     private def create_watch_process
       log "Starting #{project_name}..."
-      Process.new(@run_command, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
+      Amber::CLI::Helpers.run(@run_command, wait: false, shell: false)
     end
 
     private def create_npm_process
       node_log "Installing dependencies..."
-      Process.new("npm install --loglevel=error && npm run watch", shell: true, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
+      Amber::CLI::Helpers.run("npm install --loglevel=error && npm run watch", wait: false)
       node_log "Watching public directory"
     end
 
