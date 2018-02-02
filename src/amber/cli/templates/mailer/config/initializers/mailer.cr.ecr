@@ -1,8 +1,19 @@
 Quartz.config do |c|
+  # Use to disable/enable attempting to send emails
+  c.smtp_enabled = false
+
+  c.logger = Amber.settings.logger.dup
+  c.logger.progname = "Email"
+
   # Example config for use with mailinator
   # c.smtp_address = "127.0.0.1"
   # c.smtp_port    = 1025
-  # c.logger = Amber.settings.logger.dup
 
-  # c.smtp_enabled = true
+  # Example config for use with Sendgrid
+  # c.smtp_address = "smtp.sendgrid.net"
+  # c.smtp_port    = 587
+  # c.username     = "apikey"
+  # c.password     = "SG.000000000000000000000000000000000000000000000000000000000000000000"
+  # c.use_tls  = true
+  # c.use_authentication = true
 end
