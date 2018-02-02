@@ -1,6 +1,6 @@
 module Amber
   module Extensions
-    module StringExtension
+    module String
       def str?
         self.is_a? String
       end
