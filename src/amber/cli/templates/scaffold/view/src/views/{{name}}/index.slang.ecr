@@ -7,16 +7,16 @@ div.table-responsive
   table.table.table-striped
     thead
       tr
-        <% @fields.reject{|f| f.hidden }.each do |field| -%>
+        <%- @fields.reject{|f| f.hidden }.each do |field| -%>
         th <%= field.name.capitalize %>
-        <% end -%>
+        <%- end -%>
         th Actions
     tbody
       - <%= @name %>s.each do |<%= @name %>|
         tr
-          <% @fields.reject{|f| f.hidden }.each do |field| -%>
+          <%- @fields.reject{|f| f.hidden }.each do |field| -%>
           td = <%= @name %>.<%= field.name %><%= field.reference? ? ".id" : "" %>
-          <% end -%>
+          <%- end -%>
           td
             span
               == link_to("read", "/<%= @name %>s/#{<%= @name %>.id}", class: "btn btn-success btn-xs")
