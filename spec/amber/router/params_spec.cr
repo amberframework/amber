@@ -16,5 +16,30 @@ module Amber::Router
         params.fetch_all("test").should eq %w(test test2)
       end
     end
+
+    context "when parsing body params" do
+      context "when content-type is form url urlencoded" do
+        it "returns params" do
+          headers = HTTP::Headers.new
+          headers["Content-Type"] = "application/x-www-form-urlencoded"
+          body = "name=John Doe"
+          request = HTTP::Request.new("POST", "/", headers, body)
+          params = Parse.new(request).parse
+
+          params["name"].should eq "John Doe"
+        end
+
+        it "parses body params with charset" do
+          headers = HTTP::Headers.new
+          headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
+          body = "\x68\x65\x6C\x6C\x6F\x3D\x77\x6F\x72\x6C\x64"
+          request = HTTP::Request.new("POST", "/", headers, body)
+          params = Parse.new(request).parse
+          params["hello"].should eq "world"
+        end
+
+
+      end
+    end
   end
 end

@@ -58,6 +58,8 @@ module Amber::Router
   end
 
   class Parse
+    URL_ENCODED_FORM = "application/x-www-form-urlencoded"
+
     getter request : HTTP::Request
     getter params = Params.new
     def initialize(@request : HTTP::Request)
@@ -65,10 +67,21 @@ module Amber::Router
 
     def parse
       query_params
+      form_data
+      params
     end
 
     private def query_params
       params.merge! request.query_params.raw_params
+    end
+
+    private def form_data
+      return unless content_type.try &.starts_with? URL_ENCODED_FORM
+      params.merge! Parser::FormData.new(request).parse.raw_params
+    end
+
+    private def content_type
+      @request.headers["Content-Type"]?
     end
   end
 end
