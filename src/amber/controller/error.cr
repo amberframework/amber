@@ -13,9 +13,9 @@ module Amber::Controller
 
     def internal_server_error
       response_format("ERROR: #{@ex.inspect_with_backtrace}")
-      # NOTE: As I commented in December 540cde6
-      # #inspect_with_backtrace will fail in some situtions which breaks the tests.
-      # it was added back with 3fcf593e
+      # IMPORTANT: #inspect_with_backtrace will fail in some situtions which breaks the tests.
+      # Even if you call @ex.callstack you'll notice that backtrace is nil. 
+      # #backtrace? is supposed to be safe but it exceptions anyway.
       # Please don't remove this without verifying that crystal core has been fixed first. 
     rescue ex : IndexError
       response_format("ERROR: #{@ex.message}")
