@@ -31,11 +31,9 @@ module Amber::Controller
       begin
         message = @ex.inspect_with_backtrace
       rescue ex : IndexError
-        puts <<-MSG
-          Somehow we've created a situation where `Exception#backtrace?`
-          will raise an IndexError.
-          Even here if you do `ex.backtrace?` it will do the same thing.
-          MSG
+        # ERROR: Any of these will cause another IndexError (at least on macOS)
+        # ex.inspect_with_backtrace # or @ex.inspect_with_backtrace
+        # ex.backtrace? # or @ex.backtrace?
         message = @ex.message
       end
       return message
