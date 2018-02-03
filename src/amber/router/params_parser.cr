@@ -125,7 +125,7 @@ module Amber::Router
         # See https://tools.ietf.org/html/rfc7578#section-4.2
         filename = upload.filename
         if filename.is_a?(String) && !filename.empty?
-          params.files[upload.name] = Files::File.new(upload: upload)
+          params.files[upload.name] = Amber::Router::File.new(upload: upload)
         else
           # Parses form fields
           params[upload.name] = upload.body.gets_to_end
