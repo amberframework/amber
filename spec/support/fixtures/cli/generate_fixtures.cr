@@ -1,5 +1,8 @@
+require "amber/controller/helpers/render"
+
 module Fixtures::CLI::Generate
   module ErrorController
+    include Amber::Controller::Helpers::Render
     extend self
 
     def expected_error_controller

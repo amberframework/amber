@@ -1,4 +1,7 @@
+require "amber/controller/helpers/render"
+
 class <%= class_name %>Controller < Amber::Controller::Error
+  include Amber::Controller::Helpers::Render
   LAYOUT = "application.<%= @language %>"
 
   def forbidden
