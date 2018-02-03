@@ -38,7 +38,18 @@ module Amber::Router
           params["hello"].should eq "world"
         end
 
+        it "parses files from multipart forms" do
+          headers = HTTP::Headers.new
+          headers["Content-Type"] = "multipart/form-data; boundary=fhhRFLCazlkA0dX"
+          body = "--fhhRFLCazlkA0dX\r\nContent-Disposition: form-data; name=\"_csrf\"\r\n\r\nPcCFp4oKJ1g-hZ-P7-phg0alC51pz7Pl12r0ZOncgxI\r\n--fhhRFLCazlkA0dX\r\nContent-Disposition: form-data; name=\"title\"\r\n\r\ntitle field\r\n--fhhRFLCazlkA0dX\r\nContent-Disposition: form-data; name=\"picture\"; filename=\"index.html\"\r\nContent-Type: text/html\r\n\r\n<head></head><body>Hello World!</body>\r\n\r\n--fhhRFLCazlkA0dX\r\nContent-Disposition: form-data; name=\"content\"\r\n\r\nseriously\r\n--fhhRFLCazlkA0dX--"
+          request = HTTP::Request.new("POST", "/", headers, body)
 
+          params = Parse.new(request).parse
+
+          params.files["picture"].filename.should eq "index.html"
+          params["title"].should eq "title field"
+          params["_csrf"].should eq "PcCFp4oKJ1g-hZ-P7-phg0alC51pz7Pl12r0ZOncgxI"
+        end
       end
     end
   end
