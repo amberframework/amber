@@ -7,7 +7,10 @@ module Fixtures::CLI::Generate
 
     def expected_error_controller
       <<-CONT
+      require "amber/controller/helpers/render"
+
       class ErrorController < Amber::Controller::Error
+        include Amber::Controller::Helpers::Render
         LAYOUT = "application.slang"
 
         def forbidden
