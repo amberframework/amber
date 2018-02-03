@@ -55,8 +55,6 @@ module CLIFixtures
 
   def expected_post_model
     <<-MODEL
-    require "granite_orm/adapter/pg"
-
     class Post < Granite::ORM::Base
       adapter pg
       table_name posts
