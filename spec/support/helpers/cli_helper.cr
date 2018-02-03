@@ -1,3 +1,5 @@
+require "file_utils"
+
 module CLIHelper
   BASE_ENV_PATH       = "./config/environments/"
   ENV_CONFIG_PATH     = "#{TESTING_APP}/config/environments/"
@@ -6,7 +8,9 @@ module CLIHelper
 
   def cleanup
     Dir.cd CURRENT_DIR
-    `rm -rf ./tmp/`
+    if Dir.exists?(TESTING_APP)
+      FileUtils.rm_r(TESTING_APP)
+    end
   end
 
   def prepare_test_app
