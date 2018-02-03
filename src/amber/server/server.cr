@@ -43,10 +43,9 @@ module Amber
 
     def run
       thread_count = settings.process_count
-      env_hash = ENV.to_h
       if Cluster.master? && thread_count > 1
         while (thread_count > 0)
-          Cluster.fork (env_hash.merge({"id" => thread_count.to_s}))
+          Cluster.fork
           thread_count -= 1
         end
         sleep
