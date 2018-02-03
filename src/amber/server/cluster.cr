@@ -7,6 +7,7 @@ module Amber
         env = ENV.to_h
         env["FORKED"] = "1"
         env["AMBER_ENV"] = Amber.env.to_s
+        env
       end
     end
 
