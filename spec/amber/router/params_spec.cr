@@ -37,7 +37,9 @@ module Amber::Router
           params = Parse.new(request).parse
           params["hello"].should eq "world"
         end
+      end
 
+      context "when parsing multipart" do
         it "parses files from multipart forms" do
           headers = HTTP::Headers.new
           headers["Content-Type"] = "multipart/form-data; boundary=fhhRFLCazlkA0dX"
@@ -49,6 +51,31 @@ module Amber::Router
           params.files["picture"].filename.should eq "index.html"
           params["title"].should eq "title field"
           params["_csrf"].should eq "PcCFp4oKJ1g-hZ-P7-phg0alC51pz7Pl12r0ZOncgxI"
+        end
+      end
+
+      context "when parsing JSON body" do
+        it "parses json hash" do
+          headers = HTTP::Headers.new
+          headers["Content-Type"] = "application/json"
+          body = %({ "test": "test", "address": { "city": "New York" }})
+          request = HTTP::Request.new("POST", "/", headers, body)
+
+          context = create_context(request)
+
+          context.params["test"].should eq "test"
+          context.params.json("address")["city"].should eq "New York"
+        end
+
+        it "parses json array" do
+          headers = HTTP::Headers.new
+          headers["Content-Type"] = "application/json"
+          body = %(["test", "test2"])
+          request = HTTP::Request.new("POST", "/", headers, body)
+
+          context = create_context(request)
+
+          context.params.json("_json").should eq %w(test test2)
         end
       end
     end

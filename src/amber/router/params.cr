@@ -60,6 +60,7 @@ module Amber::Router
   class Parse
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     MULTIPART_FORM = "multipart/form-data"
+    APPLICATION_JSON = "application/json"
 
     getter request : HTTP::Request
     getter params = Params.new
@@ -70,6 +71,7 @@ module Amber::Router
       query_params
       form_data
       multipart
+      json
       params
     end
 
@@ -85,6 +87,11 @@ module Amber::Router
     def multipart
       return unless content_type.try &.starts_with? MULTIPART_FORM
       Parser::Multipart.new(params, request).parse
+    end
+
+    def json
+      return unless content_type.try &.starts_with? APPLICATION_JSON
+      Parser::JSON.new(params, request).parse
     end
 
     private def content_type
