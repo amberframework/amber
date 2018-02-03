@@ -34,4 +34,12 @@ module Amber::CLI::Helpers
     REQUIRES
     File.write("./config/application.cr", application.gsub("require \"amber\"", replacement))
   end
+
+  def self.run(command, wait = true, shell = true)
+    if wait
+      Process.run(command, shell: shell, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
+    else
+      Process.new(command, shell: shell, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
+    end
+  end
 end

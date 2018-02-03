@@ -1,5 +1,7 @@
 require "./initializers/**"
+
 require "amber"
+
 require "../src/controllers/application_controller"
 require "../src/controllers/**"
 
@@ -121,10 +123,10 @@ Amber::Server.configure do |settings|
   # settings.session = { "key" => "amber.session", "store" => "signed_cookie", "expires" => 0 }
   #
   #
-  # Log: Is the logger that will be used for Amber and it defaults to ::Logger.new(STDOUT).
-  # You can supply a custom logger.
+  # Logger: is the logger that Amber and other capable shards in the project will use
+  # instead of writing directly to STDOUT. Supply a custom logger to write to syslog, etc.
   #
-  # settings.logger = ::Logger.new(STDOUT)
+  # settings.logger = Amber::Environment::Logger.new(File.open("<%= @name %>.log", "w"))
   #
   #
 end
