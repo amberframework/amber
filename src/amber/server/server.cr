@@ -44,10 +44,7 @@ module Amber
     def run
       thread_count = settings.process_count
       if Cluster.master? && thread_count > 1
-        while (thread_count > 0)
-          Cluster.fork
-          thread_count -= 1
-        end
+        thread_count.times{ Cluster.fork }
         sleep
       else
         start
