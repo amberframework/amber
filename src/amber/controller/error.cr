@@ -12,7 +12,7 @@ module Amber::Controller
     end
 
     def internal_server_error
-      response_format("ERROR: #{@ex.inspect_with_backtrace}")
+      response_format("ERROR: #{internal_server_error_message}")
     end
 
     def forbidden
@@ -25,6 +25,20 @@ module Amber::Controller
       else
         "text/html"
       end
+    end
+
+    private def internal_server_error_message
+      begin
+        message = @ex.inspect_with_backtrace
+      rescue ex : IndexError
+        puts <<-MSG
+          Somehow we've created a situation where `Exception#backtrace?`
+          will raise an IndexError.
+          Even here if you do `ex.backtrace?` it will do the same thing.
+          MSG
+        message = @ex.message
+      end
+      return message
     end
 
     private def response_format(message)
