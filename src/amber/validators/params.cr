@@ -62,7 +62,7 @@ module Amber::Validators
   end
 
   class Params
-    getter raw_params = Amber::Router::Params.new
+    getter raw_params : Amber::Router::Params
     getter errors = [] of Error
     getter rules = [] of BaseRule
     getter params = {} of String => String?
@@ -130,6 +130,10 @@ module Amber::Validators
     # ```
     def add_rule(rule : BaseRule)
       @rules << rule
+    end
+
+    def to_h
+      @params
     end
   end
 end

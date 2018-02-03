@@ -84,10 +84,6 @@ module Amber
         end
       end
 
-      private def merge_params(params, context)
-        params.each { |k, v| context.params.add(k.to_s, v) }
-      end
-
       private def build_node(http_verb : Symbol | String, resource : String)
         "#{http_verb.to_s.downcase}#{resource}"
       end
