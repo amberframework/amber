@@ -1,6 +1,6 @@
 require "teeplate"
 require "random/secure"
-require "../helpers/helpers.cr"
+require "../helpers/helpers"
 require "./app"
 require "./migration"
 require "./crecto_migration"
@@ -47,7 +47,7 @@ module Amber::CLI
           App.new(name, options.d, options.t, options.m).render(directory, list: true, color: true)
           if options.deps?
             puts "Installing Dependencies"
-            puts `cd #{name} && crystal deps update`
+            Helpers.run("cd #{name} && shards update")
           end
         end
       when "migration"

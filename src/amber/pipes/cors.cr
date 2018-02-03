@@ -13,7 +13,8 @@ module Amber
         @allow_methods = ALLOW_METHODS,
         @allow_headers = ALLOW_HEADERS,
         @allow_credentials = false,
-        @max_age = 0)
+        @max_age = 0
+      )
       end
 
       def initialize(
@@ -21,8 +22,8 @@ module Amber
         allow_methods : String = ALLOW_METHODS.join(", "),
         allow_headers : String = ALLOW_HEADERS.join(", "),
         @allow_credentials = false,
-        @max_age = 0)
-
+        @max_age = 0
+      )
         @allow_methods = allow_methods.strip.split /[\s,]+/
         @allow_headers = allow_headers.strip.split /[\s,]+/
       end
