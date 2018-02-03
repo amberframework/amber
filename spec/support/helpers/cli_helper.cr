@@ -8,7 +8,9 @@ module CLIHelper
 
   def cleanup
     Dir.cd CURRENT_DIR
-    FileUtils.rm_r(TESTING_APP)
+    if Dir.exists?(TESTING_APP)
+      FileUtils.rm_r(TESTING_APP)
+    end
   end
 
   def prepare_test_app
