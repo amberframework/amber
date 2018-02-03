@@ -10,11 +10,11 @@ module Amber
     # public-facing reverse proxies should delete the header if request is
     # coming from an untrusted client before appending their own, valid value.
     class ClientIp < Base
-
       def initialize(header : String = "X-Forwarded-For")
         @headers = [header]
       end
-      def initialize( @headers : Array(String))
+
+      def initialize(@headers : Array(String))
       end
 
       def call(context : HTTP::Server::Context)
