@@ -1,7 +1,7 @@
 require "../../../spec_helper"
 
 module Amber::Extensions
-  describe StringExtension do
+  describe String do
     it "returns true on valid email address" do
       "info@burakdemirtas.org".email?.should eq(true)
       "info@crystal-lang.com".email?.should eq(true)

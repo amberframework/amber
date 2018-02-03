@@ -1,4 +1,4 @@
-require "../../../spec_helper"
+require "../../spec_helper"
 
 module Amber::Validators
   describe Params do
@@ -88,9 +88,7 @@ module Amber::Validators
           required("nonexisting") { |v| !v.nil? }
         end
 
-        expect_raises Exceptions::Validator::InvalidParam do
-          validator.valid?
-        end
+        validator.valid?.should be_false
       end
 
       it "returns true with valid fields" do

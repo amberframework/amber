@@ -52,17 +52,17 @@ module Amber::CLI
             `crystal db/seeds.cr`
             Micrate.logger.info "Seeded database"
           when "migrate"
-            Micrate::Cli.run_up
+            begin
+              Micrate::Cli.run_up
+            rescue e : IndexError
+              exit! "No migrations to run in #{MIGRATIONS_DIR}."
+            end
           when "rollback"
             Micrate::Cli.run_down
           when "redo"
             Micrate::Cli.run_redo
           when "status"
-            if Dir.exists?(MIGRATIONS_DIR)
-              Micrate::Cli.run_status
-            else
-              exit! "Directory #{MIGRATIONS_DIR} does not exist. Please run `amber db create migrate` in project root directory."
-            end
+            Micrate::Cli.run_status
           when "version"
             Micrate::Cli.run_dbversion
           else

@@ -69,6 +69,10 @@ class HelloController < Amber::Controller::Base
     "Hello Amber!"
   end
 
+  def client_ip_address
+    client_ip.not_nil!.address
+  end
+
   def increment(n)
     @total = @total + n
   end
