@@ -1,5 +1,7 @@
 module Amber
   class Cluster
+    @@env_hash : Hash(String, String)?
+
     def self.env_hash
       @@env_hash ||= begin
         env = ENV.to_h
