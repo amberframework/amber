@@ -1,5 +1,3 @@
-require "granite_orm/adapter/<%= @database %>"
-
 class <%= class_name %> < Granite::ORM::Base
   adapter <%= @database %>
   <%= "table_name #{table_name}" %>
