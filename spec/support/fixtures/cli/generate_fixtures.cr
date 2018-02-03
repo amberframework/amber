@@ -1,4 +1,4 @@
-require "amber/controller/helpers/render"
+require "../../../../src/amber/controller/helpers/render"
 
 module Fixtures::CLI::Generate
   module ErrorController
