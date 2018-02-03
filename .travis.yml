@@ -7,8 +7,8 @@ before_install:
   - docker build -t garnet-spec .
 
 env:
-  - TEST_SUITE=./spec/build_spec.cr
   - TEST_SUITE=./spec/amber
+  - TEST_SUITE=./spec/build_spec.cr
 
 script:
   - docker-compose run spec bash -c "bin/ameba"
