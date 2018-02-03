@@ -20,11 +20,12 @@ module Amber::CLI
 
       it "executes multi-lines from the command-line argument" do
         expected_result = "one\ntwo\nthree\nnil\n"
-        MainCommand.run(["exec", "
+        code = <<-CRYSTAL
         %w(one two three).each do |item|
           puts item
         end
-        "])
+        CRYSTAL
+        MainCommand.run(["exec", code])
         logs = Dir["./tmp/*_console_result.log"].sort
 
         File.read(logs.last?.to_s).should eq expected_result
