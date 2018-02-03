@@ -13,6 +13,12 @@ module Amber::Controller
 
     def internal_server_error
       response_format("ERROR: #{@ex.inspect_with_backtrace}")
+      # NOTE: As I commented in December 540cde6
+      # #inspect_with_backtrace will fail in some situtions which breaks the tests.
+      # it was added back with 3fcf593e
+      # Please don't remove this without verifying that crystal core has been fixed first. 
+    rescue ex : IndexError
+      response_format("ERROR: #{@ex.message}")
     end
 
     def forbidden
