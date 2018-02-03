@@ -15,9 +15,9 @@ html
           == render(partial: "layouts/_nav.slang")
     div.container
       div.row
-      - flash.each do |key, value|
-        div class="alert alert-#{ key }"
-          p = flash[key]
+        - flash.each do |key, value|
+          div class="alert alert-#{key}"
+            p = flash[key]
       div.row
         div.col-sm-12.main
           == content
