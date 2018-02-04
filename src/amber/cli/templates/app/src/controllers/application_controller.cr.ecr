@@ -1,6 +1,8 @@
+require "amber/controller/helpers/render"
 require "jasper_helpers"
 
 class ApplicationController < Amber::Controller::Base
+  include Amber::Controller::Helpers::Render
   include JasperHelpers
   LAYOUT = "application.<%= @language %>"
 end

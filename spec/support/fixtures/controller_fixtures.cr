@@ -83,6 +83,7 @@ class HelloController < Amber::Controller::Base
 end
 
 class RenderController < Amber::Controller::Base
+  include Amber::Controller::Helpers::Render
   def render_template_page
     render("spec/support/sample/views/test/test.slang", layout: false)
   end

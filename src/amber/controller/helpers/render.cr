@@ -1,3 +1,6 @@
+require "kilt"
+require "kilt/slang"
+
 module Amber::Controller::Helpers
   module Render
     LAYOUT = "application.slang"

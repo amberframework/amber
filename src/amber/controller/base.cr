@@ -1,13 +1,15 @@
 require "http"
 
 require "./filters"
-require "./helpers/*"
+require "./helpers/csrf"
+require "./helpers/redirect"
+require "./helpers/responders"
+require "./helpers/route"
 
 module Amber::Controller
   class Base
     include Helpers::CSRF
     include Helpers::Redirect
-    include Helpers::Render
     include Helpers::Responders
     include Helpers::Route
     include Callbacks
