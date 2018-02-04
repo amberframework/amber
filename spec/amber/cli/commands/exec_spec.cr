@@ -18,6 +18,19 @@ module Amber::CLI
         File.read(logs.last?.to_s).should eq expected_result
       end
 
+      it "executes multi-lines from the command-line argument" do
+        expected_result = "one\ntwo\nthree\nnil\n"
+        code = <<-CRYSTAL
+        %w(one two three).each do |item|
+          puts item
+        end
+        CRYSTAL
+        MainCommand.run(["exec", code])
+        logs = Dir["./tmp/*_console_result.log"].sort
+
+        File.read(logs.last?.to_s).should eq expected_result
+      end
+
       it "executes a .cr file from the first command-line argument" do
         File.write "amber_exec_spec_test.cr", "puts([:a] + [:b])"
         MainCommand.run(["exec", "amber_exec_spec_test.cr", "-e", "tail"])
