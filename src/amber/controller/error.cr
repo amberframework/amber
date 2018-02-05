@@ -28,15 +28,11 @@ module Amber::Controller
     end
 
     private def internal_server_error_message
-      begin
-        message = @ex.inspect_with_backtrace
-      rescue ex : IndexError
-        # ERROR: Any of these will cause another IndexError (at least on macOS)
-        # ex.inspect_with_backtrace # or @ex.inspect_with_backtrace
-        # ex.backtrace? # or @ex.backtrace?
-        message = @ex.message
-      end
-      return message
+      @ex.inspect_with_backtrace
+    rescue ex : IndexError
+      @ex.message
+    rescue
+      "An unknown error occured."
     end
 
     private def response_format(message)
