@@ -46,12 +46,15 @@ module Amber::Router
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     MULTIPART_FORM = "multipart/form-data"
     APPLICATION_JSON = "application/json"
+    @parse_state = false
 
     def params
+      return @params if @parse_state
       @params.store = query_params
       form_data(self, @params)
       json(self, @params)
       multipart(self, @params)
+      @parse_state = true
       @params
     end
 
