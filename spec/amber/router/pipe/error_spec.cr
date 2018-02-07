@@ -14,18 +14,13 @@ module Amber
 
       it "returns status code 500 for all other exceptions" do
         error = Error.new
-        pipeline = Pipeline.new
+        error.next = ->(context : HTTP::Server::Context) { raise "Oops!" }
         request = HTTP::Request.new("GET", "/")
 
         Amber::Server.router.draw :web do
           get "/", HelloController, :index
         end
 
-        pipeline.build :web do
-          plug Amber::Pipe::Logger.new
-        end
-
-        error.next = ->(context : HTTP::Server::Context) { raise "Oops!" }
         response = create_request_and_return_io(error, request)
 
         response.status_code.should eq 500
