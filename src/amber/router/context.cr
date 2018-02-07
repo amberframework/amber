@@ -38,10 +38,6 @@ class HTTP::Server::Context
     request.headers["Upgrade"]? == "websocket"
   end
 
-  def request_handler
-    request.route
-  end
-
   # TODO rename this method to something move descriptive
   def valve
     request.route.valve
@@ -79,7 +75,7 @@ class HTTP::Server::Context
   end
 
   protected def process_request
-    request_handler.call(self)
+    request.route.call(self)
   end
 
   protected def finalize_response
