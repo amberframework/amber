@@ -31,9 +31,6 @@ module Amber::Router
     def initialize
     end
 
-    def initialize(@store)
-    end
-
     def json(key)
       JSON.parse(store[key]?.to_s)
     rescue JSON::ParseException
