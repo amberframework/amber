@@ -1,28 +1,24 @@
+require "./params"
+
 class HTTP::Request
+  include Amber::Router::Parse
   METHOD           = "_method"
   OVERRIDE_HEADER  = "X-HTTP-Method-Override"
-  VALID_METHODS    =  %w(GET POST)
-  @requested_method : String?
-  @params : Amber::Router::Params?
 
-  getter router : Amber::Router::Router = Amber::Server.router
-  property matched_route : Radix::Result(Amber::Route)?
+  @route : Amber::Route?
+  @radix_route : Radix::Tree(Amber::Route)?
+  @requested_method : String?
+  @params : Amber::Router::Params = Amber::Router::Params.new
 
   def method
-    return requested_method.to_s.upcase if override_method?
-    @method
+    case @method
+    when "GET", "POST" then requested_method.to_s.upcase
+    else @method
+    end
   end
 
   def requested_method
-    @requested_method ||= params[METHOD]? || headers[OVERRIDE_HEADER]?
-  end
-
-  def override_method?
-    VALID_METHODS.includes?(@method) && requested_method
-  end
-
-  def params
-    @params ||= Amber::Router::Parse.params(self)
+    @requested_method ||= params[METHOD]? || headers[OVERRIDE_HEADER]? || @method
   end
 
   def port
@@ -34,11 +30,7 @@ class HTTP::Request
   end
 
   def route
-    matched_route.payload
-  end
-
-  def route_params
-    matched_route.params
+    @route ||= matched_route.payload
   end
 
   def valid_route?
@@ -49,7 +41,13 @@ class HTTP::Request
     router.get_socket_handler(self)
   end
 
-  private def matched_route
-    @matched_route ||= router.match_by_request(self)
+  def matched_route
+    radix_route = router.match_by_request(self)
+    radix_route.params.each { |k,v| @params.store.add(k, v) }
+    radix_route
+  end
+
+  private def router
+    Amber::Server.router
   end
 end

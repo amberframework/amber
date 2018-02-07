@@ -1,7 +1,3 @@
-struct HTTP::Params
-  getter raw_params
-end
-
 module Amber::Router
   struct File
     getter file : Tempfile
@@ -26,76 +22,58 @@ module Amber::Router
     end
   end
 
-  class Params < Hash(String, Array(String) | String)
-    alias KeyType = String | Symbol
+  struct Params
     property files = {} of String => File
+    property store : HTTP::Params = HTTP::Params.new( Hash(String, Array(String)).new)
 
-    def json(key : KeyType)
-      JSON.parse(self[key]?.to_s)
+    forward_missing_to @store
+
+    def initialize
+    end
+
+    def initialize(@store)
+    end
+
+    def json(key)
+      JSON.parse(store[key]?.to_s)
     rescue JSON::ParseException
       raise "Value of params.json(#{key.inspect}) is not JSON!"
     end
-
-    def [](key : KeyType)
-      val = fetch(key)
-      case val
-      when Array  then val.as(Array).first
-      when String then val
-      end
-    end
-
-    def fetch_all(key : KeyType)
-      fetch(key)
-    end
-
-    def []=(key : KeyType, value : V)
-      super(key, value)
-    end
-
-    def find_entry(key : KeyType)
-      super(key)
-    end
   end
 
-  class Parse
+  module Parse
+    TYPE_EXT_REGEX = Amber::Support::MimeTypes::TYPE_EXT_REGEX
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     MULTIPART_FORM = "multipart/form-data"
     APPLICATION_JSON = "application/json"
 
-    getter request : HTTP::Request
-    getter params = Params.new
-    def initialize(@request : HTTP::Request)
+    def params
+      @params.store = query_params
+      form_data(self, @params)
+      json(self, @params)
+      multipart(self, @params)
+      @params
     end
 
-    def parse
-      query_params
-      form_data
-      multipart
-      json
-      params
-    end
-
-    private def query_params
-      params.merge! request.query_params.raw_params
-    end
-
-    private def form_data
+    private def form_data(request, params)
       return unless content_type.try &.starts_with? URL_ENCODED_FORM
-      params.merge! Parser::FormData.new(request).parse.raw_params
+      Parser::FormData.parse(request).each do |k, v|
+        params.store.add(k, v)
+      end
     end
 
-    def multipart
+    private def multipart(request, params)
       return unless content_type.try &.starts_with? MULTIPART_FORM
-      Parser::Multipart.new(params, request).parse
+      Parser::Multipart.parse(@params, request)
     end
 
-    def json
+    private def json(request, params)
       return unless content_type.try &.starts_with? APPLICATION_JSON
-      Parser::JSON.new(params, request).parse
+      Parser::JSON.parse(params.store, request)
     end
 
     private def content_type
-      @request.headers["Content-Type"]?
+      headers["Content-Type"]?
     end
   end
 end
