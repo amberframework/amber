@@ -1,19 +1,20 @@
 require "./params"
+require "./parser"
+require "./file"
 
 class HTTP::Request
-  include Amber::Router::Parse
-  METHOD           = "_method"
-  OVERRIDE_HEADER  = "X-HTTP-Method-Override"
+  include Amber::Router::Parser
+  METHOD          = "_method"
+  OVERRIDE_HEADER = "X-HTTP-Method-Override"
 
-  @route : Amber::Route?
-  @radix_route : Radix::Tree(Amber::Route)?
+  @radix_route : Radix::Result(Amber::Route) = Radix::Result(Amber::Route).new
   @requested_method : String?
   @params : Amber::Router::Params = Amber::Router::Params.new
 
   def method
     case @method
     when "GET", "POST" then requested_method.to_s.upcase
-    else @method
+    else                    @method
     end
   end
 
@@ -30,7 +31,7 @@ class HTTP::Request
   end
 
   def route
-    @route ||= matched_route.payload
+    matched_route.payload
   end
 
   def valid_route?
@@ -42,9 +43,10 @@ class HTTP::Request
   end
 
   def matched_route
-    radix_route = router.match_by_request(self)
-    radix_route.params.each { |k,v| @params.store.add(k, v) }
-    radix_route
+    return @radix_route if @radix_route.payload?
+    @radix_route = router.match_by_request(self)
+    @radix_route.params.each { |k, v| @params.store.add(k, v) }
+    @radix_route
   end
 
   private def router

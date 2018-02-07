@@ -1,7 +1,7 @@
 require "../../../spec_helper"
 
 module Amber::Router
-  describe Parse do
+  describe Parser do
     headers = HTTP::Headers.new
 
     context "when parsing query string" do

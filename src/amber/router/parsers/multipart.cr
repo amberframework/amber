@@ -1,4 +1,4 @@
-module Parser
+module Parsers
   module Multipart
     def self.parse(params : Amber::Router::Params, request : HTTP::Request)
       HTTP::FormData.parse(request) do |upload|

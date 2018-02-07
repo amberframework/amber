@@ -6,7 +6,6 @@ require "./**"
 class HTTP::Server::Context
   METHODS = %i(get post put patch delete head)
 
-  include Amber::Router::Files
   include Amber::Router::Session
   include Amber::Router::Flash
 

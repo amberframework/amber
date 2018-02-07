@@ -1,4 +1,4 @@
-module Parser
+module Parsers
   module JSON
     def self.parse(params : HTTP::Params, request : HTTP::Request)
       if body = request.body.not_nil!.gets_to_end
