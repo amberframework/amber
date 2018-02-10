@@ -28,7 +28,7 @@ module Amber::Router
 
         it "parses body params with charset" do
           headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
-          body = "\x68\x65\x6C\x6C\x6F\x3D\x77\x6F\x72\x6C\x64"
+          body = Bytes[104, 101, 108, 108, 111, 61, 119, 111, 114, 108, 100]
           request = HTTP::Request.new("POST", "/", headers, body)
           request.params["hello"].should eq "world"
         end
