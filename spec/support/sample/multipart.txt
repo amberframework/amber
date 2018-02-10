@@ -1,0 +1,18 @@
+--fhhRFLCazlkA0dX
+Content-Disposition: form-data; name="_csrf"
+
+PcCFp4oKJ1g-hZ-P7-phg0alC51pz7Pl12r0ZOncgxI
+--fhhRFLCazlkA0dX
+Content-Disposition: form-data; name="title"
+
+title field
+--fhhRFLCazlkA0dX
+Content-Disposition: form-data; name="picture"; filename="index.html"
+Content-Type: text/html
+
+<head></head><body>Hello World!</body>
+
+--fhhRFLCazlkA0dX
+Content-Disposition: form-data; name="content"
+
+--fhhRFLCazlkA0dX--

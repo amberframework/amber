@@ -13,7 +13,7 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
-        raise Amber::Exceptions::RouteNotFound.new(context.request) if context.invalid_route?
+        raise Amber::Exceptions::RouteNotFound.new(context.request) unless context.valid_route?
         if context.websocket?
           context.process_websocket_request
         elsif @drain[context.valve]

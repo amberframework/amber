@@ -1,20 +1,14 @@
 module Amber::Router
-  class Params < Hash(String, String)
-    alias KeyType = String | Symbol
-    property files = {} of String => Amber::Router::Files::File
+  struct Params
+    property files = {} of String => File
+    property store : HTTP::Params = HTTP::Params.new(Hash(String, Array(String)).new)
 
-    def json(key : KeyType)
-      JSON.parse(self[key]?.to_s)
+    forward_missing_to @store
+
+    def json(key)
+      JSON.parse(store[key]?.to_s)
     rescue JSON::ParseException
       raise "Value of params.json(#{key.inspect}) is not JSON!"
-    end
-
-    def []=(key : KeyType, value : V)
-      super(key.to_s, value)
-    end
-
-    def find_entry(key : KeyType)
-      super(key.to_s)
     end
   end
 end
