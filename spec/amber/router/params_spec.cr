@@ -37,9 +37,9 @@ module Amber::Router
       context "when parsing multipart" do
         it "parses files from multipart forms" do
           headers["Content-Type"] = "multipart/form-data; boundary=fhhRFLCazlkA0dX"
-          body = "--fhhRFLCazlkA0dX\r\nContent-Disposition: form-data; name=\"_csrf\"\r\n\r\nPcCFp4oKJ1g-hZ-P7-phg0alC51pz7Pl12r0ZOncgxI\r\n--fhhRFLCazlkA0dX\r\nContent-Disposition: form-data; name=\"title\"\r\n\r\ntitle field\r\n--fhhRFLCazlkA0dX\r\nContent-Disposition: form-data; name=\"picture\"; filename=\"index.html\"\r\nContent-Type: text/html\r\n\r\n<head></head><body>Hello World!</body>\r\n\r\n--fhhRFLCazlkA0dX\r\nContent-Disposition: form-data; name=\"content\"\r\n\r\nseriously\r\n--fhhRFLCazlkA0dX--"
-
-          request = HTTP::Request.new("POST", "/?test=example", headers, body)
+          multipart_content = ::File.read(::File.expand_path("spec/support/sample/multipart.txt"))
+          multipart_body = multipart_content.gsub("\n", "\r\n")
+          request = HTTP::Request.new("POST", "/?test=example", headers, multipart_body)
 
           request.params.files["picture"].filename.should eq "index.html"
           request.params["title"].should eq "title field"
