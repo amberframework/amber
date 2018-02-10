@@ -1,15 +1,14 @@
-require "./params"
 require "./parser"
-require "./file"
+require "./router"
+require "./route"
 
 class HTTP::Request
-  include Amber::Router::Parser
   METHOD          = "_method"
   OVERRIDE_HEADER = "X-HTTP-Method-Override"
 
   @radix_route : Radix::Result(Amber::Route) = Radix::Result(Amber::Route).new
   @requested_method : String?
-  @params : Amber::Router::Params = Amber::Router::Params.new
+  @params : Amber::Router::Params?
 
   def method
     case @method
@@ -20,6 +19,10 @@ class HTTP::Request
 
   def requested_method
     @requested_method ||= params[METHOD]? || headers[OVERRIDE_HEADER]? || @method
+  end
+
+  def params
+    @params ||= Amber::Router::Parser.params(self)
   end
 
   def port
@@ -45,7 +48,7 @@ class HTTP::Request
   def matched_route
     return @radix_route if @radix_route.payload?
     @radix_route = router.match_by_request(self)
-    @radix_route.params.each { |k, v| @params.store.add(k, v) }
+    @radix_route.params.each { |k, v| params.store.add(k, v) }
     @radix_route
   end
 

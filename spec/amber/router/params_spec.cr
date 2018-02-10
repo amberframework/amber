@@ -5,13 +5,9 @@ module Amber::Router
     headers = HTTP::Headers.new
 
     context "when parsing query string" do
-      it "returns query params" do
-        request = HTTP::Request.new("GET", "/?test=test")
-        request.params["test"].should eq "test"
-      end
-
       it "returns array of values for same param key" do
         request = HTTP::Request.new("GET", "/?test=test&test=test2")
+        request.params["test"].should eq "test"
         request.params.fetch_all("test").size.should eq 2
         request.params.fetch_all("test").should eq %w(test test2)
       end

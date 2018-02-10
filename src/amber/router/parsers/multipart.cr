@@ -7,7 +7,7 @@ module Amber::Router::Parsers
         if filename.is_a?(String) && !filename.empty?
           params.files[upload.name] = Amber::Router::File.new(upload: upload)
         else
-          params[upload.name] = upload.body.gets_to_end
+          params.add(upload.name, upload.body.gets_to_end)
         end
       end
     end
