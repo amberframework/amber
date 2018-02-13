@@ -16,7 +16,7 @@ targets:
 dependencies:
   amber_router:
     github: amberframework/router
-    version: ~> 0.0.1
+    commit: 5883a23
 
   kilt:
     github: jeromegn/kilt
