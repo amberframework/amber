@@ -53,7 +53,7 @@ class HTTP::Server::Context
   end
 
   def request_handler
-    route.payload
+    route.payload.not_nil!
   end
 
   # TODO rename this method to something move descriptive

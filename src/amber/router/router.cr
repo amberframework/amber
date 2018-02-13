@@ -30,10 +30,9 @@ module Amber
 
       def add(route : Route)
         trail = build_node(route.verb, route.resource)
-        node = @routes.add(route.trail, route)
+        @routes.add(route.trail, route)
         @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route
         add_head(route) if route.verb == "GET"
-        node
       end
 
       def add_socket_route(route, handler : WebSockets::Server::Handler)
@@ -54,23 +53,6 @@ module Amber
 
       def match_by_controller_action(controller, action)
         @routes_hash["#{controller}##{action}"]
-      end
-
-      def all
-        root_node = @routes.root
-        all_routes = {} of String => String
-        all_routes[root_node.payload.verb + root_node.payload.resource] = root_node.payload.to_json
-        add_children(root_node, all_routes)
-        all_routes
-      end
-
-      def add_children(node, accumulator = {} of String => String)
-        node.children.each do |c|
-          if c.payload?
-            accumulator[c.payload.verb + c.payload.resource] = c.payload.to_json
-          end
-          add_children(c, accumulator)
-        end
       end
 
       def match(http_verb, resource) : RoutedResult(Route)
