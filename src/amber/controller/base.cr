@@ -37,7 +37,7 @@ module Amber::Controller
       :session,
       :valve,
       :websocket?,
-    to: context
+      to: context
 
     def initialize(@context : HTTP::Server::Context)
       @params = Amber::Validators::Params.new(context.params)

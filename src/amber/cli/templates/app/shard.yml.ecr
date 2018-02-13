@@ -12,6 +12,9 @@ targets:
   <%= @name %>:
     main: src/<%= @name %>.cr
 
+  amber:
+    main: lib/amber/src/amber/cli.cr
+
 dependencies:
   amber:
     github: amberframework/amber
@@ -30,7 +33,7 @@ dependencies:
 
   quartz_mailer:
     github: amberframework/quartz-mailer
-    version: ~> 0.4.0
+    version: ~> 0.5.0
 
   jasper_helpers:
     github: amberframework/jasper-helpers

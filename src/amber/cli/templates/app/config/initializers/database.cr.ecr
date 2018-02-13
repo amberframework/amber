@@ -2,7 +2,8 @@
 require "granite_orm/adapter/<%= @database %>"
 
 Granite::ORM.settings.database_url = Amber.settings.database_url
-Granite::ORM.settings.logger = Amber.settings.logger
+Granite::ORM.settings.logger = Amber.settings.logger.dup
+Granite::ORM.settings.logger.progname = "Granite"
 
 <% else -%>
 require "<%= @database %>"
@@ -26,5 +27,5 @@ module Repo
   end
 end
 
-Crecto::DbLogger.set_handler(Amber.settings.logger)
+Crecto::DbLogger.set_handler(Amber.settings.logger.dup)
 <% end -%>
