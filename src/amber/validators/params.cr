@@ -14,7 +14,7 @@ module Amber::Validators
     end
 
     def apply(params : Amber::Router::Params)
-      raise Exceptions::Validator::InvalidParam.new(@field) unless params.has_key? @field
+      raise Exceptions::Validator::InvalidParam.new(@field) unless params.key? @field
       call_predicate(params)
     end
 
@@ -34,7 +34,7 @@ module Amber::Validators
 
   class RequiredRule < BaseRule
     def apply(params : Amber::Router::Params)
-      return false unless params.has_key? @field
+      return false unless params.key? @field
       call_predicate(params)
     end
   end
@@ -42,7 +42,7 @@ module Amber::Validators
   # OptionalRule only validates if the key is present.
   class OptionalRule < BaseRule
     def apply(params : Amber::Router::Params)
-      return true unless params.has_key? @field
+      return true unless params.key? @field
       call_predicate(params)
     end
   end
