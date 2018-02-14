@@ -23,12 +23,12 @@ amber watch
 To build and run a **production** release:
 
 1. Add an environment variable `AMBER_ENV` with a value of `production`
-2. Run these commands:
+2. Run these commands (Note using `--release` is optional and may take a long time):
 
 ```
 npm run release
 amber db create migrate
-shards build --production
+shards build --production --release
 ./bin/<%= @name %>
 ```
 
