@@ -1,7 +1,7 @@
 version: '2'
 services:
   db:
-    image: postgres
+    image: postgres:10.2
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_DB=test_app_development

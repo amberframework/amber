@@ -3,7 +3,7 @@ Amber::Server.configure do |app|
     # Plug is the method to use connect a pipe (middleware)
     # A plug accepts an instance of HTTP::Handler
     plug Amber::Pipe::PoweredByAmber.new
-    #plug Amber::Pipe::ClientIp.new(["X-Forwarded-For"])
+    # plug Amber::Pipe::ClientIp.new(["X-Forwarded-For"])
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Logger.new
     plug Amber::Pipe::Session.new
@@ -16,7 +16,7 @@ Amber::Server.configure do |app|
   # All static content will run these transformations
   pipeline :static do
     plug Amber::Pipe::PoweredByAmber.new
-    #plug Amber::Pipe::ClientIp.new(["X-Forwarded-For"])
+    # plug Amber::Pipe::ClientIp.new(["X-Forwarded-For"])
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Static.new("./public")
   end
