@@ -4,6 +4,7 @@ Amber::Server.configure do |app|
     # A plug accepts an instance of HTTP::Handler
     plug Amber::Pipe::PoweredByAmber.new
     # plug Amber::Pipe::ClientIp.new(["X-Forwarded-For"])
+    plug Citrine::Pipe::I18n.new
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Logger.new
     plug Amber::Pipe::Session.new

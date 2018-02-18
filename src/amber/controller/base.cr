@@ -10,6 +10,7 @@ module Amber::Controller
     include Helpers::Render
     include Helpers::Responders
     include Helpers::Route
+    include Helpers::I18n
     include Callbacks
 
     protected getter context : HTTP::Server::Context
