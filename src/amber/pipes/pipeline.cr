@@ -50,6 +50,15 @@ module Amber
           pipes.first
         end
       end
+
+      def valve_cors
+        @pipeline.select do |valve, pipes|
+          pipes.map { |p| p.class }.includes?(Pipe::CORS)
+        end.map do |valve, _pipes|
+          valve
+        end
+      end
+
     end
   end
 end

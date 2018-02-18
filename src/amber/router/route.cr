@@ -48,5 +48,9 @@ module Amber
       end
       {result, params}
     end
+
+    def clone
+      Route.new(verb, resource, handler, action, valve, scope, controller)
+    end
   end
 end
