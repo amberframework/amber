@@ -1,4 +1,4 @@
-require "../../../../spec_helper"
+require "../../../spec_helper"
 
 class FakeEnvironment < Amber::Environment::Env
   def development?
