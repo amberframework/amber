@@ -19,5 +19,10 @@ require "./amber/websockets/**"
 require "./amber/environment"
 
 module Amber
+  if ARGV[0]? && ARGV[0]? == "--license"
+    puts {{ run("./amber/support/licenses.cr").stringify }}
+    exit 0 
+  end
+
   include Amber::Environment
 end
