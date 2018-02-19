@@ -13,7 +13,8 @@
     <a href="https://github.com/amberframework/amber/releases/latest"><img src="https://img.shields.io/github/tag/amberframework/amber.svg?maxAge=360"></a>
     <a href="https://shards.rocks/github/amberframework/amber"><img src="https://shards.rocks/badge/github/amberframework/amber/status.svg"></a>
     <a href="https://github.com/amberframework/amber/blob/master/LICENSE"><img src="https://img.shields.io/github/license/amberframework/amber.svg"></a>
-  <a href="https://gitter.im/amberframework/amber"><img src="https://img.shields.io/gitter/room/amberframework/amber.svg"></a>
+    <a href="https://gitter.im/amberframework/amber"><img src="https://img.shields.io/gitter/room/amberframework/amber.svg"></a>
+    <a href="https://www.codetriage.com/amber-crystal/amber"><img src="https://www.codetriage.com/amber-crystal/amber/badges/users.svg"></a>
   </p>
 </p>
 
@@ -238,13 +239,13 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 
 ## Amber Core Team
 
-- Dru Jensen [drujensen](https://github.com/drujensen) 
-- Elias Perez [eliasjpr](https://github.com/eliasjpr) 
-- Isaac Sloan [elorest](https://github.com/elorest) 
-- Faustino Aguilar [faustinoaq](https://github.com/faustinoaq) 
+- Dru Jensen [drujensen](https://github.com/drujensen)
+- Elias Perez [eliasjpr](https://github.com/eliasjpr)
+- Isaac Sloan [elorest](https://github.com/elorest)
+- Faustino Aguilar [faustinoaq](https://github.com/faustinoaq)
 - Nick Franken [fridgerator](https://github.com/fridgerator)
 - Mark Siemers [marksiemers](https://github.com/marksiemers)
-- Robert Carpenter [robacarp](https://github.com/robacarp) 
+- Robert Carpenter [robacarp](https://github.com/robacarp)
 
 See more [Amber contributors](https://github.com/amberframework/amber/graphs/contributors)
 
