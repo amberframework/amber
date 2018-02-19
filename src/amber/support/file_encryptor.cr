@@ -19,10 +19,10 @@ module Amber::Support
       String.new(read(filename, encryption_key))
     end
 
-    def self.encryption_key
-      ENV[ENCRYPT_ENV]? || File.open(FILE_PATH).gets_to_end.to_s
+    def self.encryption_key(file = FILE_PATH)
+      ENV[ENCRYPT_ENV]? || File.open(file).read_line
     rescue
-      raise Amber::Exceptions::EncryptionKeyMissing.new(FILE_PATH, ENCRYPT_ENV)
+      raise Amber::Exceptions::EncryptionKeyMissing.new(file, ENCRYPT_ENV)
     end
   end
 end
