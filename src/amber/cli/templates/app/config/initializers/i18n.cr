@@ -4,7 +4,7 @@ Citrine::I18n.configure do |settings|
   # Backend storage (as supported by i18n.cr)
   # settings.backend = I18n::Backend::Yaml.new
 
-  # Default locale (defaults to "en" and "./src/locales/en.yml").
+  # Default locale (defaults to "en" and "./src/locales/**/en.yml").
   # For a new default locale to be accepted, it must be found by the
   # backend storage and reported in "settings.available_locales".
   # settings.default_locale = "en"
