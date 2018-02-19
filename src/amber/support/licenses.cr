@@ -1,11 +1,15 @@
-licenses = String.build do |s|
-  Dir.glob("./lib/*/LICENSE", "./lib/*/license").each do |path|
-    s.puts path.match(/^\.\/lib\/([^\/]+)\//).try(&.[1]).to_s.capitalize
-    s.puts "================================================================================"
-    s.puts File.read(path)
-    s.puts "================================================================================"
-    s.puts "\n\n"
+module Amber::Support
+  module Licenses
+    def self.display
+      {{ run("../scripts/licenses.cr").stringify }}
+    end
   end
 end
 
-puts licenses
+# NOTE: if we need any other cli options we should move this to a cli folder/file.
+# Until then it makes most sense to leave it here.
+
+if ARGV[0]? && ARGV[0]? == "--license"
+  puts Amber::Support::Licenses.display 
+  exit 0 
+end

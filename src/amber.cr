@@ -6,6 +6,7 @@ require "random/secure"
 require "kilt"
 require "kilt/slang"
 require "redis"
+require "./amber/support/licenses"
 require "./amber/version"
 require "./amber/controller/**"
 require "./amber/dsl/**"
@@ -19,10 +20,5 @@ require "./amber/websockets/**"
 require "./amber/environment"
 
 module Amber
-  if ARGV[0]? && ARGV[0]? == "--license"
-    puts {{ run("./amber/support/licenses.cr").stringify }}
-    exit 0 
-  end
-
   include Amber::Environment
 end
