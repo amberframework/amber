@@ -1,17 +1,21 @@
 dist: trusty
 sudo: required
-language: generic
+language: crystal
 
 services:
-  - docker
-
+  - postgres
+  - redis-server
+cache:
+  directories:
+    - bin/
+    - lib/
 env:
   - TEST_SUITE=./spec/build_spec.cr
   - TEST_SUITE=./spec/amber
 
 script:
-  - docker-compose run spec bash -c "bin/ameba"
-  - docker-compose run spec bash -c "crystal spec $TEST_SUITE -D run_build_tests"
+  - bin/ameba
+  - crystal spec $TEST_SUITE -D run_build_tests
 
 notifications:
   webhooks:
