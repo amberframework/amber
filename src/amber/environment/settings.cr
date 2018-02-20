@@ -10,8 +10,9 @@ module Amber::Environment
       skip: Array(String?),
       context: Array(String?))
 
+    alias Value = String | Int32 | Bool | Nil
 
-    struct SmtpSettings
+    struct SMTPSettings
       property host = "127.0.0.1"
       property port = 1025
       property enabled = false
@@ -19,7 +20,7 @@ module Amber::Environment
       property password = ""
       property tls = false
 
-      def self.from_hash(settings = {} of String => String | Int32 | Bool | Nil) : self
+      def self.from_hash(settings = {} of String => Value) : self
         i = new
         i.host     = settings["host"]?     ? settings["host"].as String     : i.host
         i.port     = settings["port"]?     ? settings["port"].as Int32      : i.port
@@ -50,10 +51,10 @@ module Amber::Environment
       @logger ||= LoggerBuilder.new(STDOUT, logging).logger
     end
 
-    @smtp_settings : SmtpSettings?
+    @smtp_settings : SMTPSettings?
 
-    def smtp : SmtpSettings
-      @smtp_settings ||= SmtpSettings.from_hash @smtp
+    def smtp : SMTPSettings
+      @smtp_settings ||= SMTPSettings.from_hash @smtp
     end
 
     YAML.mapping(
@@ -79,11 +80,11 @@ module Amber::Environment
       ssl_key_file: {type: String?, default: nil},
       ssl_cert_file: {type: String?, default: nil},
       smtp: {
-        type: Hash(String, String | Int32 | Bool | Nil),
-        getter: false,
-        default: Hash(String, String | Int32 | Bool | Nil) {
-          "enabled" => false
-        }
+        type:    Hash(String, Value),
+        getter:  false,
+        default: Hash(String, Value){
+          "enabled" => false,
+        },
       }
     )
 
