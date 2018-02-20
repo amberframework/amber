@@ -10,7 +10,7 @@ module Amber::Environment
       skip: Array(String?),
       context: Array(String?))
 
-    alias Value = String | Int32 | Bool | Nil
+    alias SettingValue = String | Int32 | Bool | Nil
 
     struct SMTPSettings
       property host = "127.0.0.1"
@@ -20,7 +20,7 @@ module Amber::Environment
       property password = ""
       property tls = false
 
-      def self.from_hash(settings = {} of String => Value) : self
+      def self.from_hash(settings = {} of String => SettingValue) : self
         i = new
         i.host     = settings["host"]?     ? settings["host"].as String     : i.host
         i.port     = settings["port"]?     ? settings["port"].as Int32      : i.port
@@ -80,9 +80,9 @@ module Amber::Environment
       ssl_key_file: {type: String?, default: nil},
       ssl_cert_file: {type: String?, default: nil},
       smtp: {
-        type:    Hash(String, Value),
+        type:    Hash(String, SettingValue),
         getter:  false,
-        default: Hash(String, Value){
+        default: Hash(String, SettingValue){
           "enabled" => false,
         },
       }
