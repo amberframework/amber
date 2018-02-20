@@ -1,5 +1,5 @@
-require "../../../spec_helper"
-require "../../../support/helpers/router_helper"
+require "../../spec_helper"
+require "../../support/helpers/router_helper"
 
 include RouterHelper
 
