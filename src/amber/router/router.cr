@@ -1,4 +1,4 @@
-require "amber_router"
+require "oak"
 
 module Amber
   module Router
@@ -9,7 +9,7 @@ module Amber
       PATH_EXT_REGEX = /\.[^$\/]+$/
 
       def initialize
-        @routes = RouteSet(Route).new
+        @routes = Oak::Tree(Route).new
         @routes_hash = {} of String => Route
         @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new
       end
@@ -33,6 +33,7 @@ module Amber
         @routes.add(route.trail, route)
         @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route
         add_head(route) if route.verb == "GET"
+        node
       end
 
       def add_socket_route(route, handler : WebSockets::Server::Handler)
@@ -55,7 +56,13 @@ module Amber
         @routes_hash["#{controller}##{action}"]
       end
 
-      def match(http_verb, resource) : RoutedResult(Route)
+      def all
+        @routes.results.each_with_object({} of String => String) do |result, acc|
+          acc[result.key] = result.payload.to_json
+        end
+      end
+
+      def match(http_verb, resource) : Oak::Result(Amber::Route)
         result = @routes.find build_node(http_verb, resource)
         if result.found?
           result

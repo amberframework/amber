@@ -14,13 +14,9 @@ targets:
     main: src/amber/cli.cr
 
 dependencies:
-  amber_router:
-    github: amberframework/router
-    version: ~> 0.0.3
-
-  compiled_license:
-    github: elorest/compiled_license
-    version: ~> 0.1.1
+  oak:
+    github: obsidian/oak
+    version: ~> 2.0.0
 
   kilt:
     github: jeromegn/kilt
@@ -28,7 +24,7 @@ dependencies:
 
   slang:
     github: jeromegn/slang
-    version: ~> 1.7.1 
+    version: ~> 1.7.1
 
   redis:
     github: stefanwille/crystal-redis
