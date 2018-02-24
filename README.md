@@ -61,7 +61,7 @@ Ensure you have the necessary dependencies:
 
 These are necessary to compile the CLI:
 
-- apt-get install build-essential libreadline-dev libsqlite3-dev libpq-dev libmysqlclient-dev libssl-dev`
+- apt-get install build-essential libreadline-dev libsqlite3-dev libpq-dev libmysqlclient-dev libssl-dev libyaml-dev
 
 <!-- WIP: ##### For RedHat & CentOS
 - `sudo yum groupinstall 'Development Tools' `
