@@ -26,6 +26,16 @@ module Amber::Router
       end
     end
 
+    describe "#[]?" do
+      it "returns nil for non-existent key" do
+        params["invalid"]?.should be_nil
+      end 
+
+      it "returns value for key" do
+        params["test"]?.should eq "test"
+      end
+    end
+
     describe "#fetch_all" do
       it "returns an array of params" do
         params.fetch_all("test").should eq %w(test test2)

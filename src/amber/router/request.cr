@@ -12,8 +12,8 @@ class HTTP::Request
 
   def method
     case @method
-    when "GET", "POST" then requested_method.to_s.upcase
-    else                    @method
+    when "POST" then requested_method.to_s.upcase
+    else             @method
     end
   end
 

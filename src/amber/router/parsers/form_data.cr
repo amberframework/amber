@@ -9,7 +9,7 @@ module Amber::Router::Parsers
     end
 
     def self.parse_part(input : String) : HTTP::Params
-      HTTP::Params.parse(input.to_s)
+      HTTP::Params.parse(input)
     end
 
     def self.parse_part(input : Nil) : HTTP::Params

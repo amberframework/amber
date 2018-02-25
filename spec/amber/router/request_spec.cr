@@ -83,23 +83,17 @@ module Amber::Router
           request.method.should eq method
         end
 
-        it "overrides form GET method to PUT, PATCH, DELETE" do
-          headers[HTTP::Request::OVERRIDE_HEADER] = method
-          request = HTTP::Request.new("GET", "/?test=test", headers)
-          request.method.should eq method
-        end
-
         it "takes form post over header override" do
-          headers[HTTP::Request::OVERRIDE_HEADER] = method
+          headers[HTTP::Request::OVERRIDE_HEADER] = "PUT"
           headers["content-type"] = "application/x-www-form-urlencoded"
-          request = HTTP::Request.new("GET", "/?test=test", headers, "_method=PATCH")
+          request = HTTP::Request.new("POST", "/?test=test", headers, "_method=PATCH")
           request.method.should eq "PATCH"
         end
       end
 
       it "overrides form request method only by upper case value" do
         headers["content-type"] = "application/x-www-form-urlencoded"
-        request = HTTP::Request.new("GET", "/?test=test", headers, "_method=put")
+        request = HTTP::Request.new("POST", "/?test=test", headers, "_method=put")
         request.method.should eq "PUT"
       end
     end
@@ -108,12 +102,6 @@ module Amber::Router
       it "overrides form POST method to PUT, PATCH, DELETE" do
         headers["content-type"] = "application/x-www-form-urlencoded"
         request = HTTP::Request.new("POST", "/?test=test", headers, "_method=#{method}")
-        request.method.should eq method
-      end
-
-      it "overrides form GET method to PUT, PATCH, DELETE" do
-        headers["content-type"] = "application/x-www-form-urlencoded"
-        request = HTTP::Request.new("GET", "/?test=test", headers, "_method=#{method}")
         request.method.should eq method
       end
 
