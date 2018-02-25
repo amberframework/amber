@@ -175,7 +175,7 @@ module Amber::CLI
           File.exists?("./spec/models/admin_user_spec.cr").should be_true
           File.exists?("./src/controllers/registration_controller.cr").should be_true
           File.exists?("./src/controllers/session_controller.cr").should be_true
-          File.exists?("./src/handlers/authenticate.cr").should be_true
+          File.exists?("./src/pipes/authenticate.cr").should be_true
           File.exists?("./src/models/admin_user.cr").should be_true
           File.exists?("./src/views/registration/new.slang").should be_true
           File.exists?("./src/views/session/new.slang").should be_true
@@ -189,8 +189,8 @@ module Amber::CLI
           File.read("./src/controllers/registration_controller.cr").should contain snake_case
           File.read("./src/controllers/session_controller.cr").should contain camel_case
           File.read("./src/controllers/session_controller.cr").should contain snake_case
-          File.read("./src/handlers/authenticate.cr").should contain camel_case
-          File.read("./src/handlers/authenticate.cr").should contain snake_case
+          File.read("./src/pipes/authenticate.cr").should contain camel_case
+          File.read("./src/pipes/authenticate.cr").should contain snake_case
           File.read("./src/models/admin_user.cr").should contain class_definition_prefix
           File.read("./src/models/admin_user.cr").should contain snake_case
           File.read("./src/views/registration/new.slang").should contain snake_case
