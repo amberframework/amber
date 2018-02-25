@@ -1,80 +1,132 @@
+require "./base"
+
 module Amber
   module Pipe
-    # The CORS Handler adds support for Cross Origin Resource Sharing.
+    module Headers
+      VARY              = "Vary"
+      ORIGIN            = "Origin"
+      X_ORIGIN          = "X-Origin"
+      REQUEST_METHOD    = "Access-Control-Request-Method"
+      REQUEST_HEADERS   = "Access-Control-Request-Headers"
+      ALLOW_EXPOSE      = "Access-Control-Expose-Headers"
+      ALLOW_ORIGIN      = "Access-Control-Allow-Origin"
+      ALLOW_METHOD      = "Access-Control-Allow-Method"
+      ALLOW_HEADERS     = "Access-Control-Allow-Headers"
+      ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials"
+      ALLOW_MAX_AGE     = "Access-Control-Max-Age"
+    end
+
     class CORS < Base
-      property allow_origin, allow_headers, allow_methods, allow_credentials,
-        max_age
+      alias OriginType = Array(String | Regex)
+      FORBIDDEN = "Forbidden for invalid origins, methods or headers"
+      ALLOW_METHODS = %w(PUT PATCH DELETE)
+      ALLOW_HEADERS = %w(Accept Content-type)
 
-      ALLOW_METHODS = %w(GET HEAD POST DELETE OPTIONS PUT PATCH)
-      ALLOW_HEADERS = %w(accept content-type)
-
-      def initialize(
-        @allow_origin = "*",
-        @allow_methods = ALLOW_METHODS,
-        @allow_headers = ALLOW_HEADERS,
-        @allow_credentials = false,
-        @max_age = 0
-      )
-      end
+      property origins, headers, methods, credentials, max_age
+      @origin : Origin
 
       def initialize(
-        @allow_origin = "*",
-        allow_methods : String = ALLOW_METHODS.join(", "),
-        allow_headers : String = ALLOW_HEADERS.join(", "),
-        @allow_credentials = false,
-        @max_age = 0
+        @origins : OriginType = ["*", %r()],
+        @methods = ALLOW_METHODS,
+        @headers = ALLOW_HEADERS,
+        @credentials = false,
+        @max_age : Int32? = 0,
+        @expose_headers : Array(String)? = nil,
+        @vary : String? = nil
       )
-        @allow_methods = allow_methods.strip.split /[\s,]+/
-        @allow_headers = allow_headers.strip.split /[\s,]+/
+        @origin = Origin.new(origins)
       end
 
       def call(context : HTTP::Server::Context)
-        context.response.headers["Access-Control-Allow-Origin"] = allow_origin
-
-        # TODO: verify the actual origin matches allowed origins.
-        # if requested_origin = context.request.headers["Origin"]
-        #   if allow_origins.includes? requested_origin
-        #   end
-        # end
-
-        if allow_credentials
-          context.response.headers["Access-Control-Allow-credentials"] = "true"
-        end
-
-        if max_age > 0
-          context.response.headers["Access-Control-Max-Age"] = max_age.to_s
-        end
-
-        # if asking permission for request method or request headers
-        if context.request.method.downcase == "options"
-          context.response.status_code = 200
-          response = ""
-
-          if requested_method = context.request.headers["Access-Control-Request-Method"]
-            if allow_methods.includes? requested_method.strip
-              context.response.headers["Access-Control-Allow-Methods"] = allow_methods.join(", ")
-            else
-              context.response.status_code = 403
-              response = "Method #{requested_method} not allowed."
-            end
-          end
-
-          if requested_headers = context.request.headers["Access-Control-Request-Headers"]
-            requested_headers.split(",").each do |requested_header|
-              if allow_headers.includes? requested_header.strip.downcase
-                context.response.headers["Access-Control-Allow-Headers"] = allow_headers.join(", ")
-              else
-                context.response.status_code = 403
-                response = "Headers #{requested_headers} not allowed."
-              end
-            end
-          end
-
-          context.response.content_type = "text/html; charset=utf-8"
-          context.response.print(response)
-        else
+        if @origin.match?(context.request)
+          put_expose_header(context.response)
+          Preflight.request?(context, self)
+          put_response_headers(context.response)
           call_next(context)
+        else
+          return forbidden(context)
         end
+      end
+
+      def forbidden(context)
+        context.response.headers["Content-Type"] = "text/plain"
+        context.response.respond_with_error FORBIDDEN, 403
+      end
+
+      private def put_expose_header(response)
+        response.headers[Headers::ALLOW_EXPOSE] = @expose_headers.as(Array).join(",") if @expose_headers
+      end
+
+      private def put_response_headers(response)
+        response.headers[Headers::ALLOW_CREDENTIALS] = @credentials.to_s if @credentials
+        response.headers[Headers::ALLOW_ORIGIN] = @origin.request_origin.not_nil!
+        response.headers[Headers::VARY] = vary unless @origin.any?
+      end
+
+      private def vary
+        String.build do |str|
+          str << Headers::ORIGIN
+          str << "," << @vary if @vary
+        end
+      end
+    end
+
+    module Preflight
+      extend self
+
+      def request?(context, cors)
+        if context.request.method == "OPTIONS"
+          if valid_method?(context.request, cors.methods) &&
+             valid_headers?(context.request, cors.headers)
+            set_preflight_headers(context.request, context.response, cors.max_age)
+          else
+            cors.forbidden(context)
+          end
+        end
+      end
+
+      def set_preflight_headers(request, response, max_age)
+        response.headers[Headers::ALLOW_METHOD] = request.headers[Headers::REQUEST_METHOD]
+        response.headers[Headers::ALLOW_HEADERS] = request.headers[Headers::REQUEST_HEADERS]
+        response.headers[Headers::ALLOW_MAX_AGE] = max_age.to_s if max_age
+        response.content_length = 0
+        response.flush
+      end
+
+      def valid_method?(request, methods)
+        methods.includes? request.headers[Headers::REQUEST_METHOD]?
+      end
+
+      def valid_headers?(request, headers)
+        !(headers & request.headers[Headers::REQUEST_HEADERS].split(',')).empty?
+      end
+    end
+
+    struct Origin
+      getter request_origin : String?
+
+      def initialize(@origins : Array(String | Regex))
+      end
+
+      def match?(request)
+        return false if @origins.empty?
+        return false unless origin_header?(request)
+        return true if any?
+
+        @origins.any? do |origin|
+          case origin
+          when String then origin == request_origin
+          when Regex  then origin =~ request_origin
+          end
+        end
+      end
+
+      def any?
+        @origins.includes? "*"
+      end
+
+      private def origin_header?(request)
+        @request_origin ||= request.headers[Headers::ORIGIN]? || request.headers[Headers::X_ORIGIN]?
       end
     end
   end
