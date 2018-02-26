@@ -4,6 +4,9 @@ require "spec"
 require "garnet_spec"
 require "../config/*"
 
+# Disable query logger for tests
+Granite::ORM.settings.logger = Logger.new nil
+
 module Spec
   DRIVER = :chrome
   PATH   = "/usr/local/bin/chromedriver"
