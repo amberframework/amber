@@ -4,6 +4,11 @@ require "spec"
 require "garnet_spec"
 require "../config/*"
 
+require "micrate"
+Micrate::DB.connection_url = Amber.settings.database_url
+
+# Automatically run migrations on the test database
+Micrate::Cli.run_up
 module Spec
   DRIVER = :chrome
   PATH   = "/usr/local/bin/chromedriver"
