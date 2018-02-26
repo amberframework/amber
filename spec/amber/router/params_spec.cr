@@ -29,7 +29,7 @@ module Amber::Router
     describe "#[]?" do
       it "returns nil for non-existent key" do
         params["invalid"]?.should be_nil
-      end 
+      end
 
       it "returns value for key" do
         params["test"]?.should eq "test"

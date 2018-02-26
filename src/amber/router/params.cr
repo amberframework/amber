@@ -15,8 +15,6 @@ module Amber::Router
     MULTIPART_FORM   = "multipart/form-data"
     APPLICATION_JSON = "application/json"
 
-    getter empty_params = Types::Params.new
-
     @files = Types::Files.new
     @multipart : Types::Params?
     @json : Types::Params?
@@ -35,7 +33,7 @@ module Amber::Router
     end
 
     def files
-      multipart
+      multipart unless @multipart
       @files
     end
 
@@ -83,13 +81,13 @@ module Amber::Router
 
     private def multipart
       return @multipart.not_nil! if @multipart
-      return empty_params unless content_type?(MULTIPART_FORM)
+      return Types::Params.new unless content_type?(MULTIPART_FORM)
       @multipart, @files = Parsers::Multipart.parse(@request)
       @multipart.not_nil!
     end
 
     private def json
-      return empty_params unless content_type?(APPLICATION_JSON)
+      return Types::Params.new unless content_type?(APPLICATION_JSON)
       @json ||= Parsers::JSON.parse(@request)
     end
 
