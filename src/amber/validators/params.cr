@@ -63,7 +63,6 @@ module Amber::Validators
 
   class Params
     getter raw_params = Amber::Router::Params.new
-    getter errors = [] of Error
     getter rules = [] of BaseRule
     getter params = {} of String => String?
     getter errors = [] of Error
