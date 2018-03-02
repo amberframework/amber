@@ -11,14 +11,14 @@ module Amber
             resources "/hello", HelloController
           end
 
-          router.match("GET", "/hello").key.should eq "get/hello"
-          router.match("GET", "/hello/2").key.should eq "get/hello/:id"
-          router.match("GET", "/hello/new").key.should eq "get/hello/new"
-          router.match("GET", "/hello/2/edit").key.should eq "get/hello/:id/edit"
-          router.match("PUT", "/hello/1").key.should eq "get/helloput/hello/:id"
-          router.match("PATCH", "/hello/1").key.should eq "get/hellopatch/hello/:id"
-          router.match("DELETE", "/hello/1").key.should eq "get/hellodelete/hello/:id"
-          router.match("POST", "/hello").key.should eq "get/hellopost/hello"
+          router.match("GET", "/hello").path.should eq "get/hello"
+          router.match("GET", "/hello/2").path.should eq "get/hello/:id"
+          router.match("GET", "/hello/new").path.should eq "get/hello/new"
+          router.match("GET", "/hello/2/edit").path.should eq "get/hello/:id/edit"
+          router.match("PUT", "/hello/1").path.should eq "put/hello/:id"
+          router.match("PATCH", "/hello/1").path.should eq "patch/hello/:id"
+          router.match("DELETE", "/hello/1").path.should eq "delete/hello/:id"
+          router.match("POST", "/hello").path.should eq "post/hello"
         end
 
         context "when specifying actions" do
@@ -29,13 +29,13 @@ module Amber
               resources "/hello", HelloController, only: [:index, :update]
             end
 
-            router.match("GET", "/hello").key.should eq "get/hello"
-            router.match("GET", "/hello/2").key.should eq ""
-            router.match("GET", "/hello/new").key.should eq ""
-            router.match("GET", "/hello/2/edit").key.should eq ""
-            router.match("PUT", "/hello/1").key.should eq "get/helloput/hello/:id"
-            router.match("PATCH", "/hello/1").key.should eq "get/hellopatch/hello/:id"
-            router.match("DELETE", "/hello/1").key.should eq ""
+            router.match("GET", "/hello").path.should eq "get/hello"
+            router.match("GET", "/hello/2").found?.should be_false
+            router.match("GET", "/hello/new").found?.should be_false
+            router.match("GET", "/hello/2/edit").found?.should be_false
+            router.match("PUT", "/hello/1").path.should eq "put/hello/:id"
+            router.match("PATCH", "/hello/1").path.should eq "patch/hello/:id"
+            router.match("DELETE", "/hello/1").found?.should be_false
           end
 
           it "defines resources excluding from list" do
@@ -45,13 +45,13 @@ module Amber
               resources "/hello", HelloController, except: [:index, :update]
             end
 
-            router.match("GET", "/hello").key.should eq "get/hello/"
-            router.match("GET", "/hello/2").key.should eq "get/hello/:id"
-            router.match("GET", "/hello/new").key.should eq "get/hello/new"
-            router.match("GET", "/hello/2/edit").key.should eq "get/hello/:id/edit"
-            router.match("PUT", "/hello/1").key.should eq "get/hello/:id"
-            router.match("PATCH", "/hello/1").key.should eq "get/hello/:id"
-            router.match("DELETE", "/hello/1").key.should eq "get/hello/delete/hello/:id"
+            router.match("GET", "/hello").found?.should be_false
+            router.match("GET", "/hello/2").path.should eq "get/hello/:id"
+            router.match("GET", "/hello/new").path.should eq "get/hello/new"
+            router.match("GET", "/hello/2/edit").path.should eq "get/hello/:id/edit"
+            router.match("PUT", "/hello/1").found?.should be_false
+            router.match("PATCH", "/hello/1").found?.should be_false
+            router.match("DELETE", "/hello/1").path.should eq "delete/hello/:id"
           end
         end
       end
@@ -90,7 +90,7 @@ module Amber
 
           route = router.match_by_request(request)
           route.found?.should eq true
-          route.payload.verb.should eq "GET"
+          route.path.should eq "get/checkout/:name"
         end
       end
 
@@ -102,24 +102,7 @@ module Amber
           }
 
           route = Route.new("GET", "/some/joe", handler)
-
-          node = router.add(route)
-
-          node.class.should eq Radix::Node(Amber::Route)
-        end
-
-        it "raises Amber::Exceptions::DuplicateRouteError on duplicate" do
-          router = Router.new
-          handler = ->(context : HTTP::Server::Context) {
-            context.content = "hey world"
-          }
-          route = Route.new("GET", "/some/joe", handler)
-
           router.add(route)
-
-          expect_raises Amber::Exceptions::DuplicateRouteError do
-            router.add(route)
-          end
         end
       end
 
@@ -150,28 +133,6 @@ module Amber
 
         it "matches controller another action" do
           router.match_by_controller_action(:fakecontroller, :another).should eq route_d
-        end
-      end
-
-      describe "#all" do
-        it "gets all routes defined" do
-          router = Router.new
-          handler = ->(context : HTTP::Server::Context) {
-            context.content = "hey world"
-          }
-          routes = [Route.new("GET", "/", handler),
-                    Route.new("GET", "/a", handler),
-                    Route.new("DELETE", "/b", handler),
-                    Route.new("PUT", "/b/c", handler),
-                    Route.new("POST", "/b/c/d", handler),
-                    Route.new("GET", "/e/f", handler)]
-          routes.each { |r| router.add r }
-
-          router.draw :web do
-            resources "/comments", HelloController
-          end
-
-          router.all.size.should eq 14
         end
       end
     end
