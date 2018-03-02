@@ -12,13 +12,7 @@ module Amber::Controller
     end
 
     def internal_server_error
-      response_format("ERROR: #{@ex.inspect_with_backtrace}")
-      # IMPORTANT: #inspect_with_backtrace will fail in some situtions which breaks the tests.
-      # Even if you call @ex.callstack you'll notice that backtrace is nil.
-      # #backtrace? is supposed to be safe but it exceptions anyway.
-      # Please don't remove this without verifying that crystal core has been fixed first.
-    rescue ex : IndexError
-      response_format("ERROR: #{@ex.message}")
+      response_format("ERROR: #{internal_server_error_message}")
     end
 
     def forbidden
@@ -31,6 +25,21 @@ module Amber::Controller
       else
         "text/html"
       end
+    end
+
+    private def internal_server_error_message
+      # IMPORTANT: #inspect_with_backtrace will fail in some situtions which breaks the tests.
+      # Even if you call @ex.callstack you'll notice that backtrace is nil.
+      # #backtrace? is supposed to be safe but it exceptions anyway.
+      # Please don't remove this without verifying that crystal core has been fixed first.
+      @ex.inspect_with_backtrace
+    rescue ex : IndexError
+      @ex.message
+    rescue ex
+      <<-ERROR
+      Original Error: #{@ex.message}
+      Error during 'inspect_with_backtrace': #{ex.message}
+      ERROR
     end
 
     private def response_format(message)
