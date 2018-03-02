@@ -1,6 +1,7 @@
 module ValidationsHelper
   def params_builder(body = "")
-    params = Amber::Router::Params.new
+    request = HTTP::Request.new("GET", "")
+    params = Amber::Router::Params.new(request)
     return params if body.empty?
 
     body.tr("?", "").split("&").each_with_object(params) do |item, params|

@@ -32,7 +32,6 @@ module Amber::Controller
       :put?,
       :request,
       :requested_url,
-      :request_handler,
       :response,
       :route,
       :session,

@@ -5,7 +5,7 @@ module Amber
     # any runtime Exceptions and returns a backtrace in text/plain format.
     class Error < Base
       def call(context : HTTP::Server::Context)
-        raise Amber::Exceptions::RouteNotFound.new(context.request) if context.invalid_route?
+        raise Amber::Exceptions::RouteNotFound.new(context.request) unless context.valid_route?
         call_next(context)
       rescue ex : Amber::Exceptions::Forbidden
         context.response.status_code = 403
