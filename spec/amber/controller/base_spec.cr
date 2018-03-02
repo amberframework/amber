@@ -12,7 +12,6 @@ module Amber::Controller
       controller.responds_to?(:requested_url).should eq true
       controller.responds_to?(:session).should eq true
       controller.responds_to?(:valve).should eq true
-      controller.responds_to?(:request_handler).should eq true
       controller.responds_to?(:route).should eq true
       controller.responds_to?(:websocket?).should eq true
       controller.responds_to?(:get?).should eq true

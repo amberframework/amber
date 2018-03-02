@@ -22,12 +22,12 @@ module Amber::Environment
 
       def self.from_hash(settings = {} of String => SettingValue) : self
         i = new
-        i.host     = settings["host"]?     ? settings["host"].as String     : i.host
-        i.port     = settings["port"]?     ? settings["port"].as Int32      : i.port
-        i.enabled  = settings["enabled"]?  ? settings["enabled"].as Bool    : i.enabled
+        i.host = settings["host"]? ? settings["host"].as String : i.host
+        i.port = settings["port"]? ? settings["port"].as Int32 : i.port
+        i.enabled = settings["enabled"]? ? settings["enabled"].as Bool : i.enabled
         i.username = settings["username"]? ? settings["username"].as String : i.username
         i.password = settings["password"]? ? settings["password"].as String : i.password
-        i.tls      = settings["tls"]?      ? settings["tls"].as Bool        : i.tls
+        i.tls = settings["tls"]? ? settings["tls"].as Bool : i.tls
         i
       end
     end
