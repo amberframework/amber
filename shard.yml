@@ -16,7 +16,7 @@ targets:
 dependencies:
   amber_router:
     github: amberframework/router
-    commit: 5883a23
+    version: ~> 0.0.2
 
   compiled_license:
     github: elorest/compiled_license
