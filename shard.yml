@@ -14,9 +14,13 @@ targets:
     main: src/amber/cli.cr
 
 dependencies:
-  radix:
-    github: luislavena/radix
-    version: ~> 0.3.8
+  amber_router:
+    github: amberframework/router
+    commit: 5883a23
+
+  compiled_license:
+    github: elorest/compiled_license
+    version: ~> 0.1.1
 
   kilt:
     github: jeromegn/kilt
