@@ -6,7 +6,7 @@ class HTTP::Request
   METHOD          = "_method"
   OVERRIDE_HEADER = "X-HTTP-Method-Override"
 
-  @radix_route : Radix::Result(Amber::Route)?
+  @matched_route : Amber::Router::RoutedResult(Amber::Route)?
   @requested_method : String?
   @params : Amber::Router::Params?
 
@@ -34,7 +34,7 @@ class HTTP::Request
   end
 
   def route
-    matched_route.payload
+    matched_route.payload.not_nil!
   end
 
   def valid_route?
@@ -46,7 +46,7 @@ class HTTP::Request
   end
 
   def matched_route
-    @radix_route ||= router.match_by_request(self)
+    @matched_route ||= router.match_by_request(self)
   end
 
   private def router
