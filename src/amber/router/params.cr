@@ -61,13 +61,11 @@ module Amber::Router
     end
 
     def to_h
-      {
-        :multipart => multipart.to_h,
-        :json      => json.to_h,
-        :route     => route.to_h,
-        :form      => form.to_h,
-        :query     => query.to_h,
-      }
+      query.to_h
+        .merge(form.to_h)
+        .merge(route)
+        .merge(json)
+        .merge(multipart)
     end
 
     private def query
