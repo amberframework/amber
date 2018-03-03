@@ -35,7 +35,7 @@ Read Amber documentation on https://docs.amberframework.org
 
 Fortunes test comparing [Amber](https://amberframework.org/), [Kemal](https://kemalcr.com/), [Rails](https://rubyonrails.org/), [Phoenix](https://phoenixframework.org/) and [Hanami](https://hanamirb.org/):
 
-[![framework-benchmark](assets/images/bechmarks-fortunes.png "TFB Fortunes test for Crystal, Elixir and Ruby frameworks")](https://www.techempower.com/benchmarks/#section=data-r15&hw=ph&test=fortune&f=zik073-zik0zj-zik0zj-zik0zj-zhxjwf-zik0zj-gnbmym-cn3)
+[![framework-benchmark](assets/images/benchmarks-fortunes.png "TFB Fortunes test for Crystal, Elixir and Ruby frameworks")](https://www.techempower.com/benchmarks/#section=data-r15&hw=ph&test=fortune&f=zik073-zik0zj-zik0zj-zik0zj-zhxjwf-zik0zj-gnbmym-cn3)
 
 ## Installation
 
