@@ -43,6 +43,8 @@ Fortunes test comparing [Amber](https://amberframework.org/), [Kemal](https://ke
 
 ## Usage
 
+[Read Amber guide from zero to deploy](https://amberframework.org/guides/getting-started/quickstart/zero-to-deploy.md#zero-to-deploy)
+
 [Read Amber CLI commands usage](https://amberframework.org/guides/getting-started/cli/README.md#cli-readme)
 
 ## Community
