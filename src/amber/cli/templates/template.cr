@@ -18,6 +18,7 @@ require "./channel"
 require "./crecto_auth"
 require "./granite_auth"
 require "./error"
+require "./sam"
 
 module Amber::CLI
   class Template
@@ -44,14 +45,7 @@ module Amber::CLI
     def generate(template : String, options = nil)
       case template
       when "app"
-        if options
-          info "Rendering App #{name} in #{directory}"
-          App.new(name, options.d, options.t, options.m).render(directory, list: true, color: true)
-          if options.deps?
-            info "Installing Dependencies"
-            Helpers.run("cd #{name} && shards update")
-          end
-        end
+        generate_app(options)
       when "migration"
         info "Rendering Migration #{name}"
         Migration.new(name, fields).render(directory, list: true, color: true)
@@ -104,6 +98,8 @@ module Amber::CLI
         info "Rendering Error Template"
         actions = ["forbidden", "not_found", "internal_server_error"]
         ErrorTemplate.new("error", actions).render(directory, list: true, color: true)
+      when "sam"
+        generate_sam
       else
         CLI.logger.error "Template not found", "Generate", :light_red
       end
@@ -119,6 +115,26 @@ module Amber::CLI
 
     def error(msg)
       CLI.logger.error msg, "Generate", :red
+    end
+
+    private def generate_app(options)
+      return unless options
+      info "Rendering App #{name} in #{directory}"
+      App.new(name, options.d, options.t, options.m, options.sam?).render(directory, list: true, color: true)
+      generate_sam if options.sam?
+      if options.deps?
+        info "Installing Dependencies"
+        Helpers.run("cd #{name} && shards update")
+      end
+    end
+
+    private def generate_sam
+      if File.exists?(File.join(directory, MainCommand::Sam::SAM_PATH))
+        info "Sam file is already exists."
+      else
+        info "Rendering Sam file"
+        Sam.new.render(directory, list: true, color: true)
+      end
     end
   end
 end

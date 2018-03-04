@@ -12,6 +12,7 @@ module Amber::CLI
         string "-m", desc: "model type", any_of: %w(granite crecto), default: "granite"
         string "-r", desc: "recipe"
         bool "--deps", desc: "installs deps, (shards update)", default: false
+        bool "--sam", desc: "setup initial sam tasks file", default: false
         bool "--no-color", desc: "Disable colored output", default: false
         help
       end

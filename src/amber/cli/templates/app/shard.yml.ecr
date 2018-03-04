@@ -56,6 +56,11 @@ dependencies:
     github: crystal-lang/crystal-sqlite3
     version: ~> 0.9.0
 <% end -%>
+<% if sam? -%>
+  sam:
+    github: imdrasil/sam.cr
+    version: ~> 0.2.4
+<% end %>
 
 development_dependencies:
   garnet_spec:

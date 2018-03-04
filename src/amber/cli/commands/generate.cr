@@ -6,7 +6,7 @@ module Amber::CLI
 
     class Generate < Command
       class Options
-        arg "type", desc: "scaffold, model, controller, migration, mailer, socket, channel, auth, error", required: true
+        arg "type", desc: "scaffold, model, controller, migration, mailer, socket, channel, auth, error, sam", required: true
         arg "name", desc: "name of resource", required: false
         arg_array "fields", desc: "user:reference name:string body:text age:integer published:bool"
         bool "--no-color", desc: "Disable colored output", default: false
@@ -20,22 +20,32 @@ module Amber::CLI
 
       def run
         CLI.toggle_colors(options.no_color?)
-        if args.type == "error"
-          template = Template.new("error", ".")
+        if optional_name?
+          template = Template.new(args.type.as(String), ".")
         else
           ensure_name_argument!
 
           if recipe && Amber::Recipes::Recipe.can_generate?(args.type, recipe)
             template = Amber::Recipes::Recipe.new(args.name, ".", recipe.as(String), args.fields)
           else
-            template = Template.new(args.name, ".", args.fields)
+            ensure_name_argument!
+
+            if recipe && Amber::Recipes::Recipe.can_generate?(args.type, recipe)
+              template = Amber::Recipes::Recipe.new(args.name, ".", recipe.as(String), args.fields)
+            else
+              template = Template.new(args.name, ".", args.fields)
+            end
           end
         end
-        template.generate args.type
+        template.generate(args.type)
       end
 
       def recipe
         CLI.config.recipe
+      end
+
+      private def optional_name?
+        %w(error sam).includes?(args.type)
       end
 
       private def ensure_name_argument!

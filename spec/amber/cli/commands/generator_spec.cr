@@ -196,6 +196,21 @@ module Amber::CLI
         end
       end
     end
+
+    describe "sam" do
+      MainCommand.run %w(generate sam)
+
+      it "generates sam file" do
+        File.exists?("./sam.cr").should be_true
+      end
+
+      it "generates proper content" do
+        file_content = File.read("./sam.cr")
+        file_content.should contain("Sam.help")
+        file_content.should contain(%(require "sam"))
+        file_content.should contain(%(require "./config/*"))
+      end
+    end
     cleanup
   end
 end
