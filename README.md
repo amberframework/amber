@@ -39,7 +39,36 @@ Fortunes test comparing [Amber](https://amberframework.org/), [Kemal](https://ke
 
 ## Installation
 
-[Read Amber CLI installation guide](https://amberframework.org/guides/getting-started/Installation/README.md#installation)
+#### macOS
+
+```
+brew tap amberframework/amber
+brew install amber
+```
+
+#### Linux
+
+```
+git clone https://github.com/amberframework/amber.git
+cd amber
+sudo make install
+```
+
+If you're using ArchLinux or similar distro try `yaourt -S amber`
+
+#### Common
+
+To compile a local `bin/amber` per project use `shards build amber`
+
+To use it as dependency, add this to your application's `shard.yml`:
+
+```yaml
+dependencies:
+  amber:
+    github: amberframework/amber
+```
+
+[Read more about Amber CLI installation guide](https://amberframework.org/guides/getting-started/Installation/README.md#installation)
 
 ## Usage
 
