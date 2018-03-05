@@ -40,7 +40,7 @@ describe <%= class_name %>ControllerTest do
 
   it "renders <%= @name %> index template" do
     <%= class_name %>.clear
-    response = subject.get "/<%= @name %>s"
+    response = subject.get "/<%= Inflector.pluralize(@name) %>"
 
     response.status_code.should eq(200)
     response.body.should contain("<%= display_name %>s")
@@ -49,7 +49,7 @@ describe <%= class_name %>ControllerTest do
   it "renders <%= @name %> show template" do
     <%= class_name %>.clear
     model = create_<%= @name.downcase %>
-    location = "/<%= @name %>s/#{model.id}"
+    location = "/<%= Inflector.pluralize(@name) %>/#{model.id}"
 
     response = subject.get location
 
@@ -59,7 +59,7 @@ describe <%= class_name %>ControllerTest do
 
   it "renders <%= @name %> new template" do
     <%= class_name %>.clear
-    location = "/<%= @name %>s/new"
+    location = "/<%= Inflector.pluralize(@name) %>/new"
 
     response = subject.get location
 
@@ -70,7 +70,7 @@ describe <%= class_name %>ControllerTest do
   it "renders <%= @name %> edit template" do
     <%= class_name %>.clear
     model = <%= create_model_method %>
-    location = "/<%= @name %>s/#{model.id}/edit"
+    location = "/<%= Inflector.pluralize(@name) %>/#{model.id}/edit"
 
     response = subject.get location
 
@@ -80,9 +80,9 @@ describe <%= class_name %>ControllerTest do
 
   it "creates a <%= @name %>" do
     <%= class_name %>.clear
-    response = subject.post "/<%= @name %>s", body: <%= params_name %>
+    response = subject.post "/<%= Inflector.pluralize(@name) %>", body: <%= params_name %>
 
-    response.headers["Location"].should eq "/<%= @name %>s"
+    response.headers["Location"].should eq "/<%= Inflector.pluralize(@name) %>"
     response.status_code.should eq(302)
     response.body.should eq "302"
   end
@@ -90,9 +90,9 @@ describe <%= class_name %>ControllerTest do
   it "updates a <%= @name %>" do
     <%= class_name %>.clear
     model = <%= create_model_method %>
-    response = subject.patch "/<%= @name %>s/#{model.id}", body: <%= params_name %>
+    response = subject.patch "/<%= Inflector.pluralize(@name) %>/#{model.id}", body: <%= params_name %>
 
-    response.headers["Location"].should eq "/<%= @name %>s"
+    response.headers["Location"].should eq "/<%= Inflector.pluralize(@name) %>"
     response.status_code.should eq(302)
     response.body.should eq "302"
   end
@@ -100,9 +100,9 @@ describe <%= class_name %>ControllerTest do
   it "deletes a <%= @name %>" do
     <%= class_name %>.clear
     model = <%= create_model_method %>
-    response = subject.delete "/<%= @name %>s/#{model.id}"
+    response = subject.delete "/<%= Inflector.pluralize(@name) %>/#{model.id}"
 
-    response.headers["Location"].should eq "/<%= @name %>s"
+    response.headers["Location"].should eq "/<%= Inflector.pluralize(@name) %>"
     response.status_code.should eq(302)
     response.body.should eq "302"
   end
