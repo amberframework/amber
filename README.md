@@ -37,7 +37,7 @@ Fortunes test comparing [Amber](https://amberframework.org/), [Kemal](https://ke
 
 [![framework-benchmark](assets/images/benchmarks-fortunes.png "TFB Fortunes test for Crystal, Elixir and Ruby frameworks")](https://www.techempower.com/benchmarks/#section=data-r15&hw=ph&test=fortune&f=zik073-zik0zj-zik0zj-zik0zj-zhxjwf-zik0zj-gnbmym-cn3)
 
-## Installation
+## Installation && Usage
 
 #### macOS
 
@@ -70,8 +70,6 @@ dependencies:
 
 [Read more about Amber CLI installation guide](https://amberframework.org/guides/getting-started/Installation/README.md#installation)
 
-## Usage
-
 [Read Amber guide from zero to deploy](https://amberframework.org/guides/getting-started/quickstart/zero-to-deploy.md#zero-to-deploy)
 
 [Read Amber CLI commands usage](https://amberframework.org/guides/getting-started/cli/README.md#cli-readme)
@@ -80,13 +78,9 @@ dependencies:
 
 Questions or suggestions? Join our IRC channel [#amber](http://webchat.freenode.net/?channels=#amber) at `chat.freenode.net` or ask on our [Gitter room](https://gitter.im/amberframework/amber).
 
-## Philosophy
+Guidelines? We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) for Amber.
 
-[Read Amber Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md)
-
-## Code of Conduct
-
-We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) guidelines for Amber.
+Our Philosophy? [Read Amber Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md).
 
 ## Have an Amber-based Project?
 
