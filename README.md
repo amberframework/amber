@@ -37,7 +37,7 @@ Fortunes test comparing [Amber](https://amberframework.org/), [Kemal](https://ke
 
 [![framework-benchmark](assets/images/benchmarks-fortunes.png "TFB Fortunes test for Crystal, Elixir and Ruby frameworks")](https://www.techempower.com/benchmarks/#section=data-r15&hw=ph&test=fortune&f=zik073-zik0zj-zik0zj-zik0zj-zhxjwf-zik0zj-gnbmym-cn3)
 
-## Installation && Usage
+## Installation & Usage
 
 #### macOS
 
