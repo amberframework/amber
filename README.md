@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/amberframework/amber/raw/master/assets/images/amber.png" width="200">
+  <img src="https://github.com/amberframework/site-assets/raw/master/images/amber.png" width="200">
   <p align="center">Productivity. Performance. Happiness.<p>
   <p align="center">
     <sup>
@@ -35,7 +35,7 @@ Read Amber documentation on https://docs.amberframework.org
 
 Fortunes test comparing [Amber](https://amberframework.org/), [Kemal](https://kemalcr.com/), [Rails](https://rubyonrails.org/), [Phoenix](https://phoenixframework.org/), and [Hanami](https://hanamirb.org/):
 
-[![framework-benchmark](assets/images/benchmarks-fortunes.png "TFB Fortunes test for Crystal, Elixir and Ruby frameworks")](https://www.techempower.com/benchmarks/#section=data-r15&hw=ph&test=fortune&f=zik073-zik0zj-zik0zj-zik0zj-zhxjwf-zik0zj-gnbmym-cn3)
+[![framework-benchmark](https://github.com/amberframework/site-assets/raw/master/images/benchmarks-fortunes.png "TFB Fortunes test for Crystal, Elixir and Ruby frameworks")](https://www.techempower.com/benchmarks/#section=data-r15&hw=ph&test=fortune&f=zik073-zik0zj-zik0zj-zik0zj-zhxjwf-zik0zj-gnbmym-cn3)
 
 ## Installation & Usage
 
