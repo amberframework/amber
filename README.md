@@ -42,7 +42,6 @@ Fortunes test comparing [Amber](https://amberframework.org/), [Kemal](https://ke
 #### macOS
 
 ```
-brew tap amberframework/amber
 brew install amber
 ```
 
@@ -55,7 +54,11 @@ git checkout stable
 sudo make install
 ```
 
-If you're using ArchLinux or similar distro try `yaourt -S amber`
+If you're using ArchLinux or similar distro try:
+
+```
+yaourt -S amber
+```
 
 #### Common
 
