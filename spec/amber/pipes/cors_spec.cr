@@ -11,7 +11,7 @@ module Amber::Pipe
     it "does not return CORS headers if Origin header not present" do
       context = cors_context("GET")
       CORS.new.call(context)
-      assert_cors_not_success context
+      assert_cors_failure context
     end
 
     it "supports OPTIONS request" do
@@ -31,7 +31,7 @@ module Amber::Pipe
     it "does not return CORS headers if origins is empty" do
       context = cors_context("GET", "Origin": "http://localhost:3000")
       CORS.new(origins: CORS::OriginType.new).call(context)
-      assert_cors_not_success context
+      assert_cors_failure context
     end
 
     it "supports alternative X-Origin header" do
@@ -55,9 +55,10 @@ module Amber::Pipe
     end
 
     it "adds vary header when origin is other than (*)" do
+      domain = "example.com"
       origins = CORS::OriginType.new
-      origins << "example.com"
-      context = cors_context("GET", "Origin": "example.com")
+      origins << domain
+      context = cors_context("GET", "Origin": domain)
       CORS.new(origins: origins).call(context)
       context.response.headers[Amber::Pipe::Headers::VARY].should eq "Origin"
     end
@@ -119,7 +120,7 @@ def assert_cors_success(context)
   origin_header.should_not be_nil
 end
 
-def assert_cors_not_success(context)
+def assert_cors_failure(context)
   origin_header = context.response.headers["Access-Control-Allow-Origin"]?
   context.response.status_code.should eq 403
   origin_header.should be_nil

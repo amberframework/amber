@@ -18,7 +18,7 @@ module Amber
 
     class CORS < Base
       alias OriginType = Array(String | Regex)
-      FORBIDDEN = "Forbidden for invalid origins, methods or headers"
+      FORBIDDEN     = "Forbidden for invalid origins, methods or headers"
       ALLOW_METHODS = %w(PUT PATCH DELETE)
       ALLOW_HEADERS = %w(Accept Content-type)
 
@@ -78,14 +78,14 @@ module Amber
         if context.request.method == "OPTIONS"
           if valid_method?(context.request, cors.methods) &&
              valid_headers?(context.request, cors.headers)
-            set_preflight_headers(context.request, context.response, cors.max_age)
+            put_preflight_headers(context.request, context.response, cors.max_age)
           else
             cors.forbidden(context)
           end
         end
       end
 
-      def set_preflight_headers(request, response, max_age)
+      def put_preflight_headers(request, response, max_age)
         response.headers[Headers::ALLOW_METHOD] = request.headers[Headers::REQUEST_METHOD]
         response.headers[Headers::ALLOW_HEADERS] = request.headers[Headers::REQUEST_HEADERS]
         response.headers[Headers::ALLOW_MAX_AGE] = max_age.to_s if max_age
@@ -105,7 +105,7 @@ module Amber
     struct Origin
       getter request_origin : String?
 
-      def initialize(@origins : Array(String | Regex))
+      def initialize(@origins : CORS::OriginType)
       end
 
       def match?(request)
