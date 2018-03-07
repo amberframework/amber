@@ -1,7 +1,6 @@
 require "cli"
 require "yaml"
 require "colorize"
-require "spinner"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
@@ -32,7 +31,6 @@ module Amber::CLI
 
       def run
         CLI.toggle_colors(options.no_color?)
-        (spinner = Spin.new(0.1, Spinner::Charset[:arrow2].map { |c| c.colorize(:light_green).to_s })).start
         shard = YAML.parse(File.read("./shard.yml"))
         @project_name = shard["name"].to_s
         @server_name = "#{project_name}-#{args.server_suffix}".gsub(/[^\w\d]/, "-")
@@ -41,7 +39,6 @@ module Amber::CLI
         else
           deploy
         end
-        spinner.stop
       rescue e
         exit! e.message, error: true
       end
