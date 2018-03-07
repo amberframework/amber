@@ -42,10 +42,11 @@ module Amber
           put_expose_header(context.response)
           Preflight.request?(context, self)
           put_response_headers(context.response)
-          call_next(context)
         else
           return forbidden(context)
         end
+
+        call_next(context)
       end
 
       def forbidden(context)

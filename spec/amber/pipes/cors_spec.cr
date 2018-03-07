@@ -72,28 +72,31 @@ module Amber::Pipe
     end
 
     it "adds Vary header based on :vary option" do
+      domain = "example.com"
       origins = CORS::OriginType.new
-      origins << "example.com"
-      context = cors_context("GET", "Origin": "example.com")
+      origins << domain
+      context = cors_context("GET", "Origin": domain)
       CORS.new(origins: origins, vary: "Other").call(context)
       context.response.headers[Amber::Pipe::Headers::VARY].should eq "Origin,Other"
     end
 
     it "sets allow credential headers if credential settings is true" do
+      domain = "example.com"
       origins = CORS::OriginType.new
-      origins << "example.com"
-      context = cors_context("GET", "Origin": "example.com")
+      origins << domain
+      context = cors_context("GET", "Origin": domain)
       CORS.new(credentials: true, origins: origins, vary: "Other").call(context)
       context.response.headers[Amber::Pipe::Headers::ALLOW_CREDENTIALS].should eq "true"
     end
 
     context "when preflight request" do
       it "process valid preflight request" do
+        domain = "example.com"
         origins = CORS::OriginType.new
-        origins << "example.com"
+        origins << domain
         context = cors_context(
           "OPTIONS",
-          "Origin": "example.com",
+          "Origin": domain,
           "Access-Control-Request-Method": "PUT",
           "Access-Control-Request-Headers": "Accept"
         )
