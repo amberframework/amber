@@ -18,6 +18,10 @@ dependencies:
     github: amberframework/router
     version: ~> 0.0.3
 
+  cli:
+    github: amberframework/cli
+    version: ~> 0.7.0
+
   compiled_license:
     github: elorest/compiled_license
     version: ~> 0.1.1
@@ -26,41 +30,40 @@ dependencies:
     github: jeromegn/kilt
     version: ~> 0.4.0
 
-  slang:
-    github: jeromegn/slang
-    version: ~> 1.7.1
-
-  redis:
-    github: stefanwille/crystal-redis
-    version: ~> 1.9.0
-
-  cli:
-    github: amberframework/cli
-    version: ~> 0.7.0
-
-  teeplate:
-    github: amberframework/teeplate
-    version: ~> 0.5.0
-
   micrate:
     github: juanedi/micrate
     version: ~> 0.3.0
-
-  shell-table:
-    github: jwaldrip/shell-table.cr
-    version: ~> 0.9.1
-
-  pg:
-    github: will/crystal-pg
-    version: ~> 0.14.1
 
   mysql:
     github: crystal-lang/crystal-mysql
     version: ~> 0.4.0
 
+  pg:
+    github: will/crystal-pg
+    version: ~> 0.14.1
+  redis:
+    github: stefanwille/crystal-redis
+    version: ~> 1.9.0
+
+  shell-table:
+    github: jwaldrip/shell-table.cr
+    version: ~> 0.9.1
+
+  slang:
+    github: jeromegn/slang
+    version: ~> 1.7.1
+
+  spinner:
+    github: askn/spinner
+    version: ~> 0.1.1
+
   sqlite3:
     github: crystal-lang/crystal-sqlite3
     version: ~> 0.9.0
+
+  teeplate:
+    github: amberframework/teeplate
+    version: ~> 0.5.0
 
 development_dependencies:
   ameba:
