@@ -28,7 +28,7 @@ dependencies:
 
   slang:
     github: jeromegn/slang
-    version: ~> 1.7.1 
+    version: ~> 1.7.1
 
   redis:
     github: stefanwille/crystal-redis
@@ -49,10 +49,6 @@ dependencies:
   shell-table:
     github: jwaldrip/shell-table.cr
     version: ~> 0.9.1
-
-  spinner:
-    github: askn/spinner
-    version: ~> 0.1.1
 
   pg:
     github: will/crystal-pg
