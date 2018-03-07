@@ -6,7 +6,7 @@ module Amber::Router
     headers["Content-Type"] = "multipart/form-data; boundary=fhhRFLCazlkA0dX; charset=UTF-8"
     multipart_content = ::File.read(::File.expand_path("spec/support/sample/multipart.txt"))
     multipart_body = multipart_content.gsub("\n", "\r\n")
-    request = HTTP::Request.new("GET", "/?test=test&test=test2&#{HTTP::Request::METHOD}=put", headers, multipart_body)
+    request = HTTP::Request.new("GET", "/?test=test&test=test2&#{HTTP::Request::METHOD}=put&status=1234", headers, multipart_body)
     params = Params.new(request)
 
     describe "#[]" do
@@ -23,6 +23,11 @@ module Amber::Router
         expect_raises Amber::Exceptions::Validator::InvalidParam do
           params["invalid"]
         end
+      end
+
+      it "parses int value" do
+        params["status"].to_i32.should eq 1234
+        params["status"].to_i32?.should eq 1234
       end
     end
 
@@ -65,6 +70,19 @@ module Amber::Router
 
       it "returns nil for nonexistent override method" do
         params.override_method?("non-existent").should be_nil
+      end
+    end
+
+    describe "#to_h" do
+      headers = HTTP::Headers.new
+      headers["Content-Type"] = "multipart/form-data; boundary=fhhRFLCazlkA0dX; charset=UTF-8"
+      multipart_content = ::File.read(::File.expand_path("spec/support/sample/multipart.txt"))
+      multipart_body = multipart_content.gsub("\n", "\r\n")
+      request = HTTP::Request.new("GET", "/?test=test&test=test2&#{HTTP::Request::METHOD}=put&status=1234", headers, multipart_body)
+      params = Params.new(request)
+
+      it "returns a hash with all params" do
+        params.to_h.keys.should eq %w(test _method status _csrf title content)
       end
     end
   end
