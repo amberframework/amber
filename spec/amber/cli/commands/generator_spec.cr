@@ -130,20 +130,6 @@ module Amber::CLI
       end
     end
 
-    describe "view" do
-      it "follows naming conventions for all files and class names" do
-        [camel_case, snake_case].each do |arg|
-          MainCommand.run ["generate", "view", arg]
-          filename = snake_case
-          src_filepath = "./src/views/#{filename}_view.html.slang"
-
-          File.exists?(src_filepath).should be_true
-          File.read(src_filepath).should contain display
-          File.delete(src_filepath)
-        end
-      end
-    end
-
     describe "socket" do
       struct_definition_prefix = "struct #{camel_case}"
 
