@@ -1,4 +1,5 @@
 require "../field.cr"
+require "inflector"
 
 module Amber::CLI::Scaffold
   class Controller < Teeplate::FileTree
@@ -22,7 +23,7 @@ module Amber::CLI::Scaffold
       field_hash
 
       add_routes :web, <<-ROUTE
-        resources "/#{@name}s", #{class_name}Controller
+        resources "/#{Inflector.pluralize(@name)}", #{class_name}Controller
       ROUTE
     end
 

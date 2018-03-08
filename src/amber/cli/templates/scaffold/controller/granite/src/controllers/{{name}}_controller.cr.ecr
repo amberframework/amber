@@ -1,6 +1,6 @@
 class <%= class_name %>Controller < ApplicationController
   def index
-    <%= @name %>s = <%= class_name %>.all
+    <%= Inflector.pluralize(@name) %> = <%= class_name %>.all
     render("index.<%= @language %>")
   end
 
@@ -9,7 +9,7 @@ class <%= class_name %>Controller < ApplicationController
       render("show.<%= @language %>")
     else
       flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
-      redirect_to "/<%= @name %>s"
+      redirect_to "/<%= Inflector.pluralize(@name) %>"
     end
   end
 
@@ -23,7 +23,7 @@ class <%= class_name %>Controller < ApplicationController
 
     if <%= @name %>.valid? && <%= @name %>.save
       flash["success"] = "Created <%= class_name %> successfully."
-      redirect_to "/<%= @name %>s"
+      redirect_to "/<%= Inflector.pluralize(@name) %>"
     else
       flash["danger"] = "Could not create <%= class_name %>!"
       render("new.<%= @language %>")
@@ -35,7 +35,7 @@ class <%= class_name %>Controller < ApplicationController
       render("edit.<%= @language %>")
     else
       flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
-      redirect_to "/<%= @name %>s"
+      redirect_to "/<%= Inflector.pluralize(@name) %>"
     end
   end
 
@@ -44,14 +44,14 @@ class <%= class_name %>Controller < ApplicationController
       <%= @name %>.set_attributes(<%= @name %>_params.validate!)
       if <%= @name %>.valid? && <%= @name %>.save
         flash["success"] = "Updated <%= class_name %> successfully."
-        redirect_to "/<%= @name %>s"
+        redirect_to "/<%= Inflector.pluralize(@name) %>"
       else
         flash["danger"] = "Could not update <%= class_name %>!"
         render("edit.<%= @language %>")
       end
     else
       flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
-      redirect_to "/<%= @name %>s"
+      redirect_to "/<%= Inflector.pluralize(@name) %>"
     end
   end
 
@@ -61,7 +61,7 @@ class <%= class_name %>Controller < ApplicationController
     else
       flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
     end
-    redirect_to "/<%= @name %>s"
+    redirect_to "/<%= Inflector.pluralize(@name) %>"
   end
 
   def <%= @name %>_params
