@@ -6,7 +6,7 @@ module Amber::CLI
 
     class Generate < Command
       class Options
-        arg "type", desc: "scaffold, model, controller, migration, mailer, socket, channel, auth, error", required: true
+        arg "type", desc: "scaffold, model, controller, migration, mailer, socket, channel, auth, error, view", required: true
         arg "name", desc: "name of resource", required: false
         arg_array "fields", desc: "user:reference name:string body:text age:integer published:bool"
         bool "--no-color", desc: "Disable colored output", default: false
