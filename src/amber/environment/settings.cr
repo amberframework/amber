@@ -51,13 +51,10 @@ module Amber::Environment
     end
 
     YAML.mapping(
-      logging: {type: Logging::OptionsType, default: {
-        severity: "debug",
-        colorize: true,
-        filter:   ["password", "confirm_password"] of String?,
-        skip:     [] of String?,
-        context:  ["request", "headers", "cookies", "session", "params"] of String?,
-      }},
+      logging: {
+        type: Logging::OptionsType,
+        default: Logging::DEFAULTS
+      },
       database_url: {type: String, default: ""},
       host: {type: String, default: "localhost"},
       name: {type: String, default: "Amber_App"},

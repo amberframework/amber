@@ -16,6 +16,14 @@ module Amber::Environment
       "unknown": Logger::UNKNOWN,
     }
 
+    DEFAULTS = {
+      severity: "debug",
+      colorize: true,
+      filter:   ["password", "confirm_password"] of String?,
+      skip:     [] of String?,
+      context:  ["request", "headers", "cookies", "session", "params"] of String?,
+    }
+
     setter severity : String
     property colorize : Bool
     property context : Array(String?)
