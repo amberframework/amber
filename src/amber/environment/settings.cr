@@ -26,19 +26,19 @@ module Amber::Environment
     end
 
     setter session : Hash(String, Int32 | String)
-    property database_url : String
-    property host : String
-    property name : String
-    property port : Int32
-    property port_reuse : Bool
-    property process_count : Int32
-    property redis_url
-    property secret_key_base : String
-    property secrets : Hash(String, String)
-    property ssl_key_file : String
-    property ssl_cert_file : String
-    property logging : Logging::OptionsType
-    property logger : Logger?
+    property database_url : String,
+      host : String,
+      name : String,
+      port : Int32,
+      port_reuse : Bool,
+      process_count : Int32,
+      redis_url : String?,
+      secret_key_base : String,
+      secrets : Hash(String, String),
+      ssl_key_file : String,
+      ssl_cert_file : String,
+      logging : Logging::OptionsType,
+      logger : Logger?
 
     @smtp_settings : SMTPSettings?
 

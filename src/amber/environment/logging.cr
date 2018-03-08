@@ -25,10 +25,10 @@ module Amber::Environment
     }
 
     setter severity : String
-    property colorize : Bool
-    property context : Array(String?)
-    property skip : Array(String?)
-    property filter : Array(String?)
+    property colorize : Bool,
+      context : Array(String?),
+      skip : Array(String?),
+      filter : Array(String?)
 
     def initialize(logging : OptionsType)
       @colorize = logging[:colorize]
