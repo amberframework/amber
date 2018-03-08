@@ -38,7 +38,7 @@ module Amber::Environment
       @context = logging[:context]
     end
 
-    def severity
+    def severity : Logger::Severity
       SEVERITY_MAP[@severity]
     end
 
