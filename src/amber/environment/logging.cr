@@ -41,9 +41,5 @@ module Amber::Environment
     def severity : Logger::Severity
       SEVERITY_MAP[@severity]
     end
-
-    def logger
-      @logger
-    end
   end
 end
