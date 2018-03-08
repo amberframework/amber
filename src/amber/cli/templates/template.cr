@@ -17,6 +17,7 @@ require "./socket"
 require "./channel"
 require "./auth"
 require "./error"
+require "./view"
 
 module Amber::CLI
   class Template
@@ -101,6 +102,9 @@ module Amber::CLI
         puts "Rendering Error Template"
         actions = ["forbidden", "not_found", "internal_server_error"]
         ErrorTemplate.new("error", actions).render(directory, list: true, color: true)
+      when "view"
+        puts "Rendering View #{name}"
+        View.new(name, fields).render(directory, list: true, color: true)
       else
         raise "Template not found"
       end
