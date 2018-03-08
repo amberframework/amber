@@ -1,9 +1,9 @@
 <div class="row">
   <div class="col-sm-11">
-    <h2><%= display_name %>s</h2>
+    <h2><%= Inflector.pluralize(display_name) %></h2>
   </div>
   <div class="col-sm-1">
-    <a class="btn btn-success btn-xs" href="/<%= @name %>s/new">New</a>
+    <a class="btn btn-success btn-xs" href="/<%= Inflector.pluralize(@name) %>/new">New</a>
   </div>
 </div>
 
@@ -17,16 +17,16 @@
         <th>Actions</th>
       </tr>
     <tbody>
-    <%="<"%>%- <%= @name %>s.each do |<%= @name %>| %>
+    <%="<"%>%- <%= Inflector.pluralize(@name) %>.each do |<%= @name %>| %>
       <tr>
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
         <td><%="<"%>%= <%= @name %>.<%= field.name %><%= field.reference? ? ".id" : "" %> %></td>
 <% end -%>
         <td>
           <span>
-            <%="<"%>%= link_to("read", "/<%= @name %>s/#{<%= @name %>.id}", class: "btn btn-success btn-xs") -%>
-            <%="<"%>%= link_to("edit", "/<%= @name %>s/#{<%= @name %>.id}/edit", class: "btn btn-success btn-xs") -%>
-            <%="<"%>%= link_to("delete", "/<%= @name %>s/#{<%= @name %>.id}?_method=delete&_csrf=#{csrf_token}", class: "btn btn-danger btn-xs", onclick: "return confirm('Are you sure?');") -%>
+            <%="<"%>%= link_to("read", "/<%= Inflector.pluralize(@name) %>/#{<%= @name %>.id}", class: "btn btn-success btn-xs") -%>
+            <%="<"%>%= link_to("edit", "/<%= Inflector.pluralize(@name) %>/#{<%= @name %>.id}/edit", class: "btn btn-success btn-xs") -%>
+            <%="<"%>%= link_to("delete", "/<%= Inflector.pluralize(@name) %>/#{<%= @name %>.id}?_method=delete&_csrf=#{csrf_token}", class: "btn btn-danger btn-xs", onclick: "return confirm('Are you sure?');") -%>
           </span>
         </td>
       </tr>

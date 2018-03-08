@@ -3,6 +3,6 @@ h1 Show <%= display_name %>
 p = <%= @name %>.<%= field.name %><%= field.reference? ? ".id" : "" %>
 <% end -%>
 p
-  == link_to("back", "/<%= @name %>s", class: "btn btn-success btn-xs")
-  == link_to("edit", "/<%= @name %>s/#{<%= @name %>.id}/edit", class: "btn btn-success btn-xs")
-  == link_to("delete", "/<%= @name %>s/#{<%= @name %>.id}?_method=delete&_csrf=#{csrf_token}", class: "btn btn-danger btn-xs", onclick: "return confirm('Are you sure?');")
+  == link_to("back", "/<%= Inflector.pluralize(@name) %>", class: "btn btn-success btn-xs")
+  == link_to("edit", "/<%= Inflector.pluralize(@name) %>/#{<%= @name %>.id}/edit", class: "btn btn-success btn-xs")
+  == link_to("delete", "/<%= Inflector.pluralize(@name) %>/#{<%= @name %>.id}?_method=delete&_csrf=#{csrf_token}", class: "btn btn-danger btn-xs", onclick: "return confirm('Are you sure?');")
