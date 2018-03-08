@@ -1,5 +1,5 @@
-require "./logger"
 require "yaml"
+require "./logger"
 
 module Amber::Environment
   class Settings
