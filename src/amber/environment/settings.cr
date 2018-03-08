@@ -26,7 +26,6 @@ module Amber::Environment
     end
 
     setter session : Hash(String, Int32 | String)
-    property logging : Logging::OptionsType
     property database_url : String
     property host : String
     property name : String
@@ -38,11 +37,8 @@ module Amber::Environment
     property secrets : Hash(String, String)
     property ssl_key_file : String
     property ssl_cert_file : String
+    property logging : Logging::OptionsType
     property logger : Logger?
-
-    def logger
-      @logger ||= LoggerBuilder.new(STDOUT, logging).logger
-    end
 
     @smtp_settings : SMTPSettings?
 
@@ -97,6 +93,10 @@ module Amber::Environment
 
     def logging
       @_logging ||= Logging.new(@logging)
+    end
+
+    def logger
+      @logger ||= LoggerBuilder.new(STDOUT, logging).logger
     end
   end
 end
