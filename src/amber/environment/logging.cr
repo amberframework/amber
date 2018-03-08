@@ -1,5 +1,12 @@
 module Amber::Environment
   class Logging
+    alias OptionsType = NamedTuple(
+      severity: String,
+      colorize: Bool,
+      filter: Array(String?),
+      skip: Array(String?),
+      context: Array(String?))
+
     SEVERITY_MAP = {
       "debug":   Logger::DEBUG,
       "info":    Logger::INFO,
@@ -15,7 +22,7 @@ module Amber::Environment
     property skip : Array(String?)
     property filter : Array(String?)
 
-    def initialize(logging : Settings::LoggingType)
+    def initialize(logging : OptionsType)
       @colorize = logging[:colorize]
       @severity = logging[:severity]
       @filter = logging[:filter]

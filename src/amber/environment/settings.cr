@@ -3,13 +3,6 @@ require "./logger"
 
 module Amber::Environment
   class Settings
-    alias LoggingType = NamedTuple(
-      severity: String,
-      colorize: Bool,
-      filter: Array(String?),
-      skip: Array(String?),
-      context: Array(String?))
-
     alias SettingValue = String | Int32 | Bool | Nil
 
     struct SMTPSettings
@@ -33,7 +26,7 @@ module Amber::Environment
     end
 
     setter session : Hash(String, Int32 | String)
-    property logging : LoggingType
+    property logging : Logging::OptionsType
     property database_url : String
     property host : String
     property name : String
@@ -58,7 +51,7 @@ module Amber::Environment
     end
 
     YAML.mapping(
-      logging: {type: LoggingType, default: {
+      logging: {type: Logging::OptionsType, default: {
         severity: "debug",
         colorize: true,
         filter:   ["password", "confirm_password"] of String?,
