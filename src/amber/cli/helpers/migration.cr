@@ -1,3 +1,5 @@
+require "inflector"
+
 module Amber::CLI::Helpers::Migration
   def create_index_for_reference_fields_sql
     sql_statements = reference_fields.map do |field|
@@ -8,7 +10,7 @@ module Amber::CLI::Helpers::Migration
 
   def create_table_sql
     <<-SQL
-    CREATE TABLE #{@name}s (
+    CREATE TABLE #{Inflector.pluralize(@name)} (
       #{@primary_key},
       #{create_table_fields_sql}
     );
@@ -16,7 +18,7 @@ module Amber::CLI::Helpers::Migration
   end
 
   def drop_table_sql
-    "DROP TABLE IF EXISTS #{@name}s;"
+    "DROP TABLE IF EXISTS #{Inflector.pluralize(@name)};"
   end
 
   def primary_key
@@ -35,7 +37,7 @@ module Amber::CLI::Helpers::Migration
   private def create_index_for_reference_field_sql(field : Field)
     index_name = "#{@name.underscore}_#{field.name}_id_idx"
     <<-SQL
-    CREATE INDEX #{index_name} ON #{@name}s (#{field.name}_id);
+    CREATE INDEX #{index_name} ON #{Inflector.pluralize(@name)} (#{field.name}_id);
     SQL
   end
 

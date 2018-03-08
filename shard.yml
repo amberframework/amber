@@ -57,6 +57,9 @@ dependencies:
   sqlite3:
     github: crystal-lang/crystal-sqlite3
     version: ~> 0.9.0
+  inflector:
+    github: phoffer/inflector.cr
+    version: "~> 0.1.8"
 
   teeplate:
     github: amberframework/teeplate
