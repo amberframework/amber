@@ -106,7 +106,7 @@ module Amber::CLI
         puts "Rendering View #{name}"
         View.new(name, fields).render(directory, list: true, color: true)
       else
-        raise "Template not found"
+        CLI.logger.error "Template not found", "Generate", :light_red
       end
     end
 
