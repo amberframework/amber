@@ -96,7 +96,7 @@ module Amber::Environment
     end
 
     def logger
-      @logger ||= LoggerBuilder.new(STDOUT, logging).logger
+      @logger ||= LoggerBuilder.logger(STDOUT, logging)
     end
   end
 end
