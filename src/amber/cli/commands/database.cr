@@ -43,8 +43,7 @@ module Amber::CLI
         CLI.toggle_colors(options.no_color?)
 
         if args.commands.empty?
-          Process.exec(command_line_tool, {database_url}) if database_url
-          exit! error: false
+          connect_to_database
         end
 
         args.commands.each do |command|
@@ -71,6 +70,8 @@ module Amber::CLI
             Micrate::Cli.run_status
           when "version"
             Micrate::Cli.run_dbversion
+          when "connect"
+            connect_to_database
           else
             exit! help: true, error: false
           end
@@ -121,6 +122,11 @@ module Amber::CLI
         else
           CLI.logger.info "Could not determine database name", "Error", :red
         end
+      end
+
+      private def connect_to_database
+        Process.exec(command_line_tool, {database_url}) if database_url
+        exit! error: false
       end
 
       private def command_line_tool
