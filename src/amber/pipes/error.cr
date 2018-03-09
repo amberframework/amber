@@ -1,8 +1,8 @@
 module Amber
   module Pipe
-    # The Error Handler catches RouteNotFound and returns a 404.  It will
-    # response based on the `Accepts` header as JSON or HTML.  It also catches
-    # any runtime Exceptions and returns a backtrace in text/plain format.
+    # The Error pipe catches RouteNotFound and returns a 404. It responds based
+    # on the `Accepts` header as JSON or HTML. It also catches any runtime
+    # Exceptions and returns a backtrace in text/html format.
     class Error < Base
       def call(context : HTTP::Server::Context)
         raise Amber::Exceptions::RouteNotFound.new(context.request) unless context.valid_route?
