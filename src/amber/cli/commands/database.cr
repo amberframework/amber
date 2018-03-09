@@ -41,6 +41,12 @@ module Amber::CLI
 
       def run
         CLI.toggle_colors(options.no_color?)
+
+        if args.commands.empty?
+          Process.exec(command_line_tool, {database_url}) if database_url
+          exit! error: false
+        end
+
         args.commands.each do |command|
           Micrate::DB.connection_url = database_url
           case command
@@ -114,6 +120,19 @@ module Amber::CLI
           return path.gsub("/", "")
         else
           CLI.logger.info "Could not determine database name", "Error", :red
+        end
+      end
+
+      private def command_line_tool
+        case Amber::CLI.config.database
+        when "pg"
+          "psql"
+        when "mysql"
+          "mysql"
+        when "sqlite"
+          "sqlite3"
+        else
+          exit! "invalid database configuration", error: true
         end
       end
 
