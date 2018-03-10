@@ -125,4 +125,10 @@ class ResponsesController < Amber::Controller::Base
       json type: "json", name: "Amberator"
     end
   end
+
+  def custom_status_code
+    respond_with(403) do
+      json type: "json", error: "Unauthorized"
+    end
+  end
 end
