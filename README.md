@@ -1,4 +1,4 @@
-![amber](https://github.com/amberframework/site-assets/raw/master/images/amber.png)
+![amber](https://github.com/amberframework/site-assets/raw/master/images/amber-horizontal.png)
 
 **Productivity. Performance. Happiness.**
 
