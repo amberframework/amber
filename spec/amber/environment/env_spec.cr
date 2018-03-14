@@ -24,7 +24,7 @@ module Amber::Environment
         amber_env.{{env.id}}.should_not be_nil
       end
     end
-  {% end %}
+    {% end %}
 
     describe ".==" do
       it "returns true when the environment matches the argument(String)" do

@@ -5,10 +5,10 @@ require "../helpers/sentry"
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     class Routes < Command
-      RESOURCE_ROUTE_REGEX = /(\w+)\s+\"([^\"]+)\",\s*([\w:]+)(?:,\s*(\w+)\:\s*\[([^\]]+)\])?/
-      VERB_ROUTE_REGEX     = /(\w+)\s+\"([^\"]+)\",\s*([\w:]+),\s*:(\w+)/
-      WEBSOCKET_ROUTE_REGEX= /(websocket)\s+\"([^\"]+)\",\s*([\w:]+)/
-      PIPE_SCOPE_REGEX     = /(routes)\s+\:(\w+)(?:,\s+\"([^\"]+)\")?/
+      RESOURCE_ROUTE_REGEX  = /(\w+)\s+\"([^\"]+)\",\s*([\w:]+)(?:,\s*(\w+)\:\s*\[([^\]]+)\])?/
+      VERB_ROUTE_REGEX      = /(\w+)\s+\"([^\"]+)\",\s*([\w:]+),\s*:(\w+)/
+      WEBSOCKET_ROUTE_REGEX = /(websocket)\s+\"([^\"]+)\",\s*([\w:]+)/
+      PIPE_SCOPE_REGEX      = /(routes)\s+\:(\w+)(?:,\s+\"([^\"]+)\")?/
 
       LABELS         = ["Verb", "Controller", "Action", "Pipeline", "Scope", "URI Pattern"]
       ACTION_MAPPING = {

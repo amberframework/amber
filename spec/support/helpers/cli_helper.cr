@@ -1,3 +1,5 @@
+require "file_utils"
+
 module CLIHelper
   BASE_ENV_PATH       = "./config/environments/"
   ENV_CONFIG_PATH     = "#{TESTING_APP}/config/environments/"
@@ -5,13 +7,13 @@ module CLIHelper
   ENVIRONMENTS        = %w(development test)
 
   def cleanup
-    puts "cleaning up..."
     Dir.cd CURRENT_DIR
-    `rm -rf ./tmp/`
+    if Dir.exists?(TESTING_APP)
+      FileUtils.rm_r(TESTING_APP)
+    end
   end
 
   def prepare_test_app
-    puts "Environment: #{ENV["AMBER_ENV"]}"
     cleanup
     scaffold_app("#{TESTING_APP}", "-d", "sqlite")
     environment_yml(ENV["AMBER_ENV"], "#{Dir.current}/config/environments/")

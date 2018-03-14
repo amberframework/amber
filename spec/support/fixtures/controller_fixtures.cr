@@ -69,6 +69,10 @@ class HelloController < Amber::Controller::Base
     "Hello Amber!"
   end
 
+  def client_ip_address
+    client_ip.not_nil!.address
+  end
+
   def increment(n)
     @total = @total + n
   end
@@ -119,6 +123,12 @@ class ResponsesController < Amber::Controller::Base
     respond_with do
       html "<html><body><h1>Elorest <3 Amber</h1></body></html>"
       json type: "json", name: "Amberator"
+    end
+  end
+
+  def custom_status_code
+    respond_with(403) do
+      json type: "json", error: "Unauthorized"
     end
   end
 end

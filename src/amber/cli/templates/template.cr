@@ -1,6 +1,6 @@
 require "teeplate"
 require "random/secure"
-require "../helpers/helpers.cr"
+require "../helpers/helpers"
 require "./app"
 require "./migration"
 require "./crecto_migration"
@@ -47,7 +47,7 @@ module Amber::CLI
           App.new(name, options.d, options.t, options.m).render(directory, list: true, color: true)
           if options.deps?
             puts "Installing Dependencies"
-            puts `cd #{name} && crystal deps update`
+            Helpers.run("cd #{name} && shards update")
           end
         end
       when "migration"
@@ -102,7 +102,7 @@ module Amber::CLI
         actions = ["forbidden", "not_found", "internal_server_error"]
         ErrorTemplate.new("error", actions).render(directory, list: true, color: true)
       else
-        raise "Template not found"
+        CLI.logger.error "Template not found", "Generate", :light_red
       end
     end
 
@@ -111,7 +111,7 @@ module Amber::CLI
     end
 
     def puts(msg)
-      CLI.logger.puts msg, "Generate", :light_cyan
+      CLI.logger.info msg, "Generate", :light_cyan
     end
   end
 end
@@ -134,7 +134,7 @@ class Teeplate::RenderingEntry
   end
 
   def list(s, color)
-    Amber::CLI.logger.puts s.colorize.fore(color).to_s + local_path, "Generate", :light_cyan
+    Amber::CLI.logger.info s.colorize.fore(color).to_s + local_path, "Generate", :light_cyan
   end
 end
 

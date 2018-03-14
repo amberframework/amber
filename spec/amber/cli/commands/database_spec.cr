@@ -9,7 +9,6 @@ module Amber::CLI
   describe "database" do
     ENV["AMBER_ENV"] = "test"
 
-    Amber::CLI.settings.database_url
     describe "sqlite" do
       context ENV["AMBER_ENV"] do
         it "has connection settings in config/environments/env.yml" do
@@ -27,6 +26,7 @@ module Amber::CLI
           cleanup
           scaffold_app("#{TESTING_APP}", "-d", "sqlite")
           Amber::CLI.env = "development"
+          Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
           env_yml = prepare_test_app
           MainCommand.run ["generate", "model", "Post"]
           MainCommand.run ["db", "migrate"]

@@ -16,6 +16,11 @@ class <%= class_name %> < Granite::ORM::Base
     (email = <%= @name %>.email) ? !email.empty? : false
   end
 
+  validate :email, "already in use", -> (user : User) do
+    existing = User.find_by :email, user.email
+    !existing
+  end
+
   validate :password, "is too short", -> (<%= @name %> : <%= class_name %>) do
     <%= @name %>.password_changed? ? <%= @name %>.valid_password_size? : true
   end

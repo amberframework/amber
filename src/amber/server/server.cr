@@ -44,10 +44,7 @@ module Amber
     def run
       thread_count = settings.process_count
       if Cluster.master? && thread_count > 1
-        while (thread_count > 0)
-          Cluster.fork ({"id" => thread_count.to_s})
-          thread_count -= 1
-        end
+        thread_count.times { Cluster.fork }
         sleep
       else
         start
@@ -70,11 +67,11 @@ module Amber
       loop do
         begin
           logger.info "Server started in #{Amber.env.colorize(:yellow)}."
-          logger.info "Startup Time #{Time.now - time}\n\n".colorize(:white)
+          logger.info "Startup Time #{Time.now - time}".colorize(:white)
           server.listen(settings.port_reuse)
           exit
         rescue e : Errno
-          if e.message == "accept: Too many open files"
+          if e.errno == Errno::EMFILE
             logger.error e.message
             logger.info "Restarting server..."
             sleep 1
@@ -87,7 +84,7 @@ module Amber
     end
 
     private def version
-      "[Amber #{Amber::VERSION}]".colorize(:light_cyan)
+      "Amber #{Amber::VERSION}".colorize(:light_cyan)
     end
 
     private def host_url

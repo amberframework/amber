@@ -50,12 +50,20 @@ module Amber::Controller::Helpers
 
       private def select_type
         raise "You must define at least one response_type." if @available_responses.empty?
-        # NOTE: If only one response is requested don't return something else.
-        @requested_responses << @available_responses.keys.first if @requested_responses.size != 1
+        # NOTE: If only one response is requested or */* is present don't return anything else.
+        if @requested_responses.size != 1 || @requested_responses.includes?("*/*")
+          @requested_responses << @available_responses.keys.first
+        end
         @requested_responses.find do |resp|
           @available_responses.keys.includes?(resp)
         end
       end
+    end
+
+    def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
+      context.response.status_code = status_code
+      context.response.content_type = content_type
+      context.content = body
     end
 
     private def extension_request_type
@@ -75,19 +83,13 @@ module Amber::Controller::Helpers
       extension_request_type || accepts_request_type || [] of String
     end
 
-    protected def respond_with(&block)
+    protected def respond_with(status_code = 200, &block)
       content = with Content.new(requested_responses) yield
       if content.body
-        set_response(body: content.body, status_code: 200, content_type: content.type)
+        set_response(body: content.body, status_code: status_code, content_type: content.type)
       else
         set_response(body: "Response Not Acceptable.", status_code: 406, content_type: Content::TYPE[:text])
       end
-    end
-
-    private def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
-      context.response.status_code = status_code
-      context.response.content_type = content_type
-      context.content = body
     end
   end
 end

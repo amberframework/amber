@@ -14,6 +14,7 @@ module Amber::CLI
 
     class Database < Command
       command_name "database"
+      MIGRATIONS_DIR = "./db/migrations"
 
       class Options
         arg_array "commands", desc: "drop create migrate rollback redo status version seed"
@@ -22,7 +23,20 @@ module Amber::CLI
       end
 
       class Help
-        caption "# Performs database maintenance tasks"
+        header <<-EOS
+          Performs database migrations and maintenance tasks. Powered by micrate (https://github.com/juanedi/micrate)
+
+        Commands:
+          drop      # Drops the database
+          create    # Creates the database
+          migrate   # Migrate the database to the most recent version available
+          rollback  # Roll back the database version by 1
+          redo      # Re-run the latest database migration
+          status    # dump the migration status for the current database
+          version   # Print the current version of the database
+          seed      # Initialize the database with seed data
+        EOS
+        caption "# Performs database migrations and maintenance tasks"
       end
 
       def run
@@ -38,7 +52,11 @@ module Amber::CLI
             `crystal db/seeds.cr`
             Micrate.logger.info "Seeded database"
           when "migrate"
-            Micrate::Cli.run_up
+            begin
+              Micrate::Cli.run_up
+            rescue e : IndexError
+              exit! "No migrations to run in #{MIGRATIONS_DIR}."
+            end
           when "rollback"
             Micrate::Cli.run_down
           when "redo"
@@ -48,7 +66,7 @@ module Amber::CLI
           when "version"
             Micrate::Cli.run_dbversion
           else
-            Micrate::Cli.print_help
+            exit! help: true, error: false
           end
         end
       rescue e : Micrate::UnorderedMigrationsException
@@ -95,7 +113,7 @@ module Amber::CLI
           Micrate::DB.connection_url = url.gsub(path, "/#{uri.scheme}")
           return path.gsub("/", "")
         else
-          CLI.logger.puts "Could not determine database name", "Error", :red
+          CLI.logger.info "Could not determine database name", "Error", :red
         end
       end
 
