@@ -1,21 +1,14 @@
-<p align="center">
-  <img src="https://github.com/amberframework/site-assets/raw/master/images/amber.png" width="200">
-  <p align="center">Productivity. Performance. Happiness.<p>
-  <p align="center">
-    <sup>
-      <i>
-        Amber makes building web applications fast, simple, and enjoyable - with fewer bugs and blazing fast performance.
-      </i>
-    </sup>
-  </p>
-  <p align="center">
-    <a href="https://travis-ci.org/amberframework/amber"><img src="https://img.shields.io/travis/amberframework/amber.svg?maxAge=360"></a>
-    <a href="https://github.com/amberframework/amber/releases/latest"><img src="https://img.shields.io/github/tag/amberframework/amber.svg?maxAge=360"></a>
-    <a href="https://shards.rocks/github/amberframework/amber"><img src="https://shards.rocks/badge/github/amberframework/amber/status.svg"></a>
-    <a href="https://github.com/amberframework/amber/blob/master/LICENSE"><img src="https://img.shields.io/github/license/amberframework/amber.svg"></a>
-  <a href="https://gitter.im/amberframework/amber"><img src="https://img.shields.io/gitter/room/amberframework/amber.svg"></a>
-  </p>
-</p>
+![amber](https://github.com/amberframework/site-assets/raw/master/images/amber-horizontal.png)
+
+**Productivity. Performance. Happiness.**
+
+_Amber makes building web applications fast, simple, and enjoyable - with fewer bugs and blazing fast performance._
+
+[![Build Status](https://travis-ci.org/amberframework/amber.svg?branch=master)](https://travis-ci.org/amberframework/amber)
+[![Version](https://img.shields.io/github/tag/amberframework/amber.svg?maxAge=360)](https://github.com/amberframework/amber/releases/latest)
+[![Dependencies](https://shards.rocks/badge/github/amberframework/amber/status.svg)](https://shards.rocks/github/amberframework/amber)
+[![License](https://img.shields.io/github/license/amberframework/amber.svg)](https://github.com/amberframework/amber/blob/master/LICENSE)
+[![Gitter](https://img.shields.io/gitter/room/amberframework/amber.svg)](https://gitter.im/amberframework/amber)
 
 # Welcome to Amber
 
