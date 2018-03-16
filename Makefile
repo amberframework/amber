@@ -11,7 +11,7 @@ all: build
 build: lib $(AMBER)
 
 lib:
-	@crystal deps
+	@shards install --production
 
 $(AMBER): $(AMBER_SOURCES) | $(OUT_DIR)
 	@echo "Building amber in $@"

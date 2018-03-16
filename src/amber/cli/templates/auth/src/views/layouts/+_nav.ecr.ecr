@@ -1,7 +1,7 @@
 <%="<"%>%- if (current_<%= @name %> = context.current_<%= @name %>) %>
   <a class="nav-item pull-right" href="/signout">| Sign Out</a>
   <%="<"%>%- active = context.request.path == "/profile" ? "active" : "" %>
-  <a class="nav-item <%="<"%>%= active %> pull-right" href="/profile"><%="<"%>%= current_<%= @name %>.email %></div>
+  <a class="nav-item <%="<"%>%= active %> pull-right" href="/profile"><%="<"%>%= current_<%= @name %>.email %></a>
 <%="<"%>%- else %>
   <%="<"%>%- active = context.request.path == "/signup" ? "active" : "" %>
   <a class="nav-item <%="<"%>%= active %> pull-right" href="/signup">| Sign Up</a>

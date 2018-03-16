@@ -60,6 +60,12 @@ module Amber::Controller::Helpers
       end
     end
 
+    def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
+      context.response.status_code = status_code
+      context.response.content_type = content_type
+      context.content = body
+    end
+
     private def extension_request_type
       path_ext = request.path.match(Content::TYPE_EXT_REGEX).try(&.[1])
       return [Content::TYPE[path_ext]] if path_ext
@@ -77,19 +83,13 @@ module Amber::Controller::Helpers
       extension_request_type || accepts_request_type || [] of String
     end
 
-    protected def respond_with(&block)
+    protected def respond_with(status_code = 200, &block)
       content = with Content.new(requested_responses) yield
       if content.body
-        set_response(body: content.body, status_code: 200, content_type: content.type)
+        set_response(body: content.body, status_code: status_code, content_type: content.type)
       else
         set_response(body: "Response Not Acceptable.", status_code: 406, content_type: Content::TYPE[:text])
       end
-    end
-
-    private def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
-      context.response.status_code = status_code
-      context.response.content_type = content_type
-      context.content = body
     end
   end
 end

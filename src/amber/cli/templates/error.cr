@@ -19,7 +19,7 @@ module Amber::CLI
 
     private def add_dependencies
       add_dependencies <<-DEPENDENCY
-      require "../src/handlers/error.cr"
+      require "../src/pipes/error.cr"
       DEPENDENCY
     end
 
