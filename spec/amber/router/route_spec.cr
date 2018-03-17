@@ -14,7 +14,7 @@ module Amber
       route.class.should eq Route
     end
 
-    describe "#substitute_keys)in_path" do
+    describe "#substitute_keys_in_path" do
       it "parses route resource params" do
         params = {"id" => "123", "name" => "John"}
         empty_hash = {} of String => String
