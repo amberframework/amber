@@ -78,7 +78,7 @@ Questions? Join our IRC channel [#amber](http://webchat.freenode.net/?channels=#
 
 Guidelines? We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) for Amber.
 
-Our Philosophy? [Read Amber Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md).
+Our Philosophy? [Read Amber Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md)
 
 ## Have an Amber-based Project?
 
