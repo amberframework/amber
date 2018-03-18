@@ -74,11 +74,11 @@ dependencies:
 
 ## Community
 
-Questions or suggestions? Join our IRC channel [#amber](http://webchat.freenode.net/?channels=#amber) at `chat.freenode.net` or ask on our [Gitter room](https://gitter.im/amberframework/amber).
+Questions? Join our IRC channel [#amber](http://webchat.freenode.net/?channels=#amber) and [Gitter room](https://gitter.im/amberframework/amber) or ask on Stack Overflow under the [amber-framework](https://stackoverflow.com/questions/tagged/amber-framework) tag.
 
 Guidelines? We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) for Amber.
 
-Our Philosophy? [Read Amber Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md).
+Our Philosophy? [Read Amber Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md)
 
 ## Have an Amber-based Project?
 
