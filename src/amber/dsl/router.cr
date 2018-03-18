@@ -29,7 +29,7 @@ module Amber::DSL
       macro {{verb.id}}(*args)
         route {{verb}}, \{{*args}}
         {% if verb == :get %}
-          route :head, \{{*args}}
+        route :head, \{{*args}}
         {% end %}
         route {{verb}}, \{{*args}}
         {% if ![:trace, :connect, :options, :head].includes? verb %}
