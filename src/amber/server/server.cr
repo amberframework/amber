@@ -55,6 +55,7 @@ module Amber
       time = Time.now
       logger.info "#{version} serving application \"#{settings.name.capitalize}\" at #{host_url}".to_s
       handler.prepare_pipelines
+      router.append_cors_routes(handler.valve_cors)
       server = HTTP::Server.new(settings.host, settings.port, handler)
       server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
 

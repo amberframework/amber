@@ -64,6 +64,22 @@ module Amber
         end
       end
 
+      def append_cors_routes(valves_with_cors)
+        return if valves_with_cors.empty?
+
+        routes_with_cors = routes_hash.values.select { |route| valves_with_cors.includes?(route.valve) }
+
+        routes_with_cors.each do |route|
+          options_route = route.clone
+          options_route.verb = "options"
+          add(options_route)
+        end
+      end
+
+      private def merge_params(params, context)
+        params.each { |k, v| context.params.add(k.to_s, v) }
+      end
+
       private def build_node(http_verb : Symbol | String, resource : String)
         "#{http_verb.to_s.downcase}#{resource}"
       end
