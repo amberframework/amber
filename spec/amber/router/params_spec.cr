@@ -42,8 +42,28 @@ module Amber::Router
     end
 
     describe "#fetch_all" do
+      fetch_all_headers = HTTP::Headers.new
+      fetch_all_headers["Content-Type"] = "application/x-www-form-urlencoded"
+      encoded_form = HTTP::Params.build do |form|
+        form.add "test_form", "test1"
+        form.add "test_form", "test2"
+        form.add "test_both", "form1"
+        form.add "test_both", "form2"
+      end
+
+      fetch_all_request = HTTP::Request.new("POST", "/?test=test&test=test2&test_both=query&test_both=query1&#{HTTP::Request::METHOD}=put&status=1234", fetch_all_headers, encoded_form)
+      fetch_all_params = Params.new(fetch_all_request)
+
       it "returns an array of params" do
-        params.fetch_all("test").should eq %w(test test2)
+        fetch_all_params.fetch_all("test").should eq %w(test test2)
+      end
+
+      it "works for form params" do
+        fetch_all_params.fetch_all("test_form").should eq %w(test1 test2)
+      end
+
+      it "prefers query params" do
+        fetch_all_params.fetch_all("test_both").should eq %w(query query1)
       end
     end
 
