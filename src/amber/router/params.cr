@@ -47,7 +47,11 @@ module Amber::Router
 
     def fetch_all(key : Types::Key) : Array
       _key = key.to_s
-      query.fetch_all(_key) || form.fetch_all(_key)
+      if query.has_key?(_key)
+        query.fetch_all(_key)
+      else
+        form.fetch_all(_key)
+      end
     end
 
     def json(key : Types::Key)

@@ -2,8 +2,7 @@ require "amber_router"
 
 module Amber
   module Router
-    # This is the main application handler all routers should finally hit this
-    # handler.
+    # This is the main application handler all routers should finally hit this handler.
     class Router
       property :routes, :routes_hash, :socket_routes
       PATH_EXT_REGEX = /\.[^$\/]+$/
@@ -32,7 +31,6 @@ module Amber
         trail = build_node(route.verb, route.resource)
         @routes.add(route.trail, route)
         @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route
-        add_head(route) if route.verb == "GET"
       end
 
       def add_socket_route(route, handler : WebSockets::Server::Handler)
@@ -66,10 +64,6 @@ module Amber
 
       private def build_node(http_verb : Symbol | String, resource : String)
         "#{http_verb.to_s.downcase}#{resource}"
-      end
-
-      private def add_head(route)
-        @routes.add(route.trail_head, route)
       end
     end
   end
