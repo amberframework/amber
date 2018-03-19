@@ -12,9 +12,18 @@ module Amber
           end
 
           router.match("GET", "/hello").path.should eq "get/hello"
+          router.match("HEAD", "/hello").path.should eq "head/hello"
+          router.match("OPTIONS", "/hello").path.should eq "options/hello"
           router.match("GET", "/hello/2").path.should eq "get/hello/:id"
+          router.match("HEAD", "/hello/2").path.should eq "head/hello/:id"
+          router.match("OPTIONS", "/hello/2").path.should eq "options/hello/:id"
           router.match("GET", "/hello/new").path.should eq "get/hello/new"
+          router.match("HEAD", "/hello/new").path.should eq "head/hello/new"
+          router.match("OPTIONS", "/hello/new").path.should eq "options/hello/new"
           router.match("GET", "/hello/2/edit").path.should eq "get/hello/:id/edit"
+          router.match("HEAD", "/hello/2/edit").path.should eq "head/hello/:id/edit"
+          router.match("OPTIONS", "/hello/2/edit").path.should eq "options/hello/:id/edit"
+          router.match("OPTIONS", "/hello/1").path.should eq "options/hello/:id"
           router.match("PUT", "/hello/1").path.should eq "put/hello/:id"
           router.match("PATCH", "/hello/1").path.should eq "patch/hello/:id"
           router.match("DELETE", "/hello/1").path.should eq "delete/hello/:id"
