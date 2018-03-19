@@ -1,4 +1,3 @@
-
 module Amber::Recipes
   class App < Teeplate::FileTree
     include FileEntries
