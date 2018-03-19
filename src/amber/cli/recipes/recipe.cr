@@ -10,6 +10,7 @@ require "./app"
 
 module Amber::Recipes
   TEMP_RECIPE_FOLDER = "./amber_temp_recipe"
+
   class Recipe
     getter name : String
     getter directory : String
@@ -50,7 +51,6 @@ module Amber::Recipes
           end
           cleanup
         end
-
       else
         CLI.logger.error "Template not found", "Generate", :light_red
       end

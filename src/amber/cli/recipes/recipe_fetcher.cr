@@ -3,7 +3,6 @@ require "zip"
 
 module Amber::Recipes
   class RecipeFetcher
-
     getter kind : String
     getter name : String
     getter directory : String
@@ -30,7 +29,7 @@ module Amber::Recipes
     def fetch_url
       # download the recipe zip file from the github repository
       HTTP::Client.get("https://raw.githubusercontent.com/AmberRecipes/recipes/master/#{@kind}/#{@name}.zip") do |response|
-        if response.status_code  != 200
+        if response.status_code != 200
           # raise an exception if the recipe zip was not found
           raise "Could not find that recipe"
         end
