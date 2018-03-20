@@ -9,13 +9,12 @@ require "./recipe_fetcher"
 require "./app"
 
 module Amber::Recipes
-  TEMP_RECIPE_FOLDER = "./amber_temp_recipe"
+  AMBER_RECIPE_FOLDER = "./.amber_recipe_cache"
 
   class Recipe
     getter name : String
     getter directory : String
     getter recipe : String
-    getter fields : Array(String)
 
     def initialize(name : String, directory : String, recipe : String, fields = [] of String)
       if name.match(/\A[a-zA-Z]/)
@@ -34,11 +33,6 @@ module Amber::Recipes
       @fields = fields
     end
 
-    def cleanup
-      # if we used a template from github then remove the temp folder
-      FileUtils.rm_rf(TEMP_RECIPE_FOLDER)
-    end
-
     def generate(template : String, options = nil)
       case template
       when "app"
@@ -49,7 +43,6 @@ module Amber::Recipes
             puts "Installing Dependencies"
             Amber::CLI::Helpers.run("cd #{name} && shards update")
           end
-          cleanup
         end
       else
         CLI.logger.error "Template not found", "Generate", :light_red
@@ -101,25 +94,6 @@ module Teeplate
       renderer << filter(file_entries)
       renderer.render
       renderer
-    end
-
-    # setup the Liquid context
-    def set_context(ctx)
-      return if ctx.nil?
-
-      ctx.set "name", @name
-      ctx.set "database", @database
-      ctx.set "database_name_base", @database_name_base
-      ctx.set "language", @language
-      ctx.set "model", @model
-      ctx.set "db_url", @db_url
-      ctx.set "wait_for", @wait_for
-      ctx.set "author", @author
-      ctx.set "email", @email
-      ctx.set "github_name", @github_name
-      ctx.set "amber_version", Amber::VERSION
-      ctx.set "crystal_version", Crystal::VERSION
-      ctx.set "urlsafe_base64", Random::Secure.urlsafe_base64(32)
     end
 
     # Override to filter files rendered

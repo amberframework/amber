@@ -8,7 +8,7 @@ module Amber::Recipes
     getter directory : String
 
     def initialize(@kind : String, @name : String)
-      @directory = "#{__DIR__}/#{@kind}/#{@name}"
+      @directory = "#{__DIR__}/#{@name}/#{@kind}"
     end
 
     def fetch
@@ -17,32 +17,37 @@ module Amber::Recipes
         return @directory
       end
 
-      # if the given recipe name is a directory then use it
-      if Dir.exists?(@name)
-        return @name
+      # if the given recipe name is a directory and has a sub directory
+      # for the kind of component being generated then use it
+      if Dir.exists?("#{@name}/#{@kind}")
+        return "#{@name}/#{@kind}"
+      end
+
+      # check the cached templates folder
+      template_path = "#{AMBER_RECIPE_FOLDER}/#{@name}"
+
+      if Dir.exists?("#{template_path}/#{@kind}")
+        return "#{template_path}/#{@kind}"
       end
 
       # otherwise fetch from the github repository
-      return fetch_url
+      return fetch_url template_path
     end
 
-    def fetch_url
+    def fetch_url(template_path)
       # download the recipe zip file from the github repository
-      HTTP::Client.get("https://raw.githubusercontent.com/AmberRecipes/recipes/master/#{@kind}/#{@name}.zip") do |response|
+      HTTP::Client.get("https://raw.githubusercontent.com/AmberRecipes/recipes/master/#{@name}.zip") do |response|
         if response.status_code != 200
           # raise an exception if the recipe zip was not found
           raise "Could not find that recipe"
         end
 
-        # ensure the temp folder does not exist
-        FileUtils.rm_rf(TEMP_RECIPE_FOLDER)
-
         # make a temp directory and expand the zip into the temp directory
-        Dir.mkdir_p(TEMP_RECIPE_FOLDER)
+        Dir.mkdir_p(template_path)
 
         Zip::Reader.open(response.body_io) do |zip|
           zip.each_entry do |entry|
-            path = "#{TEMP_RECIPE_FOLDER}/#{entry.filename}"
+            path = "#{template_path}/#{entry.filename}"
             if entry.dir?
               Dir.mkdir_p(path)
             else
@@ -52,8 +57,11 @@ module Amber::Recipes
         end
       end
 
-      # return the path of the temp directory
-      TEMP_RECIPE_FOLDER
+      # return the path of the template directory
+      if Dir.exists?("#{template_path}/#{@kind}")
+        return "#{template_path}/#{@kind}"
+      end
+      nil
     end
   end
 end

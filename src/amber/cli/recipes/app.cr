@@ -15,7 +15,8 @@ module Amber::Recipes
     @author : String
     @email : String
     @github_name : String
-    @template : String
+    @template : String = "#{__DIR__}/default/app"
+    @recipe : String
 
     def initialize(@name, @database = "pg", @language = "slang", @model = "granite", @recipe = "default")
       @db_url = ""
@@ -25,7 +26,35 @@ module Amber::Recipes
       @email = fetch_email
       @github_name = fetch_github_name
 
-      @template = RecipeFetcher.new("app", @recipe).fetch
+      fetch_recipe_or_default @recipe
+    end
+
+    def fetch_recipe_or_default(recipe)
+      @template = RecipeFetcher.new("app", recipe).fetch || "#{__DIR__}/default/app"
+    rescue
+      @template = "#{__DIR__}/default/app"
+    end
+
+    # setup the Liquid context
+    def set_context(ctx)
+      return if ctx.nil?
+
+      ctx.set "class_name", @class_name 
+      ctx.set "display_name", @display_name
+      ctx.set "name", @name
+      ctx.set "database", @database
+      ctx.set "database_name_base", @database_name_base
+      ctx.set "language", @language
+      ctx.set "model", @model
+      ctx.set "db_url", @db_url
+      ctx.set "wait_for", @wait_for
+      ctx.set "author", @author
+      ctx.set "email", @email
+      ctx.set "github_name", @github_name
+      ctx.set "recipe", @recipe
+      ctx.set "amber_version", Amber::VERSION
+      ctx.set "crystal_version", Crystal::VERSION
+      ctx.set "urlsafe_base64", Random::Secure.urlsafe_base64(32)
     end
 
     def filter(entries)
