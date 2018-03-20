@@ -24,15 +24,9 @@ module Amber::Recipes
 
       @action_names = @actions.map { |action, verb| action}
 
-      fetch_recipe_or_default @recipe
+      @template = RecipeFetcher.new("controller", @recipe).fetch
 
       add_views
-    end
-
-    def fetch_recipe_or_default(recipe)
-      @template = RecipeFetcher.new("controller", recipe).fetch || "#{__DIR__}/default/controller"
-    rescue
-      @template = "#{__DIR__}/default/controller"
     end
 
     # setup the Liquid context
