@@ -62,7 +62,7 @@ module Amber::Recipes
           end
         end
       when "controller"
-        puts "Rendering Controller #{name}"
+        puts "Rendering Controller #{name} from #{@recipe}"
         Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
       else
         CLI.logger.error "Template not found", "Generate", :light_red
