@@ -7,6 +7,7 @@ require "../helpers/helpers"
 require "./file_entries"
 require "./recipe_fetcher"
 require "./app"
+require "./controller"
 
 module Amber::Recipes
   AMBER_RECIPE_FOLDER = "./.amber_recipe_cache"
@@ -15,6 +16,16 @@ module Amber::Recipes
     getter name : String
     getter directory : String
     getter recipe : String
+
+    def self.can_generate?(template_type, recipe)
+      return false unless ["app", "controller" ].includes? template_type
+
+      template = RecipeFetcher.new(template_type, recipe).fetch
+      template.nil? ? false : true
+    rescue
+      p "Cannot generate a #{template_type} from #{recipe}"
+      false
+    end
 
     def initialize(name : String, directory : String, recipe : String, fields = [] of String)
       if name.match(/\A[a-zA-Z]/)
@@ -33,6 +44,12 @@ module Amber::Recipes
       @fields = fields
     end
 
+    def cleanup
+      # if we used a template from github then remove the temp folder
+      # this should probably be called as a command so templates are cached
+      FileUtils.rm_rf(AMBER_RECIPE_FOLDER)
+    end
+
     def generate(template : String, options = nil)
       case template
       when "app"
@@ -44,6 +61,9 @@ module Amber::Recipes
             Amber::CLI::Helpers.run("cd #{name} && shards update")
           end
         end
+      when "controller"
+        puts "Rendering Controller #{name}"
+        Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
       else
         CLI.logger.error "Template not found", "Generate", :light_red
       end
