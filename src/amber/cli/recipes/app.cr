@@ -15,7 +15,7 @@ module Amber::Recipes
     @author : String
     @email : String
     @github_name : String
-    @template : String = "#{__DIR__}/default/app"
+    @template : String = ""
     @recipe : String
 
     def initialize(@name, @database = "pg", @language = "slang", @model = "granite", @recipe = "default")
@@ -26,13 +26,7 @@ module Amber::Recipes
       @email = fetch_email
       @github_name = fetch_github_name
 
-      fetch_recipe_or_default @recipe
-    end
-
-    def fetch_recipe_or_default(recipe)
-      @template = RecipeFetcher.new("app", recipe).fetch || "#{__DIR__}/default/app"
-    rescue
-      @template = "#{__DIR__}/default/app"
+      @template = RecipeFetcher.new("app", @recipe).fetch
     end
 
     # setup the Liquid context

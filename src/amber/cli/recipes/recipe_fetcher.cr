@@ -61,7 +61,10 @@ module Amber::Recipes
       if Dir.exists?("#{template_path}/#{@kind}")
         return "#{template_path}/#{@kind}"
       end
-      nil
+
+      # raise an exception if the recipe does not contain the generator for
+      # the element being generated
+      raise "Cannot generate a #{@kind} from that recipe"
     end
   end
 end
