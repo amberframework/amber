@@ -3,27 +3,28 @@ require "../../spec_helper"
 module Amber::Validators
   describe Params do
     describe "#validation" do
-      it "validates required field" do
-        http_params = params_builder("name=elias&last_name=perez&middle=j")
-        validator = Validators::Params.new(http_params)
+      context "required params" do
+        context "when missing" do
+          it "is not valid and has 2 errors" do
+            validator = Validators::Params.new(params_builder(""))
 
-        result = validator.validation do
-          required(:name) { |v| !v.nil? }
-          required("last_name") { |v| !v.nil? }
+            validator.validation do
+              required(:name) { |v| true }
+              required("last_name") { |v| true }
+            end
+
+            validator.valid?.should be_false
+            validator.errors.size.should eq 2
+          end
         end
 
-        validator.valid?.should be_true
-        validator.errors.size.should eq 0
-      end
-
-      context "optional params" do
-        context "when missing" do
-          it "does not validate optional field" do
-            http_params = params_builder("last_name=&middle=j")
+        context "when params present" do
+          it "is valid and there is no errors" do
+            http_params = params_builder("name=elias&last_name=perez&middle=j")
             validator = Validators::Params.new(http_params)
 
-            result = validator.validation do
-              optional(:name) { |v| !v.nil? }
+            validator.validation do
+              required(:name) { |v| !v.nil? }
               required("last_name") { |v| !v.nil? }
             end
 
@@ -32,13 +33,59 @@ module Amber::Validators
           end
         end
 
-        context "when present" do
-          it "validates optional field" do
+        context "when one of the params is invalid" do
+          it "is not valid and it has errors" do
+            http_params = params_builder("name=&last_name=perez&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              required(:name) { |v| !v.empty? }
+              required("last_name") { |v| !v.nil? }
+            end
+
+            validator.valid?.should be_false
+            validator.errors.size.should eq 1
+            validator.errors.first.param.should eq "name"
+          end
+        end
+      end
+
+      context "optional params" do
+        context "when missing" do
+          it "is valid and there is no errors" do
+            http_params = params_builder("last_name=&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              optional(:name) { |v| !v.nil? }
+            end
+
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
+          end
+        end
+
+        context "when block evaluates to true" do
+          it "passes validation and there is no errors" do
+            http_params = params_builder("last_name=&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              optional(:name) { |v| true }
+            end
+
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
+          end
+        end
+
+        context "when block evaluates to false" do
+          it "fails validation and it has errors" do
             http_params = params_builder("name=")
             validator = Validators::Params.new(http_params)
 
-            result = validator.validation do
-              optional(:name) { |v| v.nil? }
+            validator.validation do
+              optional(:name) { |v| false }
             end
 
             validator.valid?.should be_false
@@ -82,7 +129,6 @@ module Amber::Validators
       it "returns false when key does not exist" do
         http_params = params_builder("name=elias")
         validator = Validators::Params.new(http_params)
-        result = {"nonexisting" => {nil, "Param [nonexisting] does not exist."}}
 
         validator.validation do
           required("nonexisting") { |v| !v.nil? }
