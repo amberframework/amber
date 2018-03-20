@@ -20,17 +20,19 @@ module Amber::Recipes
     # a consequence of app initialization is setting the template source folder
     describe "RecipeFetcher" do
 
-      it "should use the default template" do
-        recipe_app = App.new("sample-app", "sqlite", "slang", "granite", "default")
-        /amber\/src\/(.+)$/ =~ recipe_app.template
-        $1.should_not be nil
-        $1.should eq "amber/cli/recipes/app/default"
+      Spec.before_each do
+        Dir.mkdir_p("./mydefault/app")
+      end
+
+      Spec.after_each do
+        FileUtils.rm_rf("./mydefault")
       end
 
       it "should use a given folder" do
-        recipe_app = App.new("sample-app", "sqlite", "slang", "granite", "src/amber/cli/recipes/app/default")
+
+        recipe_app = App.new("sample-app", "sqlite", "slang", "granite", "mydefault")
         recipe_app.template.should_not be nil
-        recipe_app.template.should eq "src/amber/cli/recipes/app/default"
+        recipe_app.template.should eq "mydefault/app"
       end
     end
   end
