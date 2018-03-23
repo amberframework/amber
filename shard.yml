@@ -30,6 +30,9 @@ dependencies:
     github: jeromegn/kilt
     version: ~> 0.4.0
 
+  liquid:
+      github: TechMagister/liquid.cr
+
   micrate:
     github: amberframework/micrate
     version: ~> 0.3.0
