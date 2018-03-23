@@ -32,7 +32,7 @@ module Amber::Recipes::Scaffold
       return if ctx.nil?
 
       ctx.set "name", @name
-      ctx.set "display_name", @display_name 
+      ctx.set "display_name", display_name
       ctx.set "fields", @fields
       ctx.set "visible_fields", @visible_fields
       ctx.set "language", @language

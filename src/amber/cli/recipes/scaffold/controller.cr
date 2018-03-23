@@ -41,9 +41,10 @@ module Amber::Recipes::Scaffold
       return if ctx.nil?
 
       ctx.set "class_name", @class_name
-      ctx.set "display_name", @display_name
-      ctx.set "name", @name 
+      ctx.set "display_name", display_name
+      ctx.set "name", @name
       ctx.set "fields", @fields
+      ctx.set "fields_hash", @fields_hash.to_s
       ctx.set "visible_fields", @visible_fields
       ctx.set "language", @language
       ctx.set "database", @database

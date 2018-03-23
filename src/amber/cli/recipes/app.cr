@@ -34,7 +34,7 @@ module Amber::Recipes
       return if ctx.nil?
 
       ctx.set "class_name", @class_name
-      ctx.set "display_name", @display_name
+      ctx.set "display_name", display_name
       ctx.set "name", @name
       ctx.set "database", @database
       ctx.set "database_name_base", @database_name_base
