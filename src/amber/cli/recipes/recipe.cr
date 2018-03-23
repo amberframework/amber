@@ -1,13 +1,17 @@
 require "teeplate"
 require "liquid"
 require "base64"
+require "./filters"
 
 require "random/secure"
 require "../helpers/helpers"
+
 require "./file_entries"
 require "./recipe_fetcher"
 require "./app"
 require "./controller"
+require "./scaffold/controller"
+require "./scaffold/view"
 
 module Amber::Recipes
   AMBER_RECIPE_FOLDER = "./.amber_recipe_cache"
@@ -18,7 +22,7 @@ module Amber::Recipes
     getter recipe : String
 
     def self.can_generate?(template_type, recipe)
-      return false unless ["app", "controller" ].includes? template_type
+      return false unless ["app", "controller", "scaffold" ].includes? template_type
 
       template = RecipeFetcher.new(template_type, recipe).fetch
       template.nil? ? false : true
@@ -64,6 +68,17 @@ module Amber::Recipes
       when "controller"
         puts "Rendering Controller #{name} from #{@recipe}"
         Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
+      when "scaffold"
+        puts "Rendering Scaffold #{name} from #{@recipe}"
+        if model == "crecto"
+          Amber::CLI::CrectoMigration.new(name, @fields).render(directory, list: true, color: true)
+          Amber::CLI::CrectoModel.new(name, @fields).render(directory, list: true, color: true)
+        else
+          Amber::CLI::GraniteMigration.new(name, @fields).render(directory, list: true, color: true)
+          Amber::CLI::GraniteModel.new(name, @fields).render(directory, list: true, color: true)
+        end
+        Scaffold::Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
+        Scaffold::View.new(name, @recipe, @fields).render(directory, list: true, color: true)
       else
         CLI.logger.error "Template not found", "Generate", :light_red
       end
