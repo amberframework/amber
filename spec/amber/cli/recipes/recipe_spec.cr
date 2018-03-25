@@ -2,9 +2,6 @@ require "../../../spec_helper"
 
 module Amber::Recipes
   describe Recipe do
-    pg_app = App.new("sample-app")
-    mysql_app = App.new("sample-app", "mysql")
-    sqlite_app = App.new("sample-app", "sqlite")
 
     recipe = "mydefault"
 
