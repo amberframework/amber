@@ -36,20 +36,23 @@ module Amber::Recipes
     end
 
     def collect_files(files)
-      @ctx = Liquid::Context.new
-      set_context @ctx
+      if ! @template.nil?
 
-      each_file(@template, nil) do |abs, rel|
-        # process the filename with liquid
-        tpl = Liquid::Template.parse rel
-        rel = tpl.render @ctx.as(Liquid::Context)
+        @ctx = Liquid::Context.new
+        set_context @ctx
 
-        if /^(.+)\.lqd$|^(.+)\.liquid$/ =~ rel
-          # process the file with liquid
-          pack_liquid files, abs, $1
-        else
-          # pack the file without processing
-          pack_blob files, abs, rel
+        each_file(@template.as(String), nil) do |abs, rel|
+          # process the filename with liquid
+          tpl = Liquid::Template.parse rel
+          rel = tpl.render @ctx.as(Liquid::Context)
+
+          if /^(.+)\.lqd$|^(.+)\.liquid$/ =~ rel
+            # process the file with liquid
+            pack_liquid files, abs, $1
+          else
+            # pack the file without processing
+            pack_blob files, abs, rel
+          end
         end
       end
     end

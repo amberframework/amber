@@ -12,7 +12,7 @@ module Amber::Recipes::Scaffold
     @database : String = CLI.config.database
     @model : String = CLI.config.model
 
-    @template : String = ""
+    @template : String | Nil
     @recipe : String
 
     def initialize(@name, @recipe, fields)
@@ -24,7 +24,9 @@ module Amber::Recipes::Scaffold
       @visible_fields = @fields.reject { |f| f.hidden }
 
       @template = RecipeFetcher.new("scaffold", @recipe).fetch
-      @template += "/view" unless @template.nil?
+      unless @template.nil?
+          @template = (@template || "") + "/view"
+      end
     end
 
     # setup the Liquid context

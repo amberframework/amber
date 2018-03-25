@@ -14,7 +14,7 @@ module Amber::Recipes::Scaffold
     @model : String
     @fields_hash = {} of String => String
 
-    @template : String = ""
+    @template : String | Nil
     @recipe : String
 
     def initialize(@name, @recipe, fields)
@@ -29,7 +29,9 @@ module Amber::Recipes::Scaffold
       field_hash
 
       @template = RecipeFetcher.new("scaffold", @recipe).fetch
-      @template += "/controller" unless @template.nil?
+      if !@template.nil?
+        @template = (@template || "") + "/controller"
+      end
 
       add_routes :web, <<-ROUTE
         resources "/#{Inflector.pluralize(@name)}", #{class_name}Controller

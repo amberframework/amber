@@ -15,7 +15,7 @@ module Amber::Recipes
     @author : String
     @email : String
     @github_name : String
-    @template : String = ""
+    @template : String | Nil
     @recipe : String
 
     def initialize(@name, @database = "pg", @language = "slang", @model = "granite", @recipe = "default")

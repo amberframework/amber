@@ -6,14 +6,14 @@ module Amber::Recipes
     include Amber::CLI::Helpers
     include FileEntries
 
-    private getter language
+    getter template
 
     @name : String
     @actions = Hash(String, String).new
     getter language : String = CLI.config.language
     @action_names : Array(String)
 
-    @template : String = "#{__DIR__}/default/controller"
+    @template : String | Nil
     @recipe : String
 
     def initialize(@name, @recipe, actions)
