@@ -26,9 +26,6 @@ module Amber::Recipes
 
       template = RecipeFetcher.new(template_type, recipe).fetch
       template.nil? ? false : true
-    rescue
-      p "Cannot generate a #{template_type} from #{recipe}"
-      false
     end
 
     def initialize(name : String, directory : String, recipe : String, fields = [] of String)

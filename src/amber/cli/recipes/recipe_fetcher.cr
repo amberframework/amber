@@ -8,7 +8,7 @@ module Amber::Recipes
     getter directory : String
 
     def initialize(@kind : String, @name : String)
-      @directory = "#{__DIR__}/#{@name}/#{@kind}"
+      @directory = "#{Dir.current}/#{@name}/#{@kind}"
     end
 
     def fetch
@@ -39,7 +39,8 @@ module Amber::Recipes
       HTTP::Client.get("https://raw.githubusercontent.com/AmberRecipes/recipes/master/#{@name}.zip") do |response|
         if response.status_code != 200
           # raise an exception if the recipe zip was not found
-          raise "Could not find that recipe"
+          CLI.logger.error "Could not find that recipe #{@name}", "Generate", :light_red
+          return nil
         end
 
         # make a temp directory and expand the zip into the temp directory
@@ -62,9 +63,10 @@ module Amber::Recipes
         return "#{template_path}/#{@kind}"
       end
 
-      # raise an exception if the recipe does not contain the generator for
-      # the element being generated
-      raise "Cannot generate a #{@kind} from that recipe"
+      # Log an error as the recipe does not contain the generator for
+      # the kind of component being generated
+      CLI.logger.error "Cannot generate #{@kind} from #{@name} recipe", "Generate", :light_red
+      return nil
     end
   end
 end
