@@ -1,7 +1,3 @@
-# add a pluralize filter to liquid
-# this should be a temporary measure until pluralize is available as a filter
-# in the liquid shard
-
 require "inflector"
 
 module Liquid::Filters
