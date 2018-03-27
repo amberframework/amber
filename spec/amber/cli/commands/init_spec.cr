@@ -43,6 +43,15 @@ module Amber::CLI
       end
     end
 
+    context "-r recipe (damianham/default)" do
+      cleanup
+      scaffold_app(TESTING_APP, "-r", "damianham/default")
+
+      it "generates amber directory structure" do
+        dirs(TESTING_APP).sort.should eq dirs(APP_TEMPLATE_PATH).sort
+      end
+    end
+
     context "-m crecto (Crecto Repo)" do
       cleanup
       scaffold_app(TESTING_APP, "-m", "crecto")
