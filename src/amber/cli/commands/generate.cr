@@ -23,12 +23,10 @@ module Amber::CLI
           template = Template.new("error", ".")
         else
           ensure_name_argument!
-          # if the app was generated from a recipe and the component can be
-          # generated for the recipe then use the recipe generator
-          if recipe && recipe != "none" && Amber::Recipes::Recipe.can_generate?(args.type, recipe)
+
+          if recipe && Amber::Recipes::Recipe.can_generate?(args.type, recipe)
             template = Amber::Recipes::Recipe.new(args.name, ".", recipe, args.fields)
           else
-            # otherwise use the standard template generator
             template = Template.new(args.name, ".", args.fields)
           end
         end
