@@ -45,28 +45,22 @@ module Amber::Recipes
       @fields = fields
     end
 
-    def cleanup
-      # if we used a template from github then remove the temp folder
-      # this should probably be called as a command so templates are cached
-      FileUtils.rm_rf(AMBER_RECIPE_FOLDER)
-    end
-
     def generate(template : String, options = nil)
       case template
       when "app"
         if options
-          puts "Rendering App #{name} in #{directory} from #{options.r}"
+          log_message "Rendering App #{name} in #{directory} from #{options.r}"
           App.new(name, options.d, options.t, options.m, options.r).render(directory, list: true, color: true)
           if options.deps?
-            puts "Installing Dependencies"
+            log_message "Installing Dependencies"
             Amber::CLI::Helpers.run("cd #{name} && shards update")
           end
         end
       when "controller"
-        puts "Rendering Controller #{name} from #{@recipe}"
+        log_message "Rendering Controller #{name} from #{@recipe}"
         Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
       when "scaffold"
-        puts "Rendering Scaffold #{name} from #{@recipe}"
+        log_message "Rendering Scaffold #{name} from #{@recipe}"
         if model == "crecto"
           Amber::CLI::CrectoMigration.new(name, @fields).render(directory, list: true, color: true)
           Amber::CLI::CrectoModel.new(name, @fields).render(directory, list: true, color: true)
@@ -85,7 +79,7 @@ module Amber::Recipes
       CLI.config.model
     end
 
-    def puts(msg)
+    def log_message(msg)
       CLI.logger.info msg, "Generate", :light_cyan
     end
   end
