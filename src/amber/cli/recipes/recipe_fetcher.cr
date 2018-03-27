@@ -3,42 +3,40 @@ require "zip"
 
 module Amber::Recipes
   class RecipeFetcher
-    getter kind : String
-    getter name : String
+    getter kind : String # one of the supported kinds [app, controller, scaffold]
+    getter name : String | Nil
     getter directory : String
 
-    def initialize(@kind : String, @name : String)
+    def initialize(@kind : String, @name : String | Nil)
       @directory = "#{Dir.current}/#{@name}/#{@kind}"
     end
 
     def fetch
-      # if the recipe exists in the local recipes folder then use that
       if Dir.exists?(@directory)
         return @directory
       end
 
-      # if the given recipe name is a directory and has a sub directory
-      # for the kind of component being generated then use it
       if Dir.exists?("#{@name}/#{@kind}")
         return "#{@name}/#{@kind}"
       end
 
-      # check the cached templates folder
       template_path = "#{AMBER_RECIPE_FOLDER}/#{@name}"
 
       if Dir.exists?("#{template_path}/#{@kind}")
         return "#{template_path}/#{@kind}"
       end
 
-      # otherwise fetch from the github repository
       return fetch_url template_path
+    end
+
+    def recipe_source
+      CLI.config.recipe_source || "https://raw.githubusercontent.com/AmberRecipes/recipes/master/"
     end
 
     def fetch_url(template_path)
       # download the recipe zip file from the github repository
-      HTTP::Client.get("https://raw.githubusercontent.com/AmberRecipes/recipes/master/#{@name}.zip") do |response|
+      HTTP::Client.get("#{recipe_source}/#{@name}.zip") do |response|
         if response.status_code != 200
-          # raise an exception if the recipe zip was not found
           CLI.logger.error "Could not find that recipe #{@name}", "Generate", :light_red
           return nil
         end
@@ -63,8 +61,6 @@ module Amber::Recipes
         return "#{template_path}/#{@kind}"
       end
 
-      # Log an error as the recipe does not contain the generator for
-      # the kind of component being generated
       CLI.logger.error "Cannot generate #{@kind} from #{@name} recipe", "Generate", :light_red
       return nil
     end

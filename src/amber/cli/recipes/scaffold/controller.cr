@@ -15,7 +15,7 @@ module Amber::Recipes::Scaffold
     @fields_hash = {} of String => String
 
     @template : String | Nil
-    @recipe : String
+    @recipe : String | Nil
 
     def initialize(@name, @recipe, fields)
       @language = CLI.config.language

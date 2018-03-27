@@ -14,7 +14,6 @@ module Amber::Recipes
       FileUtils.rm_rf("./mydefault")
     end
 
-    # a consequence of app initialization is setting the template source folder
     describe "RecipeFetcher" do
 
       it "should use a local app folder" do

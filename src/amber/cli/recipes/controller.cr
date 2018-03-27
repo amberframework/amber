@@ -14,7 +14,7 @@ module Amber::Recipes
     @action_names : Array(String)
 
     @template : String | Nil
-    @recipe : String
+    @recipe : String | Nil
 
     def initialize(@name, @recipe, actions)
       parse_actions(actions)

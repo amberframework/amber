@@ -32,7 +32,7 @@ module Amber::CLI
         end
         name = File.basename(args.name)
 
-        if (options.r != nil)
+        if (options.r? != nil)
           template = Amber::Recipes::Recipe.new(name, "./#{args.name}", "#{options.r}")
         else
           template = Template.new(name, "./#{args.name}")

@@ -19,11 +19,15 @@ module Amber::Recipes
   class Recipe
     getter name : String
     getter directory : String
-    getter recipe : String
+    getter recipe : String | Nil
 
     def self.can_generate?(template_type, recipe)
       return false unless ["app", "controller", "scaffold" ].includes? template_type
 
+      if recipe.nil?
+        return false
+      end
+      
       template = RecipeFetcher.new(template_type, recipe).fetch
       template.nil? ? false : true
     end
