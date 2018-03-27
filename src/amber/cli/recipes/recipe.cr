@@ -27,7 +27,7 @@ module Amber::Recipes
       if recipe.nil?
         return false
       end
-      
+
       template = RecipeFetcher.new(template_type, recipe).fetch
       template.nil? ? false : true
     end
