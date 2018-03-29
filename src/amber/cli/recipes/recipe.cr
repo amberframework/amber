@@ -10,6 +10,7 @@ require "./file_entries"
 require "./recipe_fetcher"
 require "./app"
 require "./controller"
+require "./model"
 require "./scaffold/controller"
 require "./scaffold/view"
 
@@ -22,7 +23,7 @@ module Amber::Recipes
     getter recipe : String | Nil
 
     def self.can_generate?(template_type, recipe)
-      return false unless ["app", "controller", "scaffold" ].includes? template_type
+      return false unless ["app", "controller", "model", "scaffold" ].includes? template_type
 
       if recipe.nil?
         return false
@@ -63,15 +64,17 @@ module Amber::Recipes
       when "controller"
         log_message "Rendering Controller #{name} from #{@recipe}"
         Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
+      when "model"
+        log_message "Rendering Model #{name} from #{@recipe}"
+        Model.new(name, @recipe, @fields).render(directory, list: true, color: true)
       when "scaffold"
         log_message "Rendering Scaffold #{name} from #{@recipe}"
         if model == "crecto"
           Amber::CLI::CrectoMigration.new(name, @fields).render(directory, list: true, color: true)
-          Amber::CLI::CrectoModel.new(name, @fields).render(directory, list: true, color: true)
         else
           Amber::CLI::GraniteMigration.new(name, @fields).render(directory, list: true, color: true)
-          Amber::CLI::GraniteModel.new(name, @fields).render(directory, list: true, color: true)
         end
+        Model.new(name, @recipe, @fields).render(directory, list: true, color: true)
         Scaffold::Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
         Scaffold::View.new(name, @recipe, @fields).render(directory, list: true, color: true)
       else

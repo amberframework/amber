@@ -1,14 +1,13 @@
-require "../../templates/field.cr"
+require "../templates/field.cr"
+require "inflector"
 
-module Amber::Recipes::Scaffold
-  class View < Teeplate::FileTree
+module Amber::Recipes
+  class Model < Teeplate::FileTree
     include Amber::CLI::Helpers
     include FileEntries
 
     @name : String
     @fields : Array(Amber::CLI::Field)
-    @visible_fields : Array(Amber::CLI::Field)
-    @language : String = CLI.config.language
     @database : String = CLI.config.database
     @model : String = CLI.config.model
 
@@ -21,34 +20,29 @@ module Amber::Recipes::Scaffold
         Amber::CLI::Field.new(f, hidden: true, database: @database)
       end
 
-      @visible_fields = @fields.reject { |f| f.hidden }
+      @template = RecipeFetcher.new("model", @recipe).fetch
 
-      @template = RecipeFetcher.new("scaffold", @recipe).fetch
-      unless @template.nil?
-          @template = (@template || "") + "/view"
-      end
+      add_dependencies <<-DEPENDENCY
+      require "../src/models/**"
+      DEPENDENCY
     end
 
     # setup the Liquid context
     def set_context(ctx)
       return if ctx.nil?
 
-      ctx.set "name", @name
+      ctx.set "class_name", class_name
       ctx.set "display_name", display_name
+      ctx.set "name", @name
       ctx.set "fields", @fields
-      ctx.set "visible_fields", @visible_fields
-      ctx.set "language", @language
       ctx.set "database", @database
+      ctx.set "table_name", table_name
       ctx.set "model", @model
       ctx.set "recipe", @recipe
     end
 
-    def isa_view?(entry_path)
-      entry_path.includes?(".ecr") || entry_path.includes?(".slang")
-    end
-
-    def filter(entries)
-      entries.reject { |entry| isa_view?(entry.path) && !entry.path.includes?(".#{@language}") }
+    def table_name
+      @table_name ||= "#{Inflector.pluralize(@name)}"
     end
   end
 end
