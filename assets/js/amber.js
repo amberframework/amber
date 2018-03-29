@@ -226,3 +226,19 @@ export class Socket {
 module.exports = {
   Socket: Socket
 }
+
+
+/**
+ * Allows delete links to post for security and ease of use similar to Rails jquery_ujs
+ */
+$(document).ready(() => {
+  $( "a[data-method='delete']" ).click(function(){
+    var confirm_message = $(this).data("confirm") || "Are you sure?"
+    if(confirm(confirm_message)){
+      const form = $(`<form action='${this.href}' method='POST'><input type='hidden' name='_method' value='DELETE' /></form>`);
+      $(document.body).append(form);
+      form.submit();
+    }
+    return false;
+  }); 
+}); 

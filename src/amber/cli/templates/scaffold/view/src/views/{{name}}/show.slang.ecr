@@ -5,4 +5,4 @@ p = <%= @name %>.<%= field.name %><%= field.reference? ? ".id" : "" %>
 p
   == link_to("back", "/<%= Inflector.pluralize(@name) %>", class: "btn btn-success btn-xs")
   == link_to("edit", "/<%= Inflector.pluralize(@name) %>/#{<%= @name %>.id}/edit", class: "btn btn-success btn-xs")
-  == link_to("delete", "/<%= Inflector.pluralize(@name) %>/#{<%= @name %>.id}?_method=delete&_csrf=#{csrf_token}", class: "btn btn-danger btn-xs", onclick: "return confirm('Are you sure?');")
+  == link_to("delete", "/<%= Inflector.pluralize(@name) %>/#{<%= @name %>.id}?_csrf=#{csrf_token}", "data-method": "delete", "data-confirm": "Are you sure?", class: "btn btn-danger btn-xs")
