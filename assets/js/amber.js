@@ -231,14 +231,23 @@ module.exports = {
 /**
  * Allows delete links to post for security and ease of use similar to Rails jquery_ujs
  */
-$(document).ready(() => {
-  $( "a[data-method='delete']" ).click(function(){
-    var confirm_message = $(this).data("confirm") || "Are you sure?"
-    if(confirm(confirm_message)){
-      const form = $(`<form action='${this.href}' method='POST'><input type='hidden' name='_method' value='DELETE' /></form>`);
-      $(document.body).append(form);
-      form.submit();
-    }
-    return false;
-  }); 
-}); 
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("a[data-method='delete']").forEach(function (element) {
+        element.addEventListener("click", function (e) {
+            e.preventDefault();
+            var message = element.getAttribute("data-confirm") || "Are you sure?";
+            if (confirm(message)) {
+                var form = document.createElement("form");
+                var input = document.createElement("input");
+                form.setAttribute("action", element.getAttribute("href"));
+                form.setAttribute("method", "POST");
+                input.setAttribute("type", "hidden");
+                input.setAttribute("value", "DELETE");
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+            return false;
+        })
+    })
+});
