@@ -126,6 +126,14 @@ module Amber::Controller
         context.response.headers["Content-Type"].should eq "text/html"
         context.response.status_code.should eq 200
       end
+
+      it "responds with 403 custom status_code" do
+        expected_result = %({"type":"json","error":"Unauthorized"})
+        context.request.headers["Accept"] = "application/json"
+        ResponsesController.new(context).custom_status_code.should eq expected_result
+        context.response.headers["Content-Type"].should eq "application/json"
+        context.response.status_code.should eq 403
+      end
     end
   end
 end

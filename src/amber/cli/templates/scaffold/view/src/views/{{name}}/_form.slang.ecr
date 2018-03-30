@@ -3,7 +3,7 @@
     - <%= @model == "crecto" ? "changeset" : @name %>.errors.each do |error|
       li = error.to_s
 
-== form(action: "/<%= @name -%>s/#{<%= @name -%>.id.to_s}", method: <%= @name %>.id ? :patch : :post) do
+== form(action: "/<%= Inflector.pluralize(@name) -%>/#{<%= @name -%>.id.to_s}", method: <%= @name %>.id ? :patch : :post) do
   == csrf_tag
 <%- @fields.reject{|f| f.hidden }.each do |field| -%>
   div.form-group
@@ -22,4 +22,4 @@
   <%- end -%>
 <%- end -%>
   == submit("Submit", class: "btn btn-primary btn-xs")
-  == link_to("back", "/<%= @name %>s", class: "btn btn-default btn-xs")
+  == link_to("back", "/<%= Inflector.pluralize(@name) %>", class: "btn btn-default btn-xs")

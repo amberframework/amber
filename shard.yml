@@ -1,6 +1,6 @@
 name: amber
 
-version: 0.6.7
+version: 0.7.1
 
 authors:
   - Amber Team and Contributors <amberframework.org>
@@ -27,7 +27,7 @@ dependencies:
     version: ~> 0.4.0
     
   micrate:
-    github: juanedi/micrate
+    github: amberframework/micrate
     version: ~> 0.3.0
 
   mysql:
@@ -41,7 +41,7 @@ dependencies:
   pg:
     github: will/crystal-pg
     version: ~> 0.14.1
-    
+
   redis:
     github: stefanwille/crystal-redis
     version: ~> 1.9.0
@@ -54,13 +54,12 @@ dependencies:
     github: jeromegn/slang
     version: ~> 1.7.1
 
-  spinner:
-    github: askn/spinner
-    version: ~> 0.1.1
-
   sqlite3:
     github: crystal-lang/crystal-sqlite3
     version: ~> 0.9.0
+  inflector:
+    github: phoffer/inflector.cr
+    version: "~> 0.1.8"
 
   teeplate:
     github: amberframework/teeplate

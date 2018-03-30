@@ -102,7 +102,7 @@ module Amber::CLI
         actions = ["forbidden", "not_found", "internal_server_error"]
         ErrorTemplate.new("error", actions).render(directory, list: true, color: true)
       else
-        raise "Template not found"
+        CLI.logger.error "Template not found", "Generate", :light_red
       end
     end
 

@@ -1,6 +1,6 @@
 class <%= class_name %>Controller < ApplicationController
   def index
-    <%= @name %>s = Repo.all(<%= class_name %>)
+    <%= Inflector.pluralize(@name) %> = Repo.all(<%= class_name %>)
     render("index.<%= @language %>")
   end
 
@@ -9,7 +9,7 @@ class <%= class_name %>Controller < ApplicationController
       render("show.<%= @language %>")
     else
       flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
-      redirect_to "/<%= @name %>s"
+      redirect_to "/<%= Inflector.pluralize(@name) %>"
     end
   end
 
@@ -29,7 +29,7 @@ class <%= class_name %>Controller < ApplicationController
       render("new.<%= @language %>")
     else
       flash["success"] = "Created <%= class_name %> successfully."
-      redirect_to "/<%= @name %>s"
+      redirect_to "/<%= Inflector.pluralize(@name) %>"
     end
   end
 
@@ -39,7 +39,7 @@ class <%= class_name %>Controller < ApplicationController
       render("edit.<%= @language %>")
     else
       flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
-      redirect_to "/<%= @name %>s"
+      redirect_to "/<%= Inflector.pluralize(@name) %>"
     end
   end
 
@@ -53,11 +53,11 @@ class <%= class_name %>Controller < ApplicationController
         render("edit.<%= @language %>")
       else
         flash["success"] = "Updated <%= class_name %> successfully."
-        redirect_to "/<%= @name %>s"
+        redirect_to "/<%= Inflector.pluralize(@name) %>"
       end
     else
       flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
-      redirect_to "/<%= @name %>s"
+      redirect_to "/<%= Inflector.pluralize(@name) %>"
     end
   end
 
@@ -67,7 +67,7 @@ class <%= class_name %>Controller < ApplicationController
     else
       flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
     end
-    redirect_to "/<%= @name %>s"
+    redirect_to "/<%= Inflector.pluralize(@name) %>"
   end
 
   def <%= @name %>_params
