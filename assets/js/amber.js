@@ -242,6 +242,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 form.setAttribute("action", element.getAttribute("href"));
                 form.setAttribute("method", "POST");
                 input.setAttribute("type", "hidden");
+                input.setAttribute("name", "_method");
                 input.setAttribute("value", "DELETE");
                 form.appendChild(input);
                 document.body.appendChild(form);
