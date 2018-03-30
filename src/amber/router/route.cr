@@ -28,10 +28,6 @@ module Amber
       "#{verb.to_s.downcase}#{scope}#{resource}"
     end
 
-    def trail_head
-      "head#{scope}#{resource}"
-    end
-
     def call(context)
       handler.call(context)
     end
