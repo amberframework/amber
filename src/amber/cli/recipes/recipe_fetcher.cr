@@ -34,7 +34,7 @@ module Amber::Recipes
     end
 
     def recipe_source
-      CLI.config.recipe_source || "https://raw.githubusercontent.com/AmberRecipes/recipes/master/"
+      CLI.config.recipe_source || "https://raw.githubusercontent.com/amberframework/recipes/master/"
     end
 
     def fetch_url(template_path)
