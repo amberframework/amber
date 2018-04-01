@@ -52,7 +52,7 @@ module Amber::CLI
       sleep 1.minute # sleep sometime before running the specs to ensure all is ok
 
         puts "RUNNING: crystal spec #{TESTING_APP} - started..."
-        spec_result = `crystal spec --fail-fas --profile`
+        spec_result = `crystal spec --fail-fast --profile`
 
         it "can be executed" do
           puts spec_result unless spec_result.includes? "Finished in"
