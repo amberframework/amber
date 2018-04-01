@@ -49,9 +49,6 @@ module Amber::CLI
 
       context "crystal spec" do
 
-        puts "`sleep 1.minute` before running the specs to ensure all is ok"
-        sleep 1.minute
-
         puts "RUNNING: crystal spec #{TESTING_APP} - started..."
         spec_result = `crystal spec --fail-fast --profile`
 
