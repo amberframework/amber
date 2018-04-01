@@ -4,6 +4,16 @@ require "./support/helpers/cli_helper"
 
 include CLIHelper
 
+Ch = Channel(Nil).new
+
+def finish_setup
+  Ch.send nil
+end
+
+def wait_setup
+  Ch.receive
+end
+
 module Amber::CLI
   begin
     describe "building a generated app" do
@@ -41,13 +51,18 @@ module Amber::CLI
       puts "RUNNING: shard build #{TESTING_APP} - started..."
       build_result = `shards build #{TEST_APP_NAME}`
       puts "#{TESTING_APP} build completed..."
-
+      
+      finish_setup
+    
       it "generates a binary" do
         puts build_result unless File.exists?("bin/#{TEST_APP_NAME}")
         File.exists?("bin/#{TEST_APP_NAME}").should be_true
       end
 
       context "crystal spec" do
+        
+        wait_setup
+        
         puts "RUNNING: crystal spec #{TESTING_APP} - started..."
         spec_result = `crystal spec`
 
