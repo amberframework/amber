@@ -50,7 +50,7 @@ module Amber::CLI
       context "crystal spec" do
 
         puts "RUNNING: crystal spec #{TESTING_APP} - started..."
-        spec_result = `crystal spec --fail-fast --profile`
+        spec_result = `crystal spec --fail-fast`
 
         it "can be executed" do
           puts spec_result unless spec_result.includes? "Finished in"
