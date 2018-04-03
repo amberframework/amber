@@ -71,6 +71,18 @@ module Amber::CLI
       end
     end
 
+    def to_json(json : JSON::Builder)
+      json.object do
+        json.field "name", name
+        json.field "type", type
+        json.field "cr_type", cr_type
+        json.field "db_type", db_type
+        json.field "hidden", hidden
+        json.field "database", database
+      end
+      json.to_s
+    end
+
     def reference?
       self.type == "reference"
     end
