@@ -11,6 +11,7 @@ module Amber::CLI
     property database : String = "pg"
     property language : String = "slang"
     property model : String = "granite"
+    property recipe : String = "none"
 
     def initialize
     end
@@ -19,6 +20,7 @@ module Amber::CLI
       database: {type: String, default: "pg"},
       language: {type: String, default: "slang"},
       model: {type: String, default: "granite"},
+      recipe: {type: String, default: "none"}
     )
   end
 end
