@@ -15,7 +15,7 @@ require "./scaffold/controller"
 require "./scaffold/view"
 
 module Amber::Recipes
-  AMBER_RECIPE_FOLDER = "./.amber_recipe_cache"
+  AMBER_RECIPE_FOLDER = ENV["HOME"]+"/.amber/recipe_cache"
 
   class Recipe
     getter name : String

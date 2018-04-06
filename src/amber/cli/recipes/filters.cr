@@ -6,6 +6,8 @@ module Liquid::Filters
   FilterRegister.register "underscore", Underscore
   FilterRegister.register "camelcase", CamelCase
   FilterRegister.register "camelize", CamelCase
+  FilterRegister.register "upcase", UpCase
+  FilterRegister.register "uppercase", UpCase
 
   # Uses the Inflector to camelize/camelcase a string.
   #
@@ -72,6 +74,26 @@ module Liquid::Filters
     def self.filter(data : Any, args : Array(Any)? = nil) : Any
       if (raw = data.raw) && raw.is_a? String
         Any.new Inflector.underscore(raw)
+      else
+        data
+      end
+    end
+  end
+
+  # upcase | uppercase
+  #
+  # Uppercases all characters of a string.
+  #
+  # Input
+  # {{ "word" | upcase }}  => WORD
+  # {{ "word" | uppercase }}  => WORD
+  #
+  class UpCase
+    extend Filter
+
+    def self.filter(data : Any, args : Array(Any)? = nil) : Any
+      if (raw = data.raw) && raw.is_a? String
+        Any.new raw.as(String).upcase
       else
         data
       end

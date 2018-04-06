@@ -26,10 +26,6 @@ module Amber::Recipes
         return "#{template_path}/#{@kind}"
       end
 
-      if Dir.exists?("../#{template_path}/#{@kind}")
-        return "../#{template_path}/#{@kind}"
-      end
-
       return fetch_url template_path
     end
 

@@ -33,7 +33,7 @@ module Amber::Recipes
     def set_context(ctx)
       return if ctx.nil?
 
-      ctx.set "class_name", @class_name
+      ctx.set "class_name", class_name
       ctx.set "display_name", display_name
       ctx.set "name", @name
       ctx.set "actions", @actions

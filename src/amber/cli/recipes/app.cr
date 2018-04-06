@@ -33,7 +33,7 @@ module Amber::Recipes
     def set_context(ctx)
       return if ctx.nil?
 
-      ctx.set "class_name", @class_name
+      ctx.set "class_name", class_name
       ctx.set "display_name", display_name
       ctx.set "name", @name
       ctx.set "database", @database
@@ -51,8 +51,12 @@ module Amber::Recipes
       ctx.set "urlsafe_base64", Random::Secure.urlsafe_base64(32)
     end
 
+    def isa_view?(entry_path)
+      entry_path.includes?(".ecr") || entry_path.includes?(".slang")
+    end
+
     def filter(entries)
-      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }
+      entries.reject { |entry| isa_view?(entry.path) && !entry.path.includes?(".#{@language}") }
     end
 
     private def generate_database_name_base
