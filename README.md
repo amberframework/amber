@@ -96,9 +96,11 @@ Contributing to Amber can be a rewarding way to learn, teach, and build experien
 
 Tracking issues? Check our [project board](https://github.com/orgs/amberframework/projects/1?fullscreen=true).
 
-Code Triage? Join us on [codetriage](https://www.codetriage.com/amberframework/amber).
+Code Triage? Join us on [codetriage](https://www.codetriage.com/amberframework/amber)
 
-Amber is a community effort and we want You to be part of it. [Join Amber Community!](https://github.com/amberframework/amber/blob/master/.github/CONTRIBUTING.md) [![Open Source Helpers](https://www.codetriage.com/amberframework/amber/badges/users.svg)](https://www.codetriage.com/amberframework/amber)
+[![Open Source Helpers](https://www.codetriage.com/amberframework/amber/badges/users.svg)](https://www.codetriage.com/amberframework/amber)
+
+Amber is a community effort and we want You to be part of it. [Join Amber Community!](https://github.com/amberframework/amber/blob/master/.github/CONTRIBUTING.md)
 
 1. Fork it https://github.com/amberframework/amber/fork
 2. Create your feature branch `git checkout -b my-new-feature`
