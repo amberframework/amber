@@ -94,6 +94,10 @@ Use Amber badge
 
 Contributing to Amber can be a rewarding way to learn, teach, and build experience in just about any skill you can imagine. You don’t have to become a lifelong contributor to enjoy participating in Amber.
 
+Tracking issues? Check our [project board](https://github.com/orgs/amberframework/projects/1?fullscreen=true).
+
+Code Triage? Join us on [codetriage](https://www.codetriage.com/amberframework/amber).
+
 Amber is a community effort and we want You to be part of it. [Join Amber Community!](https://github.com/amberframework/amber/blob/master/.github/CONTRIBUTING.md)
 
 1. Fork it https://github.com/amberframework/amber/fork
