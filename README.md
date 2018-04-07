@@ -96,7 +96,7 @@ Contributing to Amber can be a rewarding way to learn, teach, and build experien
 
 Tracking issues? Check our [project board](https://github.com/orgs/amberframework/projects/1?fullscreen=true).
 
-Code Triage? Join us on [codetriage](https://www.codetriage.com/amberframework/amber)
+Code Triage? Join us on [codetriage](https://www.codetriage.com/amberframework/amber).
 
 [![Open Source Helpers](https://www.codetriage.com/amberframework/amber/badges/users.svg)](https://www.codetriage.com/amberframework/amber)
 
