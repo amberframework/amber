@@ -98,7 +98,7 @@ Tracking issues? Check our [project board](https://github.com/orgs/amberframewor
 
 Code Triage? Join us on [codetriage](https://www.codetriage.com/amberframework/amber).
 
-[![Open Source Helpers](https://www.codetriage.com/amberframework/amber/badges/users.svg)](https://www.codetriage.com/amberframework/amber)
+[![Open Source Contributors](https://www.codetriage.com/amberframework/amber/badges/users.svg)](https://www.codetriage.com/amberframework/amber)
 
 Amber is a community effort and we want You to be part of it. [Join Amber Community!](https://github.com/amberframework/amber/blob/master/.github/CONTRIBUTING.md)
 
