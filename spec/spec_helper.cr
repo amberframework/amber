@@ -1,8 +1,3 @@
-if ENV["TEST_SUITE"] == "./spec/amber"
-  puts "WAITING: sleep 1.minute before running the amber specs to ensure all is ok..."
-  sleep 1.minute
-end
-
 # NOTE: Constants should be set before require begins.
 ENV["AMBER_ENV"] = "test"
 ENV[Amber::Support::ENCRYPT_ENV] = "mnDiAY4OyVjqg5u0wvpr0MoBkOGXBeYo7_ysjwsNzmw"
