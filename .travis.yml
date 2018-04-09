@@ -3,7 +3,7 @@ sudo: required
 language: crystal
 
 services:
-  - postgres
+  - postgresql
   - redis-server
 cache:
   directories:
