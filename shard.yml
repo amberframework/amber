@@ -31,7 +31,8 @@ dependencies:
     version: ~> 0.4.0
 
   liquid:
-      github: TechMagister/liquid.cr
+    github: TechMagister/liquid.cr
+    commit: af7d23cb8352d7a07bb803c695d4bbff4fc37478
 
   micrate:
     github: amberframework/micrate
@@ -60,6 +61,7 @@ dependencies:
   sqlite3:
     github: crystal-lang/crystal-sqlite3
     version: ~> 0.9.0
+
   inflector:
     github: phoffer/inflector.cr
     version: "~> 0.1.8"
