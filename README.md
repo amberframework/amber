@@ -18,9 +18,13 @@ The purpose of Amber is not to create yet another framework, but to take advanta
 
 Amber borrows concepts that have already been battle tested and successful, and embraces new concepts through team and community collaboration and analysis, which also aligns with Crystal's philosophy.
 
-## Philosophy
+## Community
 
-[Read Amber Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md)
+Questions? Join our IRC channel [#amber](http://webchat.freenode.net/?channels=#amber) and [Gitter room](https://gitter.im/amberframework/amber) or ask on Stack Overflow under the [amber-framework](https://stackoverflow.com/questions/tagged/amber-framework) tag.
+
+Guidelines? We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) for Amber.
+
+Our Philosophy? [Read Amber Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md)
 
 ## Documentation
 
@@ -75,12 +79,6 @@ dependencies:
 [Read Amber guide from zero to deploy](https://amberframework.org/guides/getting-started/quickstart/zero-to-deploy.md#zero-to-deploy)
 
 [Read Amber CLI commands usage](https://amberframework.org/guides/getting-started/cli/README.md#cli-readme)
-
-## Community
-
-Questions? Join our IRC channel [#amber](http://webchat.freenode.net/?channels=#amber) and [Gitter room](https://gitter.im/amberframework/amber) or ask on Stack Overflow under the [amber-framework](https://stackoverflow.com/questions/tagged/amber-framework) tag.
-
-Guidelines? We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) for Amber.
 
 ## Have an Amber-based Project?
 
