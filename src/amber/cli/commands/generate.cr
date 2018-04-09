@@ -23,9 +23,18 @@ module Amber::CLI
           template = Template.new("error", ".")
         else
           ensure_name_argument!
-          template = Template.new(args.name, ".", args.fields)
+
+          if recipe && Amber::Recipes::Recipe.can_generate?(args.type, recipe)
+            template = Amber::Recipes::Recipe.new(args.name, ".", recipe.as(String), args.fields)
+          else
+            template = Template.new(args.name, ".", args.fields)
+          end
         end
         template.generate args.type
+      end
+
+      def recipe
+        CLI.config.recipe
       end
 
       private def ensure_name_argument!
