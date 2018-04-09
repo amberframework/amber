@@ -15,7 +15,7 @@ env:
 
 script:
   - bin/ameba
-  - crystal spec $TEST_SUITE -D run_build_tests --fail-fast
+  - crystal spec $TEST_SUITE -D run_build_tests
 
 notifications:
   webhooks:
