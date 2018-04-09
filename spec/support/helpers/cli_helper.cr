@@ -88,6 +88,12 @@ module CLIHelper
     File.write("#{path}#{CURRENT_ENVIRONMENT}.yml", db_yml)
   end
 
+  def recipe_app(app_name, *options)
+    Amber::CLI::MainCommand.run ["new", app_name] | options.to_a
+    Dir.cd(app_name)
+    prepare_yaml(Dir.current)
+  end
+
   def scaffold_app(app_name, *options)
     Amber::CLI::MainCommand.run ["new", app_name] | options.to_a
     Dir.cd(app_name)
