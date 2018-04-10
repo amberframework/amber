@@ -48,8 +48,8 @@ module Amber::Environment
 
     YAML.mapping(
       logging: {
-        type: Logging::OptionsType,
-        default: Logging::DEFAULTS
+        type:    Logging::OptionsType,
+        default: Logging::DEFAULTS,
       },
       database_url: {type: String, default: ""},
       host: {type: String, default: "localhost"},

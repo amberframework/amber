@@ -66,10 +66,10 @@ module Amber::Router
 
     def to_h
       query.to_h
-        .merge(form.to_h)
-        .merge(route)
-        .merge(json)
-        .merge(multipart)
+           .merge(form.to_h)
+           .merge(route)
+           .merge(json)
+           .merge(multipart)
     end
 
     private def query

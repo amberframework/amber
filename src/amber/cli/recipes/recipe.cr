@@ -1,7 +1,6 @@
 require "teeplate"
 require "liquid"
 require "base64"
-require "./filters"
 
 require "random/secure"
 require "../helpers/helpers"
@@ -15,7 +14,7 @@ require "./scaffold/controller"
 require "./scaffold/view"
 
 module Amber::Recipes
-  AMBER_RECIPE_FOLDER = ENV["HOME"]+"/.amber/recipe_cache"
+  AMBER_RECIPE_FOLDER = ENV["HOME"] + "/.amber/recipe_cache"
 
   class Recipe
     getter name : String
@@ -23,7 +22,7 @@ module Amber::Recipes
     getter recipe : String | Nil
 
     def self.can_generate?(template_type, recipe)
-      return false unless ["app", "controller", "model", "scaffold" ].includes? template_type
+      return false unless ["app", "controller", "model", "scaffold"].includes? template_type
 
       if recipe.nil?
         return false
