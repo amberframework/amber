@@ -25,7 +25,7 @@ module Amber::Recipes::Scaffold
 
       @template = RecipeFetcher.new("scaffold", @recipe).fetch
       unless @template.nil?
-          @template = (@template || "") + "/view"
+        @template = (@template || "") + "/view"
       end
     end
 

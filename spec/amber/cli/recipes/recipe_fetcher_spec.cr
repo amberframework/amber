@@ -16,7 +16,6 @@ module Amber::Recipes
       end
 
       describe "RecipeFetcher" do
-
         it "should use a local app folder" do
           template = RecipeFetcher.new("app", "mydefault").fetch
           template.should_not be nil
@@ -43,7 +42,6 @@ module Amber::Recipes
       end
 
       describe "RecipeFetcher" do
-
         it "should use a cached app folder" do
           template = RecipeFetcher.new("app", "mydefault").fetch
           template.should_not be nil
@@ -70,7 +68,6 @@ module Amber::Recipes
       end
 
       describe "RecipeFetcher" do
-
         it "should use a cached app folder" do
           template = RecipeFetcher.new("app", "mydefault").fetch
           template.should_not be nil
@@ -84,6 +81,5 @@ module Amber::Recipes
         end
       end
     end
-
   end
 end

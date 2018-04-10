@@ -36,9 +36,7 @@ module Amber::Recipes
     end
 
     def collect_files(files)
-
-      if ! @template.nil?
-
+      if !@template.nil?
         @ctx = Liquid::Context.new
         set_context @ctx
 
