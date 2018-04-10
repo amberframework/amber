@@ -26,7 +26,6 @@ module Amber::CLI
       MainCommand.run ["generate", "channel", "Falcon"]
 
       prepare_yaml(Dir.current)
-      prepare_db_yml(CLIHelper::BASE_ENV_PATH) if ENV["CI"]? == "true"
       Amber::CLI.env = "test"
       Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
 
