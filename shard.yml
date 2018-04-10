@@ -32,7 +32,7 @@ dependencies:
 
   liquid:
     github: TechMagister/liquid.cr
-    commit: af7d23cb8352d7a07bb803c695d4bbff4fc37478
+    version: ~> 0.2.4
 
   micrate:
     github: amberframework/micrate
