@@ -13,7 +13,9 @@ cache:
     - .shards
 
 script:
-  - bin/ameba ./src && crystal spec ./spec/amber && crystal spec ./spec/build_spec.cr -D run_build_tests
+  - bin/ameba ./src
+  - crystal spec ./spec/amber
+  - crystal spec ./spec/build_spec.cr -D run_build_tests
 
 notifications:
   webhooks:
