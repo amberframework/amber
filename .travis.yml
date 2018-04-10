@@ -3,19 +3,19 @@ sudo: required
 language: crystal
 
 services:
-  - postgres
+  - postgresql
   - redis-server
+
 cache:
   directories:
-    - bin/
-    - lib/
-env:
-  - TEST_SUITE=./spec/build_spec.cr
-  - TEST_SUITE=./spec/amber
+    - bin
+    - lib
+    - .shards
 
 script:
-  - bin/ameba
-  - crystal spec $TEST_SUITE -D run_build_tests
+  - bin/ameba ./src
+  - crystal spec ./spec/amber
+  - crystal spec ./spec/build_spec.cr -D run_build_tests
 
 notifications:
   webhooks:
