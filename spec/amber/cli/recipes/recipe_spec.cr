@@ -2,7 +2,6 @@ require "../../../spec_helper"
 
 module Amber::Recipes
   describe Recipe do
-
     recipe = "mydefault"
 
     describe "#can_generate?" do
@@ -22,8 +21,6 @@ module Amber::Recipes
       it "should return true for default controller" do
         Recipe.can_generate?("controller", recipe).should eq true
       end
-
     end
-
   end
 end

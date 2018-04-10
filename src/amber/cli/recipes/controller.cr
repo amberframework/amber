@@ -22,7 +22,7 @@ module Amber::Recipes
         #{@actions.map { |action, verb| %Q(#{verb} "/#{@name}/#{action}", #{class_name}Controller, :#{action}) }.join("\n    ")}
       ROUTES
 
-      @action_names = @actions.map { |action, verb| action}
+      @action_names = @actions.map { |action, verb| action }
 
       @template = RecipeFetcher.new("controller", @recipe).fetch
 
