@@ -52,7 +52,7 @@ module Amber::CLI
           output_lines = route_table_rows(output)
 
           it "outputs the correct headers" do
-            headers = %w(Pipe Plug)
+            headers = %w(Pipeline Pipe)
             headers.each do |header|
               output.should contain header
             end
