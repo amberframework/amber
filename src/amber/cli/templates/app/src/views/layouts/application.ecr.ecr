@@ -19,11 +19,13 @@
 
     <div class="container">
       <div class="row">
-        <%="<"%>%- flash.each do |key, value| %>
-          <div class="alert alert-<%="<"%>%= key %>">
-            <p><%="<"%>%= flash[key] %></p>
-          </div>
-        <%="<"%>%- end %>
+	<div class="col-sm">
+          <%="<"%>%- flash.each do |key, value| %>
+            <div class="alert alert-<%="<"%>%= key %>">
+              <p><%="<"%>%= flash[key] %></p>
+            </div>
+          <%="<"%>%- end %>
+        </div>
       </div>
 
       <div class="row">
