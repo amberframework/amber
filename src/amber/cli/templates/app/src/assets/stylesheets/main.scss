@@ -94,3 +94,12 @@ h6, .h6 {
 .table td, .table th {
   vertical-align: middle;
 }
+
+.alert {
+  margin-top: 1em;
+
+  p {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
