@@ -14,12 +14,12 @@ html
         nav.nav
           == render(partial: "layouts/_nav.slang")
     div.container
-      div.row
+      .row
 	      div.col-sm
           - flash.each do |key, value|
             div class="alert alert-#{key}"
               p = flash[key]
-      div.row
+      .row
         div.col-sm-12.main
           == content
 
