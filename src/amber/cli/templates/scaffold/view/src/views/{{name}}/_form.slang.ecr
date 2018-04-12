@@ -6,7 +6,7 @@
 == form(action: "/<%= Inflector.pluralize(@name) -%>/#{<%= @name -%>.id.to_s}", method: <%= @name %>.id ? :patch : :post) do
   == csrf_tag
 <%- @fields.reject{|f| f.hidden }.each do |field| -%>
-  div.form-group
+  .form-group
   <%- case field.type
      when "text" -%>
     == text_area(name: "<%= field.name -%>", content: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control", size: "30x10")

@@ -9,18 +9,18 @@ html
     link rel="stylesheet" href="/dist/main.bundle.css"
 
   body
-    div.masthead
-      div.container
+    .masthead
+      .container
         nav.nav
           == render(partial: "layouts/_nav.slang")
-    div.container
+    .container
       .row
-	      div.col-sm
+	      .col-sm
           - flash.each do |key, value|
             div class="alert alert-#{key}"
               p = flash[key]
       .row
-        div.col-sm-12.main
+        .col-sm-12.main
           == content
 
     script src="https://code.jquery.com/jquery-3.3.1.min.js"
