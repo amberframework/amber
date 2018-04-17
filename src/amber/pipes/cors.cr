@@ -6,6 +6,7 @@ module Amber
       VARY              = "Vary"
       ORIGIN            = "Origin"
       X_ORIGIN          = "X-Origin"
+      OPTIONS           = "OPTIONS"
       REQUEST_METHOD    = "Access-Control-Request-Method"
       REQUEST_HEADERS   = "Access-Control-Request-Headers"
       ALLOW_EXPOSE      = "Access-Control-Expose-Headers"
@@ -19,8 +20,8 @@ module Amber
     class CORS < Base
       alias OriginType = Array(String | Regex)
       FORBIDDEN     = "Forbidden for invalid origins, methods or headers"
-      ALLOW_METHODS = %w(PUT PATCH DELETE)
-      ALLOW_HEADERS = %w(Accept Content-type)
+      ALLOW_METHODS = %w(POST PUT PATCH DELETE)
+      ALLOW_HEADERS = %w(Accept Content-Type)
 
       property origins, headers, methods, credentials, max_age
       @origin : Origin
@@ -42,11 +43,13 @@ module Amber
           put_expose_header(context.response)
           Preflight.request?(context, self)
           put_response_headers(context.response)
-        else
-          return forbidden(context)
-        end
 
-        call_next(context)
+          if context.request.method != Headers::OPTIONS
+            call_next(context)
+          end
+        else
+          forbidden(context)
+        end
       end
 
       def forbidden(context)
@@ -76,7 +79,7 @@ module Amber
       extend self
 
       def request?(context, cors)
-        if context.request.method == "OPTIONS"
+        if context.request.method == Headers::OPTIONS
           if valid_method?(context.request, cors.methods) &&
              valid_headers?(context.request, cors.headers)
             put_preflight_headers(context.request, context.response, cors.max_age)
@@ -99,7 +102,12 @@ module Amber
       end
 
       def valid_headers?(request, headers)
-        !(headers & request.headers[Headers::REQUEST_HEADERS].split(',')).empty?
+        request_headers = request.headers[Headers::REQUEST_HEADERS]?
+        return false if request_headers.nil? || request_headers.empty?
+
+        headers.any? do |header|
+          request_headers.downcase.split(',').includes? header.downcase
+        end
       end
     end
 

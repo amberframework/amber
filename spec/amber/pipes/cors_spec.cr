@@ -90,20 +90,51 @@ module Amber::Pipe
     end
 
     context "when preflight request" do
-      it "process valid preflight request" do
+      context "valid preflight" do
         domain = "example.com"
         origins = CORS::OriginType.new
         origins << domain
-        context = cors_context(
-          "OPTIONS",
-          "Origin": domain,
-          "Access-Control-Request-Method": "PUT",
-          "Access-Control-Request-Headers": "Accept"
-        )
-        CORS.new(origins: origins).call(context)
+        it "process valid preflight request" do
+          context = cors_context(
+            "OPTIONS",
+            "Origin": domain,
+            "Access-Control-Request-Method": "PUT",
+            "Access-Control-Request-Headers": "CoNtEnT-TyPe"
+          )
+          CORS.new(origins: origins).call(context)
 
-        context.response.status_code = 200
-        context.response.headers["Content-Length"].should eq "0"
+          context.response.status_code = 200
+          context.response.headers["Content-Length"].should eq "0"
+        end
+      end
+
+      context "invalid preflight" do
+        domain = "example.com"
+        origins = CORS::OriginType.new
+        origins << domain
+
+        it "return status 403 Forbidden for invalid preflight" do
+          context = cors_context(
+            "OPTIONS",
+            "Origin": domain,
+            "Access-Control-Request-Method": "unsupported method",
+            "Access-Control-Request-Headers": "CoNtEnT-TyPe"
+          )
+          CORS.new(origins: origins).call(context)
+
+          context.response.status_code.should eq 403
+        end
+
+        it "return status 403 Forbidden when missing preflight header" do
+          context = cors_context(
+            "OPTIONS",
+            "Origin": domain,
+            "Access-Control-Request-Method": "PUT",
+          )
+          CORS.new(origins: origins).call(context)
+
+          context.response.status_code.should eq 403
+        end
       end
     end
   end
