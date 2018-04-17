@@ -6,7 +6,6 @@ module Amber
       VARY              = "Vary"
       ORIGIN            = "Origin"
       X_ORIGIN          = "X-Origin"
-      OPTIONS           = "OPTIONS"
       REQUEST_METHOD    = "Access-Control-Request-Method"
       REQUEST_HEADERS   = "Access-Control-Request-Headers"
       ALLOW_EXPOSE      = "Access-Control-Expose-Headers"
@@ -25,6 +24,7 @@ module Amber
 
       property origins, headers, methods, credentials, max_age
       @origin : Origin
+      @_preflight : Bool?
 
       def initialize(
         @origins : OriginType = ["*", %r()],
@@ -41,12 +41,9 @@ module Amber
       def call(context : HTTP::Server::Context)
         if @origin.match?(context.request)
           put_expose_header(context.response)
-          Preflight.request?(context, self)
+          Preflight.process(context, self) if preflight?(context)
           put_response_headers(context.response)
-
-          if context.request.method != Headers::OPTIONS
-            call_next(context)
-          end
+          call_next(context) unless preflight?(context)
         else
           forbidden(context)
         end
@@ -73,20 +70,23 @@ module Amber
           str << "," << @vary if @vary
         end
       end
+
+      private def preflight?(context)
+        @_preflight ||= context.request.method == "OPTIONS"
+      end
     end
 
     module Preflight
       extend self
 
-      def request?(context, cors)
-        if context.request.method == Headers::OPTIONS
-          if valid_method?(context.request, cors.methods) &&
-             valid_headers?(context.request, cors.headers)
-            put_preflight_headers(context.request, context.response, cors.max_age)
-          else
-            cors.forbidden(context)
-          end
-        end
+      def process(context, cors)
+        return cors.forbidden(context) unless valid?(context, cors)
+        put_preflight_headers(context.request, context.response, cors.max_age)
+      end
+
+      def valid?(context, cors)
+        valid_method?(context.request, cors.methods) &&
+          valid_headers?(context.request, cors.headers)
       end
 
       def put_preflight_headers(request, response, max_age)
