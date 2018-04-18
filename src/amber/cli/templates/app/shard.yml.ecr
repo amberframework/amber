@@ -18,8 +18,13 @@ targets:
 dependencies:
   amber:
     github: amberframework/amber
+<% if AMBER_SHARD_TARGET == :current_version -%>
+    version: <%= Amber::VERSION %>
+<% elsif AMBER_SHARD_TARGET == :stable_branch -%>
+    branch: stable
+<% elsif AMBER_SHARD_TARGET == :master_branch -%>
     branch: master
-    #version: <%= Amber::VERSION %>
+<% end -%>
 
   citrine-i18n:
     github: amberframework/citrine-i18n

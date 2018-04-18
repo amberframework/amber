@@ -10,6 +10,14 @@ all: build
 
 build: lib $(AMBER)
 
+release: lib $(AMBER_SOURCES)
+	@echo "Building release amber cli at $(AMBER)"
+	@crystal build -o $(AMBER) src/amber/cli.cr --no-debug --progress --define amber_release
+
+stable: lib $(AMBER_SOURCES)
+	@echo "Building latest stable amber cli at $(AMBER)"
+	@crystal build -o $(AMBER) src/amber/cli.cr --no-debug --progress --define amber_stable
+
 lib:
 	@shards install --production
 
