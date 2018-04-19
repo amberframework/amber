@@ -44,5 +44,31 @@ module RouterHelper
     multipart_body = multipart_content.gsub("\n", "\r\n")
     request = HTTP::Request.new("POST", "/?test=test&test=test2&#{HTTP::Request::METHOD}=put&status=1234", headers, multipart_body)
     Amber::Router::Params.new(request)
+  end 
+
+  def cors_context(method = "GET", **args)
+    headers = HTTP::Headers.new
+    args.each do |k, v|
+      headers[k.to_s] = v
+    end
+    request = HTTP::Request.new(method, "/", headers)
+    create_context(request)
+  end
+
+  def assert_cors_success(context)
+    origin_header = context.response.headers["Access-Control-Allow-Origin"]?
+    origin_header.should_not be_nil
+  end
+
+  def assert_cors_failure(context)
+    origin_header = context.response.headers["Access-Control-Allow-Origin"]?
+    context.response.status_code.should eq 403
+    origin_header.should be_nil
+  end
+
+  def origins
+    domain = "example.com"
+    origins = Amber::Pipe::CORS::OriginType.new
+    origins << domain
   end
 end

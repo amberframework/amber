@@ -55,10 +55,7 @@ module Amber::Pipe
     end
 
     it "adds vary header when origin is other than (*)" do
-      domain = "example.com"
-      origins = CORS::OriginType.new
-      origins << domain
-      context = cors_context("GET", "Origin": domain)
+      context = cors_context("GET", "Origin": "example.com")
       CORS.new(origins: origins).call(context)
       context.response.headers[Amber::Pipe::Headers::VARY].should eq "Origin"
     end
@@ -72,59 +69,57 @@ module Amber::Pipe
     end
 
     it "adds Vary header based on :vary option" do
-      domain = "example.com"
-      origins = CORS::OriginType.new
-      origins << domain
-      context = cors_context("GET", "Origin": domain)
+      context = cors_context("GET", "Origin": "example.com")
       CORS.new(origins: origins, vary: "Other").call(context)
       context.response.headers[Amber::Pipe::Headers::VARY].should eq "Origin,Other"
     end
 
     it "sets allow credential headers if credential settings is true" do
-      domain = "example.com"
-      origins = CORS::OriginType.new
-      origins << domain
-      context = cors_context("GET", "Origin": domain)
+      context = cors_context("GET", "Origin": "example.com")
       CORS.new(credentials: true, origins: origins, vary: "Other").call(context)
       context.response.headers[Amber::Pipe::Headers::ALLOW_CREDENTIALS].should eq "true"
     end
 
     context "when preflight request" do
-      it "process valid preflight request" do
-        domain = "example.com"
-        origins = CORS::OriginType.new
-        origins << domain
-        context = cors_context(
-          "OPTIONS",
-          "Origin": domain,
-          "Access-Control-Request-Method": "PUT",
-          "Access-Control-Request-Headers": "Accept"
-        )
-        CORS.new(origins: origins).call(context)
+      context "valid preflight" do
+        it "returns status code 200" do
+          context = cors_context(
+            "OPTIONS",
+            "Origin": "example.com",
+            "Access-Control-Request-Method": "PUT",
+            "Access-Control-Request-Headers": "CoNtEnT-TyPe"
+          )
+          CORS.new(origins: origins).call(context)
 
-        context.response.status_code = 200
-        context.response.headers["Content-Length"].should eq "0"
+          context.response.status_code = 200
+          context.response.headers["Content-Length"].should eq "0"
+        end
+      end
+
+      context "invalid preflight" do
+        it "return status 403 Forbidden" do
+          context = cors_context(
+            "OPTIONS",
+            "Origin": "example.com",
+            "Access-Control-Request-Method": "unsupported method",
+            "Access-Control-Request-Headers": "CoNtEnT-TyPe"
+          )
+          CORS.new(origins: origins).call(context)
+
+          context.response.status_code.should eq 403
+        end
+
+        it "return status 403 Forbidden when missing preflight header" do
+          context = cors_context(
+            "OPTIONS",
+            "Origin": "example.com",
+            "Access-Control-Request-Method": "PUT",
+          )
+          CORS.new(origins: origins).call(context)
+
+          context.response.status_code.should eq 403
+        end
       end
     end
   end
-end
-
-def cors_context(method = "GET", **args)
-  headers = HTTP::Headers.new
-  args.each do |k, v|
-    headers[k.to_s] = v
-  end
-  request = HTTP::Request.new(method, "/", headers)
-  create_context(request)
-end
-
-def assert_cors_success(context)
-  origin_header = context.response.headers["Access-Control-Allow-Origin"]?
-  origin_header.should_not be_nil
-end
-
-def assert_cors_failure(context)
-  origin_header = context.response.headers["Access-Control-Allow-Origin"]?
-  context.response.status_code.should eq 403
-  origin_header.should be_nil
 end
