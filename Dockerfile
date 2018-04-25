@@ -12,7 +12,7 @@ WORKDIR /opt/amber
 
 # Build Amber
 ENV PATH /opt/amber/bin:$PATH
-ADD . /opt/amber
+COPY . /opt/amber
 RUN shards build amber
 
 CMD ["crystal", "spec", "-D", "run_build_tests"]
