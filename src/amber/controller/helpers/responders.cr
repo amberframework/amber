@@ -13,30 +13,35 @@ module Amber::Controller::Helpers
       ACCEPT_SEPARATOR_REGEX = /,|,\s/
 
       @requested_responses : Array(String)
-      @available_responses = Hash(String, String).new
+      @available_responses = Hash(String, String | Proc(String) | Proc(Int32)).new
       @type : String? = nil
 
       def initialize(@requested_responses)
       end
 
       # TODO: add JS type similar to rails.
-      def html(html : String)
+      def html(html : String | Proc(String) | Proc(Int32))
         @available_responses[TYPE[:html]] = html; self
       end
 
-      def xml(xml : String)
+      def xml(xml : String | Proc(String) | Proc(Int32))
         @available_responses[TYPE[:xml]] = xml; self
       end
 
-      def json(json : String | Hash(Symbol | String, String))
-        @available_responses[TYPE[:json]] = json.is_a?(String) ? json : json.to_json; self
+      def json(json : String | Proc(String) | Proc(Int32) | Hash(Symbol | String, String))
+        if json.is_a?(Proc)
+          @available_responses[TYPE[:json]] = json
+        else
+          @available_responses[TYPE[:json]] = json.is_a?(String) ? json : json.to_json
+        end
+        self
       end
 
       def json(**args : Object)
         json(args.to_h)
       end
 
-      def text(text : String)
+      def text(text : String | Proc(String)| Proc(Int32))
         @available_responses[TYPE[:text]] = text; self
       end
 
@@ -61,9 +66,12 @@ module Amber::Controller::Helpers
     end
 
     def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
-      context.response.status_code = status_code
+      if body.is_a?(Proc)
+        body = body.call
+      end
+      context.response.status_code = status_code if context.response.status_code == 200
       context.response.content_type = content_type
-      context.content = body
+      context.content = body.is_a?(String) ? body : body.to_s
     end
 
     private def extension_request_type
