@@ -52,7 +52,7 @@ module Amber::Controller::Helpers
     def redirect(controller)
       set_flash(controller)
       url_path = encode_query_string(location, params)
-      controller.response.headers.add LOCATION_HEADER, url_path
+      controller.response.headers[LOCATION_HEADER] = url_path
       controller.halt!(status, "Redirecting to #{url_path}")
     end
 
