@@ -29,6 +29,9 @@ module Amber::CLI
       Amber::CLI.env = "test"
       Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
 
+      puts "WAITING: database connection..."
+      `while true; do pg_isready -q; if [[ $? -eq 0 ]]; then break; fi; sleep 0.1; done`
+
       puts "====== START Creating database for #{TEST_APP_NAME} ======"
       MainCommand.run ["db", "drop"]
       MainCommand.run ["db", "create", "migrate"]
