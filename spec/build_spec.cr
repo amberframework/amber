@@ -44,7 +44,6 @@ module Amber::CLI
 
       context "crystal spec" do
         puts "RUNNING: crystal spec"
-        sleep 5
         spec_result = `crystal spec`
 
         it "can be executed" do
