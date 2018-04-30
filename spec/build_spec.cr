@@ -28,6 +28,9 @@ module Amber::CLI
       Amber::CLI.env = "test"
       Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
 
+      # Wait some time before execute db commands
+      sleep 10.seconds
+
       puts "RUNNING: db drop create"
       MainCommand.run ["db", "drop", "create"]
 
