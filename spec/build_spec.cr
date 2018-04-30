@@ -1,4 +1,3 @@
-{% if flag?(:run_build_tests) %}
 require "./spec_helper"
 require "./support/helpers/cli_helper"
 
@@ -27,7 +26,7 @@ module Amber::CLI
 
       prepare_yaml(Dir.current)
       Amber::CLI.env = "test"
-      #Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
+      Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
 
       puts "====== START Creating database for #{TEST_APP_NAME} ======"
       MainCommand.run ["db", "drop"]
@@ -41,6 +40,20 @@ module Amber::CLI
       build_result = `shards build #{TEST_APP_NAME}`
       puts "#{TESTING_APP} build completed..."
 
+      check_models = <<-EXEC
+      loop do
+        User.first
+        Animal.first
+        Post.first
+        PostComment.first
+        Bat.first
+        Crocodile.first
+        break
+      rescue
+        next
+      end
+      EXEC
+
       it "generates a binary" do
         puts build_result unless File.exists?("bin/#{TEST_APP_NAME}")
         File.exists?("bin/#{TEST_APP_NAME}").should be_true
@@ -48,6 +61,7 @@ module Amber::CLI
 
       context "crystal spec" do
         puts "RUNNING: crystal spec #{TESTING_APP} - started..."
+        MainCommand.run ["exec", check_models]
         spec_result = `crystal spec`
 
         it "can be executed" do
@@ -70,4 +84,3 @@ module Amber::CLI
     cleanup
   end
 end
-{% end %}
