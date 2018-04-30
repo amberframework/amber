@@ -15,7 +15,7 @@ cache:
 script:
   - bin/ameba ./src
   - crystal spec ./spec/amber
-  - crystal spec ./spec/build_spec.cr -D run_build_tests
+  - crystal spec ./spec/build_spec.cr
 
 notifications:
   webhooks:
