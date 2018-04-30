@@ -34,10 +34,15 @@ module Amber::CLI
       puts "RUNNING: shards build"
       build_result = `shards build`
 
-      puts "RUNNING: db drop create and check models"
+      # HACK: Travis CI fails randomly to migrate pg database,
+      # so this loop ensure models are available before executing specs
       loop do
-        MainCommand.run ["db", "drop", "create"]
+        puts "RUNNING: amber db drop create"
+        MainCommand.run ["db", "drop", "create", "migrate"]
+        puts "RUNNING: amber exec"
+        puts "INFO: Verify models before executing specs"
         break if system("bin/amber exec 'User.first; Animal.first; Post.first; PostComment.first; Bat.first'")
+        puts "INFO: Models check failed, trying again..."
       end
 
       it "generates a binary" do
