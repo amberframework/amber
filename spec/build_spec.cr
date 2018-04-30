@@ -28,8 +28,8 @@ module Amber::CLI
       Amber::CLI.env = "test"
       Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
 
-      puts "RUNNING: shards update"
-      `shards update`
+      puts "RUNNING: shards install --production"
+      `shards install --production`
 
       puts "RUNNING: shards build"
       build_result = `shards build`
