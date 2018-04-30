@@ -32,7 +32,7 @@ module Amber::CLI
 
       log_start_done "shards update" { `shards update` }
 
-      log_start_done "shard build #{TEST_APP_NAME}" { build_result = `shards build #{TEST_APP_NAME}` }
+      build_result = log_start_done "shard build #{TESTING_APP_NAME}" { `shards build #{TEST_APP_NAME}` }
 
       it "generates a binary" do
         puts build_result unless File.exists?("bin/#{TEST_APP_NAME}")
@@ -40,7 +40,7 @@ module Amber::CLI
       end
 
       context "crystal spec" do
-        log_start_done "crystal spec" { spec_result = `crystal spec` }
+        spec_result = log_start_done "crystal spec" { `crystal spec` }
 
         it "can be executed" do
           puts spec_result unless spec_result.includes? "Finished in"

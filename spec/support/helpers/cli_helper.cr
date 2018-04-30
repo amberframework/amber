@@ -79,7 +79,8 @@ module CLIHelper
 
   def log_start_done(msg)
     puts "START: #{msg}"
-    yield
+    output = yield
     puts "DONE: #{msg}"
+    output
   end
 end
