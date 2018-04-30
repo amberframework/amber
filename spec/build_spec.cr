@@ -38,8 +38,6 @@ module Amber::CLI
       loop do
         MainCommand.run ["db", "drop", "create"]
         break if system("bin/amber exec 'User.first; Animal.first; Post.first; PostComment.first; Bat.first'")
-      rescue
-        next
       end
 
       it "generates a binary" do
