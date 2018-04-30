@@ -12,7 +12,7 @@ Micrate::DB.connection_url = Amber.settings.database_url
 Micrate::Cli.run_up
 
 # Waiting migrations to be completed
-sleep 1.second
+sleep 5.seconds
 
 # Disable query logger for tests
 Granite::ORM.settings.logger = Logger.new nil
