@@ -3,11 +3,7 @@ require "../../../spec_helper"
 module Amber::Router
   describe Params do
     headers = HTTP::Headers.new
-    headers["Content-Type"] = "multipart/form-data; boundary=fhhRFLCazlkA0dX; charset=UTF-8"
-    multipart_content = ::File.read(::File.expand_path("spec/support/sample/multipart.txt"))
-    multipart_body = multipart_content.gsub("\n", "\r\n")
-    request = HTTP::Request.new("GET", "/?test=test&test=test2&#{HTTP::Request::METHOD}=put&status=1234", headers, multipart_body)
-    params = Params.new(request)
+    params = multipart_form_post
 
     describe "#[]" do
       it "return query string param" do
@@ -42,17 +38,7 @@ module Amber::Router
     end
 
     describe "#fetch_all" do
-      fetch_all_headers = HTTP::Headers.new
-      fetch_all_headers["Content-Type"] = "application/x-www-form-urlencoded"
-      encoded_form = HTTP::Params.build do |form|
-        form.add "test_form", "test1"
-        form.add "test_form", "test2"
-        form.add "test_both", "form1"
-        form.add "test_both", "form2"
-      end
-
-      fetch_all_request = HTTP::Request.new("POST", "/?test=test&test=test2&test_both=query&test_both=query1&#{HTTP::Request::METHOD}=put&status=1234", fetch_all_headers, encoded_form)
-      fetch_all_params = Params.new(fetch_all_request)
+      fetch_all_params = url_encoded_form_post
 
       it "returns an array of params" do
         fetch_all_params.fetch_all("test").should eq %w(test test2)
@@ -94,15 +80,14 @@ module Amber::Router
     end
 
     describe "#to_h" do
-      headers = HTTP::Headers.new
-      headers["Content-Type"] = "multipart/form-data; boundary=fhhRFLCazlkA0dX; charset=UTF-8"
-      multipart_content = ::File.read(::File.expand_path("spec/support/sample/multipart.txt"))
-      multipart_body = multipart_content.gsub("\n", "\r\n")
-      request = HTTP::Request.new("GET", "/?test=test&test=test2&#{HTTP::Request::METHOD}=put&status=1234", headers, multipart_body)
-      params = Params.new(request)
-
       it "returns a hash with all params" do
+        params = multipart_form_post
         params.to_h.keys.should eq %w(test _method status _csrf title content)
+        params.to_h["test"].should eq "test"
+      end
+
+      it "returns the first value for key" do
+        url_encoded_form_post.to_h["cat"].should eq "1"
       end
     end
   end
