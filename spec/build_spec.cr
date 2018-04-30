@@ -32,7 +32,7 @@ module Amber::CLI
 
       log_start_done "shards update" { `shards update` }
 
-      build_result = log_start_done "shard build #{TESTING_APP_NAME}" { `shards build #{TEST_APP_NAME}` }
+      build_result = log_start_done "shard build #{TEST_APP_NAME}" { `shards build #{TEST_APP_NAME}` }
 
       it "generates a binary" do
         puts build_result unless File.exists?("bin/#{TEST_APP_NAME}")
