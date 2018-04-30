@@ -41,7 +41,7 @@ module Amber::CLI
         MainCommand.run ["db", "drop", "create", "migrate"]
         puts "RUNNING: amber exec"
         puts "INFO: Verify models before executing specs"
-        status = Process.run("bin/amber", ["exec", "User.first; Animal.first; Post.first; PostComment.first; Bat.first"])
+        status = Process.run("bin/amber", ["exec", "User.first; Animal.first; Post.first; PostComment.first; Bat.first"], output: STDOUT)
         puts "INFO: Models verification completed with exit code: #{status.exit_code}"
         break if status.exit_code == 0
         puts "INFO: Trying again..."
