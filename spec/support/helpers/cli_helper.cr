@@ -76,8 +76,4 @@ module CLIHelper
   def route_table_rows(route_table_text)
     route_table_text.split("\n").reject { |line| line =~ /(─┼─|═╦═|═╩═)/ }
   end
-
-  def wait_pg_isready
-    `while true; do pg_isready -q; if [ $? -eq 0 ]; then break; fi; sleep 0.1; done;`
-  end
 end

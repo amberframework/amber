@@ -28,10 +28,6 @@ module Amber::CLI
       Amber::CLI.env = "test"
       Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
 
-
-      puts "RUNNING: waiting postgres database"
-      wait_pg_isready
-
       puts "RUNNING: db drop create"
       MainCommand.run ["db", "drop", "create"]
 
@@ -47,8 +43,6 @@ module Amber::CLI
       end
 
       context "crystal spec" do
-        puts "RUNNING: waiting postgres database"
-        wait_pg_isready
         puts "RUNNING: crystal spec"
         spec_result = `crystal spec`
 
