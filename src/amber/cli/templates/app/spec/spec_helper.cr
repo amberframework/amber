@@ -8,16 +8,14 @@ require "../config/*"
 
 Micrate::DB.connection_url = Amber.settings.database_url
 
-# Wait database to be ready (pg only)
-if Amber::CLI.config.database == "pg"
-  `while true; do pg_isready -q; if [ $? -eq 0 ]; then break; fi; sleep 0.1; done;`
-end
+# Wait database to be ready on CI
+sleep 5.seconds
 
 # Automatically run migrations on the test database
 Micrate::Cli.run_up
 
-# Wait for migrations to be ready
-sleep 10.seconds
+# Wait for migrations to be ready on CI
+sleep 5.seconds
 
 # Disable query logger for tests
 Granite::ORM.settings.logger = Logger.new nil
