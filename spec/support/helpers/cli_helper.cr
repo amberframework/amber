@@ -35,6 +35,19 @@ module CLIHelper
     end
   end
 
+  def db_name(db_url : String) : String
+    db_name(URI.parse(db_url))
+  end
+
+  def db_name(db_uri : URI) : String
+    path = db_uri.path || db_uri.opaque
+    path ? path.split('/').last : ""
+  end
+
+  def db_yml(path = CURRENT_ENV_PATH)
+    YAML.parse(File.read(path))
+  end
+
   def amber_yml(path = TESTING_APP)
     YAML.parse(File.read("#{path}/.amber.yml"))
   end
@@ -47,6 +60,18 @@ module CLIHelper
     YAML.parse(File.read("#{path}#{environment}.yml"))
   end
 
+  def development_yml
+    environment_yml("development")
+  end
+
+  def production_yml
+    environment_yml("production")
+  end
+
+  def test_yml
+    environment_yml("test")
+  end
+
   def docker_compose_yml
     YAML.parse(File.read("#{TESTING_APP}/docker-compose.yml"))
   end
@@ -55,6 +80,12 @@ module CLIHelper
     shard = File.read("#{path}/shard.yml")
     shard = shard.gsub("github: amberframework/amber\n", "path: ../../\n")
     File.write("#{path}/shard.yml", shard)
+  end
+
+  def prepare_db_yml(path = ENV_CONFIG_PATH)
+    db_yml = File.read("#{path}#{CURRENT_ENVIRONMENT}.yml")
+    db_yml = db_yml.gsub("@localhost:5432", "@db:5432")
+    File.write("#{path}#{CURRENT_ENVIRONMENT}.yml", db_yml)
   end
 
   def recipe_app(app_name, *options)
