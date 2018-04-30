@@ -42,7 +42,7 @@ module Amber::CLI
         puts "RUNNING: amber exec"
         puts "INFO: Verify models before executing specs"
         exec = system("bin/amber exec 'User.first; Animal.first; Post.first; PostComment.first; Bat.first'")
-        puts "INFO: Models completed with #{exec}"
+        puts "INFO: Models verification completed with #{exec}"
         break if exec
         puts "INFO: Trying again..."
       end
