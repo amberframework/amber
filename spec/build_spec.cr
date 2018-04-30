@@ -14,11 +14,17 @@ module Amber::CLI
       options = ["user:reference", "name:string", "body:text", "age:integer", "published:bool"]
       temp_options = options - ["user:reference", "age:integer"]
       MainCommand.run ["generate", "auth", "User"] | (options - ["user:reference"])
+      sleep 1.second
       MainCommand.run ["generate", "error"]
+      sleep 1.second
       MainCommand.run ["generate", "scaffold", "Animal"] | temp_options
+      sleep 1.second
       MainCommand.run ["generate", "scaffold", "Post"] | options
+      sleep 1.second
       MainCommand.run ["generate", "scaffold", "PostComment"] | (options + ["post:reference"])
+      sleep 1.second
       MainCommand.run ["generate", "model", "Bat"] | options
+      sleep 1.second
       MainCommand.run ["generate", "migration", "Crocodile"] | options
       MainCommand.run ["generate", "mailer", "Dinosaur"] | options
       MainCommand.run ["generate", "socket", "Eagle"] | ["soar", "nest"]
@@ -31,25 +37,11 @@ module Amber::CLI
       puts "RUNNING: shards install --production"
       `shards install --production`
 
-      puts "RUNNING: shards build"
-      build_result = `shards build`
+      puts "RUNNING: shards build #{TEST_APP_NAME}"
+      build_result = `shards build #{TEST_APP_NAME}`
 
-      # HACK: Travis CI fails randomly to migrate pg database,
-      # so this loop ensure models are available before executing specs
-      loop do
-        puts "RUNNING: amber db drop create"
-        MainCommand.run ["db", "drop", "create", "migrate"]
-        puts "RUNNING: amber exec"
-        puts "INFO: Verify models before executing specs"
-        io = IO::Memory.new
-        Process.run("bin/amber", ["exec", "User.first; Animal.first; Post.first; PostComment.first; Bat.first"], output: io, error: io)
-        output = io.to_s
-        error = (output =~ /(E|e)rror/)
-        puts "INFO: Models verification completed with output:"
-        puts output
-        break if error.nil?
-        puts "INFO: Trying again..."
-      end
+      puts "RUNNING: amber db drop create migrate"
+      MainCommand.run ["db", "drop", "create", "migrate"]
 
       it "generates a binary" do
         puts build_result unless File.exists?("bin/#{TEST_APP_NAME}")
