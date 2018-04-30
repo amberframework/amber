@@ -28,17 +28,19 @@ module Amber::CLI
       Amber::CLI.env = "test"
       Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
 
-      # Wait some time before execute db commands
-      sleep 10.seconds
-
-      puts "RUNNING: db drop create"
-      MainCommand.run ["db", "drop", "create"]
-
       puts "RUNNING: shards update"
       `shards update`
 
       puts "RUNNING: shards build"
-      build_result = `shards build #{TEST_APP_NAME}`
+      build_result = `shards build`
+
+      puts "RUNNING: db drop create and check models"
+      loop do
+        MainCommand.run ["db", "drop", "create"]
+        break if system("bin/amber exec 'User.first; Animal.first; Post.first; PostComment.first; Bat.first'")
+      rescue
+        next
+      end
 
       it "generates a binary" do
         puts build_result unless File.exists?("bin/#{TEST_APP_NAME}")

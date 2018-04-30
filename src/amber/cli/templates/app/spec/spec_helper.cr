@@ -8,14 +8,8 @@ require "../config/*"
 
 Micrate::DB.connection_url = Amber.settings.database_url
 
-# Wait database to be ready on CI
-sleep 10.seconds
-
 # Automatically run migrations on the test database
 Micrate::Cli.run_up
-
-# Wait for migrations to be ready on CI
-sleep 10.seconds
 
 # Disable query logger for tests
 Granite::ORM.settings.logger = Logger.new nil
