@@ -30,8 +30,7 @@ module Amber::CLI
 
       puts "====== START Creating database for #{TEST_APP_NAME} ======"
       MainCommand.run ["db", "drop"]
-      MainCommand.run ["db", "create"]
-      MainCommand.run ["db", "migrate"]
+      MainCommand.run ["db", "create", "migrate"]
       puts "====== DONE Database created #{TEST_APP_NAME} ======"
 
       puts "RUNNING: shard update started..."
