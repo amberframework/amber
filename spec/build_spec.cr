@@ -29,18 +29,18 @@ module Amber::CLI
       Amber::CLI.env = "test"
       Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
 
+      puts "====== START Creating database for #{TEST_APP_NAME} ======"
+      MainCommand.run ["db", "drop"]
+      MainCommand.run ["db", "create"]
+      MainCommand.run ["db", "migrate"]
+      puts "====== DONE Database created #{TEST_APP_NAME} ======"
+
       puts "RUNNING: shard update started..."
       `shards update`
 
       puts "RUNNING: shard build #{TESTING_APP} - started..."
       build_result = `shards build #{TEST_APP_NAME}`
       puts "#{TESTING_APP} build completed..."
-
-      puts "====== START Creating database for #{TEST_APP_NAME} ======"
-      MainCommand.run ["db", "drop"]
-      MainCommand.run ["db", "create"]
-      MainCommand.run ["db", "migrate"]
-      puts "====== DONE Database created #{TEST_APP_NAME} ======"
 
       it "generates a binary" do
         puts build_result unless File.exists?("bin/#{TEST_APP_NAME}")
