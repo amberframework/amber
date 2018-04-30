@@ -66,3 +66,4 @@ module Amber::CLI
     cleanup
   end
 end
+# Trigger build
