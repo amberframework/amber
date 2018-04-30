@@ -35,7 +35,7 @@ module Amber::CLI
       `shards update`
 
       puts "RUNNING: shards build"
-      `shards build #{TEST_APP_NAME}`
+      build_result = `shards build #{TEST_APP_NAME}`
 
       it "generates a binary" do
         puts build_result unless File.exists?("bin/#{TEST_APP_NAME}")
