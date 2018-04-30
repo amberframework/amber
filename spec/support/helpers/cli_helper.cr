@@ -76,4 +76,10 @@ module CLIHelper
   def route_table_rows(route_table_text)
     route_table_text.split("\n").reject { |line| line =~ /(─┼─|═╦═|═╩═)/ }
   end
+
+  def log_start_done(msg)
+    puts "START: #{msg}"
+    yield
+    puts "DONE: #{msg}"
+  end
 end

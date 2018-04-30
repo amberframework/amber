@@ -28,18 +28,11 @@ module Amber::CLI
       Amber::CLI.env = "test"
       Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
 
-      puts
-      puts "START: amber database drop create..."
-      MainCommand.run ["db", "drop"]
-      MainCommand.run ["db", "create"]
-      puts "DONE: amber database drop create"
+      log_start_done "db drop create" { MainCommand.run ["db", "drop", "create"] }
 
-      puts "RUNNING: shard update..."
-      `shards update`
+      log_start_done "shards update" { `shards update` }
 
-      puts "START: shard build #{TESTING_APP}..."
-      build_result = `shards build #{TEST_APP_NAME}`
-      puts "DONE: shard build #{TESTING_APP}"
+      log_start_done "shard build #{TESTING_APP_NAME}" { build_result = `shards build #{TEST_APP_NAME}` }
 
       it "generates a binary" do
         puts build_result unless File.exists?("bin/#{TEST_APP_NAME}")
@@ -47,9 +40,7 @@ module Amber::CLI
       end
 
       context "crystal spec" do
-        puts
-        puts "RUNNING: crystal spec #{TESTING_APP} - started..."
-        spec_result = `crystal spec`
+        log_start_done "crystal spec" { spec_result = `crystal spec` }
 
         it "can be executed" do
           puts spec_result unless spec_result.includes? "Finished in"
