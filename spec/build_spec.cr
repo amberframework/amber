@@ -41,8 +41,10 @@ module Amber::CLI
         MainCommand.run ["db", "drop", "create", "migrate"]
         puts "RUNNING: amber exec"
         puts "INFO: Verify models before executing specs"
-        break if system("bin/amber exec 'User.first; Animal.first; Post.first; PostComment.first; Bat.first'")
-        puts "INFO: Models check failed, trying again..."
+        exec = system("bin/amber exec 'User.first; Animal.first; Post.first; PostComment.first; Bat.first'")
+        puts "INFO: Models completed with #{exec}"
+        break if exec
+        puts "INFO: Trying again..."
       end
 
       it "generates a binary" do
