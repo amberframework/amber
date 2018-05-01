@@ -68,6 +68,7 @@ module Amber::Recipes
         Model.new(name, @recipe, @fields).render(directory, list: true, color: true)
       when "scaffold"
         log_message "Rendering Scaffold #{name} from #{@recipe}"
+        sleep 1.millisecond
         if model == "crecto"
           Amber::CLI::CrectoMigration.new(name, @fields).render(directory, list: true, color: true)
         else
