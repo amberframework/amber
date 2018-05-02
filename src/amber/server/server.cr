@@ -53,7 +53,7 @@ module Amber
 
     def start
       time = Time.now
-      logger.info "#{version} serving application \"#{settings.name.capitalize}\" at #{host_url}".to_s
+      logger.info "#{version.colorize(:light_cyan)} serving application \"#{settings.name.capitalize}\" at #{host_url.colorize(:light_cyan).mode(:underline)}"
       handler.prepare_pipelines
       server = HTTP::Server.new(settings.host, settings.port, handler)
       server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
@@ -83,23 +83,23 @@ module Amber
       end
     end
 
-    private def version
-      "Amber #{Amber::VERSION}".colorize(:light_cyan)
+    def version
+      "Amber #{Amber::VERSION}"
     end
 
-    private def host_url
-      "#{scheme}://#{settings.host}:#{settings.port}".colorize(:light_cyan).mode(:underline)
+    def host_url
+      "#{scheme}://#{settings.host}:#{settings.port}"
     end
 
-    private def ssl_enabled?
+    def ssl_enabled?
       settings.ssl_key_file && settings.ssl_cert_file
     end
 
-    private def scheme
+    def scheme
       ssl_enabled? ? "https" : "http"
     end
 
-    private def logger
+    def logger
       Amber.logger
     end
 
