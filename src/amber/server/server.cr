@@ -59,9 +59,9 @@ module Amber
       server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
 
       Signal::INT.trap do
+        Signal::INT.reset
         logger.info "Shutting down Amber"
         server.close
-        exit
       end
 
       loop do
@@ -69,7 +69,7 @@ module Amber
           logger.info "Server started in #{Amber.env.colorize(:yellow)}."
           logger.info "Startup Time #{Time.now - time}".colorize(:white)
           server.listen(settings.port_reuse)
-          exit
+          break
         rescue e : Errno
           if e.errno == Errno::EMFILE
             logger.error e.message
@@ -77,7 +77,7 @@ module Amber
             sleep 1
           else
             logger.error e.message
-            exit
+            break
           end
         end
       end
