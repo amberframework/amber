@@ -53,15 +53,15 @@ module Amber
 
     def start
       time = Time.now
-      logger.info "#{version} serving application \"#{settings.name.capitalize}\" at #{host_url}".to_s
+      logger.info "#{version.colorize(:light_cyan)} serving application \"#{settings.name.capitalize}\" at #{host_url.colorize(:light_cyan).mode(:underline)}"
       handler.prepare_pipelines
       server = HTTP::Server.new(settings.host, settings.port, handler)
       server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
 
       Signal::INT.trap do
+        Signal::INT.reset
         logger.info "Shutting down Amber"
         server.close
-        exit
       end
 
       loop do
@@ -69,7 +69,7 @@ module Amber
           logger.info "Server started in #{Amber.env.colorize(:yellow)}."
           logger.info "Startup Time #{Time.now - time}".colorize(:white)
           server.listen(settings.port_reuse)
-          exit
+          break
         rescue e : Errno
           if e.errno == Errno::EMFILE
             logger.error e.message
@@ -77,29 +77,29 @@ module Amber
             sleep 1
           else
             logger.error e.message
-            exit
+            break
           end
         end
       end
     end
 
-    private def version
-      "Amber #{Amber::VERSION}".colorize(:light_cyan)
+    def version
+      "Amber #{Amber::VERSION}"
     end
 
-    private def host_url
-      "#{scheme}://#{settings.host}:#{settings.port}".colorize(:light_cyan).mode(:underline)
+    def host_url
+      "#{scheme}://#{settings.host}:#{settings.port}"
     end
 
-    private def ssl_enabled?
+    def ssl_enabled?
       settings.ssl_key_file && settings.ssl_cert_file
     end
 
-    private def scheme
+    def scheme
       ssl_enabled? ? "https" : "http"
     end
 
-    private def logger
+    def logger
       Amber.logger
     end
 
