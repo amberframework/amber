@@ -1,4 +1,3 @@
-{% if flag?(:run_build_tests) %}
 require "./spec_helper"
 require "./support/helpers/cli_helper"
 
@@ -70,4 +69,3 @@ module Amber::CLI
     cleanup
   end
 end
-{% end %}
