@@ -22,5 +22,9 @@ module Amber::CLI
       @timestamp = Time.now.to_s("%Y%m%d%H%M%S%L")
       @primary_key = primary_key
     end
+
+    def filter(entries)
+      entries.map { |entry| verify_sql_migration_file(entry) }
+    end
   end
 end

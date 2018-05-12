@@ -28,6 +28,7 @@ module Amber::CLI
 
     def filter(entries)
       entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
+      entries.map { |entry| verify_sql_migration_file(entry) }
     end
 
     private def setup_routes
