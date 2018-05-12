@@ -18,8 +18,8 @@ module Amber::CLI
       end
 
       ROUTES_PATH          = "config/routes.cr"
-      LABELS               = %w(Pipe Plug)
-      LABELS_WITHOUT_PLUGS = %w(Pipe)
+      LABELS               = %w(Pipeline Pipe)
+      LABELS_WITHOUT_PLUGS = %w(Pipeline)
 
       PIPELINE_REGEX =
         /^

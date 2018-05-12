@@ -64,12 +64,14 @@ module Amber::Router
       query[key]? || form[key]? || multipart[key]?
     end
 
-    def to_h
-      query.to_h
-           .merge(form.to_h)
-           .merge(route)
-           .merge(json)
-           .merge(multipart)
+    def to_h : Types::Params
+      params_hash = Types::Params.new
+      query.each { |key, _| params_hash[key] = query[key] }
+      form.each { |key, _| params_hash[key] = form[key] }
+      route.each_key { |key| params_hash[key] = route[key] }
+      json.each_key { |key| params_hash[key] = json[key].to_s }
+      multipart.each_key { |key| params_hash[key] = multipart[key].to_s }
+      params_hash
     end
 
     private def query
