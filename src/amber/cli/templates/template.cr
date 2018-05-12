@@ -52,11 +52,9 @@ module Amber::CLI
         end
       when "migration"
         puts "Rendering Migration #{name}"
-        sleep 1.millisecond
         Migration.new(name, fields).render(directory, list: true, color: true)
       when "model"
         puts "Rendering Model #{name}"
-        sleep 1.millisecond
         if model == "crecto"
           CrectoMigration.new(name, fields).render(directory, list: true, color: true)
           CrectoModel.new(name, fields).render(directory, list: true, color: true)
@@ -69,7 +67,6 @@ module Amber::CLI
         Controller.new(name, fields).render(directory, list: true, color: true)
       when "scaffold"
         puts "Rendering Scaffold #{name}"
-        sleep 1.millisecond
         if model == "crecto"
           CrectoMigration.new(name, fields).render(directory, list: true, color: true)
           CrectoModel.new(name, fields).render(directory, list: true, color: true)
@@ -96,7 +93,6 @@ module Amber::CLI
         WebSocketChannel.new(name).render(directory, list: true, color: true)
       when "auth"
         puts "Rendering Auth #{name}"
-        sleep 1.millisecond
         if model == "crecto"
           raise "Auth not supported for crecto yet"
         end
