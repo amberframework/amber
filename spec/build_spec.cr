@@ -25,6 +25,9 @@ module Amber::CLI
       MainCommand.run ["generate", "socket", "Eagle"] | ["soar", "nest"]
       MainCommand.run ["generate", "channel", "Falcon"]
 
+      puts "LISTING: Migration files..."
+      puts `ls ./tmp/test_app/db/migrations`
+
       prepare_yaml(Dir.current)
       Amber::CLI.env = "test"
       Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
