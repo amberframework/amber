@@ -25,7 +25,6 @@ describe Amber do
       end
 
       it "sets Amber environment from yaml settings file" do
-        current_settings = Amber.settings
         Amber.env = :development
         Amber.settings.name.should eq "development_settings"
       end
@@ -80,7 +79,7 @@ describe Amber do
       it "defines socket endpoint" do
         Amber::Server.router.socket_routes = [] of NamedTuple(path: String, handler: Amber::WebSockets::Server::Handler)
 
-        Amber::Server.configure do |app|
+        Amber::Server.configure do
           pipeline :web do
           end
 

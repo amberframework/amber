@@ -27,11 +27,11 @@ module CLIHelper
   def expected_db_url(db_key, env)
     case db_key
     when "pg"
-      expected_db_url = "postgres://postgres:@localhost:5432/#{TEST_APP_NAME}_#{env}"
+      "postgres://postgres:@localhost:5432/#{TEST_APP_NAME}_#{env}"
     when "mysql"
-      expected_db_url = "#{db_key}://root@localhost:3306/#{TEST_APP_NAME}_#{env}"
+      "#{db_key}://root@localhost:3306/#{TEST_APP_NAME}_#{env}"
     else
-      expected_db_url = "#{db_key}:./db/#{TEST_APP_NAME}_#{env}.db"
+      "#{db_key}:./db/#{TEST_APP_NAME}_#{env}.db"
     end
   end
 
