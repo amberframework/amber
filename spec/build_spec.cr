@@ -26,7 +26,7 @@ module Amber::CLI
       MainCommand.run ["generate", "channel", "Falcon"]
 
       puts "LISTING: Migration files..."
-      puts `ls -Rl #{TESTING_APP}`
+      puts `ls -Rl #{Dir.current}/tmp`
 
       prepare_yaml(Dir.current)
       Amber::CLI.env = "test"
