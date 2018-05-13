@@ -16,8 +16,8 @@ class <%= class_name %> < Granite::ORM::Base
     (email = <%= @name %>.email) ? !email.empty? : false
   end
 
-  validate :email, "already in use", -> (user : User) do
-    existing = User.find_by :email, user.email
+  validate :email, "already in use", -> (<%= @name %> : <%= class_name %>) do
+    existing = <%= class_name %>.find_by :email, <%= @name %>.email
     !existing
   end
 
