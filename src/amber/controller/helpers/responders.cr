@@ -1,5 +1,8 @@
 module Amber::Controller::Helpers
   module Responders
+
+    alias ProcType = Proc(String) | Proc(Int32)
+
     class Content
       TYPE = {
         html: "text/html",
@@ -13,22 +16,22 @@ module Amber::Controller::Helpers
       ACCEPT_SEPARATOR_REGEX = /,|,\s/
 
       @requested_responses : Array(String)
-      @available_responses = Hash(String, String | Proc(String) | Proc(Int32)).new
+      @available_responses = Hash(String, String | ProcType).new
       @type : String? = nil
 
       def initialize(@requested_responses)
       end
 
       # TODO: add JS type similar to rails.
-      def html(html : String | Proc(String) | Proc(Int32))
+      def html(html : String |ProcType)
         @available_responses[TYPE[:html]] = html; self
       end
 
-      def xml(xml : String | Proc(String) | Proc(Int32))
+      def xml(xml : String |ProcType)
         @available_responses[TYPE[:xml]] = xml; self
       end
 
-      def json(json : String | Proc(String) | Proc(Int32) | Hash(Symbol | String, String))
+      def json(json : String | ProcType | Hash(Symbol | String, String))
         if json.is_a?(Proc)
           @available_responses[TYPE[:json]] = json
         else
@@ -41,7 +44,7 @@ module Amber::Controller::Helpers
         json(args.to_h)
       end
 
-      def text(text : String | Proc(String)| Proc(Int32))
+      def text(text : String | ProcType)
         @available_responses[TYPE[:text]] = text; self
       end
 
