@@ -6,12 +6,11 @@
 == form(action: "/<%= Inflector.pluralize(@name) -%>/#{<%= @name -%>.id.to_s}", method: <%= @name %>.id ? :patch : :post) do
   == csrf_tag
 <%- @fields.reject{|f| f.hidden }.each do |field| -%>
-  div.form-group
+  .form-group
   <%- case field.type
      when "text" -%>
     == text_area(name: "<%= field.name -%>", content: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control", size: "30x10")
   <%- when "boolean" -%>
-    div.checkbox
       == label(<%=":#{field.name}"%>) do
         == check_box(<%=":#{field.name}, checked: #{@name}.#{field.name}.to_s == \"1\""%>)
   <%- when "reference" -%>
@@ -21,5 +20,5 @@
     == text_field(name: "<%= field.name %>", value: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control")
   <%- end -%>
 <%- end -%>
-  == submit("Submit", class: "btn btn-primary btn-xs")
-  == link_to("back", "/<%= Inflector.pluralize(@name) %>", class: "btn btn-default btn-xs")
+  == submit("Submit", class: "btn btn-primary btn-sm")
+  == link_to("back", "/<%= Inflector.pluralize(@name) %>", class: "btn btn-light btn-sm")
