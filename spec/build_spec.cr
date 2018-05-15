@@ -34,7 +34,7 @@ module Amber::CLI
       puts "====== DONE Database created #{TEST_APP_NAME} ======"
 
       puts "RUNNING: shard update started..."
-      puts `shards update`
+      system("shards update")
 
       puts "RUNNING: shard build #{TESTING_APP} - started..."
       build_result = `shards build #{TEST_APP_NAME}`
