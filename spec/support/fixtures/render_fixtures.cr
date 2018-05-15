@@ -13,8 +13,8 @@ module RenderFixtures
       <div class="form-group">
         <textarea class="form-control" rows="10" name="content" placeholder="Content">out there in the cold</textarea>
       </div>
-      <button class="btn btn-primary btn-xs" type="submit">Submit</button>
-      <a class="btn btn-default btn-xs" href="/posts">back</a>
+      <button class="btn btn-primary btn-sm" type="submit">Submit</button>
+      <a class="btn btn-light btn-sm" href="/posts">back</a>
     </form>
     HTML
   end
