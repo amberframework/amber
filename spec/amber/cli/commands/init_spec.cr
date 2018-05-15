@@ -84,7 +84,7 @@ module Amber::CLI
 
           context "is #{env.upcase}" do
             it "sets #{db} shards dependencies" do
-              shard_yml["dependencies"][db_key].should_not be_nil
+              shard_yml.not_nil!.["dependencies"][db_key].should_not be_nil
             end
 
             it "has correct database connection string" do

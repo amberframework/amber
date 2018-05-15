@@ -55,8 +55,6 @@ module CLIHelper
   def shard_yml(path = TESTING_APP)
     if File.exists?("#{path}/shard.yml")
       YAML.parse(File.read("#{path}/shard.yml"))
-    else
-      {"dependencies" => {pg: "pg", sqlite3: "sqlite", mysql: "mysql"}}
     end
   end
 
