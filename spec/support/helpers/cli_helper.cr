@@ -53,9 +53,7 @@ module CLIHelper
   end
 
   def shard_yml(path = TESTING_APP)
-    if File.exists?("#{path}/shard.yml")
-      YAML.parse(File.read("#{path}/shard.yml"))
-    end
+    YAML.parse(File.read("#{path}/shard.yml"))
   end
 
   def environment_yml(environment : String, path = ENV_CONFIG_PATH)
