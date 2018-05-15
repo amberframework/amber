@@ -9,7 +9,7 @@ module CLIHelper
   def cleanup
     Dir.cd CURRENT_DIR
     if Dir.exists?(TESTING_APP)
-      FileUtils.rm_r(TESTING_APP)
+      FileUtils.rm_rf(TESTING_APP)
     end
   end
 
@@ -77,9 +77,11 @@ module CLIHelper
   end
 
   def prepare_yaml(path)
-    shard = File.read("#{path}/shard.yml")
-    shard = shard.gsub("github: amberframework/amber\n", "path: ../../\n")
-    File.write("#{path}/shard.yml", shard)
+    if File.exists?("#{path}/shard.yml")
+      shard = File.read("#{path}/shard.yml")
+      shard = shard.gsub("github: amberframework/amber\n", "path: ../../\n")
+      File.write("#{path}/shard.yml", shard)
+    end
   end
 
   def prepare_db_yml(path = ENV_CONFIG_PATH)
