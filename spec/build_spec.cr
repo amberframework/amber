@@ -31,7 +31,10 @@ module Amber::CLI
       puts "RUNNING: amber db drop create migrate - started..."
       MainCommand.run ["db", "drop", "create", "migrate"]
 
+      puts "RUNNING: shards update - started..."
       system("shards update")
+
+      puts "RUNNING: shards build #{TEST_APP_NAME} - started..."
       system("shards build #{TEST_APP_NAME}")
 
       it "generates a binary" do
