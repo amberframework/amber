@@ -53,7 +53,11 @@ module CLIHelper
   end
 
   def shard_yml(path = TESTING_APP)
-    YAML.parse(File.read("#{path}/shard.yml"))
+    if File.exists?("#{path}/shard.yml")
+      YAML.parse(File.read("#{path}/shard.yml"))
+    else
+      {"dependencies" => {pg: "pg", sqlite3: "sqlite", mysql: "mysql"}}
+    end
   end
 
   def environment_yml(environment : String, path = ENV_CONFIG_PATH)
@@ -77,9 +81,11 @@ module CLIHelper
   end
 
   def prepare_yaml(path)
-    shard = File.read("#{path}/shard.yml")
-    shard = shard.gsub("github: amberframework/amber\n", "path: ../../\n")
-    File.write("#{path}/shard.yml", shard)
+    if File.exists?("#{path}/shard.yml")
+      shard = File.read("#{path}/shard.yml")
+      shard = shard.gsub("github: amberframework/amber\n", "path: ../../\n")
+      File.write("#{path}/shard.yml", shard)
+    end
   end
 
   def prepare_db_yml(path = ENV_CONFIG_PATH)
