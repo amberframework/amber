@@ -39,7 +39,7 @@ module Amber::CLI
         error "Not valid project root directory."
         info "Run `amber routes` in project root directory."
         info "Good bye :("
-        exit 1
+        exit! error: true
       end
 
       private def parse_routes
