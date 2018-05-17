@@ -75,7 +75,7 @@ module Amber::Controller::Helpers
     def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
       context.response.status_code = status_code if context.response.status_code == 200
       context.response.content_type = content_type
-      context.content = body.is_a?(String) ? body : body.to_s
+      context.content = body
     end
 
     private def extension_request_type
@@ -98,7 +98,7 @@ module Amber::Controller::Helpers
     protected def respond_with(status_code = 200, &block)
       content = with Content.new(requested_responses) yield
       if content.body
-        set_response(body: content.body, status_code: status_code, content_type: content.type)
+        set_response(body: content.body.to_s, status_code: status_code, content_type: content.type)
       else
         set_response(body: "Response Not Acceptable.", status_code: 406, content_type: Content::TYPE[:text])
       end
