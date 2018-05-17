@@ -53,21 +53,21 @@ module Amber::Recipes
       case template
       when "app"
         if options
-          log_message "Rendering App #{name} in #{directory} from #{options.r}"
+          info "Rendering App #{name} in #{directory} from #{options.r}"
           App.new(name, options.d, options.t, options.m, options.r).render(directory, list: true, color: true)
           if options.deps?
-            log_message "Installing Dependencies"
+            info "Installing Dependencies"
             Amber::CLI::Helpers.run("cd #{name} && shards update")
           end
         end
       when "controller"
-        log_message "Rendering Controller #{name} from #{@recipe}"
+        info "Rendering Controller #{name} from #{@recipe}"
         Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
       when "model"
-        log_message "Rendering Model #{name} from #{@recipe}"
+        info "Rendering Model #{name} from #{@recipe}"
         Model.new(name, @recipe, @fields).render(directory, list: true, color: true)
       when "scaffold"
-        log_message "Rendering Scaffold #{name} from #{@recipe}"
+        info "Rendering Scaffold #{name} from #{@recipe}"
         if model == "crecto"
           Amber::CLI::CrectoMigration.new(name, @fields).render(directory, list: true, color: true)
         else
@@ -85,7 +85,7 @@ module Amber::Recipes
       CLI.config.model
     end
 
-    def log_message(msg)
+    def info(msg)
       CLI.logger.info msg, "Generate", :light_cyan
     end
   end
