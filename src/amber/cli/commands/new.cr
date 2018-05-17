@@ -28,7 +28,7 @@ module Amber::CLI
           error "Path and project name can't contain a space."
           info "Replace spaces with underscores or dashes."
           info "#{full_path_name} should be #{full_path_name.gsub(/\s+/, "_")}"
-          exit 1
+          exit! error: true
         end
         name = File.basename(args.name)
 

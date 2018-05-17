@@ -62,12 +62,12 @@ module Amber::CLI
       rescue ex : BadRoutesException
         error ex.message
         info "Good bye :("
-        exit 1
+        exit! error: true
       rescue ex
         error "Error: Not valid project root directory."
         info "Run `amber pipelines` in project root directory."
         info "Good bye :("
-        exit 1
+        exit! error: true
       end
 
       private def parse_routes
