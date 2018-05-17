@@ -1,9 +1,9 @@
-div.row
-  div.col-sm-11
+.row
+  .col-sm-11
     h2 <%= Inflector.pluralize(display_name) %>
-  div.col-sm-1
-    a.btn.btn-success.btn-xs href="/<%= Inflector.pluralize(@name) %>/new" New
-div.table-responsive
+  .col-sm-1
+    a.btn.btn-success.btn-sm href="/<%= Inflector.pluralize(@name) %>/new" New
+.table-responsive
   table.table.table-striped
     thead
       tr
@@ -19,6 +19,6 @@ div.table-responsive
           <%- end -%>
           td
             span
-              == link_to("read", "/<%= Inflector.pluralize(@name) %>/#{<%= @name %>.id}", class: "btn btn-primary btn-xs")
-              == link_to("edit", "/<%= Inflector.pluralize(@name) %>/#{<%= @name %>.id}/edit", class: "btn btn-success btn-xs")
-              == link_to("delete", "/<%= Inflector.pluralize(@name) %>/#{ <%= @name %>.id }?_csrf=#{csrf_token}", "data-method": "delete", "data-confirm": "Are you sure?", class: "btn btn-danger btn-xs")
+              == link_to("read", "/<%= Inflector.pluralize(@name) %>/#{<%= @name %>.id}", class: "btn btn-primary btn-sm")
+              == link_to("edit", "/<%= Inflector.pluralize(@name) %>/#{<%= @name %>.id}/edit", class: "btn btn-success btn-sm")
+              == link_to("delete", "/<%= Inflector.pluralize(@name) %>/#{ <%= @name %>.id }?_csrf=#{csrf_token}", "data-method": "delete", "data-confirm": "Are you sure?", class: "btn btn-danger btn-sm")
