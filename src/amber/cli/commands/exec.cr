@@ -35,7 +35,7 @@ module Amber::CLI
         File.open(@filelogs, "r") do |file|
           loop do
             output = file.gets_to_end
-            STDOUT.puts output unless output.empty?
+            puts output unless output.empty?
             sleep 1.millisecond
           end
         end
