@@ -33,6 +33,7 @@ module Amber::CLI
       end
 
       def run
+        CLI.toggle_colors(options.no_color?)
         parse_routes
         print_routes_table
       rescue
