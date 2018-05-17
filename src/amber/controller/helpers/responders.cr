@@ -18,6 +18,7 @@ module Amber::Controller::Helpers
       @requested_responses : Array(String)
       @available_responses = Hash(String, String | ProcType).new
       @type : String? = nil
+      @body : String | Int32 | Nil = nil
 
       def initialize(@requested_responses)
       end
@@ -53,7 +54,10 @@ module Amber::Controller::Helpers
       end
 
       def body
-        @available_responses[type]?
+        @body ||=(  case _body = @available_responses[type]?
+          when Proc then _body.call
+          else _body
+          end)
       end
 
       private def select_type
@@ -69,9 +73,6 @@ module Amber::Controller::Helpers
     end
 
     def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
-      if body.is_a?(Proc)
-        body = body.call
-      end
       context.response.status_code = status_code if context.response.status_code == 200
       context.response.content_type = content_type
       context.content = body.is_a?(String) ? body : body.to_s
