@@ -21,7 +21,7 @@ class <%= class_name %>Controller < ApplicationController
 
   def create
     <%= @name %> = <%= class_name %>.new
-    <%= @name %>.update_from_hash(params.to_h.select(<%= @name %>_params.validate!))
+    <%= @name %>.update_from_hash(params.to_h.select(<%= @name %>_params.validate!.keys).compact)
     changeset = Repo.insert(<%= @name %>)
 
     if changeset.errors.any?
@@ -45,7 +45,7 @@ class <%= class_name %>Controller < ApplicationController
 
   def update
     if <%= @name %> = Repo.get(<%= class_name %>, params["id"])
-      <%= @name %>.update_from_hash(params.to_h.select(<%= @name %>_params.validate!))
+      <%= @name %>.update_from_hash(params.to_h.select(<%= @name %>_params.validate!.keys).compact)
       changeset = Repo.update(<%= @name %>)
 
       if changeset.errors.any?
