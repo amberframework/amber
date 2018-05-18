@@ -1,7 +1,7 @@
-require "granite_orm/adapter/<%= @database %>"
+require "granite/adapter/<%= @database %>"
 require "crypto/bcrypt/password"
 
-class <%= class_name %> < Granite::ORM::Base
+class <%= class_name %> < Granite::Base
   include Crypto
   adapter <%= @database %>
   primary id : Int64
