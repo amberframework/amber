@@ -1,7 +1,7 @@
-require "granite_orm/adapter/<%= @database %>"
+require "granite/adapter/<%= @database %>"
 require "crypto/bcrypt/password"
 
-class <%= class_name %> < Granite::ORM::Base
+class <%= class_name %> < Granite::Base
   include Crypto
   adapter <%= @database %>
   primary id : Int64
@@ -12,16 +12,16 @@ class <%= class_name %> < Granite::ORM::Base
   timestamps
 <% end -%>
 
-  validate :email, "is required", -> (<%= @name %> : <%= class_name %>) do
+  validate :email, "is required", ->(<%= @name %> : <%= class_name %>) do
     (email = <%= @name %>.email) ? !email.empty? : false
   end
 
-  validate :email, "already in use", -> (<%= @name %> : <%= class_name %>) do
+  validate :email, "already in use", ->(<%= @name %> : <%= class_name %>) do
     existing = <%= class_name %>.find_by :email, <%= @name %>.email
     !existing
   end
 
-  validate :password, "is too short", -> (<%= @name %> : <%= class_name %>) do
+  validate :password, "is too short", ->(<%= @name %> : <%= class_name %>) do
     <%= @name %>.password_changed? ? <%= @name %>.valid_password_size? : true
   end
 
