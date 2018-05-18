@@ -16,9 +16,7 @@ module Amber::CLI::Helpers
     return unless pipes
 
     replacement = <<-PLUGS
-    pipeline :#{pipeline.to_s} do
-      #{pipes[1]}
-      #{plug}
+    pipeline :#{pipeline.to_s} do#{pipes[1]}#{plug}
       end
     PLUGS
     File.write("./config/routes.cr", routes.gsub(pipes[0], replacement))
