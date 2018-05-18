@@ -33,8 +33,8 @@ class <%= class_name %>Controller < ApplicationController
 
   private def <%= @name %>_params
     params.validation do
-      required(:email) {|f| !f.nil? && !f.empty? }
-      optional(:password) {|f| !f.nil? && !f.empty? }
+      required(:email) { |f| !f.nil? && !f.empty? }
+      optional(:password) { |f| !f.nil? && !f.empty? }
     end
   end
 end
