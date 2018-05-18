@@ -12,7 +12,7 @@ Micrate::DB.connection_url = Amber.settings.database_url
 Micrate::Cli.run_up
 
 # Disable query logger for tests
-Granite::ORM.settings.logger = Logger.new nil
+Granite.settings.logger = Logger.new nil
 
 module Spec
   DRIVER = :chrome
