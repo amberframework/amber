@@ -1,38 +1,75 @@
 # <%= @name %>
 
-This project is powered by [Amber Framework](https://amberframework.org/).
+This awesome project is powered by [Amber Framework](https://amberframework.org/).
 
-## Installation
+## Getting Started
 
-1. [Install required dependencies](https://github.com/amberframework/online-docs/blob/master/getting-started/quickstart/zero-to-deploy.md#install-crystal-and-amber)
-2. Run `shards install`
+These instructions will get you a copy of this project up and running on your local machine for development and testing purposes.
+
+See [Production](#production) for notes on how to deploy the project on a live system.
+
+## Prerequisites
+
+Before using this project you need to install `crystal` and `amber`.
+
+[See Crystal installation guide](https://crystal-lang.org/docs/installation/)
+
+[See Amber installation guide](https://amberframework.gitbook.io/amber/guides/installation)
 
 ## Usage
 
-To setup your database edit `database_url` inside `config/environments/development.yml` file.
+### Development
 
-To edit your production settings use `amber encrypt`. [See encrypt command guide](https://github.com/amberframework/online-docs/blob/master/getting-started/cli/encrypt.md#encrypt-command)
+To setup your **development** settings edit `config/environments/development.yml` file.
 
 To run amber server in a **development** enviroment:
 
 ```
+shards install
 amber db create migrate
 amber watch
 ```
 
+### Production
+
+To setup your **production** settings use `amber encrypt`. [See encrypt command guide](https://amberframework.gitbook.io/amber/cli/encrypt)
+
 To build and run a **production** release:
 
 1. Add an environment variable `AMBER_ENV` with a value of `production`
-2. Run these commands (Note using `--release` is optional and may take a long time):
 
 ```
-npm run release
+export AMBER_ENV=production
+```
+
+2. Run these commands:
+
+```
+shards install --production
+shards build --releasehttps://amberframework.gitbook.io/amber/cli/encrypt
 amber db create migrate
-shards build --production --release
-./bin/<%= @name %>
+bin/<%= @name %>
 ```
 
-## Docker Compose
+### Tests
+
+To run tests using [Garnet Spec](https://github.com/amberframework/garnet-spec/) suite:
+
+1. Add an environment variable `AMBER_ENV` with a value of `test`
+
+```
+export AMBER_ENV=test
+```
+
+2. Run this command:
+
+```
+crystal spec
+```
+
+### Docker Compose
+
+> **Note:** The Docker images are compatible with Heroku.
 
 To set up the database and launch the server:
 
@@ -45,8 +82,6 @@ To view the logs:
 ```
 docker-compose logs -f
 ```
-
-> **Note:** The Docker images are compatible with Heroku.
 
 ## Contributing
 
