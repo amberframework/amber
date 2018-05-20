@@ -1,5 +1,10 @@
 require "./config/*"
 require "sam"
+<% if @model == "jennifer" -%>
+require "./db/migrations/*"
+
+load_dependencies "jennifer"
+<% end -%>
 
 #
 # This is a Sam file. Place your tasks here or in separate files and load them

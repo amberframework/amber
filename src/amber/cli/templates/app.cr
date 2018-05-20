@@ -1,7 +1,7 @@
 module Amber::CLI
   class App < Teeplate::FileTree
     directory "#{__DIR__}/app"
-    getter database_name_base, db_url, wait_for_command
+    getter database_name_base
 
     @name : String
     @database : String
@@ -14,13 +14,13 @@ module Amber::CLI
     @email : String
     @github_name : String
 
-    def initialize(@name, @database, @language, @model, @sam)    
+    def initialize(@name, @database, @language, @model, @sam)
       @database_name_base = generate_database_name_base
       @author = fetch_author
       @email = fetch_email
       @github_name = fetch_github_name
 
-      @db_url = 
+      @db_url =
         if @database == "pg"
           "postgres://admin:password@db:5432/#{@database_name_base}_development"
         elsif @database == "mysql"
@@ -35,25 +35,14 @@ module Amber::CLI
     end
 
     def wait_for_command
-      if pg?
+      case @database
+      when "pg"
         "while ! nc -q 1 db 5432 </dev/null; do sleep 1; done && "
-      elsif mysql?
-        "while ! nc -q 1 db 3306 </dev/null; do sleep 1; done && "
+      when "mysql"
+         "while ! nc -q 1 db 3306 </dev/null; do sleep 1; done && "
       else
         ""
       end
-    end
-
-    def pg?
-      @database == "pg"
-    end
-
-    def mysql?
-      @database == "mysql"
-    end
-
-    def sqlite?
-      @database == "sqlite"
     end
 
     def filter(entries)

@@ -1,0 +1,29 @@
+class <%= class_name %> < Jennifer::Migration::Base
+  def up
+    change_table(:<%= @table_name %>) do |t|
+<% if add? -%>
+<% @fields.each do |field| -%>
+      <%= add_column(field) %>
+<% end -%>
+<% else -%>
+<% @fields.each do |field| -%>
+      <%= remove_column(field) %>
+<% end -%>
+<% end -%>
+    end
+  end
+
+  def down
+    change_table(:<%= @table_name %>) do |t|
+<% if remove? -%>
+<% @fields.each do |field| -%>
+      <%= add_column(field) %>
+<% end -%>
+<% else -%>
+<% @fields.each do |field| -%>
+      <%= remove_column(field) %>
+<% end -%>
+<% end -%>
+    end
+  end
+end

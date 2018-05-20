@@ -1,0 +1,17 @@
+h1 Sign Up
+
+- if <%= @name %>.errors
+  ul.errors
+  - <%= @name %>.errors.full_messages.each do |error|
+    li = error
+
+form action="/registration" method="post"
+  == csrf_tag
+  .form-group
+    input.form-control type="email" name="email" placeholder="Email"
+  .form-group
+    input.form-control type="password" name="password" placeholder="Password"
+  button.btn.btn-primary.btn-xs type="submit"
+    | Register
+<hr/>
+== link_to("Already have an account?", "/signin")

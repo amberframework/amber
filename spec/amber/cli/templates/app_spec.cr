@@ -2,9 +2,9 @@ require "../../../spec_helper"
 
 module Amber::CLI
   describe App do
-    pg_app = App.new("sample-app", "pg", "slang", false)
-    mysql_app = App.new("sample-app", "mysql", "slang", false)
-    sqlite_app = App.new("sample-app", "sqlite", "slang", false)
+    pg_app = App.new("sample-app", "pg", "slang", "jennifer", false)
+    mysql_app = App.new("sample-app", "mysql", "slang", "jennifer", false)
+    sqlite_app = App.new("sample-app", "sqlite", "slang", "jennifer", false)
 
     describe "#database_name_base" do
       it "should return a postgres compatible name" do

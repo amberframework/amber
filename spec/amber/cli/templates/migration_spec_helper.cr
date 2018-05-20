@@ -9,7 +9,7 @@ module Amber::CLI
       ensure
         `rm -rf ./tmp/db`
       end
-      return migration_text
+      migration_text
     end
 
     def self.sample_migration_for(migration_template_type)
