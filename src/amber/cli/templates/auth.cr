@@ -83,7 +83,7 @@ module Amber::CLI
 
         def current_#{@name}
           context.current_#{@name}
-        end
+        end\n
       AUTH
     end
 
@@ -104,7 +104,7 @@ module Amber::CLI
             flash[:info] = "Must be logged in"
             redirect_to "/signin"
           end
-        end\n
+        end
       AUTH
     end
 
