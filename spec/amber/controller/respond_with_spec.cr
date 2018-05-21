@@ -7,10 +7,6 @@ module Amber::Controller
       request.headers["Accept"] = ""
       context = create_context(request)
 
-      Spec.before_each do
-        context.response.status_code = 200
-      end
-
       it "respond_with html as default option" do
         expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
         ResponsesController.new(context).index.should eq expected_result
@@ -106,6 +102,7 @@ module Amber::Controller
       end
 
       it "respond with default if extension is invalid and accepts isn't defined" do
+        context.response.status_code = 200
         expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
         context.request.path = "/response/1.texas"
         context.request.headers["Accept"] = "text/html"
@@ -140,6 +137,7 @@ module Amber::Controller
       end
 
       it "responds with html from a proc" do
+        context.response.status_code = 200
         expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
         context.request.headers["Accept"] = "text/html"
         ResponsesController.new(context).proc_html.should eq expected_result
@@ -148,6 +146,7 @@ module Amber::Controller
       end
 
       it "redirects from a proc" do
+        context.response.status_code = 200
         expected_result = "302"
         context.request.headers["Accept"] = "text/html"
         ResponsesController.new(context).proc_redirect.should eq expected_result
@@ -156,6 +155,7 @@ module Amber::Controller
       end
 
       it "redirects with flash from a proc" do
+        context.response.status_code = 200
         expected_result = "302"
         context.request.headers["Accept"] = "text/html"
         ResponsesController.new(context).proc_redirect_flash.should eq expected_result
@@ -165,6 +165,7 @@ module Amber::Controller
       end
 
       it "redirects with a status code from a proc" do
+        context.response.status_code = 200
         expected_result = "301"
         context.request.headers["Accept"] = "text/html"
         ResponsesController.new(context).proc_perm_redirect.should eq expected_result
