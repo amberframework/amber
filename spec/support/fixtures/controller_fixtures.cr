@@ -84,11 +84,11 @@ end
 
 class RenderController < Amber::Controller::Base
   def render_template_page
-    render("spec/support/sample/views/test/test.slang", layout: false)
+    render(path: "spec/support/sample/views", template: "test/test.slang", layout: false)
   end
 
   def render_partial
-    render(partial: "spec/support/sample/views/test/_test.slang")
+    render(path: "spec/support/sample/views", partial: "test/_test.slang")
   end
 
   def render_with_layout
@@ -100,12 +100,12 @@ class RenderController < Amber::Controller::Base
   end
 
   def render_with_csrf
-    render(partial: "spec/support/sample/views/test/_form.slang")
+    render(path: "spec/support/sample/views", partial: "test/_form.slang")
   end
 
   def render_with_flash
     flash["error"] = "Displays error Message!"
-    render("spec/support/sample/views/test/flash.slang", layout: false)
+    render(path: "spec/support/sample/views", template: "test/flash.slang", layout: false)
   end
 end
 
