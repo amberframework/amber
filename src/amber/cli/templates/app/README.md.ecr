@@ -10,22 +10,22 @@ These instructions will get you a copy of this project up and running on your lo
 
 ## Prerequisites
 
-This project requires `crystal` and `amber` commands:
+This project requires [Crystal](https://crystal-lang.org/):
 
 [See Crystal installation guide](https://crystal-lang.org/docs/installation/)
-
-[See Amber installation guide](https://amberframework.gitbook.io/amber/guides/installation)
 
 ## Development
 
 To start your Amber server:
 
 1. Install dependencies with `shards install`
-2. Create and migrate your database with `amber db create migrate`. Also see [creating the database](https://amberframework.gitbook.io/amber/guides/create-new-app#creating-the-database).
-
-3. Start Amber endpoint with `amber watch`
+2. Build executables with `shards build`
+3. Create and migrate your database with `bin/amber db create migrate`. Also see [creating the database](https://amberframework.gitbook.io/amber/guides/create-new-app#creating-the-database).
+4. Start Amber endpoint with `bin/amber watch`
 
 Now you can visit http://localhost:3000/ from your browser.
+
+Something doesn't work? Please [check amber troubleshooting](https://amberframework.gitbook.io/amber/troubleshooting).
 
 Using Docker? Please [check amber docker guides](https://amberframework.gitbook.io/amber/guides/docker).
 
