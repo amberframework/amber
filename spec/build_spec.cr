@@ -37,6 +37,10 @@ module Amber::CLI
       puts "RUNNING: shards build #{TEST_APP_NAME} - started..."
       system("shards build #{TEST_APP_NAME}")
 
+      it "check formatting on generated files" do
+        system("crystal tool format --check src").should be_true
+      end
+
       it "generates a binary" do
         File.exists?("bin/#{TEST_APP_NAME}").should be_true
       end
