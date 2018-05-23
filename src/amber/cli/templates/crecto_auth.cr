@@ -2,7 +2,7 @@ require "./field.cr"
 require "../helpers/migration"
 
 module Amber::CLI
-  class Auth < Teeplate::FileTree
+  class CrectoAuth < Teeplate::FileTree
     include Helpers
     include Helpers::Migration
     directory "#{__DIR__}/auth"
@@ -33,13 +33,13 @@ module Amber::CLI
     private def setup_routes
       add_routes :web, <<-ROUTES
         get "/profile", #{class_name}Controller, :show
-          get "/profile/edit", #{class_name}Controller, :edit
-          patch "/profile", #{class_name}Controller, :update
-          get "/signin", SessionController, :new
-          post "/session", SessionController, :create
-          get "/signout", SessionController, :delete
-          get "/signup", RegistrationController, :new
-          post "/registration", RegistrationController, :create
+        get "/profile/edit", #{class_name}Controller, :edit
+        patch "/profile", #{class_name}Controller, :update
+        get "/signin", SessionController, :new
+        post "/session", SessionController, :create
+        get "/signout", SessionController, :delete
+        get "/signup", RegistrationController, :new
+        post "/registration", RegistrationController, :create
       ROUTES
     end
 
