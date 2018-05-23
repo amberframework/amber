@@ -6,13 +6,13 @@ This is a project written using [Amber](https://amberframework.org). Enjoy!
 
 ## Getting Started
 
-These instructions will get you a copy of this project up and running on your machine for development and testing purposes.
+These instructions will get a copy of this project running on your machine for development and testing purposes.
 
-Please see [deployment](https://amberframework.gitbook.io/amber/deployment) for more notes on deploying the project in production.
+Please see [deployment](https://amberframework.gitbook.io/amber/deployment) for notes on deploying the project in production.
 
 ## Prerequisites
 
-This project requires [Crystal](https://crystal-lang.org/), see [installation guide](https://crystal-lang.org/docs/installation/).
+This project requires [Crystal](https://crystal-lang.org/) ([installation guide](https://crystal-lang.org/docs/installation/)).
 
 ## Development
 
@@ -25,15 +25,13 @@ To start your Amber server:
 
 Now you could visit http://localhost:3000/ from your browser.
 
-Something doesn't work? Please check [Amber troubleshooting](https://amberframework.gitbook.io/amber/troubleshooting).
+Getting an error message you need help decoding? Check the [Amber troubleshooting guide](https://amberframework.gitbook.io/amber/troubleshooting), post a [tagged message on Stack Overflow](https://stackoverflow.com/questions/tagged/amber-framework), or visit [Amber on Gitter](https://gitter.im/amberframework/amber).
 
 Using Docker? Please check [Amber Docker guides](https://amberframework.gitbook.io/amber/guides/docker).
 
-Ready to run in production? Please check [Amber deployment guides](https://amberframework.gitbook.io/amber/deployment).
-
 ## Tests
 
-To run tests using [Garnet Spec](https://github.com/amberframework/garnet-spec/) suite:
+To run the test suite:
 
 ```
 crystal spec
