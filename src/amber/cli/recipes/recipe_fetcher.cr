@@ -35,7 +35,7 @@ module Amber::Recipes
     end
 
     def recipe_source
-      CLI.config.recipe_source || "https://raw.githubusercontent.com/amberframework/recipes/master/dist"
+      CLI.config.recipe_source || "https://github.com/amberframework/recipes/releases/download/dist/"
     end
 
     def fetch_zip(url : String, template_path : String)
