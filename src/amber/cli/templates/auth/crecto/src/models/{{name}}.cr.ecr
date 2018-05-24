@@ -1,29 +1,19 @@
-require "granite/adapter/<%= @database %>"
 require "crypto/bcrypt/password"
 
-class <%= class_name %> < Granite::Base
+class <%= class_name %> < Crecto::Model
   include Crypto
-  adapter <%= @database %>
-  primary id : Int64
-<% @fields.reject{|f| f.hidden }.each do |field| -%>
-  field <%= field.name %> : <%= field.cr_type %>
-<% end -%>
-<% if @database != "sqlite" -%>
-  timestamps
-<% end -%>
 
-  validate :email, "is required", ->(<%= @name %> : <%= class_name %>) do
-    (email = <%= @name %>.email) ? !email.empty? : false
-  end
+  schema "<%= @name %>" do
+  <% @fields.reject{|f| f.hidden }.each do |field| -%>
+  field :<%= field.name %>, <%= field.cr_type %>
+  <% end -%>
+end
 
-  validate :email, "already in use", ->(<%= @name %> : <%= class_name %>) do
-    existing = <%= class_name %>.find_by :email, <%= @name %>.email
-    !existing
-  end
+  validate_required [:email, :password]
+  unique_constraint :email
+  validates :password,
+    length: {min: 3, max: 9}
 
-  validate :password, "is too short", ->(<%= @name %> : <%= class_name %>) do
-    <%= @name %>.password_changed? ? <%= @name %>.valid_password_size? : true
-  end
 
   def password=(password)
     @new_password = password

@@ -8,27 +8,25 @@ class <%= class_name %>Controller < ApplicationController
   end
 
   def edit
-    render("edit.<%= @language %>") if (<%= @name %> = current_<%= @name %>)
-  end
-
-  def update
-    <%= @name %> = current_<%= @name %>
-    if update(<%= @name %>)
-      flash[:success] = "Updated Profile successfully."
-      redirect_to "/profile"
-    elsif <%= @name %>
-      flash[:danger] = "Could not update Profile!"
+    if <%= @name %> = current_<%= @name %>
+      <%= @name %>_changeset = <%= class_name %>.changeset(<%= @name %>)
       render("edit.<%= @language %>")
     else
-      flash[:info] = "Must be logged in"
       redirect_to "/signin"
     end
   end
 
-  private def update(<%= @name %>)
-    return false unless <%= @name %> && <%= @name %>_params.valid?
-    <%= @name %>.set_attributes(<%= @name %>_params.to_h)
-    <%= @name %>.valid? && <%= @name %>.save
+  def update
+    <%= @name %> = current_<%= @name %>.as(<%= class_name %>)
+    <%= @name %>_changeset = Repo.update(<%= @name %>.as(<%= class_name %>))
+
+    if <%= @name %>_changeset.valid?
+      flash[:success] = "Updated Profile successfully."
+      redirect_to "/profile"
+    else
+      flash[:danger] = "Could not update Profile!"
+      render("edit.<%= @language %>")
+    end
   end
 
   private def <%= @name %>_params

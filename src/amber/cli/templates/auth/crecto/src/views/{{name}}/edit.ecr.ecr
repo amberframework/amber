@@ -1,8 +1,8 @@
 <h1>Edit Profile</h1>
 
-<%="<"%>%- if <%= @name %>.errors %>
+<%="<"%>%- if <%= @name %>_changeset.errors %>
   <ul class="errors">
-  <%="<"%>%- <%= @name %>.errors.each do |error| %>
+  <%="<"%>%- <%= @name %>_changeset.errors.each do |error| %>
     <li><%="<"%>%= error.to_s %></li>
   <%="<"%>%- end %>
   </ul>
