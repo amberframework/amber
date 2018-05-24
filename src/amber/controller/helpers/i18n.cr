@@ -1,5 +1,3 @@
-require "citrine-i18n"
-
 module Amber::Controller::Helpers
   module I18n
     def t(*arg)
