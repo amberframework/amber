@@ -9,11 +9,8 @@ class <%= class_name %> < Crecto::Model
   <% end -%>
 end
 
-  validate_required [:email, :password]
+  validate_required [:email, :hashed_password]
   unique_constraint :email
-  validates :password,
-    length: {min: 3, max: 9}
-
 
   def password=(password)
     @new_password = password
