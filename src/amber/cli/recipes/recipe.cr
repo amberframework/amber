@@ -36,7 +36,7 @@ module Amber::Recipes
       if name.match(/\A[a-zA-Z]/)
         @name = name.underscore
       else
-        raise "Name is not valid."
+        error "Name is not valid."
       end
 
       @directory = File.join(directory)
@@ -77,7 +77,7 @@ module Amber::Recipes
         Scaffold::Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
         Scaffold::View.new(name, @recipe, @fields).render(directory, list: true, color: true)
       else
-        CLI.logger.error "Template not found", "Generate", :light_red
+        error "Template not found"
       end
     end
 
@@ -87,6 +87,10 @@ module Amber::Recipes
 
     def info(msg)
       CLI.logger.info msg, "Generate", :light_cyan
+    end
+
+    def error(msg)
+      CLI.logger.error msg, "Generate", :light_red
     end
   end
 end
