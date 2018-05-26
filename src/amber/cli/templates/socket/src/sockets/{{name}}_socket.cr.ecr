@@ -1,7 +1,8 @@
 struct <%= class_name %>Socket < Amber::WebSockets::ClientSocket
-  <%- @fields.each do |field| %>
-    channel "<%= field.underscore %>_room:*", <%= field.capitalize %>Channel
-  <%- end %>
+  <%- @fields.each do |field| -%>
+  channel "<%= field.underscore %>_room:*", <%= field.capitalize %>Channel
+  <%- end -%>
+
   def on_connect
     # do some authentication here
     # return true or false, if false the socket will be closed

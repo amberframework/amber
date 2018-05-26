@@ -1,59 +1,48 @@
 # <%= @name %>
 
-This project is powered by [Amber Framework](https://amberframework.org/).
+[![Amber Framework](https://img.shields.io/badge/using-amberframework-orange.svg)](https://amberframework.org)
 
-## Installation
+This is a project written using [Amber](https://amberframework.org). Enjoy!
 
-1. [Install required dependencies](https://github.com/amberframework/online-docs/blob/master/getting-started/quickstart/zero-to-deploy.md#install-crystal-and-amber)
-2. Run `shards install`
+## Getting Started
 
-## Usage
+These instructions will get a copy of this project running on your machine for development and testing purposes.
 
-To setup your database edit `database_url` inside `config/environments/development.yml` file.
+Please see [deployment](https://amberframework.gitbook.io/amber/deployment) for notes on deploying the project in production.
 
-To edit your production settings use `amber encrypt`. [See encrypt command guide](https://github.com/amberframework/online-docs/blob/master/getting-started/cli/encrypt.md#encrypt-command)
+## Prerequisites
 
-To run amber server in a **development** enviroment:
+This project requires [Crystal](https://crystal-lang.org/) ([installation guide](https://crystal-lang.org/docs/installation/)).
 
-```
-amber db create migrate
-amber watch
-```
+## Development
 
-To build and run a **production** release:
+To start your Amber server:
 
-1. Add an environment variable `AMBER_ENV` with a value of `production`
-2. Run these commands (Note using `--release` is optional and may take a long time):
+1. Install dependencies with `shards install`
+2. Build executables with `shards build`
+3. Create and migrate your database with `bin/amber db create migrate`. Also see [creating the database](https://amberframework.gitbook.io/amber/guides/create-new-app#creating-the-database).
+4. Start Amber server with `bin/amber watch`
 
-```
-npm run release
-amber db create migrate
-shards build --production --release
-./bin/<%= @name %>
-```
+Now you can visit http://localhost:3000/ from your browser.
 
-## Docker Compose
+Getting an error message you need help decoding? Check the [Amber troubleshooting guide](https://amberframework.gitbook.io/amber/troubleshooting), post a [tagged message on Stack Overflow](https://stackoverflow.com/questions/tagged/amber-framework), or visit [Amber on Gitter](https://gitter.im/amberframework/amber).
 
-To set up the database and launch the server:
+Using Docker? Please check [Amber Docker guides](https://amberframework.gitbook.io/amber/guides/docker).
+
+## Tests
+
+To run the test suite:
 
 ```
-docker-compose up -d
+crystal spec
 ```
-
-To view the logs:
-
-```
-docker-compose logs -f
-```
-
-> **Note:** The Docker images are compatible with Heroku.
 
 ## Contributing
 
 1. Fork it ( https://github.com/<%= @github_name %>/<%= @name %>/fork )
-2. Create your feature branch (git checkout -b my-new-feature)
-3. Commit your changes (git commit -am 'Add some feature')
-4. Push to the branch (git push origin my-new-feature)
+2. Create your feature branch ( `git checkout -b my-new-feature` )
+3. Commit your changes ( `git commit -am 'Add some feature'` )
+4. Push to the branch ( `git push origin my-new-feature` )
 5. Create a new Pull Request
 
 ## Contributors
