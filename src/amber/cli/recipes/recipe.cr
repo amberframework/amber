@@ -37,6 +37,7 @@ module Amber::Recipes
         @name = name.underscore
       else
         error "Name is not valid."
+        exit 1
       end
 
       @directory = File.join(directory)
@@ -78,6 +79,7 @@ module Amber::Recipes
         Scaffold::View.new(name, @recipe, @fields).render(directory, list: true, color: true)
       else
         error "Template not found"
+        exit 1
       end
     end
 
