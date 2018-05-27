@@ -13,6 +13,7 @@ module Amber::CLI
         arg "code", desc: "Crystal code or .cr file to execute within the application scope", default: ""
         string ["-e", "--editor"], desc: "Preferred editor: [vim, nano, pico, etc], only used when no code or .cr file is specified", default: "vim"
         string ["-b", "--back"], desc: "Runs previous command files: 'amber exec -b [times_ago]'", default: "0"
+        bool "--no-color", desc: "Disable colored output", default: false
         help
       end
 
@@ -35,7 +36,7 @@ module Amber::CLI
         File.open(@filelogs, "r") do |file|
           loop do
             output = file.gets_to_end
-            STDOUT.puts output unless output.empty?
+            puts output unless output.empty?
             sleep 1.millisecond
           end
         end
@@ -58,8 +59,8 @@ module Amber::CLI
       end
 
       def run
+        CLI.toggle_colors(options.no_color?)
         exit_code = 0
-
         Dir.mkdir("tmp") unless Dir.exists?("tmp")
 
         if args.code.blank? || File.exists?(args.code)
