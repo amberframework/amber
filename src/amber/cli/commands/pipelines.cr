@@ -56,17 +56,18 @@ module Amber::CLI
       command_name "pipelines"
 
       def run
+        CLI.toggle_colors(options.no_color?)
         parse_routes
         print_pipelines
       rescue ex : BadRoutesException
-        CLI.logger.error(ex.message.colorize(:red))
-        CLI.logger.error "Good bye :("
-        exit 1
+        error ex.message
+        info "Good bye :("
+        exit! error: true
       rescue ex
-        CLI.logger.error "Error: Not valid project root directory.".colorize(:red)
-        CLI.logger.error "Run `amber pipelines` in project root directory.".colorize(:light_blue)
-        CLI.logger.error "Good bye :("
-        exit 1
+        error "Error: Not valid project root directory."
+        info "Run `amber pipelines` in project root directory."
+        info "Good bye :("
+        exit! error: true
       end
 
       private def parse_routes

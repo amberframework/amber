@@ -23,7 +23,7 @@ module Amber::WebSockets::Adapters
     def on_message(topic_path, listener)
       spawn do
         @subscriber.subscribe(topic_path) do |on|
-          on.message do |channel, m|
+          on.message do |_, m|
             msg = JSON.parse(m)
             sender_id = msg["sender"].as_s
             message = msg["msg"]
