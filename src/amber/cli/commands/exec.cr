@@ -45,7 +45,8 @@ module Amber::CLI
       private def execute(code)
         file = File.open(@filelogs, "w")
         spawn show
-        Process.run(code, shell: true, output: file, error: file)
+        process = Process.run(code, shell: true, output: file, error: file)
+        process.exit_status
       end
 
       private def wrap(code)
@@ -59,6 +60,7 @@ module Amber::CLI
 
       def run
         CLI.toggle_colors(options.no_color?)
+        exit_code = 0
         Dir.mkdir("tmp") unless Dir.exists?("tmp")
 
         if args.code.blank? || File.exists?(args.code)
@@ -72,16 +74,12 @@ module Amber::CLI
           code = [] of String
           code << %(require "./config/application.cr") if Dir.exists?("config")
           code << %(require "#{@filename}")
-          execute(%(crystal eval '#{code.join("\n")}'))
+          exit_code = execute(%(crystal eval '#{code.join("\n")}'))
         end
 
-        result = File.read(@filelogs)
-        if result.includes?("unexpected token: )") && result.starts_with?("Error")
-          STDOUT.puts <<-INFO
-          =============================================
-          Info: You are probably missing an `end` token
-          =============================================
-          INFO
+        unless exit_code.zero?
+          ::puts File.read(@filename)
+          exit! error: true, code: exit_code
         end
       end
     end
