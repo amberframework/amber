@@ -33,13 +33,14 @@ module Amber::CLI
       end
 
       def run
+        CLI.toggle_colors(options.no_color?)
         parse_routes
         print_routes_table
       rescue
-        puts "Error: Not valid project root directory.".colorize(:red)
-        puts "Run `amber routes` in project root directory.".colorize(:light_blue)
-        puts "Good bye :("
-        exit 1
+        error "Not valid project root directory."
+        info "Run `amber routes` in project root directory."
+        info "Good bye :("
+        exit! error: true
       end
 
       private def parse_routes
