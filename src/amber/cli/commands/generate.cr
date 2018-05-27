@@ -19,6 +19,7 @@ module Amber::CLI
       end
 
       def run
+        CLI.toggle_colors(options.no_color?)
         if args.type == "error"
           template = Template.new("error", ".")
         else
@@ -39,7 +40,7 @@ module Amber::CLI
 
       private def ensure_name_argument!
         unless args.name?
-          CLI.logger.info "Parsing Error: The NAME argument is required.", "Error", :red
+          error "Parsing Error: The NAME argument is required."
           exit! help: true, error: true
         end
       end

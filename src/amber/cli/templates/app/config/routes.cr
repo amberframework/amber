@@ -1,4 +1,4 @@
-Amber::Server.configure do |app|
+Amber::Server.configure do
   pipeline :web do
     # Plug is the method to use connect a pipe (middleware)
     # A plug accepts an instance of HTTP::Handler

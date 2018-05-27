@@ -28,7 +28,8 @@ module Amber::CLI
       if name.match(/\A[a-zA-Z]/)
         @name = name.underscore
       else
-        raise "Name is not valid."
+        error "Name is not valid."
+        exit 1
       end
 
       @directory = File.join(directory)
@@ -43,18 +44,18 @@ module Amber::CLI
       case template
       when "app"
         if options
-          puts "Rendering App #{name} in #{directory}"
+          info "Rendering App #{name} in #{directory}"
           App.new(name, options.d, options.t, options.m).render(directory, list: true, color: true)
           if options.deps?
-            puts "Installing Dependencies"
+            info "Installing Dependencies"
             Helpers.run("cd #{name} && shards update")
           end
         end
       when "migration"
-        puts "Rendering Migration #{name}"
+        info "Rendering Migration #{name}"
         Migration.new(name, fields).render(directory, list: true, color: true)
       when "model"
-        puts "Rendering Model #{name}"
+        info "Rendering Model #{name}"
         if model == "crecto"
           CrectoMigration.new(name, fields).render(directory, list: true, color: true)
           CrectoModel.new(name, fields).render(directory, list: true, color: true)
@@ -63,10 +64,10 @@ module Amber::CLI
           GraniteModel.new(name, fields).render(directory, list: true, color: true)
         end
       when "controller"
-        puts "Rendering Controller #{name}"
+        info "Rendering Controller #{name}"
         Controller.new(name, fields).render(directory, list: true, color: true)
       when "scaffold"
-        puts "Rendering Scaffold #{name}"
+        info "Rendering Scaffold #{name}"
         if model == "crecto"
           CrectoMigration.new(name, fields).render(directory, list: true, color: true)
           CrectoModel.new(name, fields).render(directory, list: true, color: true)
@@ -78,10 +79,10 @@ module Amber::CLI
         end
         Scaffold::View.new(name, fields).render(directory, list: true, color: true)
       when "mailer"
-        puts "Rendering Mailer #{name}"
+        info "Rendering Mailer #{name}"
         Mailer.new(name, fields).render(directory, list: true, color: true)
       when "socket"
-        puts "Rendering Socket #{name}"
+        info "Rendering Socket #{name}"
         if fields != [] of String
           fields.each do |field|
             WebSocketChannel.new(field).render(directory, list: true, color: true)
@@ -89,16 +90,17 @@ module Amber::CLI
         end
         WebSocket.new(name, fields).render(directory, list: true, color: true)
       when "channel"
-        puts "Rendering Channel #{name}"
+        info "Rendering Channel #{name}"
         WebSocketChannel.new(name).render(directory, list: true, color: true)
       when "auth"
-        puts "Rendering Auth #{name}"
+        info "Rendering Auth #{name}"
         if model == "crecto"
-          raise "Auth not supported for crecto yet"
+          error "Auth not supported for crecto yet"
+          exit 1
         end
         Auth.new(name, fields).render(directory, list: true, color: true)
       when "error"
-        puts "Rendering Error Template"
+        info "Rendering Error Template"
         actions = ["forbidden", "not_found", "internal_server_error"]
         ErrorTemplate.new("error", actions).render(directory, list: true, color: true)
       else
@@ -110,8 +112,12 @@ module Amber::CLI
       CLI.config.model
     end
 
-    def puts(msg)
+    def info(msg)
       CLI.logger.info msg, "Generate", :light_cyan
+    end
+
+    def error(msg)
+      CLI.logger.error msg, "Generate", :red
     end
   end
 end

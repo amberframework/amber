@@ -94,6 +94,21 @@ module Amber::Pipe
           context.response.status_code = 200
           context.response.headers["Content-Length"].should eq "0"
         end
+
+        it "should set the correct headers" do
+          context = cors_context(
+            "OPTIONS",
+            "Origin": "example.com",
+            "Access-Control-Request-Method": "PUT",
+            "Access-Control-Request-Headers": "CoNtEnT-TyPe"
+          )
+          CORS.new(origins: origins).call(context)
+
+          context.response.status_code = 200
+          context.response.headers["Access-Control-Allow-Methods"].should eq "PUT"
+          context.response.headers["Access-Control-Allow-Headers"].should eq "CoNtEnT-TyPe"
+          context.response.headers["Access-Control-Allow-Origin"].should eq "example.com"
+        end
       end
 
       context "invalid preflight" do
