@@ -12,6 +12,7 @@ module Amber::Recipes
     end
 
     def fetch
+
       if Dir.exists?(@directory)
         return @directory
       end
@@ -26,18 +27,22 @@ module Amber::Recipes
         return "#{template_path}/#{@kind}"
       end
 
+      if @name.not_nil!.downcase.starts_with?("http") && @name.not_nil!.downcase.ends_with?(".zip")
+        return fetch_zip @name.as(String), template_path
+      end
+
       return fetch_url template_path
     end
 
     def recipe_source
-      CLI.config.recipe_source || "https://raw.githubusercontent.com/amberframework/recipes/master/"
+      CLI.config.recipe_source || "https://github.com/amberframework/recipes/releases/download/dist/"
     end
 
-    def fetch_url(template_path)
+    def fetch_zip(url : String, template_path : String)
       # download the recipe zip file from the github repository
-      HTTP::Client.get("#{recipe_source}/#{@name}.zip") do |response|
+      HTTP::Client.get(url) do |response|
         if response.status_code != 200
-          CLI.logger.error "Could not find that recipe #{@name}", "Generate", :light_red
+          CLI.logger.error "Could not find the recipe #{@name} : #{response.status_code} #{response.status_message}", "Generate", :light_red
           return nil
         end
 
@@ -63,6 +68,10 @@ module Amber::Recipes
 
       CLI.logger.error "Cannot generate #{@kind} from #{@name} recipe", "Generate", :light_red
       return nil
+    end
+
+    def fetch_url(template_path : String)
+      return fetch_zip "#{recipe_source}/#{@name}.zip", template_path
     end
   end
 end

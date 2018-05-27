@@ -15,7 +15,8 @@ require "./scaffold/view"
 require "./mailer"
 require "./socket"
 require "./channel"
-require "./auth"
+require "./crecto_auth"
+require "./granite_auth"
 require "./error"
 
 module Amber::CLI
@@ -95,10 +96,10 @@ module Amber::CLI
       when "auth"
         info "Rendering Auth #{name}"
         if model == "crecto"
-          error "Auth not supported for crecto yet"
-          exit 1
+          CrectoAuth.new(name, fields).render(directory, list: true, color: true)
+        else
+          GraniteAuth.new(name, fields).render(directory, list: true, color: true)
         end
-        Auth.new(name, fields).render(directory, list: true, color: true)
       when "error"
         info "Rendering Error Template"
         actions = ["forbidden", "not_found", "internal_server_error"]
