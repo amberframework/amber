@@ -44,7 +44,7 @@ module RouterHelper
     multipart_body = multipart_content.gsub("\n", "\r\n")
     request = HTTP::Request.new("POST", "/?test=test&test=test2&#{HTTP::Request::METHOD}=put&status=1234", headers, multipart_body)
     Amber::Router::Params.new(request)
-  end 
+  end
 
   def cors_context(method = "GET", **args)
     headers = HTTP::Headers.new

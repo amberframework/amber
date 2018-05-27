@@ -33,7 +33,6 @@ module Amber
         Amber::WebSockets::ClientSockets.add_client_socket(client_socket)
         client_socket.on_message({event: "join", topic: "user_room:939"}.to_json)
         ws.on_message &->(msg : String) { chan.send(msg) }
-        channel = UserSocket.channels.first[:channel]
         UserSocket.broadcast("message", "user_room:939", "msg:new", {"message" => "test"})
 
         msg = JSON.parse(chan.receive)
@@ -49,39 +48,39 @@ module Amber
 
     describe "#cookies" do
       it "responds to cookies" do
-        ws, client_socket = create_user_socket
+        _, client_socket = create_user_socket
         client_socket.responds_to?(:cookies).should eq true
       end
     end
 
     describe "#session" do
       it "responds to cookies" do
-        ws, client_socket = create_user_socket
+        _, client_socket = create_user_socket
         client_socket.responds_to?(:session).should eq true
       end
 
       it "sets a session value" do
-        ws, client_socket = create_user_socket
+        _, client_socket = create_user_socket
         client_socket.session["name"] = "David"
         client_socket.session["name"].should eq "David"
       end
 
       it "has a session id" do
-        ws, client_socket = create_user_socket
+        _, client_socket = create_user_socket
         client_socket.session.id.not_nil!.size.should eq 36
       end
     end
 
     describe "#on_connect" do
       it "should default to true" do
-        ws, client_socket = create_user_socket
+        _, client_socket = create_user_socket
         client_socket.on_connect.should be_true
       end
     end
 
     describe "#disconnect!" do
       it "it should close the socket" do
-        http_server, ws = create_socket_server
+        http_server, _ = create_socket_server
         client_socket = Amber::WebSockets::ClientSockets.client_sockets.values.first
         client_socket.disconnect!
         client_socket.socket.closed?.should be_true
@@ -90,7 +89,7 @@ module Amber
       end
 
       it "should remove the client socket from the ClientSockets list" do
-        http_server, ws = create_socket_server
+        http_server, _ = create_socket_server
         client_socket = Amber::WebSockets::ClientSockets.client_sockets.values.first
         client_socket.disconnect!
         Amber::WebSockets::ClientSockets.client_sockets.keys.size.should eq 0
@@ -101,7 +100,7 @@ module Amber
 
     describe "#authorized?" do
       it "should equal on_connect" do
-        ws, client_socket = create_user_socket
+        _, client_socket = create_user_socket
         client_socket.authorized?.should eq client_socket.on_connect
       end
     end
@@ -111,7 +110,7 @@ module Amber
         chan = Channel(String).new
         http_server, ws = create_socket_server
         client_socket = Amber::WebSockets::ClientSockets.client_sockets.values.first
-        ws.on_close &->(msg : String) { chan.send("closed") }
+        ws.on_close &->(_msg : String) { chan.send("closed") }
         ws.close
 
         chan.receive
@@ -124,7 +123,7 @@ module Amber
     context "#on_message" do
       describe "join event" do
         it "should add a subscription" do
-          ws, client_socket = create_user_socket
+          _, client_socket = create_user_socket
           client_socket.subscribed_to_topic?("user_room:123").should be_false
           client_socket.on_message({event: "join", topic: "user_room:123"}.to_json)
           client_socket.subscribed_to_topic?("user_room:123").should be_true
@@ -133,7 +132,7 @@ module Amber
 
       describe "leave event" do
         it "should remove the subscription" do
-          ws, client_socket = create_user_socket
+          _, client_socket = create_user_socket
           client_socket.on_message({event: "join", topic: "user_room:123"}.to_json)
           client_socket.subscribed_to_topic?("user_room:123").should be_true
           client_socket.on_message({event: "leave", topic: "user_room:123"}.to_json)
