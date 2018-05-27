@@ -10,7 +10,7 @@ module Amber
       REQUEST_HEADERS   = "Access-Control-Request-Headers"
       ALLOW_EXPOSE      = "Access-Control-Expose-Headers"
       ALLOW_ORIGIN      = "Access-Control-Allow-Origin"
-      ALLOW_METHOD      = "Access-Control-Allow-Method"
+      ALLOW_METHODS     = "Access-Control-Allow-Methods"
       ALLOW_HEADERS     = "Access-Control-Allow-Headers"
       ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials"
       ALLOW_MAX_AGE     = "Access-Control-Max-Age"
@@ -24,7 +24,6 @@ module Amber
 
       property origins, headers, methods, credentials, max_age
       @origin : Origin
-      @_preflight : Bool?
 
       def initialize(
         @origins : OriginType = ["*", %r()],
@@ -40,10 +39,11 @@ module Amber
 
       def call(context : HTTP::Server::Context)
         if @origin.match?(context.request)
+          is_preflight_request = preflight?(context)
           put_expose_header(context.response)
-          Preflight.process(context, self) if preflight?(context)
+          Preflight.process(context, self) if is_preflight_request
           put_response_headers(context.response)
-          call_next(context) unless preflight?(context)
+          call_next(context) unless is_preflight_request
         else
           forbidden(context)
         end
@@ -72,7 +72,7 @@ module Amber
       end
 
       private def preflight?(context)
-        @_preflight ||= context.request.method == "OPTIONS"
+        context.request.method == "OPTIONS"
       end
     end
 
@@ -90,7 +90,7 @@ module Amber
       end
 
       def put_preflight_headers(request, response, max_age)
-        response.headers[Headers::ALLOW_METHOD] = request.headers[Headers::REQUEST_METHOD]
+        response.headers[Headers::ALLOW_METHODS] = request.headers[Headers::REQUEST_METHOD]
         response.headers[Headers::ALLOW_HEADERS] = request.headers[Headers::REQUEST_HEADERS]
         response.headers[Headers::ALLOW_MAX_AGE] = max_age.to_s if max_age
         response.content_length = 0
