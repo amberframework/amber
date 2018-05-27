@@ -2,10 +2,10 @@ require "./field.cr"
 require "../helpers/migration"
 
 module Amber::CLI
-  class Auth < Teeplate::FileTree
+  class CrectoAuth < Teeplate::FileTree
     include Helpers
     include Helpers::Migration
-    directory "#{__DIR__}/auth"
+    directory "#{__DIR__}/auth/crecto"
 
     @name : String
     @fields : Array(Field)

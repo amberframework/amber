@@ -2,12 +2,12 @@ require "../../../spec_helper"
 
 module Amber
   describe Route do
-    handler = ->(context : HTTP::Server::Context) {}
+    handler = ->(_context : HTTP::Server::Context) {}
     subject = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, "", "FakeController")
 
     it "Initializes correctly with Descendant controller" do
       request = HTTP::Request.new("GET", "/?test=test")
-      context = create_context(request)
+      create_context(request)
 
       route = Route.new("GET", "/", handler)
 
@@ -29,7 +29,7 @@ module Amber
             controller = FakeController.new(context)
             controller.run_before_filter(:halt_action) unless context.content
             unless context.content
-              content = controller.halt_action
+              controller.halt_action
               controller.run_after_filter(:halt_action)
             end
           }
@@ -50,7 +50,7 @@ module Amber
             controller = FakeRedirectController.new(context)
             controller.run_before_filter(:redirect_action) unless context.content
             unless context.content
-              content = controller.redirect_action
+              controller.redirect_action
               controller.run_after_filter(:redirect_action)
             end
           }
