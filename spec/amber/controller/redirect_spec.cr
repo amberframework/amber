@@ -41,7 +41,7 @@ module Amber::Controller::Helpers
       context "with a different status code" do
         it "redirects to location and sets a status code" do
           controller = build_controller
-          redirector = Redirector.new("/some_path", status = 301)
+          redirector = Redirector.new("/some_path", status: 301)
           redirector.redirect(controller)
           assert_expected_response?(controller, "/some_path", 301)
         end
@@ -57,7 +57,7 @@ module Amber::Controller::Helpers
 
       it "raises an error for invalid controller/action" do
         expect_raises KeyError do
-          redirector = Redirector.from_controller_action(:bad, :bad)
+          Redirector.from_controller_action(:bad, :bad)
         end
       end
 
