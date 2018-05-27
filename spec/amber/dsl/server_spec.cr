@@ -8,7 +8,7 @@ module Amber
           server = Amber::Server.instance
           server.handler.pipeline.clear
 
-          Amber::Server.configure do |app|
+          Amber::Server.configure do
             pipeline :custom do
               plug Pipe::Logger.new
               plug Pipe::Error.new
@@ -32,7 +32,7 @@ module Amber
           server = Amber::Server.instance
           server.handler.pipeline.clear
 
-          Amber::Server.configure do |app|
+          Amber::Server.configure do
             pipeline :custom do
               plug Pipe::Logger.new
               plug Pipe::Error.new
@@ -55,7 +55,7 @@ module Amber
           server = Amber::Server.instance
           server.handler.pipeline.clear
 
-          Amber::Server.configure do |app|
+          Amber::Server.configure do
             pipeline :api, :web do
               plug Pipe::Logger.new
               plug Pipe::Error.new
@@ -82,7 +82,7 @@ module Amber
           server = Amber::Server.instance
           server.handler.pipeline.clear
 
-          Amber::Server.configure do |app|
+          Amber::Server.configure do
             pipeline :api do
               plug Pipe::CORS.new
             end

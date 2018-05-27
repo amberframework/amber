@@ -36,7 +36,6 @@ module Amber::Validators
     describe "#error" do
       it "returns default error message" do
         params = params_builder("field=val")
-        error_message = "Field field is required"
         rule = BaseRule.new("field", nil) do
           false
         end
