@@ -28,7 +28,7 @@ module Amber
       end
 
       def add(route : Route)
-        trail = build_node(route.verb, route.resource)
+        build_node(route.verb, route.resource)
         @routes.add(route.trail, route)
         @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route
       end

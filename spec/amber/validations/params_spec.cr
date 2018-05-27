@@ -9,8 +9,8 @@ module Amber::Validators
             validator = Validators::Params.new(params_builder(""))
 
             validator.validation do
-              required(:name) { |v| true }
-              required("last_name") { |v| true }
+              required(:name) { true }
+              required("last_name") { true }
             end
 
             validator.valid?.should be_false
@@ -71,7 +71,7 @@ module Amber::Validators
             validator = Validators::Params.new(http_params)
 
             validator.validation do
-              optional(:name) { |v| true }
+              optional(:name) { true }
             end
 
             validator.valid?.should be_true
@@ -85,7 +85,7 @@ module Amber::Validators
             validator = Validators::Params.new(http_params)
 
             validator.validation do
-              optional(:name) { |v| false }
+              optional(:name) { false }
             end
 
             validator.valid?.should be_false

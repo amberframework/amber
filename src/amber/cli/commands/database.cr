@@ -15,6 +15,7 @@ module Amber::CLI
     class Database < Command
       command_name "database"
       MIGRATIONS_DIR = "./db/migrations"
+      CREATE_SQLITE_MESSAGE = "For sqlite3, the database will be created during the first migration."
 
       class Options
         arg_array "commands", desc: "drop create migrate rollback redo status version seed"
@@ -102,9 +103,7 @@ module Amber::CLI
       private def create_database
         url = Micrate::DB.connection_url.to_s
         if url.starts_with? "sqlite3:"
-          puts <<-MSG
-          No migration files were found. For sqlite3, the database will be created during the first migration.
-          MSG
+          CREATE_SQLITE_MESSAGE
         else
           name = set_database_to_schema url
           Micrate::DB.connect do |db|
