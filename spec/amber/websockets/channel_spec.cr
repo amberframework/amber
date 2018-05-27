@@ -13,7 +13,7 @@ module Amber
 
     describe "#subscribe_to_channel" do
       it "should call `handle_joined`" do
-        ws, client_socket = create_user_socket
+        _, client_socket = create_user_socket
         channel = UserSocket.channels[0][:channel]
         channel.subscribe_to_channel(client_socket, "{}")
         channel.test_field.last.should eq "handle joined #{client_socket.id}"
@@ -22,7 +22,7 @@ module Amber
 
     describe "#unsubscribe_from_channel" do
       it "should call `handle_leave`" do
-        ws, client_socket = create_user_socket
+        _, client_socket = create_user_socket
         channel = UserSocket.channels[0][:channel]
         channel.unsubscribe_from_channel(client_socket)
         channel.test_field.last.should eq "handle leave #{client_socket.id}"
