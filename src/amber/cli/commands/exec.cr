@@ -78,7 +78,7 @@ module Amber::CLI
         end
 
         unless exit_code.zero?
-          ::puts File.read(@filename)
+          puts File.read(@filename)
           exit! error: true, code: exit_code
         end
       end
