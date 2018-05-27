@@ -15,27 +15,23 @@ module Amber::Controller::Helpers
       {% else %}
         {{ short_path = folder.gsub(/^.+?(?:controllers|views)\//, "") }}
         {% if folder.id.ends_with?(".ecr") %}
-          %content = render_template("#{{{path}}}/#{{{short_path.gsub(/\/[^\.\/]+\.ecr/, "")}}}/#{{{filename}}}")
+          %content = render_template("#{{{short_path.gsub(/\/[^\.\/]+\.ecr/, "")}}}/#{{{filename}}}", {{path}})
         {% else %}
-          %content = render_template("#{{{path}}}/#{{{short_path.gsub(/\_controller\.cr|\.cr/, "")}}}/#{{{filename}}}")
+          %content = render_template("#{{{short_path.gsub(/\_controller\.cr|\.cr/, "")}}}/#{{{filename}}}", {{path}})
         {% end %}
       {% end %}
 
       # Render Layout
       {% if layout && !partial %}
         content = %content
-        render_template("#{{{path}}}/layouts/#{{{layout.class_name == "StringLiteral" ? layout : LAYOUT}}}")
+        render_template("layouts/#{{{layout.class_name == "StringLiteral" ? layout : LAYOUT}}}", {{path}})
       {% else %}
         %content
       {% end %}
     end
 
     private macro render_template(filename, path = "src/views")
-      {% if filename.id.split("/").size > 2 %}
-        Kilt.render("{{filename.id}}")
-      {% else %}
-        Kilt.render("#{{{path}}}/{{filename.id}}")
-      {% end %}
+      Kilt.render("#{{{path}}}/{{filename.id}}")
     end
   end
 end
