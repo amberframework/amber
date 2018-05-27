@@ -127,8 +127,8 @@ module Amber::Router
 
       def write(headers)
         cookies = [] of String
-        @set_cookies.each { |name, cookie| cookies << cookie.to_set_cookie_header if write_cookie?(cookie) }
-        @delete_cookies.each { |name, cookie| cookies << cookie.to_set_cookie_header }
+        @set_cookies.each { |_, cookie| cookies << cookie.to_set_cookie_header if write_cookie?(cookie) }
+        @delete_cookies.each { |_, cookie| cookies << cookie.to_set_cookie_header }
         headers.add("Set-Cookie", cookies)
       end
 

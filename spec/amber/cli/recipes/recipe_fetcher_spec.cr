@@ -2,8 +2,6 @@ require "../../../spec_helper"
 
 module Amber::Recipes
   describe RecipeFetcher do
-    recipe = "mydefault"
-
     context "using a local folder" do
       Spec.before_each do
         Dir.mkdir_p("./mydefault/app")
