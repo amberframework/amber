@@ -67,7 +67,7 @@ module Amber
         @subscription_manager = SubscriptionManager.new
         @raw_params = @context.params
         @params = Amber::Validators::Params.new(@raw_params)
-        @socket.on_pong do |msg|
+        @socket.on_pong do
           @pongs.push(Time.now)
           @pongs.delete_at(0) if @pongs.size > 3
         end

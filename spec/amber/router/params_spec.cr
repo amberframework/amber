@@ -2,7 +2,6 @@ require "../../../spec_helper"
 
 module Amber::Router
   describe Params do
-    headers = HTTP::Headers.new
     params = multipart_form_post
 
     describe "#[]" do

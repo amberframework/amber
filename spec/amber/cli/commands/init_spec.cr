@@ -11,8 +11,6 @@ module Amber::CLI
     scaffold_app(TESTING_APP)
     camel_case = "PostComment"
     snake_case = "post_comment"
-    incorrect_case = "Post_comment"
-    display = "Post Comment"
     class_definition_prefix = "class #{camel_case}"
     spec_definition_prefix = "describe #{camel_case}"
 

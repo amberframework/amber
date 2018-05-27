@@ -14,7 +14,7 @@ module Amber
 
       it "returns status code 500 for all other exceptions" do
         error = Error.new
-        error.next = ->(context : HTTP::Server::Context) { raise "Oops!" }
+        error.next = ->(_context : HTTP::Server::Context) { raise "Oops!" }
         request = HTTP::Request.new("GET", "/")
 
         Amber::Server.router.draw :web do
