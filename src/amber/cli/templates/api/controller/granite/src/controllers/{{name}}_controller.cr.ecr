@@ -1,15 +1,20 @@
 class <%= class_name %>Controller < ApplicationController
   def index
     <%= Inflector.pluralize(@name) %> = <%= class_name %>.all
-    render("index.<%= @language %>")
+    responds_with 200 do
+      json <%= @name %>.to_json
+    end
   end
 
   def show
     if <%= @name %> = <%= class_name %>.find params["id"]
-      render("show.<%= @language %>")
+      responds_with 200 do
+        json <%= @name %>.to_json
+      end
     else
-      flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
-      redirect_to "/<%= Inflector.pluralize(@name) %>"
+      responds_with 404 do
+        json {status: "not found"}.to_json
+      end
     end
   end
 
@@ -17,11 +22,13 @@ class <%= class_name %>Controller < ApplicationController
     <%= @name %> = <%= class_name %>.new(<%= @name %>_params.validate!)
 
     if <%= @name %>.valid? && <%= @name %>.save
-      flash["success"] = "Created <%= class_name %> successfully."
-      redirect_to "/<%= Inflector.pluralize(@name) %>"
+      responds_with 201 do
+        json <%= @name %>.to_json
+      end
     else
-      flash["danger"] = "Could not create <%= class_name %>!"
-      render("new.<%= @language %>")
+      responds_with 422 do
+        json {status: "invalid"}.to_json
+      end
     end
   end
 
@@ -29,25 +36,31 @@ class <%= class_name %>Controller < ApplicationController
     if <%= @name %> = <%= class_name %>.find(params["id"])
       <%= @name %>.set_attributes(<%= @name %>_params.validate!)
       if <%= @name %>.valid? && <%= @name %>.save
-        flash["success"] = "Updated <%= class_name %> successfully."
-        redirect_to "/<%= Inflector.pluralize(@name) %>"
+        responds_with 200 do
+          json <%= @name %>.to_json
+        end
       else
-        flash["danger"] = "Could not update <%= class_name %>!"
-        render("edit.<%= @language %>")
+        responds_with 422 do
+          json {status: "invalid"}.to_json
+        end
       end
     else
-      flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
-      redirect_to "/<%= Inflector.pluralize(@name) %>"
+      responds_with 404 do
+        json {status: "not found"}.to_json
+      end
     end
   end
 
   def destroy
     if <%= @name %> = <%= class_name %>.find params["id"]
-      <%= @name %>.destroy
+      responds_with 204 do
+        json {status: "success"}.to_json
+      end
     else
-      flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
+      responds_with 404 do
+        json {status: "not found"}.to_json
+      end
     end
-    redirect_to "/<%= Inflector.pluralize(@name) %>"
   end
 
   def <%= @name %>_params
