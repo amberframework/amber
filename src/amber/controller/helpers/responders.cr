@@ -24,11 +24,11 @@ module Amber::Controller::Helpers
       end
 
       # TODO: add JS type similar to rails.
-      def html(html : String |ProcType)
+      def html(html : String | ProcType)
         @available_responses[TYPE[:html]] = html; self
       end
 
-      def xml(xml : String |ProcType)
+      def xml(xml : String | ProcType)
         @available_responses[TYPE[:xml]] = xml; self
       end
 
