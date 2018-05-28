@@ -26,10 +26,9 @@ class <%= class_name %>ControllerTest < GarnetSpec::Controller::Test
 
   def initialize
     @handler = Amber::Pipe::Pipeline.new
-    @handler.build :web do
+    @handler.build :api do
       plug Amber::Pipe::Error.new
       plug Amber::Pipe::Session.new
-      plug Amber::Pipe::Flash.new
     end
     @handler.prepare_pipelines
   end
@@ -38,15 +37,15 @@ end
 describe <%= class_name %>ControllerTest do
   subject = <%= class_name %>ControllerTest.new
 
-  it "renders <%= @name %> index template" do
+  it "renders <%= @name %> index json" do
     <%= class_name %>.clear
     response = subject.get "/<%= Inflector.pluralize(@name) %>"
 
     response.status_code.should eq(200)
-    response.body.should contain("<%= display_name %>s")
+    response.body.should contain("<%= display_name %>")
   end
 
-  it "renders <%= @name %> show template" do
+  it "renders <%= @name %> show json" do
     <%= class_name %>.clear
     model = create_<%= @name.downcase %>
     location = "/<%= Inflector.pluralize(@name) %>/#{model.id}"
@@ -54,37 +53,15 @@ describe <%= class_name %>ControllerTest do
     response = subject.get location
 
     response.status_code.should eq(200)
-    response.body.should contain("Show <%= display_name %>")
-  end
-
-  it "renders <%= @name %> new template" do
-    <%= class_name %>.clear
-    location = "/<%= Inflector.pluralize(@name) %>/new"
-
-    response = subject.get location
-
-    response.status_code.should eq(200)
-    response.body.should contain("New <%= display_name %>")
-  end
-
-  it "renders <%= @name %> edit template" do
-    <%= class_name %>.clear
-    model = <%= create_model_method %>
-    location = "/<%= Inflector.pluralize(@name) %>/#{model.id}/edit"
-
-    response = subject.get location
-
-    response.status_code.should eq(200)
-    response.body.should contain("Edit <%= display_name %>")
+    response.body.should contain("<%= display_name %>")
   end
 
   it "creates a <%= @name %>" do
     <%= class_name %>.clear
     response = subject.post "/<%= Inflector.pluralize(@name) %>", body: <%= params_name %>
 
-    response.headers["Location"].should eq "/<%= Inflector.pluralize(@name) %>"
-    response.status_code.should eq(302)
-    response.body.should eq "302"
+    response.status_code.should eq(201)
+    response.body.should contain "<%= display_name %>"
   end
 
   it "updates a <%= @name %>" do
@@ -92,9 +69,8 @@ describe <%= class_name %>ControllerTest do
     model = <%= create_model_method %>
     response = subject.patch "/<%= Inflector.pluralize(@name) %>/#{model.id}", body: <%= params_name %>
 
-    response.headers["Location"].should eq "/<%= Inflector.pluralize(@name) %>"
-    response.status_code.should eq(302)
-    response.body.should eq "302"
+    response.status_code.should eq(200)
+    response.body.should contain "<%= display_name %>"
   end
 
   it "deletes a <%= @name %>" do
@@ -102,8 +78,6 @@ describe <%= class_name %>ControllerTest do
     model = <%= create_model_method %>
     response = subject.delete "/<%= Inflector.pluralize(@name) %>/#{model.id}"
 
-    response.headers["Location"].should eq "/<%= Inflector.pluralize(@name) %>"
-    response.status_code.should eq(302)
-    response.body.should eq "302"
+    response.status_code.should eq(204)
   end
 end
