@@ -2,7 +2,7 @@ class <%= class_name %>Controller < ApplicationController
   def index
     <%= Inflector.pluralize(@name) %> = <%= class_name %>.all
     responds_with 200 do
-      json <%= @name %>.to_json
+      json <%= Inflector.pluralize(@name) %>.to_json
     end
   end
 
@@ -41,7 +41,7 @@ class <%= class_name %>Controller < ApplicationController
         end
       else
         responds_with 422 do
-          json {status: "invalid"}.to_json
+          json {status: "invalid", errors: <%= @name %>.errors}.to_json
         end
       end
     else
