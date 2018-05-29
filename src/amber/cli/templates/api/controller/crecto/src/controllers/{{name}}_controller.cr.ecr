@@ -25,7 +25,7 @@ class <%= class_name %>Controller < ApplicationController
 
     if changeset.errors.any?
       responds_with 422 do
-        json {status: "invalid"}.to_json
+        json {status: "invalid", errors: changeset.errors}.to_json
       end
     else
       responds_with 201 do

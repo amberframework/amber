@@ -27,7 +27,7 @@ class <%= class_name %>Controller < ApplicationController
       end
     else
       responds_with 422 do
-        json {status: "invalid"}.to_json
+        json {status: "invalid", errors: <%= @name %>.errors}.to_json
       end
     end
   end
