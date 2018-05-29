@@ -52,11 +52,12 @@ module Amber
       private def http_status(status)
         case status
         when 200
-          text = "200 ".colorize(:green)
+          status.colorize(:green)
         when 404
-          text = "404 ".colorize(:red)
+          status.colorize(:red)
+        else
+          status
         end
-        "#{text}"
       end
 
       private def elapsed_text(elapsed)
