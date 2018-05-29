@@ -14,6 +14,15 @@ Amber::Server.configure do
     plug Amber::Pipe::Reload.new if Amber.env.development?
   end
 
+  pipeline :api do
+    plug Amber::Pipe::PoweredByAmber.new
+    plug Amber::Pipe::ClientIp.new(["X-Forwarded-For"])
+    plug Amber::Pipe::Error.new
+    plug Amber::Pipe::Logger.new
+    plug Amber::Pipe::Session.new
+    plug Amber::Pipe::CORS.new
+  end
+
   # All static content will run these transformations
   pipeline :static do
     plug Amber::Pipe::PoweredByAmber.new
@@ -24,6 +33,9 @@ Amber::Server.configure do
 
   routes :web do
     get "/", HomeController, :index
+  end
+
+  routes :api do
   end
 
   routes :static do
