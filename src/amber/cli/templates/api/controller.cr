@@ -23,7 +23,7 @@ module Amber::CLI::Api
       field_hash
 
       add_routes :api, <<-ROUTE
-        resources "/#{Inflector.pluralize(@name)}", #{class_name}Controller
+        resources "/#{Inflector.pluralize(@name)}", #{class_name}Controller, except: [:new, :edit]
       ROUTE
     end
 
