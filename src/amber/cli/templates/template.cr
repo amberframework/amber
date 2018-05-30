@@ -116,10 +116,6 @@ module Amber::CLI
       CLI.logger.error msg, "Generate", :red
     end
 
-    def migration
-      CLI.config.migration
-    end
-
     private def generate_authentication
       case model
       when "crecto"
@@ -153,7 +149,7 @@ module Amber::CLI
 
     def generate_migration(migration_name = name)
       migration_instance =
-        if model == "jennifer" && migration == "jennifer"
+        if model == "jennifer"
           Jennifer::Migration.build(migration_name, fields)
         else
           Migration.new(migration_name, fields)

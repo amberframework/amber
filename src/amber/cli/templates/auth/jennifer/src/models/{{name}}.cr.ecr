@@ -4,6 +4,7 @@ class <%= class_name %> < Jennifer::Model::Base
   include Jennifer::Model::Authentication
 
   with_authentication
+  with_timestamps
 
   mapping(
 <% if @fields.empty? -%>
@@ -17,18 +18,16 @@ class <%= class_name %> < Jennifer::Model::Base
     email: {type: String, default: ""},
     password_digest: {type: String, default: ""},
     password: Password,
-    password_confirmation: { type: String?, virtual: true }
+    password_confirmation: { type: String?, virtual: true },
 <% user_custom_fields.each do |field| -%>
 <% if field.reference? -%>
-    <%= field.name + "_id" %>: { type: <%= field.cr_type %>? },
+    <%= field.name + "_id" %>: { type: Int32? },
 <% else -%>
     <%= field.name %>: { type: <%= field.cr_type %> },
 <% end -%>
 <% end -%>
 <% end -%>
   )
-
-  with_timestamps
 
 <% @fields.select(&.reference?).each do |field| -%>
   belongs_to :<%= field.name %>, <%= Inflector.classify(field.name) %>

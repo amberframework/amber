@@ -5,7 +5,9 @@ class RegistrationController < ApplicationController
   end
 
   def create
-    <%= @name %> = <%= class_name %>.build(registration_params)
+    parsed_params = registration_params
+    <%= @name %> = <%= class_name %>.build(parsed_params)
+    <%= @name %>.password = parsed_params["password"].as(String?)
 
     if <%= @name %>.save
       session[:<%= @name %>_id] = <%= @name %>.id

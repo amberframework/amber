@@ -13,7 +13,6 @@ module Amber::CLI
     property model : String = "granite"
     property recipe : (String | Nil) = nil
     property recipe_source : (String | Nil) = nil
-    property migration : String = "micrate"
 
     def initialize
     end
@@ -23,8 +22,7 @@ module Amber::CLI
       language: {type: String, default: "slang"},
       model: {type: String, default: "granite"},
       recipe: String | Nil,
-      recipe_source: String | Nil,
-      migration: {type: String, default: "micrate"}
+      recipe_source: String | Nil
     )
   end
 end

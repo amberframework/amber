@@ -54,10 +54,6 @@ module Amber::CLI
           exit! help: true, error: true
         end
       end
-
-      class Help
-        caption "# Generate Amber classes"
-      end
     end
   end
 end

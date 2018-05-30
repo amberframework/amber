@@ -10,18 +10,11 @@ module Amber::CLI
         string "-d", desc: "database", any_of: %w(pg mysql sqlite), default: "pg"
         string "-t", desc: "template language", any_of: %w(slang ecr), default: "slang"
         string "-m", desc: "model type", any_of: %w(granite crecto jennifer), default: "granite"
-        string "--migration", desc: "migration type", any_of: %w(micrate jennifer unspecified), default: "unspecified"
         string "-r", desc: "recipe"
         bool "--deps", desc: "installs deps, (shards update)", default: false
         bool "--sam", desc: "setup initial Sam tasks file", default: false
         bool "--no-color", desc: "Disable colored output", default: false
         help
-
-        setter migration : String?
-
-        def migration
-          (@migration || migration?).not_nil!
-        end
       end
 
       class Help
@@ -30,7 +23,6 @@ module Amber::CLI
       end
 
       def run
-        provision_args
         CLI.toggle_colors(options.no_color?)
         full_path_name = File.join(Dir.current, args.name)
         if full_path_name =~ /\s+/
@@ -53,11 +45,6 @@ module Amber::CLI
         cwd = Dir.current; Dir.cd(args.name)
         MainCommand.run ["encrypt", "production", "--noedit"]
         Dir.cd(cwd)
-      end
-
-      private def provision_args
-        return if args.migration != "unspecified"
-        args.migration = (args.m == "jennifer" ? "jennifer" : "micrate")
       end
     end
   end
