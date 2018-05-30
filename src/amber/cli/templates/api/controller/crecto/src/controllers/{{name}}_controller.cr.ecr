@@ -1,19 +1,20 @@
 class <%= class_name %>Controller < ApplicationController
   def index
     <%= Inflector.pluralize(@name) %> = Repo.all(<%= class_name %>)
-    responds_with 200 do
+    respond_with 200 do
       json <%= Inflector.pluralize(@name) %>.to_json
     end
   end
 
   def show
     if <%= @name %> = Repo.get(<%= class_name %>, params["id"])
-      responds_with 200 do
+      respond_with 200 do
         json <%= @name %>.to_json
       end
     else
-      responds_with 404 do
-        json {status: "not found"}.to_json
+      results = {status: "not found"}
+      respond_with 404 do
+        json results.to_json
       end
     end
   end
@@ -24,11 +25,12 @@ class <%= class_name %>Controller < ApplicationController
     changeset = Repo.insert(<%= @name %>)
 
     if changeset.errors.any?
-      responds_with 422 do
-        json {status: "invalid", errors: changeset.errors}.to_json
+      results = {status: "invalid", errors: changeset.errors}
+      respond_with 422 do
+        json results.to_json
       end
     else
-      responds_with 201 do
+      respond_with 201 do
         json <%= @name %>.to_json
       end
     end
@@ -40,17 +42,19 @@ class <%= class_name %>Controller < ApplicationController
       changeset = Repo.update(<%= @name %>)
 
       if changeset.errors.any?
-        responds_with 422 do
-          json {status: "invalid", errors: changeset.errors}.to_json
+        results = {status: "invalid", errors: changeset.errors}
+        respond_with 422 do
+          json results.to_json
         end
       else
-        responds_with 200 do
+        respond_with 200 do
           json <%= @name %>.to_json
         end
       end
     else
-      responds_with 404 do
-        json {status: "not found"}.to_json
+      results = {status: "not found"}
+      respond_with 404 do
+        json results.to_json
       end
     end
   end
@@ -58,12 +62,14 @@ class <%= class_name %>Controller < ApplicationController
   def destroy
     if <%= @name %> = Repo.get(<%= class_name %>, params["id"])
       Repo.delete(<%= @name %>)
-      responds_with 204 do
-        json {status: "success"}.to_json
+      results = {status: "success"}
+      respond_with 204 do
+        json results.to_json
       end
     else
-      responds_with 404 do
-        json {status: "not found"}.to_json
+      results = {status: "not found"}
+      respond_with 404 do
+        json results.to_json
       end
     end
   end
