@@ -1,5 +1,8 @@
 module Amber::Controller::Helpers
   module Responders
+
+    alias ProcType = Proc(String) | Proc(Int32)
+
     class Content
       TYPE = {
         html: "text/html",
@@ -13,30 +16,36 @@ module Amber::Controller::Helpers
       ACCEPT_SEPARATOR_REGEX = /,|,\s/
 
       @requested_responses : Array(String)
-      @available_responses = Hash(String, String).new
+      @available_responses = Hash(String, String | ProcType).new
       @type : String? = nil
+      @body : String | Int32 | Nil = nil
 
       def initialize(@requested_responses)
       end
 
       # TODO: add JS type similar to rails.
-      def html(html : String)
+      def html(html : String | ProcType)
         @available_responses[TYPE[:html]] = html; self
       end
 
-      def xml(xml : String)
+      def xml(xml : String | ProcType)
         @available_responses[TYPE[:xml]] = xml; self
       end
 
-      def json(json : String | Hash(Symbol | String, String))
-        @available_responses[TYPE[:json]] = json.is_a?(String) ? json : json.to_json; self
+      def json(json : String | ProcType | Hash(Symbol | String, String))
+        if json.is_a?(Proc)
+          @available_responses[TYPE[:json]] = json
+        else
+          @available_responses[TYPE[:json]] = json.is_a?(String) ? json : json.to_json
+        end
+        self
       end
 
       def json(**args : Object)
         json(args.to_h)
       end
 
-      def text(text : String)
+      def text(text : String | ProcType)
         @available_responses[TYPE[:text]] = text; self
       end
 
@@ -45,7 +54,14 @@ module Amber::Controller::Helpers
       end
 
       def body
-        @available_responses[type]?
+        @body ||= begin
+           case _body = @available_responses[type]?
+           when Proc
+              _body.call
+           else
+             _body
+           end
+         end
       end
 
       private def select_type
@@ -61,7 +77,11 @@ module Amber::Controller::Helpers
     end
 
     def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
-      context.response.status_code = status_code
+      if context.response.status_code == 200
+        context.response.status_code = status_code
+      else
+        Amber.logger.error "Setting response status_code would overwrite previous value"
+      end
       context.response.content_type = content_type
       context.content = body
     end
@@ -86,7 +106,7 @@ module Amber::Controller::Helpers
     protected def respond_with(status_code = 200, &block)
       content = with Content.new(requested_responses) yield
       if content.body
-        set_response(body: content.body, status_code: status_code, content_type: content.type)
+        set_response(body: content.body.to_s, status_code: status_code, content_type: content.type)
       else
         set_response(body: "Response Not Acceptable.", status_code: 406, content_type: Content::TYPE[:text])
       end
