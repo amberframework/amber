@@ -135,7 +135,7 @@ module Amber
       end
 
       private def origin_header?(request)
-        @request_origin ||= request.headers[Headers::ORIGIN]? || request.headers[Headers::X_ORIGIN]?
+        @request_origin = request.headers[Headers::ORIGIN]? || request.headers[Headers::X_ORIGIN]?
       end
     end
   end
