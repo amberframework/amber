@@ -80,6 +80,5 @@ describe <%= class_name %>ControllerTest do
     response = subject.delete "/<%= Inflector.pluralize(@name) %>/#{model.id}"
 
     response.status_code.should eq(204)
-    <%= class_name %>.find(#{model.id}).should be_nil
   end
 end
