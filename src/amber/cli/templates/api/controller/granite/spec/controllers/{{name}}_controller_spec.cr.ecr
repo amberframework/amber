@@ -39,10 +39,11 @@ describe <%= class_name %>ControllerTest do
 
   it "renders <%= @name %> index json" do
     <%= class_name %>.clear
+    model = create_<%= @name.downcase %>
     response = subject.get "/<%= Inflector.pluralize(@name) %>"
 
     response.status_code.should eq(200)
-    response.body.should contain("<%= display_name %>")
+    response.body.should contain("Fake")
   end
 
   it "renders <%= @name %> show json" do
@@ -53,7 +54,7 @@ describe <%= class_name %>ControllerTest do
     response = subject.get location
 
     response.status_code.should eq(200)
-    response.body.should contain("<%= display_name %>")
+    response.body.should contain("Fake")
   end
 
   it "creates a <%= @name %>" do
@@ -61,7 +62,7 @@ describe <%= class_name %>ControllerTest do
     response = subject.post "/<%= Inflector.pluralize(@name) %>", body: <%= params_name %>
 
     response.status_code.should eq(201)
-    response.body.should contain "<%= display_name %>"
+    response.body.should contain "Fake"
   end
 
   it "updates a <%= @name %>" do
@@ -70,7 +71,7 @@ describe <%= class_name %>ControllerTest do
     response = subject.patch "/<%= Inflector.pluralize(@name) %>/#{model.id}", body: <%= params_name %>
 
     response.status_code.should eq(200)
-    response.body.should contain "<%= display_name %>"
+    response.body.should contain "Fake"
   end
 
   it "deletes a <%= @name %>" do
@@ -79,5 +80,6 @@ describe <%= class_name %>ControllerTest do
     response = subject.delete "/<%= Inflector.pluralize(@name) %>/#{model.id}"
 
     response.status_code.should eq(204)
+    <%= class_name %>.find(#{model.id}).should be_nil
   end
 end

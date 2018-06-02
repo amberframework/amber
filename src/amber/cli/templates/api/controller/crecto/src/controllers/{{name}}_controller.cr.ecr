@@ -62,9 +62,8 @@ class <%= class_name %>Controller < ApplicationController
   def destroy
     if <%= @name %> = Repo.get(<%= class_name %>, params["id"])
       Repo.delete(<%= @name %>)
-      results = {status: "success"}
       respond_with 204 do
-        json results.to_json
+        json ""
       end
     else
       results = {status: "not found"}
