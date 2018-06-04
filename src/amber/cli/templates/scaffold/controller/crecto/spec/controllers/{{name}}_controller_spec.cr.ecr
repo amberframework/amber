@@ -16,9 +16,9 @@ def <%= params_name %>
 end
 
 def <%= create_model_method %>
-  model = <%= class_name %>.new(<%= hash_name %>)
-  model.save
-  model
+  model = <%= class_name %>.new
+  model.update_from_hash(<%= hash_name %>)
+  Repo.insert(model).instance
 end
 
 class <%= class_name %>ControllerTest < GarnetSpec::Controller::Test
