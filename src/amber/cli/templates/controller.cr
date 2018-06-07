@@ -30,7 +30,7 @@ module Amber::CLI
     def add_views
       @actions.each do |action|
         FileUtils.mkdir_p("src/views/#{@name}")
-        File.touch("src/views/#{@name}/#{action}.#{language}")
+        File.touch("src/views/#{@name}/#{action[0]}.#{language}")
       end
     end
   end
