@@ -37,13 +37,10 @@ end
 
 describe <%= class_name %>ControllerTest do
 
-  Spec.before_each do
-    Repo.delete_all(<%= class_name %>)
-  end
-
   subject = <%= class_name %>ControllerTest.new
 
   it "renders <%= @name %> index template" do
+    Repo.delete_all(<%= class_name %>)
     response = subject.get "/<%= Inflector.pluralize(@name) %>"
 
     response.status_code.should eq(200)
@@ -51,6 +48,7 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "renders <%= @name %> show template" do
+    Repo.delete_all(<%= class_name %>)
     model = create_<%= @name.downcase %>
     location = "/<%= Inflector.pluralize(@name) %>/#{model.id}"
 
@@ -61,6 +59,7 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "renders <%= @name %> new template" do
+    Repo.delete_all(<%= class_name %>)
     location = "/<%= Inflector.pluralize(@name) %>/new"
 
     response = subject.get location
@@ -70,6 +69,7 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "renders <%= @name %> edit template" do
+    Repo.delete_all(<%= class_name %>)
     model = <%= create_model_method %>
     location = "/<%= Inflector.pluralize(@name) %>/#{model.id}/edit"
 
@@ -80,6 +80,7 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "creates a <%= @name %>" do
+    Repo.delete_all(<%= class_name %>)
     response = subject.post "/<%= Inflector.pluralize(@name) %>", body: <%= params_name %>
 
     response.headers["Location"].should eq "/<%= Inflector.pluralize(@name) %>"
@@ -88,6 +89,7 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "updates a <%= @name %>" do
+    Repo.delete_all(<%= class_name %>)
     model = <%= create_model_method %>
     response = subject.patch "/<%= Inflector.pluralize(@name) %>/#{model.id}", body: <%= params_name %>
 
@@ -97,6 +99,7 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "deletes a <%= @name %>" do
+    Repo.delete_all(<%= class_name %>)
     model = <%= create_model_method %>
     response = subject.delete "/<%= Inflector.pluralize(@name) %>/#{model.id}"
 
