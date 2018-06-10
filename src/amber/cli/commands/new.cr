@@ -12,7 +12,7 @@ module Amber::CLI
         string "-m", desc: "Select the model type, can be one of: granite | crecto", default: "granite"
         bool "--no-color", desc: "Disable colored output", default: false
         string "-t", desc: "Selects the template engine language, can be one of: slang | ecr", default: "slang"
-        string "-r", desc: "Use a named recipe.  See documentation at  https://amberframework.gitbook.io/amber/cli/recipes."
+        string "-r", desc: "Use a named recipe.  See documentation at  https://docs.amberframework.org/amber/cli/recipes."
         help
       end
 
