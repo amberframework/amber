@@ -51,12 +51,12 @@ module Amber
 
       private def http_status(status)
         case status
-        when 200
-          status.colorize(:green)
-        when 404
-          status.colorize(:red)
+        when 200..299 then status.colorize(:green)
+        when 300..399 then status.colorize(:blue)
+        when 400..499 then status.colorize(:yellow)
+        when 500..599  status.colorize(:red)
         else
-          status
+          status.colorize(:white)
         end
       end
 
