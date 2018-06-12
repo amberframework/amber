@@ -54,7 +54,7 @@ module Amber
         when 200..299 then status.colorize(:green)
         when 300..399 then status.colorize(:blue)
         when 400..499 then status.colorize(:yellow)
-        when 500..599  status.colorize(:red)
+        when 500..599 then status.colorize(:red)
         else
           status.colorize(:white)
         end
