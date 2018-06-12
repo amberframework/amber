@@ -16,9 +16,9 @@ def <%= params_name %>
 end
 
 def <%= create_model_method %>
-  model = <%= class_name %>.new(<%= hash_name %>)
-  model.save
-  model
+  model = <%= class_name %>.new
+  model.update_from_hash(<%= hash_name %>)
+  Repo.insert(model).instance
 end
 
 class <%= class_name %>ControllerTest < GarnetSpec::Controller::Test
@@ -36,10 +36,11 @@ class <%= class_name %>ControllerTest < GarnetSpec::Controller::Test
 end
 
 describe <%= class_name %>ControllerTest do
+
   subject = <%= class_name %>ControllerTest.new
 
   it "renders <%= @name %> index template" do
-    <%= class_name %>.clear
+    Repo.delete_all(<%= class_name %>)
     response = subject.get "/<%= Inflector.pluralize(@name) %>"
 
     response.status_code.should eq(200)
@@ -47,7 +48,7 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "renders <%= @name %> show template" do
-    <%= class_name %>.clear
+    Repo.delete_all(<%= class_name %>)
     model = create_<%= @name.downcase %>
     location = "/<%= Inflector.pluralize(@name) %>/#{model.id}"
 
@@ -58,7 +59,7 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "renders <%= @name %> new template" do
-    <%= class_name %>.clear
+    Repo.delete_all(<%= class_name %>)
     location = "/<%= Inflector.pluralize(@name) %>/new"
 
     response = subject.get location
@@ -68,7 +69,7 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "renders <%= @name %> edit template" do
-    <%= class_name %>.clear
+    Repo.delete_all(<%= class_name %>)
     model = <%= create_model_method %>
     location = "/<%= Inflector.pluralize(@name) %>/#{model.id}/edit"
 
@@ -79,7 +80,7 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "creates a <%= @name %>" do
-    <%= class_name %>.clear
+    Repo.delete_all(<%= class_name %>)
     response = subject.post "/<%= Inflector.pluralize(@name) %>", body: <%= params_name %>
 
     response.headers["Location"].should eq "/<%= Inflector.pluralize(@name) %>"
@@ -88,7 +89,7 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "updates a <%= @name %>" do
-    <%= class_name %>.clear
+    Repo.delete_all(<%= class_name %>)
     model = <%= create_model_method %>
     response = subject.patch "/<%= Inflector.pluralize(@name) %>/#{model.id}", body: <%= params_name %>
 
@@ -98,7 +99,7 @@ describe <%= class_name %>ControllerTest do
   end
 
   it "deletes a <%= @name %>" do
-    <%= class_name %>.clear
+    Repo.delete_all(<%= class_name %>)
     model = <%= create_model_method %>
     response = subject.delete "/<%= Inflector.pluralize(@name) %>/#{model.id}"
 
