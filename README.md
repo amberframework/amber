@@ -6,7 +6,7 @@ _Amber makes building web applications fast, simple, and enjoyable - with fewer 
 
 [![Build Status](https://travis-ci.org/amberframework/amber.svg?branch=master)](https://travis-ci.org/amberframework/amber)
 [![Version](https://img.shields.io/github/tag/amberframework/amber.svg?maxAge=360)](https://github.com/amberframework/amber/releases/latest)
-[![Dependencies](https://shards.rocks/badge/github/amberframework/amber/status.svg)](https://shards.rocks/github/amberframework/amber)
+[![Dependencies](https://img.shields.io/badge/dependencies-shards-brightgreen.svg)](https://github.com/amberframework/amber/blob/master/shard.yml#L16)
 [![License](https://img.shields.io/github/license/amberframework/amber.svg)](https://github.com/amberframework/amber/blob/master/LICENSE)
 [![Gitter](https://img.shields.io/gitter/room/amberframework/amber.svg)](https://gitter.im/amberframework/amber)
 
