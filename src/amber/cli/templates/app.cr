@@ -8,19 +8,41 @@ module Amber::CLI
     @database_name_base : String
     @language : String
     @model : String
+    @sam : Bool
     @db_url : String
-    @wait_for : String
     @author : String
     @email : String
     @github_name : String
 
-    def initialize(@name, @database = "pg", @language = "slang", @model = "granite")
-      @db_url = ""
-      @wait_for = ""
+    def initialize(@name, @database, @language, @model, @sam)
       @database_name_base = generate_database_name_base
       @author = fetch_author
       @email = fetch_email
       @github_name = fetch_github_name
+
+      @db_url =
+        if @database == "pg"
+          "postgres://admin:password@db:5432/#{@database_name_base}_development"
+        elsif @database == "mysql"
+          "mysql://admin:password@db:3306/#{@database_name_base}_development"
+        else
+          "sqlite3:./db/#{@database_name_base}_development.db"
+        end
+    end
+
+    def sam?
+      @sam
+    end
+
+    def wait_for_command
+      case @database
+      when "pg"
+        "while ! nc -q 1 db 5432 </dev/null; do sleep 1; done && "
+      when "mysql"
+         "while ! nc -q 1 db 3306 </dev/null; do sleep 1; done && "
+      else
+        ""
+      end
     end
 
     def filter(entries)

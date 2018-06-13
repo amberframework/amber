@@ -65,6 +65,7 @@ module Amber::Environment
       }},
       ssl_key_file: {type: String?, default: nil},
       ssl_cert_file: {type: String?, default: nil},
+      local_time_zone: {type: String?, default: nil},
       smtp: {
         type:    Hash(String, SettingValue),
         getter:  false,

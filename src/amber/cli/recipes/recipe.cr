@@ -23,13 +23,10 @@ module Amber::Recipes
 
     def self.can_generate?(template_type, recipe)
       return false unless ["app", "controller", "model", "scaffold"].includes? template_type
-
-      if recipe.nil?
-        return false
-      end
+      return false if recipe.nil?
 
       template = RecipeFetcher.new(template_type, recipe).fetch
-      template.nil? ? false : true
+      !template.nil?
     end
 
     def initialize(name : String, directory : String, recipe : String, fields = [] of String)
@@ -71,6 +68,8 @@ module Amber::Recipes
         info "Rendering Scaffold #{name} from #{@recipe}"
         if model == "crecto"
           Amber::CLI::CrectoMigration.new(name, @fields).render(directory, list: true, color: true)
+        elsif model == "jennifer"
+          Amber::CLI::Jennifer::CreateTableMigration.new("create_#{name}", @fields).render(directory, list: true, color: true)
         else
           Amber::CLI::GraniteMigration.new(name, @fields).render(directory, list: true, color: true)
         end

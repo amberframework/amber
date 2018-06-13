@@ -1,0 +1,14 @@
+class <%= class_name %> < Jennifer::Migration::Base
+  def up
+    create_table(:<%= @table_name %>) do |t|
+<% @fields.each do |field| -%>
+      <%= column_definition(field) %>
+<% end -%>
+      t.timestamps
+    end
+  end
+
+  def down
+    drop_table :<%= @table_name %>
+  end
+end

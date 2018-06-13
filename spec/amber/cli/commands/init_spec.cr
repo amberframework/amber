@@ -68,6 +68,15 @@ module Amber::CLI
         end
       end
     end
+
+    context "--sam" do
+      cleanup
+      scaffold_app(TESTING_APP, "--sam")
+
+      it "generates sam file" do
+        File.exists?("./sam.cr").should be_true
+      end
+    end
   end
 
   context "Database settings" do

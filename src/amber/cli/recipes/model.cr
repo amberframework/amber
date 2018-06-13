@@ -42,7 +42,7 @@ module Amber::Recipes
     end
 
     def table_name
-      @table_name ||= "#{Inflector.pluralize(@name)}"
+      Inflector.pluralize(@name)
     end
   end
 end

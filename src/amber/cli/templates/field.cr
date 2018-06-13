@@ -50,25 +50,36 @@ module Amber::CLI
     property hidden : Bool
     property database : String
 
-    def initialize(field, hidden = false, database = "pg")
+    def initialize(field, @hidden = false, database = "pg")
       field = "#{field}:string" unless field.includes? ":"
       @name, @type = field.split(":")
       @database = database
       @type, @cr_type, @db_type = type_mapping(@type.downcase)
-      @hidden = hidden
     end
 
     def type_mapping(type = "string")
+      nilable = false
+      if type[-1] == '?'
+        nilable = true
+        type = type[0...-1]
+      end
+
       if type_mapping = TYPE_MAPPING[@database]?
-        if mapping = type_mapping[@type]?
-          return mapping
+        if mapping = type_mapping[type]?
+          return prepare_mapping(mapping, nilable)
         end
       end
-      if mapping = TYPE_MAPPING["common"][@type]?
-        return mapping
-      else
-        raise "type #{@type} not available"
-      end
+      mapping = TYPE_MAPPING["common"][type]?
+      return prepare_mapping(mapping, nilable) if mapping
+
+      raise "type #{type} not available"
+    end
+
+    def prepare_mapping(mapping, nilable)
+      return mapping unless nilable
+      temp_mapping = mapping.clone
+      temp_mapping[1] += "?"
+      temp_mapping
     end
 
     def to_json(json : JSON::Builder)
@@ -84,7 +95,11 @@ module Amber::CLI
     end
 
     def reference?
-      self.type == "reference"
+      type == "reference"
+    end
+
+    def nilable?
+      @cr_type[-1] == '?'
     end
   end
 end

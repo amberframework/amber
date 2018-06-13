@@ -9,9 +9,10 @@ module Amber::CLI
         arg "name", desc: "name of project", required: true
         string "-d", desc: "database", any_of: %w(pg mysql sqlite), default: "pg"
         string "-t", desc: "template language", any_of: %w(slang ecr), default: "slang"
-        string "-m", desc: "model type", any_of: %w(granite crecto), default: "granite"
+        string "-m", desc: "model type", any_of: %w(granite crecto jennifer), default: "granite"
         string "-r", desc: "recipe"
         bool "--deps", desc: "installs deps, (shards update)", default: false
+        bool "--sam", desc: "setup initial Sam tasks file", default: false
         bool "--no-color", desc: "Disable colored output", default: false
         help
       end
