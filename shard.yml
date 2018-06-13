@@ -14,10 +14,6 @@ targets:
     main: src/amber/cli.cr
 
 dependencies:
-  amber_router:
-    github: amberframework/router
-    version: ~> 0.0.3
-
   cli:
     github: amberframework/cli
     version: ~> 0.7.0
@@ -42,6 +38,10 @@ dependencies:
     github: crystal-lang/crystal-mysql
     version: ~> 0.4.0
 
+  oak:
+    github: obsidian/oak
+    version: ~> 2.0.0
+    
   pg:
     github: will/crystal-pg
     version: ~> 0.14.1

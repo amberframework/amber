@@ -6,7 +6,7 @@ class HTTP::Request
   METHOD          = "_method"
   OVERRIDE_HEADER = "X-HTTP-Method-Override"
 
-  @matched_route : Amber::Router::RoutedResult(Amber::Route)?
+  @matched_route : Oak::Result(Amber::Route)?
   @requested_method : String?
   @params : Amber::Router::Params?
 
