@@ -74,11 +74,11 @@ dependencies:
     github: amberframework/amber
 ```
 
-[Read more about Amber CLI installation guide](https://amberframework.gitbook.io/amber/guides/installation)
+[Read Amber quick start guide](https://docs.amberframework.org/amber/getting-started/quick-start)
 
-[Read Amber quick start guide](https://amberframework.gitbook.io/amber/getting-started/quick-start)
+[Read Amber CLI commands usage](https://docs.amberframework.org/amber/cli)
 
-[Read Amber CLI commands usage](https://amberframework.gitbook.io/amber/cli)
+[Read more about Amber CLI installation guide](https://docs.amberframework.org/amber/guides/installation)
 
 ## Have an Amber-based Project?
 
