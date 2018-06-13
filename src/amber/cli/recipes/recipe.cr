@@ -66,6 +66,11 @@ module Amber::Recipes
         Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
       when "model"
         info "Rendering Model #{name} from #{@recipe}"
+        if model == "crecto"
+          Amber::CLI::CrectoMigration.new(name, @fields).render(directory, list: true, color: true)
+        else
+          Amber::CLI::GraniteMigration.new(name, @fields).render(directory, list: true, color: true)
+        end
         Model.new(name, @recipe, @fields).render(directory, list: true, color: true)
       when "scaffold"
         info "Rendering Scaffold #{name} from #{@recipe}"
