@@ -6,7 +6,7 @@ _Amber makes building web applications fast, simple, and enjoyable - with fewer 
 
 [![Build Status](https://travis-ci.org/amberframework/amber.svg?branch=master)](https://travis-ci.org/amberframework/amber)
 [![Version](https://img.shields.io/github/tag/amberframework/amber.svg?maxAge=360)](https://github.com/amberframework/amber/releases/latest)
-[![Dependencies](https://shards.rocks/badge/github/amberframework/amber/status.svg)](https://shards.rocks/github/amberframework/amber)
+[![Dependencies](https://img.shields.io/badge/dependencies-shards-brightgreen.svg)](https://github.com/amberframework/amber/blob/master/shard.yml#L16)
 [![License](https://img.shields.io/github/license/amberframework/amber.svg)](https://github.com/amberframework/amber/blob/master/LICENSE)
 [![Gitter](https://img.shields.io/gitter/room/amberframework/amber.svg)](https://gitter.im/amberframework/amber)
 
@@ -74,20 +74,20 @@ dependencies:
     github: amberframework/amber
 ```
 
-[Read more about Amber CLI installation guide](https://amberframework.gitbook.io/amber/guides/installation)
+[Read Amber quick start guide](https://docs.amberframework.org/amber/getting-started/quick-start)
 
-[Read Amber quick start guide](https://amberframework.gitbook.io/amber/getting-started/quick-start)
+[Read Amber CLI commands usage](https://docs.amberframework.org/amber/cli)
 
-[Read Amber CLI commands usage](https://amberframework.gitbook.io/amber/cli)
+[Read more about Amber CLI installation guide](https://docs.amberframework.org/amber/guides/installation)
 
 ## Have an Amber-based Project?
 
 Use Amber badge
 
-[![Amber Framework](https://img.shields.io/badge/using-amberframework-orange.svg)](https://amberframework.org/)
+[![Amber Framework](https://img.shields.io/badge/using-amber_framework-orange.svg)](https://amberframework.org/)
 
 ```markdown
-[![Amber Framework](https://img.shields.io/badge/using-amberframework-orange.svg)](https://amberframework.org/)
+[![Amber Framework](https://img.shields.io/badge/using-amber_framework-orange.svg)](https://amberframework.org/)
 ```
 
 ## Contributing
