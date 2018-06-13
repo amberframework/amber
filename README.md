@@ -84,10 +84,10 @@ dependencies:
 
 Use Amber badge
 
-[![Amber Framework](https://img.shields.io/badge/using-amberframework-orange.svg)](https://amberframework.org/)
+[![Amber Framework](https://img.shields.io/badge/using-amber_framework-orange.svg)](https://amberframework.org/)
 
 ```markdown
-[![Amber Framework](https://img.shields.io/badge/using-amberframework-orange.svg)](https://amberframework.org/)
+[![Amber Framework](https://img.shields.io/badge/using-amber_framework-orange.svg)](https://amberframework.org/)
 ```
 
 ## Contributing
