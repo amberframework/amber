@@ -1,6 +1,6 @@
 {
   "name": "amber",
-  "version": "0.3.0",
+  "version": "0.8.0",
   "description": "Front-end configuration for Amber Framework",
   "private": true,
   "author": "Amber",
@@ -9,9 +9,9 @@
     "build": "cd assets/js && webpack --config webpack.config.js"
   },
   "devDependencies": {
-    "babel-core": "^6.26.0",
-    "babel-loader": "^7.1.2",
-    "babel-preset-env": "^1.6.1",
-    "webpack": "^3.8.1"
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.7.0",
+    "webpack": "^3.12.0"
   }
 }
