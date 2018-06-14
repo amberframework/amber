@@ -12,6 +12,8 @@ require "./controller"
 require "./scaffold/crecto_controller"
 require "./scaffold/granite_controller"
 require "./scaffold/view"
+require "./api/crecto_controller"
+require "./api/granite_controller"
 require "./mailer"
 require "./socket"
 require "./channel"
@@ -79,6 +81,17 @@ module Amber::CLI
           Scaffold::GraniteController.new(name, fields).render(directory, list: true, color: true)
         end
         Scaffold::View.new(name, fields).render(directory, list: true, color: true)
+      when "api"
+        info "Rendering Api #{name}"
+        if model == "crecto"
+          CrectoMigration.new(name, fields).render(directory, list: true, color: true)
+          CrectoModel.new(name, fields).render(directory, list: true, color: true)
+          Api::CrectoController.new(name, fields).render(directory, list: true, color: true)
+        else
+          GraniteMigration.new(name, fields).render(directory, list: true, color: true)
+          GraniteModel.new(name, fields).render(directory, list: true, color: true)
+          Api::GraniteController.new(name, fields).render(directory, list: true, color: true)
+        end
       when "mailer"
         info "Rendering Mailer #{name}"
         Mailer.new(name, fields).render(directory, list: true, color: true)

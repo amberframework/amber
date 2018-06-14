@@ -51,9 +51,9 @@ module Amber::Recipes
     end
 
     def add_views
-      @actions.each do |action|
+      @actions.each do |action_name, _|
         FileUtils.mkdir_p("src/views/#{@name}")
-        File.touch("src/views/#{@name}/#{action}.#{language}")
+        File.touch("src/views/#{@name}/#{action_name}.#{language}")
       end
     end
   end
