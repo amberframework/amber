@@ -28,11 +28,11 @@ dependencies:
 <% case @model when "crecto" -%>
   crecto:
     github: Crecto/crecto
-    version: ~> 0.8.1
+    version: ~> 0.8.6
 <% else -%>
   granite:
     github: amberframework/granite
-    version: ~> 0.11.0
+    version: ~> 0.12.0
 <% end -%>
 
   quartz_mailer:
@@ -46,7 +46,7 @@ dependencies:
 <% case @database when "pg" -%>
   pg:
     github: will/crystal-pg
-    version: ~> 0.14.1
+    version: ~> 0.15.0
 <% when "mysql" -%>
   mysql:
     github: crystal-lang/crystal-mysql

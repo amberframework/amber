@@ -32,7 +32,7 @@ module Amber::CLI
           MainCommand.run ["db", "migrate"]
           db_filename = env_yml["database_url"].to_s.gsub("sqlite3:", "")
           File.exists?(db_filename).should be_true
-          File.stat(db_filename).size.should_not eq 0
+          File.info(db_filename).size.should_not eq 0
         end
 
         it "deletes the database when db drop" do
