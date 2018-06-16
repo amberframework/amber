@@ -7,7 +7,9 @@ Granite.settings.logger.progname = "Granite"
 <% else -%>
 require "<%= @database == "sqlite" ? "sqlite3" : @database %>"
 require "crecto"
+
 Query = Crecto::Repo::Query
+Multi = Crecto::Repo::Multi
 
 module Repo
   extend Crecto::Repo
