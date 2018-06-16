@@ -25,7 +25,7 @@ class <%= class_name %>Controller < ApplicationController
   def update
     <%= @name %>.set_attributes(<%= @name %>_params.validate!)
     if <%= @name %>.save
-      redirect_to action: :index, flash: { "success" => "Updated <%= @name %> successfully." }
+      redirect_to action: :index, flash: {"success" => "Updated <%= @name %> successfully."}
     else
       flash["danger"] = "Could not update <%= class_name %>!"
       render("edit.<%= @language %>")
@@ -35,7 +35,7 @@ class <%= class_name %>Controller < ApplicationController
   def create
     <%= @name %> = <%= class_name %>.new(<%= @name %>_params.validate!)
     if <%= @name %>.save
-      redirect_to action: :index, flash: { "success" => "Created <%= @name %> successfully." }
+      redirect_to action: :index, flash: {"success" => "Created <%= @name %> successfully."}
     else
       flash["danger"] = "Could not create <%= class_name %>!"
       render("new.<%= @language %>")
@@ -44,7 +44,7 @@ class <%= class_name %>Controller < ApplicationController
 
   def destroy
     <%= @name %>.destroy
-    redirect_to action: :index, flash: { "success" => "Deleted <%= @name %> successfully." }
+    redirect_to action: :index, flash: {"success" => "Deleted <%= @name %> successfully."}
   end
 
   private def <%= @name %>_params
@@ -55,7 +55,7 @@ class <%= class_name %>Controller < ApplicationController
     end
   end
 
-  private def set_post
-    @<%= @name %> = Post.find! params[:id]
+  private def set_<%= @name %>
+    @<%= @name %> = <%= class_name %>.find! params[:id]
   end
 end

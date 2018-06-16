@@ -32,7 +32,7 @@ class <%= class_name %>Controller < ApplicationController
       flash["danger"] = "Could not create <%= class_name %>!"
       render("new.<%= @language %>")
     else
-      redirect_to action: :index, flash: { "success" => "Created <%= @name %> successfully." }
+      redirect_to action: :index, flash: {"success" => "Created <%= @name %> successfully."}
     end
   end
 
@@ -44,13 +44,13 @@ class <%= class_name %>Controller < ApplicationController
       flash["danger"] = "Could not update <%= class_name %>!"
       render("edit.<%= @language %>")
     else
-      redirect_to action: :index, flash: { "success" => "Updated <%= @name %> successfully." }
+      redirect_to action: :index, flash: {"success" => "Updated <%= @name %> successfully."}
     end
   end
 
   def destroy
     Repo.delete(<%= @name %>)
-    redirect_to action: :index, flash: { "success" => "Deleted <%= @name %> successfully." }
+    redirect_to action: :index, flash: {"success" => "Deleted <%= @name %> successfully."}
   end
 
   private def <%= @name %>_params
@@ -61,7 +61,7 @@ class <%= class_name %>Controller < ApplicationController
     end
   end
 
-  private def set_post
+  private def set_<%= @name %>
     @<%= @name %> = Repo.get <%= class_name %>, params[:id]
   end
 end

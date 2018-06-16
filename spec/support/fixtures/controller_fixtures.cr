@@ -134,30 +134,29 @@ class ResponsesController < Amber::Controller::Base
 
   def proc_html
     respond_with do
-      html ->{"<html><body><h1>Elorest <3 Amber</h1></body></html>"}
+      html ->{ "<html><body><h1>Elorest <3 Amber</h1></body></html>" }
       json type: "json", name: "Amberator"
     end
   end
 
   def proc_redirect
     respond_with do
-      html ->{redirect_to "/some_path"}
+      html ->{ redirect_to "/some_path" }
       json type: "json", name: "Amberator"
     end
   end
 
   def proc_redirect_flash
     respond_with do
-      html ->{redirect_to "/some_path", flash: {"success" => "amber is the bizness"}}
+      html ->{ redirect_to "/some_path", flash: {"success" => "amber is the bizness"} }
       json type: "json", name: "Amberator"
     end
   end
 
   def proc_perm_redirect
     respond_with do
-      html ->{redirect_to "/some_path", status: 301}
+      html ->{ redirect_to "/some_path", status: 301 }
       json type: "json", name: "Amberator"
     end
   end
-
 end

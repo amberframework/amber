@@ -14,7 +14,7 @@ module Amber::CLI
 
     class Database < Command
       command_name "database"
-      MIGRATIONS_DIR = "./db/migrations"
+      MIGRATIONS_DIR        = "./db/migrations"
       CREATE_SQLITE_MESSAGE = "For sqlite3, the database will be created during the first migration."
 
       class Options

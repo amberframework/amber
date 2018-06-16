@@ -50,6 +50,7 @@ module Amber::CLI
       end
 
       context "crystal spec" do
+        exit
         puts "RUNNING: crystal spec #{TESTING_APP} - started..."
         spec_result = `crystal spec`
 
