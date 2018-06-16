@@ -24,7 +24,7 @@ module Amber::Router
       cookies.set "user_name", "Jamie"
 
       cookies.permanent.set "user_name", "Jamie"
-      cookie_header(cookies).should eq "user_name=Jamie; path=/; expires=#{HTTP.rfc1123_date(20.years.from_now)}"
+      cookie_header(cookies).should eq "user_name=Jamie; path=/; expires=#{20.years.from_now.to_rfc2822}"
     end
 
     it "reads a permanent cookie" do
@@ -48,7 +48,7 @@ module Amber::Router
 
       cookies.set "user_name", "david", expires: Time.new(2017, 6, 7, 9)
 
-      cookie_header(cookies).should eq "user_name=david; path=/; expires=#{HTTP.rfc1123_date(Time.new(2017, 6, 7, 9))}"
+      cookie_header(cookies).should eq "user_name=david; path=/; expires=#{Time.new(2017, 6, 7, 9).to_rfc2822}"
     end
 
     it "sets the cookie with http_only" do
@@ -93,7 +93,7 @@ module Amber::Router
       cookies.set "login", "XJ-122"
 
       cookies.size.should eq 2
-      cookie_header(cookies).should eq "user_name=david; path=/; expires=#{HTTP.rfc1123_date(Time.new(2017, 6, 7, 9))},login=XJ-122; path=/"
+      cookie_header(cookies).should eq "user_name=david; path=/; expires=#{Time.new(2017, 6, 7, 9).to_rfc2822},login=XJ-122; path=/"
     end
 
     context "encrypted cookies" do
