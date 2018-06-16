@@ -3,13 +3,6 @@ require "colorize"
 module Amber
   module Exceptions
     class Base < Exception
-      getter status_code : Int32 = 500
-
-      def set_response(response)
-        response.headers["Content-Type"] = "text/plain"
-        response.print message
-        response.status_code = status_code
-      end
     end
 
     class Environment < Exception
@@ -43,14 +36,12 @@ module Amber
 
     class RouteNotFound < Base
       def initialize(request)
-        @status_code = 404
         super("The request was not found. #{request.method} - #{request.path}")
       end
     end
 
     class Forbidden < Base
       def initialize(message : String?)
-        @status_code = 403
         super(message || "Action is Forbidden.")
       end
     end
