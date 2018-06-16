@@ -6,6 +6,10 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends libpq-dev l
 
 WORKDIR /opt/amber
 
+# Install Node
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+RUN apt-get install -y nodejs
+
 # Build Amber
 ENV PATH /opt/amber/bin:$PATH
 COPY . /opt/amber
