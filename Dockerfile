@@ -1,12 +1,8 @@
-FROM crystallang/crystal:0.24.1
+FROM crystallang/crystal:0.25.0
 
 # Install Dependencies
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev git curl vim netcat
-
-# Install Node
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
-RUN apt-get install -y nodejs
 
 WORKDIR /opt/amber
 
@@ -15,4 +11,4 @@ ENV PATH /opt/amber/bin:$PATH
 COPY . /opt/amber
 RUN shards build amber
 
-CMD ["crystal", "spec", "-D", "run_build_tests"]
+CMD ["crystal", "spec"]
