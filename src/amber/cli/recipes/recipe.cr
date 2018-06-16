@@ -1,7 +1,6 @@
 require "teeplate"
 require "liquid"
 require "base64"
-require "inflector"
 
 require "random/secure"
 require "../helpers/helpers"
