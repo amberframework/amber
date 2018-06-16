@@ -28,7 +28,6 @@ module Amber::CLI
           Amber::Pipe::Session
           Amber::Pipe::Flash
           Amber::Pipe::CSRF
-          Amber::Pipe::Reload
         )
 
         static_default_plugs = %w(
