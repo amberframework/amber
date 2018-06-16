@@ -17,11 +17,28 @@ watch:
       - "public/**/*"
     commands: []
 
-  webpack: # optional: compiles assets using webpack
-    files: [] # webpack already manage this
+  amber:  # optional: Amber.Socket client, a[data-method] handler, and Date prototype.toGranite
+    files: []
     commands:
-      - "npm install --loglevel=error"
-      - "nom run watch"
+      - "cp lib/amber/assets/js/amber.js public/dist/amber.js"
+
+  js:     # optional: concat and copy js files to public dir
+    files:
+      - "src/assets/javascripts/*.js"
+    commands:
+      - "cat src/assets/javascripts/*.js > public/dist/main.bundle.js"
+
+  css:    # optional: concat and copy css files to public dir
+    files:
+      - "src/assets/stylesheets/*.css"
+    commands:
+      - "cat src/assets/stylesheets/*.css > public/dist/main.bundle.css"
+
+  images: # optional: concat and copy images to public dir
+    files:
+      - "src/assets/images/*"
+    commands:
+      - "cp -r src/assets/images public/"
 
   mytask: # Minimal valid task example
     files: [] # Tasks with empty "files" execute "commands" just once.
