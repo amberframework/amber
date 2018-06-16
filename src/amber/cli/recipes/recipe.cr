@@ -1,6 +1,7 @@
 require "teeplate"
 require "liquid"
 require "base64"
+require "inflector"
 
 require "random/secure"
 require "../helpers/helpers"
@@ -40,6 +41,7 @@ module Amber::Recipes
         exit 1
       end
 
+      @name_plural = Inflector.pluralize(word)
       @directory = File.join(directory)
       unless Dir.exists?(@directory)
         Dir.mkdir_p(@directory)

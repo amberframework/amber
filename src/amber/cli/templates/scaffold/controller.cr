@@ -22,7 +22,7 @@ module Amber::CLI::Scaffold
       field_hash
 
       add_routes :web, <<-ROUTE
-        resources "/#{pluralize(@name)}", #{class_name}Controller
+        resources "/#{@name_plural}", #{class_name}Controller
       ROUTE
     end
 
