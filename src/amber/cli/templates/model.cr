@@ -1,5 +1,4 @@
 require "./field.cr"
-require "inflector"
 
 module Amber::CLI
   class Model < Teeplate::FileTree
@@ -22,7 +21,7 @@ module Amber::CLI
     end
 
     def table_name
-      @table_name ||= "#{Inflector.pluralize(@name)}"
+      @table_name ||= "#{pluralize(@name)}"
     end
   end
 end

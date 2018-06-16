@@ -1,5 +1,4 @@
 require "../templates/field.cr"
-require "inflector"
 
 module Amber::Recipes
   class Model < Teeplate::FileTree
@@ -42,7 +41,7 @@ module Amber::Recipes
     end
 
     def table_name
-      @table_name ||= "#{Inflector.pluralize(@name)}"
+      @table_name ||= "#{pluralize(@name)}"
     end
   end
 end

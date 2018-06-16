@@ -40,4 +40,8 @@ module Amber::CLI::Helpers
       Process.new(command, shell: shell, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
     end
   end
+
+  def pluralize(word)
+    Inflector.pluralize(word)
+  end
 end
