@@ -77,14 +77,14 @@ module Amber::Router::Session
         end
       end
 
-      describe "#key?" do
+      describe "#has_key?" do
         context "key exists" do
           it "returns true" do
             cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
             cookie_store[:name] = "David"
 
-            cookie_store.key?("David").should eq "name"
+            cookie_store.has_key?("David").should eq "name"
           end
         end
 
@@ -92,8 +92,8 @@ module Amber::Router::Session
           it "returns false" do
             cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
-            cookie_store.key?(:name).should eq nil
-            cookie_store.key?("name").should eq nil
+            cookie_store.has_key?(:name).should eq nil
+            cookie_store.has_key?("name").should eq nil
           end
         end
       end
@@ -244,14 +244,14 @@ module Amber::Router::Session
         end
       end
 
-      describe "#key?" do
+      describe "#has_key?" do
         context "key exists" do
           it "returns true" do
             cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
             cookie_store[:name] = "David"
 
-            cookie_store.key?("David").should eq "name"
+            cookie_store.has_key?("David").should eq "name"
           end
         end
 
@@ -259,8 +259,8 @@ module Amber::Router::Session
           it "returns false" do
             cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
-            cookie_store.key?(:name).should eq nil
-            cookie_store.key?("name").should eq nil
+            cookie_store.has_key?(:name).should eq nil
+            cookie_store.has_key?("name").should eq nil
           end
         end
       end
