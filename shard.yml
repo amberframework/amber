@@ -67,8 +67,8 @@ dependencies:
     version: "~> 0.1.8"
 
   teeplate:
-    github: amberframework/teeplate
-    version: ~> 0.5.0
+    github: mosop/teeplate
+    version: ~> 0.6.1
 
 development_dependencies:
   ameba:
