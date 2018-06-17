@@ -3,7 +3,7 @@ module Amber
       @file_timestamps = {} of String => String
   
       private def get_timestamp(file : String)
-        File.info(file).mtime.to_s("%Y%m%d%H%M%S")
+        File.info(file).modification_time.to_s("%Y%m%d%H%M%S")
       end
   
       def scan_files(files)
