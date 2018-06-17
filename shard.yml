@@ -16,7 +16,8 @@ targets:
 dependencies:
   amber_router:
     github: amberframework/router
-    version: ~> 0.0.3
+    # version: ~> 0.0.3
+    branch: update_for_crystal_0_25
 
   cli:
     github: mosop/cli

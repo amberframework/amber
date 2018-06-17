@@ -21,10 +21,6 @@ dependencies:
     branch: master
     #version: <%= Amber::VERSION %>
 
-  citrine-i18n:
-    github: amberframework/citrine-i18n
-    version: 0.2.0
-
 <% case @model when "crecto" -%>
   crecto:
     github: Crecto/crecto
@@ -32,7 +28,8 @@ dependencies:
 <% else -%>
   granite:
     github: amberframework/granite
-    version: ~> 0.12.0
+    branch: granite_new_fix
+    # version: ~> 0.12.0
 <% end -%>
 
   quartz_mailer:
@@ -57,7 +54,13 @@ dependencies:
     version: ~> 0.9.0
 <% end -%>
 
+  citrine-i18n:
+    github: amberframework/citrine-i18n
+    branch: crystal_0_25
+    # version: 0.2.0
+
 development_dependencies:
-  garnet_spec:
-    github: amberframework/garnet-spec
-    version: ~> 0.1.1
+ garnet_spec:
+   github: amberframework/garnet-spec
+   branch: crystal_0_25
+   # version: ~> 0.1.1
