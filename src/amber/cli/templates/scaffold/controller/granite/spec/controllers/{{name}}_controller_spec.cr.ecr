@@ -43,7 +43,7 @@ describe <%= class_name %>ControllerTest do
     response = subject.get "/<%= @name_plural %>"
 
     response.status_code.should eq(200)
-    response.body.should contain("<%= pluralize(display_name) %>")
+    response.body.should contain("<%= @name_plural %>")
   end
 
   it "renders <%= @name %> show template" do
