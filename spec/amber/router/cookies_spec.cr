@@ -46,9 +46,11 @@ module Amber::Router
     it "sets the cookie with expiration" do
       cookies = new_cookie_store
 
-      cookies.set "user_name", "david", expires: Time.new(2017, 6, 7, 9)
+      expiry_time = Time.new(2017, 6, 7, 9)
 
-      cookie_header(cookies).should eq "user_name=david; path=/; expires=#{Time.new(2017, 6, 7, 9).to_rfc2822}"
+      cookies.set "user_name", "david", expires: expiry_time
+
+      cookie_header(cookies).should eq "user_name=david; path=/; expires=#{HTTP.format_time(expiry_time)}"
     end
 
     it "sets the cookie with http_only" do
@@ -89,11 +91,12 @@ module Amber::Router
     it "sets multiple cookies" do
       cookies = new_cookie_store
 
-      cookies.set "user_name", "david", expires: Time.new(2017, 6, 7, 9)
+      expiry_time = Time.new(2017, 6, 7, 9)
+      cookies.set "user_name", "david", expires: expiry_time
       cookies.set "login", "XJ-122"
 
       cookies.size.should eq 2
-      cookie_header(cookies).should eq "user_name=david; path=/; expires=#{Time.new(2017, 6, 7, 9).to_rfc2822},login=XJ-122; path=/"
+      cookie_header(cookies).should eq "user_name=david; path=/; expires=#{HTTP.format_time(expiry_time)},login=XJ-122; path=/"
     end
 
     context "encrypted cookies" do
