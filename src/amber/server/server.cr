@@ -55,7 +55,8 @@ module Amber
       time = Time.now
       logger.info "#{version.colorize(:light_cyan)} serving application \"#{settings.name.capitalize}\" at #{host_url.colorize(:light_cyan).mode(:underline)}"
       handler.prepare_pipelines
-      server = HTTP::Server.new(settings.host, settings.port, handler)
+      server = HTTP::Server.new(handler)
+      server.bind_tcp settings.host, settings.port
       server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
 
       Signal::INT.trap do
