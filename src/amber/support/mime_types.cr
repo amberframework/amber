@@ -634,7 +634,7 @@ module Amber
       end
 
       def self.format(accepts)
-        MIME_TYPES[accepts]?
+        MIME_TYPES.key_for? accepts
       end
 
       def self.default
