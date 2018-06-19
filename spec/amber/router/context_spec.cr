@@ -45,7 +45,7 @@ describe HTTP::Server::Context do
         headers[Amber::Support::MimeTypes::FORMAT_HEADER] = content_type
         request = HTTP::Request.new("GET", "/", headers)
         context = create_context(request)
-        context.format.should eq format.to_s
+        context.format.should eq format
       end
     end
 
@@ -53,7 +53,7 @@ describe HTTP::Server::Context do
       it "get format #{format} from path extension" do
         request = HTTP::Request.new("GET", "/index.#{format}")
         context = create_context(request)
-        context.format.should eq format.to_s
+        context.format.should eq format
       end
     end
   end
