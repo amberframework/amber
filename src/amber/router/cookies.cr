@@ -186,7 +186,7 @@ module Amber::Router
       end
 
       def set(name : String, value : String, path : String = "/", domain : String? = nil, secure : Bool = false, http_only : Bool = false, extension : String? = nil)
-        cookie = HTTP::Cookie.new(name, value, path, 20.years.from_now, domain, secure, http_only, extension)
+        cookie = HTTP::Cookie.new(name, value, path, 20.years.from_now.to_rfc2822, domain, secure, http_only, extension)
         @store[name] = cookie
       end
     end
