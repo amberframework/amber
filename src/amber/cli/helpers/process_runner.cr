@@ -110,7 +110,7 @@ module Amber::CLI::Helpers
 
     private def run_build_command(command, commands)
       check_directories
-      next_server_commands = (1...commands.size)
+      next_server_commands_range = (1...commands.size)
       info "Building project #{Helpers.settings.name.colorize(:light_cyan)}"
       spawn do
         error_io = IO::Memory.new
@@ -126,13 +126,13 @@ module Amber::CLI::Helpers
                 else
                   notify_next_processes
                 end
-                next_server_commands.each { @wait_build.send true }
+                next_server_commands_range.each { @wait_build.send true }
               else
-                next_server_commands.each { @wait_build.send false }
+                next_server_commands_range.each { @wait_build.send false }
               end
             else
               handle_error(error_io.to_s)
-              next_server_commands.each { @wait_build.send false }
+              next_server_commands_range.each { @wait_build.send false }
             end
             break
           end
