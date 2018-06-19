@@ -24,7 +24,7 @@ module Amber::Router
       cookies.set "user_name", "Jamie"
 
       cookies.permanent.set "user_name", "Jamie"
-      cookie_header(cookies).should eq "user_name=Jamie; path=/; expires=#{20.years.from_now.to_rfc2822}"
+      cookie_header(cookies).should eq "user_name=Jamie; path=/; expires=#{HTTP.format_time(20.years.from_now)}"
     end
 
     it "reads a permanent cookie" do
