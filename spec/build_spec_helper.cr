@@ -28,12 +28,6 @@ macro generate_app(*options)
 
   puts "RUNNING: amber db drop create migrate - started..."
   MainCommand.run ["db", "drop", "create", "migrate"]
-
-  puts "RUNNING: shards update - started..."
-  system("shards update")
-
-  puts "RUNNING: shards build #{TEST_APP_NAME} - started..."
-  system("shards build #{TEST_APP_NAME}")
 end
 
 macro check_formatting
@@ -42,7 +36,19 @@ macro check_formatting
   end
 end
 
+macro check_dependencies
+  puts "RUNNING: shards update - started..."
+  system("shards update")
+
+  it "check broken dependencies" do
+    system("shards check").should be_true
+  end
+end
+
 macro check_binary
+  puts "RUNNING: shards build #{TEST_APP_NAME} - started..."
+  system("shards build #{TEST_APP_NAME}")
+
   it "generates a binary" do
     File.exists?("bin/#{TEST_APP_NAME}").should be_true
   end
