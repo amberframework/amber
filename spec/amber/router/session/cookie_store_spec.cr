@@ -84,7 +84,7 @@ module Amber::Router::Session
 
             cookie_store[:name] = "David"
 
-            cookie_store.has_key?("David").should eq "name"
+            cookie_store["David"]?.should eq "name"
           end
         end
 
@@ -92,8 +92,8 @@ module Amber::Router::Session
           it "returns false" do
             cookie_store = CookieStore.new(COOKIE_STORE.encrypted, "ses", EXPIRES)
 
-            cookie_store.has_key?(:name).should eq nil
-            cookie_store.has_key?("name").should eq nil
+            cookie_store[:name]?.should be_nil
+            cookie_store["name"]?.should be_nil
           end
         end
       end
@@ -251,7 +251,7 @@ module Amber::Router::Session
 
             cookie_store[:name] = "David"
 
-            cookie_store.has_key?("David").should eq "name"
+            cookie_store["David"]?.should eq "name"
           end
         end
 
@@ -259,8 +259,8 @@ module Amber::Router::Session
           it "returns false" do
             cookie_store = CookieStore.new(COOKIE_STORE.signed, "ses", EXPIRES)
 
-            cookie_store.has_key?(:name).should eq nil
-            cookie_store.has_key?("name").should eq nil
+            cookie_store[:name]?.should be_nil
+            cookie_store["name"]?.should be_nil
           end
         end
       end
