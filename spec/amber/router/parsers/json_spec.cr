@@ -16,6 +16,13 @@ module Amber::Router::Parsers
         params = JSON.parse(request)
         params["test"].should eq "123"
       end
+
+      it "should contain the whole unparsed body" do
+        body = {test: "123"}.to_json
+        request = HTTP::Request.new("PUT", "/", nil, body)
+        params = JSON.parse(request)
+        params["_json"].should eq body
+      end
     end
   end
 end

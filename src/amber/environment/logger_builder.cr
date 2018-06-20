@@ -6,9 +6,9 @@ module Amber::Environment
       new(io, logging).logger
     end
 
-    def initialize(io, logging)
+    def initialize(logger_io, logging)
       Colorize.enabled = logging.colorize
-      @logger = Logger.new(io)
+      @logger = Logger.new(logger_io)
       @logger.level = logging.severity
       @logger.progname = "Server"
       @logger.formatter = Logger::Formatter.new do |severity, datetime, progname, message, io|
