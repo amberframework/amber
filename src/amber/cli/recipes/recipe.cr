@@ -1,6 +1,7 @@
 require "teeplate"
 require "liquid"
 require "base64"
+require "inflector"
 
 require "random/secure"
 require "../helpers/helpers"
@@ -18,7 +19,6 @@ module Amber::Recipes
 
   class Recipe
     getter name : String
-    getter name_plural : String
     getter directory : String
     getter recipe : String | Nil
 
@@ -41,7 +41,6 @@ module Amber::Recipes
         exit 1
       end
 
-      @name_plural = Inflector.pluralize(@name)
       @directory = File.join(directory)
       unless Dir.exists?(@directory)
         Dir.mkdir_p(@directory)
@@ -129,6 +128,7 @@ end
 module Teeplate
   abstract class FileTree
     @class_name : String?
+    @name_plural : String?
     @display_name : String?
 
     # Renders all collected file entries.
@@ -144,6 +144,10 @@ module Teeplate
     # Override to filter files rendered
     def filter(entries)
       entries
+    end
+
+    def name_plural
+      @name_plural ||= Inflector.pluralize(@name)
     end
 
     def class_name

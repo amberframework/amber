@@ -1,5 +1,7 @@
 require "teeplate"
 require "random/secure"
+require "inflector"
+
 require "../helpers/helpers"
 require "./app"
 require "./migration"
@@ -24,7 +26,6 @@ require "./error"
 module Amber::CLI
   class Template
     getter name : String
-    getter name_plural : String
     getter directory : String
     getter fields : Array(String)
 
@@ -36,7 +37,6 @@ module Amber::CLI
         exit 1
       end
 
-      @name_plural = Inflector.pluralize(@name)
       @directory = File.join(directory)
       unless Dir.exists?(@directory)
         Dir.mkdir_p(@directory)
@@ -162,6 +162,7 @@ end
 
 module Teeplate
   abstract class FileTree
+    @name_plural : String?
     @class_name : String?
     @display_name : String?
 
@@ -178,6 +179,10 @@ module Teeplate
     # Override to filter files rendered
     def filter(entries)
       entries
+    end
+
+    def name_plural
+      @name_plural ||= Inflector.pluralize(@name)
     end
 
     def class_name
