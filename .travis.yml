@@ -38,13 +38,11 @@ script:
   - crystal spec $TEST_SUITE
 
 before_deploy:
-  if: env(TEST_SUITE) = ./spec/amber
   - mkdir -p $DEPLOY_DIR
   - crystal build src/amber/cli.cr -s --release $DEPLOY_STATIC -o $DEPLOY_DIR/amber --no-debug
   - tar -cvzf $DEPLOY_FILENAME $DEPLOY_DIR/amber
 
 deploy:
-  if: env(TEST_SUITE) = ./spec/amber
   provider: releases
   api_key: $API_KEY
   file: $DEPLOY_FILENAME
@@ -52,6 +50,7 @@ deploy:
   on:
     branch: stable
     repo: amberframework/amber
+    condition: $TEST_SUITE = ./spec/amber
 
 notifications:
   webhooks:
