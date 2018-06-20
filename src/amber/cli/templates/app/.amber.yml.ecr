@@ -12,7 +12,7 @@ watch:
       - "crystal build -o bin/<%= @name %> src/<%= @name %>.cr -p --no-color"
       - "bin/<%= @name %>"
 
-  client: # required: these files changes trigger browser reloading
+  client: # optional: these files changes trigger browser reloading
     files:
       - "public/**/*"
     commands: []
