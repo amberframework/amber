@@ -22,7 +22,7 @@ module Amber::Recipes
         #{@actions.map { |action, verb| %Q(#{verb} "/#{@name}/#{action}", #{class_name}Controller, :#{action}) }.join("\n    ")}
       ROUTES
 
-      @action_names = @actions.map { |action, verb| action }
+      @action_names = @actions.map { |action, _| action }
 
       @template = RecipeFetcher.new("controller", @recipe).fetch
 
@@ -51,9 +51,9 @@ module Amber::Recipes
     end
 
     def add_views
-      @actions.each do |action, verb|
+      @actions.each do |action_name, _|
         FileUtils.mkdir_p("src/views/#{@name}")
-        File.touch("src/views/#{@name}/#{action}.#{language}")
+        File.touch("src/views/#{@name}/#{action_name}.#{language}")
       end
     end
   end

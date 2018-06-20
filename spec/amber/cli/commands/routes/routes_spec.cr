@@ -30,7 +30,7 @@ module Amber::CLI
           it "outputs the static file handler" do
             expected = "Amber::Controller::Static"
             output.should contain expected
-            line = output_lines.find("") { |line| line.includes? expected }
+            line = output_lines.find("") { |this_line| this_line.includes? expected }
             expectations = %w(get Amber::Controller::Static index static /*)
             expectations.each do |expectation|
               line.should contain expectation
@@ -40,7 +40,7 @@ module Amber::CLI
           it "outputs the HomeController index action" do
             expected = "HomeController"
             output.should contain expected
-            line = output_lines.find("") { |line| line.includes? expected }
+            line = output_lines.find("") { |this_line| this_line.includes? expected }
             expectations = %w(get HomeController index web /)
             expectations.each do |expectation|
               line.should contain expectation
@@ -56,7 +56,7 @@ module Amber::CLI
           it "outputs the web socket route" do
             expected = "websocket"
             output.should contain expected
-            line = output_lines.find("") { |line| line.includes? expected }
+            line = output_lines.find("") { |this_line| this_line.includes? expected }
             expectations = %w(websocket ElectricSocket web /electric)
             expectations.each do |expectation|
               line.should contain expectation

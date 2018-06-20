@@ -6,13 +6,13 @@ module Amber::CLI
 
     class New < Command
       class Options
-        arg "name", desc: "name of project", required: true
-        string "-d", desc: "database", any_of: %w(pg mysql sqlite), default: "pg"
-        string "-t", desc: "template language", any_of: %w(slang ecr), default: "slang"
-        string "-m", desc: "model type", any_of: %w(granite crecto), default: "granite"
-        string "-r", desc: "recipe"
-        bool "--deps", desc: "installs deps, (shards update)", default: false
+        arg "name", desc: "name/path of project", required: true
+        string "-d", desc: "Select the database database engine, can be one of: pg | mysql | sqlite", default: "pg"
+        bool "--deps", desc: "Installs project dependencies, this is the equivalent of running (shards update)", default: false
+        string "-m", desc: "Select the model type, can be one of: granite | crecto", default: "granite"
         bool "--no-color", desc: "Disable colored output", default: false
+        string "-t", desc: "Selects the template engine language, can be one of: slang | ecr", default: "slang"
+        string "-r", desc: "Use a named recipe.  See documentation at  https://docs.amberframework.org/amber/cli/recipes."
         help
       end
 
@@ -22,13 +22,13 @@ module Amber::CLI
       end
 
       def run
-        Amber::CLI.color = !options.no_color?
+        CLI.toggle_colors(options.no_color?)
         full_path_name = File.join(Dir.current, args.name)
         if full_path_name =~ /\s+/
-          CLI.logger.error "Path and project name can't contain a space."
-          CLI.logger.error "Replace spaces with underscores or dashes."
-          CLI.logger.error "#{full_path_name} should be #{full_path_name.gsub(/\s+/, "_")}"
-          exit 1
+          error "Path and project name can't contain a space."
+          info "Replace spaces with underscores or dashes."
+          info "#{full_path_name} should be #{full_path_name.gsub(/\s+/, "_")}"
+          exit! error: true
         end
         name = File.basename(args.name)
 

@@ -104,8 +104,6 @@ module Amber::CLI
 
     describe "migration" do
       it "follows naming conventions for all files" do
-        migration_definition_prefix = "CREATE TABLE #{snake_case}"
-
         [camel_case, snake_case].each do |arg|
           MainCommand.run ["generate", "migration", arg]
 

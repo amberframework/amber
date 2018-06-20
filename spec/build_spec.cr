@@ -37,6 +37,10 @@ module Amber::CLI
       puts "RUNNING: shards build #{TEST_APP_NAME} - started..."
       system("shards build #{TEST_APP_NAME}")
 
+      it "check formatting on generated files" do
+        system("crystal tool format --check src").should be_true
+      end
+
       it "generates a binary" do
         File.exists?("bin/#{TEST_APP_NAME}").should be_true
       end
@@ -45,18 +49,17 @@ module Amber::CLI
         puts "RUNNING: crystal spec #{TESTING_APP} - started..."
         spec_result = `crystal spec`
 
+        puts spec_result
+
         it "can be executed" do
-          puts spec_result unless spec_result.includes? "Finished in"
           spec_result.should contain "Finished in"
         end
 
         it "has no errors" do
-          puts spec_result if spec_result.includes? "Error in line"
           spec_result.should_not contain "Error in line"
         end
 
         it "has no failures" do
-          puts spec_result if spec_result.includes? "Failures"
           spec_result.should_not contain "Failures"
         end
       end

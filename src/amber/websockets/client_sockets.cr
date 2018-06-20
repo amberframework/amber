@@ -28,7 +28,7 @@ module Amber
       end
 
       def get_subscribers_for_topic(topic)
-        @@client_sockets.select do |k, client_socket|
+        @@client_sockets.select do |_, client_socket|
           client_socket.subscribed_to_topic?(topic.to_s)
         end
       end

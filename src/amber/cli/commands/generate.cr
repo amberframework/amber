@@ -6,7 +6,7 @@ module Amber::CLI
 
     class Generate < Command
       class Options
-        arg "type", desc: "scaffold, model, controller, migration, mailer, socket, channel, auth, error", required: true
+        arg "type", desc: "scaffold, api, model, controller, migration, mailer, socket, channel, auth, error", required: true
         arg "name", desc: "name of resource", required: false
         arg_array "fields", desc: "user:reference name:string body:text age:integer published:bool"
         bool "--no-color", desc: "Disable colored output", default: false
@@ -19,6 +19,7 @@ module Amber::CLI
       end
 
       def run
+        CLI.toggle_colors(options.no_color?)
         if args.type == "error"
           template = Template.new("error", ".")
         else
@@ -39,7 +40,7 @@ module Amber::CLI
 
       private def ensure_name_argument!
         unless args.name?
-          CLI.logger.info "Parsing Error: The NAME argument is required.", "Error", :red
+          error "Parsing Error: The NAME argument is required."
           exit! help: true, error: true
         end
       end

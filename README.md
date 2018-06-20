@@ -6,13 +6,13 @@ _Amber makes building web applications fast, simple, and enjoyable - with fewer 
 
 [![Build Status](https://travis-ci.org/amberframework/amber.svg?branch=master)](https://travis-ci.org/amberframework/amber)
 [![Version](https://img.shields.io/github/tag/amberframework/amber.svg?maxAge=360)](https://github.com/amberframework/amber/releases/latest)
-[![Dependencies](https://shards.rocks/badge/github/amberframework/amber/status.svg)](https://shards.rocks/github/amberframework/amber)
+[![Dependencies](https://img.shields.io/badge/dependencies-shards-brightgreen.svg)](https://github.com/amberframework/amber/blob/master/shard.yml#L16)
 [![License](https://img.shields.io/github/license/amberframework/amber.svg)](https://github.com/amberframework/amber/blob/master/LICENSE)
 [![Gitter](https://img.shields.io/gitter/room/amberframework/amber.svg)](https://gitter.im/amberframework/amber)
 
 # Welcome to Amber
 
-**Amber** is a web application framework written in [Crystal](http://www.crystal-lang.org) inspired by Kemal, Rails, Phoenix and other popular application frameworks.
+**Amber** is a web application framework written in [Crystal](https://crystal-lang.org/) inspired by Kemal, Rails, Phoenix and other popular application frameworks.
 
 The purpose of Amber is not to create yet another framework, but to take advantage of the beautiful Crystal language capabilities and provide engineers and the Crystal community with an efficient, cohesive, well maintained web framework that embraces the language philosophies, conventions, and guidelines.
 
@@ -20,7 +20,7 @@ Amber borrows concepts that have already been battle tested and successful, and 
 
 ## Community
 
-Questions? Join our IRC channel [#amber](http://webchat.freenode.net/?channels=#amber) and [Gitter room](https://gitter.im/amberframework/amber) or ask on Stack Overflow under the [amber-framework](https://stackoverflow.com/questions/tagged/amber-framework) tag.
+Questions? Join our IRC channel [#amber](https://webchat.freenode.net/?channels=#amber) and [Gitter room](https://gitter.im/amberframework/amber) or ask on Stack Overflow under the [amber-framework](https://stackoverflow.com/questions/tagged/amber-framework) tag.
 
 Guidelines? We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) for Amber.
 
@@ -32,11 +32,11 @@ Read Amber documentation on https://docs.amberframework.org
 
 ## Benchmarks
 
-[Techempower Framework Benchmarks - Round 15 (2018-02-14)](https://www.techempower.com/benchmarks/#section=data-r15&hw=ph&test=fortune&f=zik073-zik0zj-zik0zj-zik0zj-zhxjwf-zik0zj-gnbmym-cn3)
+[Techempower Framework Benchmarks - Round 16 (2018-06-06)](https://www.techempower.com/benchmarks/#section=data-r16&hw=ph&test=fortune&f=zik073-zik0zj-zik0zj-zik0zj-zhxjwf-zik0zj-yelnge-4zsot)
 
 Fortunes test comparing [Amber](https://amberframework.org/), [Kemal](https://kemalcr.com/), [Rails](https://rubyonrails.org/), [Phoenix](https://phoenixframework.org/), and [Hanami](https://hanamirb.org/):
 
-[![framework-benchmark](https://github.com/amberframework/site-assets/raw/master/images/benchmarks-fortunes.png "TFB Fortunes test for Crystal, Elixir and Ruby frameworks")](https://www.techempower.com/benchmarks/#section=data-r15&hw=ph&test=fortune&f=zik073-zik0zj-zik0zj-zik0zj-zhxjwf-zik0zj-gnbmym-cn3)
+[![framework-benchmark](https://github.com/amberframework/site-assets/raw/master/images/benchmarks-fortunes-round-16.png "TFB Round 16 Fortunes test for Crystal, Elixir and Ruby frameworks")](https://www.techempower.com/benchmarks/#section=data-r16&hw=ph&test=fortune&f=zik073-zik0zj-zik0zj-zik0zj-zhxjwf-zik0zj-yelnge-4zsot)
 
 ## Installation & Usage
 
@@ -74,20 +74,20 @@ dependencies:
     github: amberframework/amber
 ```
 
-[Read more about Amber CLI installation guide](https://amberframework.org/guides/getting-started/Installation/README.md#installation)
+[Read Amber quick start guide](https://docs.amberframework.org/amber/getting-started/quick-start)
 
-[Read Amber guide from zero to deploy](https://amberframework.org/guides/getting-started/quickstart/zero-to-deploy.md#zero-to-deploy)
+[Read Amber CLI commands usage](https://docs.amberframework.org/amber/cli)
 
-[Read Amber CLI commands usage](https://amberframework.org/guides/getting-started/cli/README.md#cli-readme)
+[Read more about Amber CLI installation guide](https://docs.amberframework.org/amber/guides/installation)
 
 ## Have an Amber-based Project?
 
 Use Amber badge
 
-![Amber Framework](https://img.shields.io/badge/using-amber%20framework-orange.svg)
+[![Amber Framework](https://img.shields.io/badge/using-amber_framework-orange.svg)](https://amberframework.org/)
 
 ```markdown
-[![Amber Framework](https://img.shields.io/badge/using-amber%20framework-orange.svg)](Your project url)
+[![Amber Framework](https://img.shields.io/badge/using-amber_framework-orange.svg)](https://amberframework.org/)
 ```
 
 ## Contributing
