@@ -1,6 +1,5 @@
 require "cli"
 require "shell-table"
-require "../helpers/sentry"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
