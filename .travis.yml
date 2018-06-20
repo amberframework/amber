@@ -35,8 +35,12 @@ matrix:
 
 before_script:
   - # HACK: https://github.com/travis-ci/travis-ci/issues/1875
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rm -rf /usr/local/var/postgres; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then initdb /usr/local/var/postgres; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pg_ctl -D /usr/local/var/postgres start; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then launchctl load ~/Library/LaunchAgents/io.redis.redis-server.plist; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then createuser -s postgres; fi
+  - # HACK: https://github.com/travis-ci/travis-ci/issues/6270
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then redis-server &; fi
 
 script:
   - bin/ameba src/ $TEST_SUITE
