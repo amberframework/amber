@@ -67,7 +67,7 @@ module Amber::Controller::Helpers
         redirector.redirect(controller)
         assert_expected_response?(controller, "/redirect/5", 302)
       end
-      
+
       it "redirects to full controller name as string" do
         controller = build_controller
         redirector = Redirector.from_controller_action("redirect", :show, params: {"id" => "5"})
