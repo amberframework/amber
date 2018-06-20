@@ -8,7 +8,7 @@ module Amber
       include Amber::Exceptions::Validator
 
       def call(context : HTTP::Server::Context)
-        raise Amber::Exceptions::RouteNotFound.new(context.request) unless context.valid_route?
+        raise Amber::Exceptions::RouteNotFound.new(context.request) unless context.request.valid_route?
         call_next(context)
       rescue ex
         error(context, ex)
