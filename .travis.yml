@@ -33,6 +33,11 @@ matrix:
       env:
         - TEST_SUITE=./spec/build_spec.cr
 
+before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start postgresql; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start redis; fi
+
 script:
   - bin/ameba src/ $TEST_SUITE
   - crystal spec $TEST_SUITE
