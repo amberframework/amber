@@ -40,7 +40,7 @@ dependencies:
 
   mysql:
     github: crystal-lang/crystal-mysql
-    version: ~> 0.4.0
+    version: ~> 0.5.0
 
   pg:
     github: will/crystal-pg
@@ -60,7 +60,7 @@ dependencies:
 
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-    version: ~> 0.9.0
+    version: ~> 0.10.0
 
   inflector:
     github: phoffer/inflector.cr
