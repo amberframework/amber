@@ -55,7 +55,7 @@ module Amber
       time = Time.now
       logger.info "#{version.colorize(:light_cyan)} serving application \"#{settings.name.capitalize}\" at #{host_url.colorize(:light_cyan).mode(:underline)}"
       handler.prepare_pipelines
-      server = HTTP::Server.new(settings.host, settings.port, handler)
+      server = HTTP::Server.new(handler)
       server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
 
       Signal::INT.trap do
@@ -68,7 +68,7 @@ module Amber
         begin
           logger.info "Server started in #{Amber.env.colorize(:yellow)}."
           logger.info "Startup Time #{Time.now - time}".colorize(:white)
-          server.listen(settings.port_reuse)
+          server.listen(settings.host, settings.port, settings.port_reuse)
           break
         rescue e : Errno
           if e.errno == Errno::EMFILE
