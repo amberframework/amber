@@ -183,7 +183,7 @@ module Amber::CLI::Helpers
     end
 
     private def error_server(error_output)
-      HTTP::Server.new(@host, @port) do |context|
+      HTTP::Server.new do |context|
         error_id = Digest::MD5.hexdigest(error_output)
         context.response.content_type = "text/html"
         context.response.status_code = 500
@@ -196,7 +196,7 @@ module Amber::CLI::Helpers
       kill_processes("server")
       puts error_output
       new_error_server = Process.fork do
-        error_server(error_output).listen(reuse_port: true)
+        error_server(error_output).listen(@host, @port, reuse_port: true)
       end
       PROCESSES << {new_error_server, "server"}
       error "A server error has been detected see the output above, use CTRL+C to exit"
