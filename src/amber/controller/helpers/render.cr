@@ -13,7 +13,7 @@ module Amber::Controller::Helpers
       CONTENT_FOR_BLOCKS[{{key}}] = Tuple.new {{file}}, %proc
       nil
     end
-    
+
     macro yield_content(key)
       if CONTENT_FOR_BLOCKS.has_key?({{key}})
         __caller_filename__ = CONTENT_FOR_BLOCKS[{{key}}][0]
