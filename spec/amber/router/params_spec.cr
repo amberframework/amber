@@ -58,13 +58,13 @@ module Amber::Router
       end
     end
 
-    describe "#key?" do
+    describe "#[]?" do
       it "returns nil for non-existent key" do
-        params.key?("invalid").should be_nil
+        params["invalid"]?.should be_nil
       end
 
       it "retuns value for existing key" do
-        params.key?("test").should eq "test"
+        params["test"]?.should eq "test"
       end
     end
 
