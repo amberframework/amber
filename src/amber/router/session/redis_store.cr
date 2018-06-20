@@ -31,7 +31,7 @@ module Amber::Router::Session
     end
 
     def [](key : String | Symbol)
-      return store.hget(session_id, key.to_s) if key?(key.to_s)
+      return store.hget(session_id, key.to_s) if has_key?(key.to_s)
       raise KeyError.new "Missing hash key: #{key.inspect}"
     end
 
@@ -43,7 +43,7 @@ module Amber::Router::Session
       store.hset(session_id, key.to_s, value)
     end
 
-    def key?(key : String | Symbol)
+    def has_key?(key : String | Symbol)
       store.hexists(session_id, key.to_s) == 1 ? true : false
     end
 
@@ -64,7 +64,7 @@ module Amber::Router::Session
     end
 
     def delete(key : String | Symbol)
-      store.hdel(session_id, key.to_s) if key?(key.to_s)
+      store.hdel(session_id, key.to_s) if has_key?(key.to_s)
     end
 
     def fetch(key : String | Symbol, default = nil)

@@ -17,7 +17,7 @@ class <%= class_name %> < Granite::Base
   end
 
   validate :email, "already in use", ->(<%= @name %> : <%= class_name %>) do
-    existing = <%= class_name %>.find_by :email, <%= @name %>.email
+    existing = <%= class_name %>.find_by email: <%= @name %>.email
     !existing
   end
 
