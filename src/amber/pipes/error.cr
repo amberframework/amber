@@ -11,28 +11,28 @@ module Amber
         raise Amber::Exceptions::RouteNotFound.new(context.request) unless context.valid_route?
         call_next(context)
       rescue ex
-        error(ex)
+        error(context, ex)
       end
 
-      def error(ex : ValidationFailed | InvalidParam)
+      def error(context, ex : ValidationFailed | InvalidParam)
         context.response.status_code = 400
         action = Amber::Controller::Error.new(context, ex)
         context.response.print(action.bad_request)
       end
 
-      def error(ex : Forbidden)
+      def error(context, ex : Forbidden)
         context.response.status_code = 403
         action = Amber::Controller::Error.new(context, ex)
         context.response.print(action.forbidden)
       end
 
-      def error(ex : RouteNotFound)
+      def error(context, ex : RouteNotFound)
         context.response.status_code = 404
         action = Amber::Controller::Error.new(context, ex)
         context.response.print(action.not_found)
       end
 
-      def error(ex)
+      def error(context, ex)
         context.response.status_code = 500
         action = Amber::Controller::Error.new(context, ex)
         context.response.print(action.internal_server_error)
