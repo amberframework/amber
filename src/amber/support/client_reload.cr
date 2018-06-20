@@ -46,7 +46,7 @@ module Amber::Support
     end
 
     private def get_timestamp(file : String)
-      File.stat(file).mtime.to_s("%Y%m%d%H%M%S")
+      File.info(file).modification_time.to_s("%Y%m%d%H%M%S")
     end
 
     private def scan_files
