@@ -11,6 +11,7 @@ module Amber::CLI::Helpers::Migration
     CREATE TABLE #{name_plural} (
       #{@primary_key},
       #{create_table_fields_sql}
+    );
     SQL
   end
 
