@@ -34,9 +34,9 @@ matrix:
         - TEST_SUITE=./spec/build_spec.cr
 
 before_script:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo brew services; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo brew services start postgresql; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo brew services start redis; fi
+  - # HACK: https://github.com/travis-ci/travis-ci/issues/1875
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pg_ctl -D /usr/local/var/postgres start; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then launchctl load ~/Library/LaunchAgents/io.redis.redis-server.plist; fi
 
 script:
   - bin/ameba src/ $TEST_SUITE
