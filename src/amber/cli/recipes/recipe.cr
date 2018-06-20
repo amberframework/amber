@@ -18,6 +18,7 @@ module Amber::Recipes
 
   class Recipe
     getter name : String
+    getter name_plural : String
     getter directory : String
     getter recipe : String | Nil
 

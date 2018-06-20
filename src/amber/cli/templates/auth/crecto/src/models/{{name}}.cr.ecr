@@ -3,7 +3,7 @@ require "crypto/bcrypt/password"
 class <%= class_name %> < Crecto::Model
   include Crypto
 
-  schema "<%= @name_plural %>" do
+  schema "<%= name_plural %>" do
   <% @fields.reject{|f| f.hidden }.each do |field| -%>
   field :<%= field.name %>, <%= field.cr_type %>
   <% end -%>

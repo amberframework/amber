@@ -24,6 +24,7 @@ require "./error"
 module Amber::CLI
   class Template
     getter name : String
+    getter name_plural : String
     getter directory : String
     getter fields : Array(String)
 
@@ -35,7 +36,7 @@ module Amber::CLI
         exit 1
       end
 
-      @name_plural = Inflector.pluralize(@name)
+      name_plural = Inflector.pluralize(@name)
       @directory = File.join(directory)
       unless Dir.exists?(@directory)
         Dir.mkdir_p(@directory)

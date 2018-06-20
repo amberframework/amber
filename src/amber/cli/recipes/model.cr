@@ -41,7 +41,7 @@ module Amber::Recipes
     end
 
     def table_name
-      @table_name ||= @name_plural
+      @table_name ||= name_plural
     end
   end
 end
