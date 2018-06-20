@@ -14,7 +14,7 @@ module Amber::CLI
     end
 
     private def add_plugs
-      add_plugs :web, "plug Amber::Pipe::Error.new"
+      add_plugs :web, "plug #{class_name}.new"
     end
 
     private def add_dependencies
