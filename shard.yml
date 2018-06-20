@@ -48,7 +48,7 @@ dependencies:
 
   redis:
     github: stefanwille/crystal-redis
-    version: ~> 1.11.0
+    version: ~> 2.0.0
 
   shell-table:
     github: jwaldrip/shell-table.cr
