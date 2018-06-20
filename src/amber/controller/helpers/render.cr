@@ -51,9 +51,8 @@ module Amber::Controller::Helpers
     end
 
     private macro render_template(filename, path = "src/views")
-      {% full_filename = "#{ {{path}} }/#{ {{filename.id}} }" %}
-      __content_filename__ = {{full_filename}}
-      Kilt.render({{full_filename}})
+      __content_filename__ = "#{{{path}}}/{{filename.id}}"
+      Kilt.render("#{{{path}}}/{{filename.id}}")
     end
   end
 end
