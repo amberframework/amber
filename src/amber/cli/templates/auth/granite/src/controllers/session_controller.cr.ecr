@@ -5,7 +5,7 @@ class SessionController < ApplicationController
   end
 
   def create
-    <%= @name %> = <%= class_name %>.find_by(:email, params["email"].to_s)
+    <%= @name %> = <%= class_name %>.find_by(email: params["email"].to_s)
     if <%= @name %> && <%= @name %>.authenticate(params["password"].to_s)
       session[:<%= @name %>_id] = <%= @name %>.id
       flash[:info] = "Successfully logged in"

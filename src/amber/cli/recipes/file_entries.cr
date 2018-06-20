@@ -23,7 +23,7 @@ module Amber::Recipes
     def pack_liquid(files, absolute_path, filename)
       template = Liquid::Template.parse File.new(absolute_path)
       io = template.render @ctx.as(Liquid::Context)
-      files << ::Teeplate::StringData.new(filename, io.to_s, File.stat(absolute_path).perm)
+      files << ::Teeplate::StringData.new(filename, io.to_s, File.info(absolute_path).permissions)
     rescue ex
       CLI.logger.error "failed to process #{absolute_path} - #{ex.message}"
     end
@@ -32,7 +32,7 @@ module Amber::Recipes
       io = IO::Memory.new
       File.open(absolute_path) { |f| IO.copy(f, io) }
 
-      files << ::Teeplate::Base64Data.new(filename, io.size.to_u64, Base64.encode(io), File.stat(absolute_path).perm)
+      files << ::Teeplate::Base64Data.new(filename, io.size.to_u64, Base64.encode(io), File.info(absolute_path).permissions)
     end
 
     def collect_files(files)
