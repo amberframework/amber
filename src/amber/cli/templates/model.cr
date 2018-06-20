@@ -8,6 +8,7 @@ module Amber::CLI
     @name : String
     @fields : Array(Field)
     @database : String = CLI.config.database
+    @table_name : String?
 
     def initialize(@name, fields)
       @fields = fields.map { |field| Field.new(field, database: @database) }

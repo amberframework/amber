@@ -7,11 +7,12 @@ module Amber::Recipes
 
     @name : String
     @fields : Array(Amber::CLI::Field)
-    @database : String = CLI.config.database
     @model : String = CLI.config.model
+    @database : String = CLI.config.database
 
-    @template : String | Nil
-    @recipe : String | Nil
+    @recipe : String?
+    @template : String?
+    @table_name : String?
 
     def initialize(@name, @recipe, fields)
       @fields = fields.map { |field| Amber::CLI::Field.new(field, database: @database) }
