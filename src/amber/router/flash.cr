@@ -13,7 +13,7 @@ module Amber
         def self.from_session(json)
           flash = new
           values = JSON.parse(json)
-          values.each { |k, v| flash[k.to_s] = v.to_s }
+          values.as_h.each { |k, v| flash[k.to_s] = v.to_s }
           flash
         rescue e : JSON::ParseException
           new

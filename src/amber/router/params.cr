@@ -41,7 +41,7 @@ module Amber::Router
       query[key.to_s] = value
     end
 
-    def key?(key : Types::Key)
+    def has_key?(key : Types::Key)
       self.[key.to_s]?
     end
 
