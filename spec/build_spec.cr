@@ -31,15 +31,19 @@ module Amber::CLI
       puts "RUNNING: amber db drop create migrate - started..."
       MainCommand.run ["db", "drop", "create", "migrate"]
 
-      puts "RUNNING: shards update - started..."
-      system("shards update")
-
-      puts "RUNNING: shards build #{TEST_APP_NAME} - started..."
-      system("shards build #{TEST_APP_NAME}")
-
       it "check formatting on generated files" do
         system("crystal tool format --check src").should be_true
       end
+
+      puts "RUNNING: shards update - started..."
+      system("shards update")
+
+      it "check broken dependencies" do
+        system("shards check").should be_true
+      end
+
+      puts "RUNNING: shards build #{TEST_APP_NAME} - started..."
+      system("shards build #{TEST_APP_NAME}")
 
       it "generates a binary" do
         File.exists?("bin/#{TEST_APP_NAME}").should be_true
