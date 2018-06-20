@@ -90,7 +90,7 @@ module Amber::Router::Session
       end
     end
 
-    describe "#key?" do
+    describe "#has_key?" do
       context "key exists" do
         it "returns true" do
           cookies = new_cookie_store
@@ -98,7 +98,7 @@ module Amber::Router::Session
 
           cookie_store["name"] = "david"
 
-          cookie_store.key?("name").should eq true
+          cookie_store.has_key?("name").should eq true
         end
       end
 
@@ -107,7 +107,7 @@ module Amber::Router::Session
           cookies = new_cookie_store
           cookie_store = RedisStore.new(REDIS_STORE, cookies, "ses", EXPIRES)
 
-          cookie_store.key?("name").should eq false
+          cookie_store.has_key?("name").should eq false
         end
       end
     end
