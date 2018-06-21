@@ -30,18 +30,20 @@ matrix:
         - DEPLOY_DIR=bin/darwin
         - # NOTE: https://developer.apple.com/library/content/qa/qa1118/_index.html
         - STATIC_FLAG=""
+        - PGPORT=5432
     - os: osx
       env:
         - TEST_SUITE=./spec/build_spec.cr
+        - PGPORT=5432
 
 before_script:
   - # HACK: https://apple.stackexchange.com/a/126832
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then openssl version -a; brew link openssl --force; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then openssl version -a; fi
   - # HACK: https://github.com/travis-ci/travis-ci/issues/1875
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services run postgres; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services stop postgres; brew services start postgres; fi
   - # HACK: https://gist.github.com/subfuzion/9631143
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo brew services run redis; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo brew services start redis; fi
 
 script:
   - bin/ameba src/ $TEST_SUITE
