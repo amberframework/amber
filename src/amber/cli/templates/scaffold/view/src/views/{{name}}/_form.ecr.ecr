@@ -8,7 +8,7 @@
 
 
 
-<%="<"%>%- action = (<%= @name %>.id ? "/<%= Inflector.pluralize(@name) %>/" + <%= @name %>.id.to_s : "/<%= Inflector.pluralize(@name) %>") %>
+<%="<"%>%- action = (<%= @name %>.id ? "/<%= name_plural %>/" + <%= @name %>.id.to_s : "/<%= name_plural %>") %>
 <form action="<%="<"%>%= action %>" method="post">
   <%="<"%>%= csrf_tag %>
   <%="<"%>%- if <%= @name %>.id %>
@@ -34,5 +34,5 @@
   </div>
 <% end -%>
   <%="<"%>%= submit("Submit", class: "btn btn-primary btn-sm") -%>
-  <%="<"%>%= link_to("back", "/<%= Inflector.pluralize(@name) %>", class: "btn btn-light btn-sm") -%>
+  <%="<"%>%= link_to("back", "/<%= name_plural %>", class: "btn btn-light btn-sm") -%>
 </form>
