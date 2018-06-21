@@ -18,7 +18,8 @@ matrix:
       env:
         - TEST_SUITE=./spec/amber
         - DEPLOY_DIR=bin/linux
-        - DEPLOY_STATIC="--static"
+        - STATIC_FLAG="--static"
+        - LINK_FLAGS=""
     - os: linux
       dist: trusty
       sudo: required
@@ -28,14 +29,15 @@ matrix:
       env:
         - TEST_SUITE=./spec/amber
         - DEPLOY_DIR=bin/darwin
-        - DEPLOY_STATIC=""
+        - # NOTE: https://developer.apple.com/library/content/qa/qa1118/_index.html
+        - STATIC_FLAG=""
+        - # HACK: https://gitter.im/crystal-lang/crystal?at=5b2b5a06467bd7268c262df8
+        - LINK_FLAGS="--link-flags -L/usr/local/opt/openssl/lib"
     - os: osx
       env:
         - TEST_SUITE=./spec/build_spec.cr
 
 before_script:
-  - # HACK: https://apple.stackexchange.com/a/126832
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo ln -s /usr/local/Cellar/openssl/1.0.2o_2/bin/openssl /usr/local/bin/openssl; fi
   - # HACK: https://github.com/travis-ci/travis-ci/issues/1875
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services run postgres; fi
   - # HACK: https://gist.github.com/subfuzion/9631143
@@ -43,11 +45,11 @@ before_script:
 
 script:
   - bin/ameba src/ $TEST_SUITE
-  - crystal spec $TEST_SUITE
+  - crystal spec $TEST_SUITE $LINK_FLAGS -s
 
 before_deploy:
   - mkdir -p $DEPLOY_DIR
-  - crystal build src/amber/cli.cr -s --release $DEPLOY_STATIC -o $DEPLOY_DIR/amber --no-debug
+  - crystal build src/amber/cli.cr -s --release $STATIC_FLAG $LINK_FLAGS -o $DEPLOY_DIR/amber --no-debug
   - tar -cvzf $DEPLOY_FILENAME $DEPLOY_DIR/amber
 
 deploy:
