@@ -1,6 +1,7 @@
 require "teeplate"
 require "liquid"
 require "base64"
+require "inflector"
 
 require "random/secure"
 require "../helpers/helpers"
@@ -127,7 +128,9 @@ end
 module Teeplate
   abstract class FileTree
     @class_name : String?
+    @name_plural : String?
     @display_name : String?
+    @display_name_plural : String?
 
     # Renders all collected file entries.
     #
@@ -144,12 +147,20 @@ module Teeplate
       entries
     end
 
+    def name_plural
+      @name_plural ||= Inflector.pluralize(@name)
+    end
+
     def class_name
       @class_name ||= @name.camelcase
     end
 
     def display_name
       @display_name ||= generate_display_name
+    end
+
+    def display_name_plural
+      @display_name_plural ||= Inflector.pluralize(display_name)
     end
 
     private def generate_display_name
