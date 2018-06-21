@@ -43,6 +43,8 @@ matrix:
         - LINK_FLAGS="--link-flags -L/usr/local/opt/openssl/lib"
 
 before_script:
+  - # HACK: https://stackoverflow.com/a/13573207/7450793
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo rm -rf /usr/local/var/postgres/postmaster.pid; fi
   - # HACK: https://github.com/travis-ci/travis-ci/issues/1875
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start postgres; fi
   - # HACK: https://gist.github.com/subfuzion/9631143
