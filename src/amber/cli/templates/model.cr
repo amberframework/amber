@@ -1,5 +1,4 @@
 require "./field.cr"
-require "inflector"
 
 module Amber::CLI
   class Model < Teeplate::FileTree
@@ -9,6 +8,7 @@ module Amber::CLI
     @name : String
     @fields : Array(Field)
     @database : String = CLI.config.database
+    @table_name : String?
 
     def initialize(@name, fields)
       @fields = fields.map { |field| Field.new(field, database: @database) }
@@ -22,7 +22,7 @@ module Amber::CLI
     end
 
     def table_name
-      @table_name ||= "#{Inflector.pluralize(@name)}"
+      @table_name ||= name_plural
     end
   end
 end
