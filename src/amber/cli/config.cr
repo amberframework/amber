@@ -12,6 +12,10 @@ module Amber::CLI
     exit 1
   end
 
+  def generate_config
+    File.write(AMBER_YML, CLI.config.to_yaml)
+  end
+
   class Config
     alias Watch = Hash(String, Hash(String, Array(String)))
 
@@ -20,18 +24,34 @@ module Amber::CLI
     getter model : String = "granite"
     getter recipe : String?
     getter recipe_source : String?
-    getter watch : Watch?
+    getter watch : Watch = {
+      "server" => {
+        "files" => [
+          "src/**/*.cr",
+          "src/**/*.#{@language}",
+          "config/**/*.cr"
+        ],
+        "commands" => [
+          "shards build -p --no-color",
+          "bin/#{app_name}"
+        ]
+      }
+    }
 
     def initialize
     end
 
+    private def app_name
+      File.basename(Dir.current)
+    end
+
     YAML.mapping(
-      database: {type: String, default: "pg"},
-      language: {type: String, default: "slang"},
-      model: {type: String, default: "granite"},
+      database: {type: String, default: @database},
+      language: {type: String, default: @language},
+      model: {type: String, default: @model},
       recipe: String?,
       recipe_source: String?,
-      watch: Watch?
+      watch: {type: Watch, default: @watch}
     )
   end
 end

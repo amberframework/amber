@@ -36,10 +36,13 @@ module Amber::CLI::Helpers
     end
 
     def run
-      if watch_object = CLI.config.watch
-        run_watcher(watch_object)
+      if watch_config = CLI.config.watch
+        run_watcher(watch_config)
       else
-        error "Can't find watch settings, please check your .amber.yml file"
+        warn "Can't find watch settings, do you want to add default watch settings? (y/n)"
+        if gets.to_s.lowercase == "y"
+          CLI.generate_config
+        end
         exit 1
       end
     rescue ex : KeyError
@@ -47,14 +50,19 @@ module Amber::CLI::Helpers
       exit 1
     end
 
-    private def run_watcher(watch_object)
-      watch_object.each do |key, value|
-        next if key == "client"
+    private def run_watcher(watch_config)
+      begin
+        server_config = watch_config["server"]
+        spawn watcher("server", server_config["files"], server_config["commands"])
+      rescue ex
+        error "Error in watch configuration. #{ex.message}"
+        exit 1
+      end
+      watch_config.each do |key, value|
+        next if key == "client" || key == "server"
         files = value["files"]
         commands = value["commands"]
-        if key != "server"
-          @notify_counter += 1
-        end
+        @notify_counter += 1
         spawn watcher(key, files, commands)
       end
       @notify_counter_channel.send @notify_counter
@@ -211,7 +219,11 @@ module Amber::CLI::Helpers
     end
 
     private def error(msg)
-      CLI.logger.error msg, "Watcher", :light_red
+      CLI.logger.error msg, "Watcher", :red
+    end
+
+    private def warn(msg)
+      CLI.logger.warn msg, "Watcher", :yellow
     end
   end
 end
