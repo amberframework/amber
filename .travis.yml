@@ -36,8 +36,7 @@ matrix:
 
 before_script:
   - # HACK: https://apple.stackexchange.com/a/126832
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo mv /usr/bin/openssl /usr/bin/openssl_OLD; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo ln -s /usr/local/Cellar/openssl/1.0.2o_2/bin/openssl /usr/bin/openssl; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link openssl --force; openssl version -a; fi
   - # HACK: https://github.com/travis-ci/travis-ci/issues/1875
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services run postgres; fi
   - # HACK: https://gist.github.com/subfuzion/9631143
