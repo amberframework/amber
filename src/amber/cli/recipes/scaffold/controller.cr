@@ -1,5 +1,4 @@
 require "../../templates/field.cr"
-require "inflector"
 
 module Amber::Recipes::Scaffold
   class Controller < Teeplate::FileTree
@@ -34,7 +33,7 @@ module Amber::Recipes::Scaffold
       end
 
       add_routes :web, <<-ROUTE
-        resources "/#{Inflector.pluralize(@name)}", #{class_name}Controller
+        resources "/#{name_plural}", #{class_name}Controller
       ROUTE
     end
 
