@@ -5,7 +5,9 @@ module Amber::Controller::Helpers
     end
 
     def redirect_to(action : Symbol, **args)
-      Redirector.from_controller_action(controller_name, action, **args).redirect(self)
+      Redirector.from_controller_action(
+        controller_name_no_underscore, action, **args
+      ).redirect(self)
     end
 
     def redirect_to(controller : Symbol | Class, action : Symbol, **args)

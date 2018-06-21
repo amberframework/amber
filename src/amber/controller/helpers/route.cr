@@ -15,5 +15,9 @@ module Amber::Controller::Helpers
     def controller_name
       self.class.name.sub(/Controller$/, "").underscore
     end
+
+    def controller_name_no_underscore
+      controller_name.tr("_", "")
+    end
   end
 end
