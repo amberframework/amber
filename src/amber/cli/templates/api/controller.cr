@@ -1,5 +1,4 @@
 require "../field.cr"
-require "inflector"
 
 module Amber::CLI::Api
   class Controller < Teeplate::FileTree
@@ -23,7 +22,7 @@ module Amber::CLI::Api
       field_hash
 
       add_routes :api, <<-ROUTE
-        resources "/#{Inflector.pluralize(@name)}", #{class_name}Controller, except: [:new, :edit]
+        resources "/#{name_plural}", #{class_name}Controller, except: [:new, :edit]
       ROUTE
     end
 

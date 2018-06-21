@@ -33,7 +33,7 @@ module Amber::Controller::Helpers
       redirect(route, **options)
     end
 
-    def self.from_controller_action(controller : Symbol, action : Symbol, **options)
+    def self.from_controller_action(controller : Symbol | String, action : Symbol, **options)
       route = Amber::Server.router.match_by_controller_action("#{controller}controller", action)
       redirect(route, **options)
     end
