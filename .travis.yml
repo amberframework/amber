@@ -47,7 +47,8 @@ before_script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rm -rf /usr/local/var/postgres; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then initdb /usr/local/var/postgres; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start postgres; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then createuser -s postgres; fi
+  - # NOTE: https://github.com/docker-library/postgres/issues/146
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then while ! pg_isready; do sleep 1; done; createuser -s postgres; fi
   - # HACK: https://gist.github.com/subfuzion/9631143
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install redis; brew services start redis; fi
 
