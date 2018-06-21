@@ -6,8 +6,6 @@
   </ul>
 <%="<"%>%- end %>
 
-
-
 <%="<"%>%- action = (<%= @name %>.id ? "/<%= name_plural %>/" + <%= @name %>.id.to_s : "/<%= name_plural %>") %>
 <form action="<%="<"%>%= action %>" method="post">
   <%="<"%>%= csrf_tag %>
@@ -21,13 +19,13 @@
    when "text" -%>
     <%="<"%>%= text_area(name: "<%= field.name -%>", content: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control", size: "30x10") -%>
 <% when "boolean" -%>
-  <%="<"%>%= label(<%=":#{field.name}"%>, class: "form-check-label") do
+  <%="<"%>%= label(<%=":#{field.name}"%>) do
     check_box(<%=":#{field.name}, checked: #{@name}.#{field.name}.to_s == \"1\""%>,
               class: "form-check-input")
   end -%>
 <% when "reference" -%>
     <%="<"%>%= label(<%=":#{field.name}"%>) -%>
-    <%="<"%>%= select_field(name: "<%= field.name %>_id", collection: <%= field.name.capitalize %>.all.map{|<%= field.name %>| [<%= field.name %>.id, <%= field.name %>.id]}, selected: <%= @name %>.<%= field.name %>_id, class: "form-control") -%>
+    <%="<"%>%= select_field(name: "<%= field.name %>_id", collection: <% if @model == "crecto" %>Repo.all(<%= field.name.capitalize %>)<% else %><%= field.name.capitalize %>.all<% end %>.map{|<%= field.name %>| [<%= field.name %>.id, <%= field.name %>.id]}, selected: <%= @name %>.<%= field.name %>_id, class: "form-control") -%>
 <% else -%>
     <%="<"%>%= text_field(name: "<%= field.name %>", value: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control") -%>
 <% end -%>

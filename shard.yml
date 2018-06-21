@@ -5,7 +5,7 @@ version: 0.7.2
 authors:
   - Amber Team and Contributors <amberframework.org>
 
-crystal: 0.24.1
+crystal: 0.25.0
 
 license: MIT
 
