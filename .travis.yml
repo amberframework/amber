@@ -16,32 +16,33 @@ matrix:
       dist: trusty
       sudo: required
       env:
-        - TEST_SUITE=./spec/amber
+        - TEST_SUITE=./spec/amber_spec.cr
         - DEPLOY_DIR=bin/linux
         - STATIC_FLAG="--static"
+        - LINK_FLAGS=""
     - os: linux
       dist: trusty
       sudo: required
       env:
         - TEST_SUITE=./spec/build_spec.cr
+        - LINK_FLAGS=""
     - os: osx
       env:
-        - TEST_SUITE=./spec/amber
+        - TEST_SUITE=./spec/amber_spec.cr
         - DEPLOY_DIR=bin/darwin
         - # NOTE: https://developer.apple.com/library/content/qa/qa1118/_index.html
         - STATIC_FLAG=""
         - PGPORT=5432
         - PGHOST=localhost
+        - LINK_FLAGS="--link-flags -L/usr/local/opt/openssl/lib"
     - os: osx
       env:
         - TEST_SUITE=./spec/build_spec.cr
         - PGPORT=5432
         - PGHOST=localhost
+        - LINK_FLAGS="--link-flags -L/usr/local/opt/openssl/lib"
 
 before_script:
-  - # HACK: https://apple.stackexchange.com/a/126832
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then openssl version -a; sudo ln -sf /usr/local/Cellar/openssl/1.0.2o_2/bin/openssl /usr/local/bin/openssl; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then openssl version -a; fi
   - # HACK: https://github.com/travis-ci/travis-ci/issues/1875
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start postgres; fi
   - # HACK: https://gist.github.com/subfuzion/9631143
@@ -49,7 +50,8 @@ before_script:
 
 script:
   - bin/ameba src/ $TEST_SUITE
-  - crystal spec $TEST_SUITE -s
+  - # HACK: https://github.com/crystal-lang/crystal/issues/6231
+  - crystal run $TEST_SUITE -s $LINK_FLAGS
 
 before_deploy:
   - mkdir -p $DEPLOY_DIR
