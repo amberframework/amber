@@ -12,12 +12,12 @@ module Amber
     # ```
     class Reload < Base
       def initialize(@env : Amber::Environment::Env = Amber.env)
-        Support::ClientReload.new
+        Support::ClientReload.new.run
       end
 
       def call(context : HTTP::Server::Context)
         if @env.development? && context.format == "html"
-          context.response << Support::ClientReload::INJECTED_CODE
+          context.response.headers["Client-Reload"] = %(true)
         end
         call_next(context)
       end

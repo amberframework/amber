@@ -1,28 +1,77 @@
+require "../cli/helpers/file_watcher"
+require "../cli/helpers/helpers"
+require "../cli/config"
+
 module Amber::Support
   # Used by `Amber::Pipe::Reload`
   #
   # Allow clients browser reloading using WebSockets and file watchers.
   struct ClientReload
-    FILE_TIMESTAMPS = {} of String => String
-    WEBSOCKET_PATH  = rand(0x10000000).to_s(36)
-    SESSIONS        = [] of HTTP::WebSocket
+    SESSIONS  = [] of HTTP::WebSocket
+    PROCESSES = [] of Process
+    AMBER_YML = ".amber.yml"
+
+    @file_watcher = FileWatcher.new
+    @app_running = false
 
     def initialize
-      create_reload_server
-      @app_running = false
-      spawn run
+      at_exit do
+        kill_client_processes
+      end
+    end
+
+    def config
+      if File.exists?(AMBER_YML)
+        CLI::Config.from_yaml(File.read(AMBER_YML))
+      else
+        CLI::Config.new
+      end
     end
 
     def run
+      if watch_config = config.watch
+        run_watcher(watch_config)
+      else
+        warn "Can't find watch settings, do you want to add default watch settings? (y/n)"
+        if gets.to_s.lowercase == "y"
+          generate_config
+        end
+        exit 1
+      end
+    rescue ex : KeyError
+      error "Error in watch configuration. #{ex.message}"
+      exit 1
+    end
+
+    private def generate_config
+      File.write(AMBER_YML, config.to_yaml)
+    end
+
+    private def run_watcher(watch_config)
+      entries = watch_config["client"]
+      commands = entries["commands"]
+      files = entries["files"]
+      if files.empty?
+        run_commands(commands)
+      else
+        spawn watcher(files, commands)
+      end
+      create_reload_server
+    rescue ex
+      error "Error in watch configuration. #{ex.message}"
+      exit 1
+    end
+
+    private def watcher(files, commands)
       loop do
-        scan_files
+        scan_files(files, commands)
         @app_running = true
         sleep 1
       end
     end
 
     private def create_reload_server
-      Amber::WebSockets::Server::Handler.new "/#{WEBSOCKET_PATH}" do |session|
+      Amber::WebSockets::Server::Handler.new "/client-reload" do |session|
         SESSIONS << session
         session.on_close do
           SESSIONS.delete session
@@ -30,9 +79,19 @@ module Amber::Support
       end
     end
 
-    private def reload_clients(msg)
-      SESSIONS.each do |session|
-        session.@ws.send msg
+    def scan_files(files, commands)
+      file_counter = 0
+      @file_watcher.scan_files(files) do |file|
+        if @app_running
+          debug "File changed: #{file}"
+        end
+        file_counter += 1
+        check_file(file)
+      end
+      if file_counter > 0
+        debug "Watching #{file_counter} client files..."
+        kill_client_processes
+        run_commands(commands)
       end
     end
 
@@ -45,75 +104,35 @@ module Amber::Support
       end
     end
 
-    private def get_timestamp(file : String)
-      File.info(file).modification_time.to_s("%Y%m%d%H%M%S")
-    end
-
-    private def scan_files
-      file_counter = 0
-      Dir.glob(["public/**/*"]) do |file|
-        timestamp = get_timestamp(file)
-        if FILE_TIMESTAMPS[file]? != timestamp
-          if @app_running
-            log "File changed: ./#{file.colorize(:light_gray)}"
-          end
-          FILE_TIMESTAMPS[file] = timestamp
-          file_counter += 1
-          check_file(file)
-        end
-      end
-      if file_counter > 0
-        log "Watching #{file_counter} files (browser reload)..."
+    private def reload_clients(msg)
+      SESSIONS.each do |session|
+        session.@ws.send msg
       end
     end
 
-    def log(message)
-      Amber.logger.info(message, "Watcher", :light_gray)
+    private def run_commands(commands)
+      commands.each do |command|
+        PROCESSES << CLI::Helpers.run(command)
+      end
     end
 
-    # Code from https://github.com/tapio/live-server/blob/master/injected.html
-    INJECTED_CODE = <<-HTML
-    <!-- Code injected by Amber Framework -->
-    <script type="text/javascript">
-      // <![CDATA[  <-- For SVG support
-      if ('WebSocket' in window) {
-        (function() {
-          function refreshCSS() {
-            console.log('Reloading CSS...');
-            var sheets = [].slice.call(document.getElementsByTagName('link'));
-            var head = document.getElementsByTagName('head')[0];
-            for (var i = 0; i < sheets.length; ++i) {
-              var elem = sheets[i];
-              var rel = elem.rel;
-              if (elem.href && typeof rel != 'string' || rel.length == 0 || rel.toLowerCase() == 'stylesheet') {
-                head.removeChild(elem);
-                var url = elem.href.replace(/(&|\\?)_cacheOverride=\\d+/, '');
-                elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
-                head.appendChild(elem);
-              }
-            }
-          }
-          var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-          var address = protocol + window.location.host + '/#{WEBSOCKET_PATH}';
-          var socket = new WebSocket(address);
-          socket.onmessage = function(msg) {
-            if (msg.data == 'reload') {
-              window.location.reload();
-            } else if (msg.data == 'refreshcss') {
-              refreshCSS();
-            }
-          };
-          socket.onclose = function() {
-            console.log('Conection closed!');
-            setTimeout(function() {
-                window.location.reload();
-            }, 1000);
-          }
-          console.log('Live reload enabled.');
-        })();
-      }
-      // ]]>
-    </script>\n
-    HTML
+    private def kill_client_processes
+      PROCESSES.each do |process|
+        process.kill unless process.terminated?
+        PROCESSES.delete(process)
+      end
+    end
+
+    private def debug(msg)
+      Amber.logger.debug msg, "Watcher", :light_gray
+    end
+
+    private def error(msg)
+      Amber.logger.error msg, "Watcher", :red
+    end
+
+    private def warn(msg)
+      CLI.logger.warn msg, "Watcher", :yellow
+    end
   end
 end
