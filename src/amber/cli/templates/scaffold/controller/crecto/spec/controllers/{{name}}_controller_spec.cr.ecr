@@ -41,7 +41,7 @@ describe <%= class_name %>ControllerTest do
 
   it "renders <%= @name %> index template" do
     Repo.delete_all(<%= class_name %>)
-    response = subject.get "/<%= Inflector.pluralize(@name) %>"
+    response = subject.get "/<%= name_plural %>"
 
     response.status_code.should eq(200)
     response.body.should contain("<%= display_name %>s")
@@ -50,7 +50,7 @@ describe <%= class_name %>ControllerTest do
   it "renders <%= @name %> show template" do
     Repo.delete_all(<%= class_name %>)
     model = create_<%= @name.downcase %>
-    location = "/<%= Inflector.pluralize(@name) %>/#{model.id}"
+    location = "/<%= name_plural %>/#{model.id}"
 
     response = subject.get location
 
@@ -60,7 +60,7 @@ describe <%= class_name %>ControllerTest do
 
   it "renders <%= @name %> new template" do
     Repo.delete_all(<%= class_name %>)
-    location = "/<%= Inflector.pluralize(@name) %>/new"
+    location = "/<%= name_plural %>/new"
 
     response = subject.get location
 
@@ -71,7 +71,7 @@ describe <%= class_name %>ControllerTest do
   it "renders <%= @name %> edit template" do
     Repo.delete_all(<%= class_name %>)
     model = <%= create_model_method %>
-    location = "/<%= Inflector.pluralize(@name) %>/#{model.id}/edit"
+    location = "/<%= name_plural %>/#{model.id}/edit"
 
     response = subject.get location
 
@@ -81,9 +81,9 @@ describe <%= class_name %>ControllerTest do
 
   it "creates a <%= @name %>" do
     Repo.delete_all(<%= class_name %>)
-    response = subject.post "/<%= Inflector.pluralize(@name) %>", body: <%= params_name %>
+    response = subject.post "/<%= name_plural %>", body: <%= params_name %>
 
-    response.headers["Location"].should eq "/<%= Inflector.pluralize(@name) %>"
+    response.headers["Location"].should eq "/<%= name_plural %>"
     response.status_code.should eq(302)
     response.body.should eq "302"
   end
@@ -91,9 +91,9 @@ describe <%= class_name %>ControllerTest do
   it "updates a <%= @name %>" do
     Repo.delete_all(<%= class_name %>)
     model = <%= create_model_method %>
-    response = subject.patch "/<%= Inflector.pluralize(@name) %>/#{model.id}", body: <%= params_name %>
+    response = subject.patch "/<%= name_plural %>/#{model.id}", body: <%= params_name %>
 
-    response.headers["Location"].should eq "/<%= Inflector.pluralize(@name) %>"
+    response.headers["Location"].should eq "/<%= name_plural %>"
     response.status_code.should eq(302)
     response.body.should eq "302"
   end
@@ -101,9 +101,9 @@ describe <%= class_name %>ControllerTest do
   it "deletes a <%= @name %>" do
     Repo.delete_all(<%= class_name %>)
     model = <%= create_model_method %>
-    response = subject.delete "/<%= Inflector.pluralize(@name) %>/#{model.id}"
+    response = subject.delete "/<%= name_plural %>/#{model.id}"
 
-    response.headers["Location"].should eq "/<%= Inflector.pluralize(@name) %>"
+    response.headers["Location"].should eq "/<%= name_plural %>"
     response.status_code.should eq(302)
     response.body.should eq "302"
   end

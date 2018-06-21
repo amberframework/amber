@@ -7,7 +7,7 @@ require "kilt"
 require "kilt/slang"
 require "redis"
 require "compiled_license"
-require "inflector"
+
 require "./amber/version"
 require "./amber/controller/**"
 require "./amber/dsl/**"
