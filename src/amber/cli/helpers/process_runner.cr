@@ -126,26 +126,30 @@ module Amber::CLI::Helpers
         PROCESSES << {process, "server"}
         loop do
           if process.terminated?
-            exit_status = process.wait.exit_status
-            if error_io.empty?
-              if exit_status.zero?
-                if @watch_running
-                  kill_processes("server")
-                else
-                  notify_next_processes
-                end
-                next_server_commands_range.each { @wait_build.send true }
-              else
-                next_server_commands_range.each { @wait_build.send false }
-              end
-            else
-              handle_error(error_io.to_s)
-              next_server_commands_range.each { @wait_build.send false }
-            end
+            handle_terminaded_process(process, error_io)
             break
           end
           sleep 1
         end
+      end
+    end
+
+    private def handle_terminaded_process(process, error_io)
+      exit_status = process.wait.exit_status
+      if error_io.empty?
+        if exit_status.zero?
+          if @watch_running
+            kill_processes("server")
+          else
+            notify_next_processes
+          end
+          next_server_commands_range.each { @wait_build.send true }
+        else
+          next_server_commands_range.each { @wait_build.send false }
+        end
+      else
+        handle_error(error_io.to_s)
+        next_server_commands_range.each { @wait_build.send false }
       end
     end
 
