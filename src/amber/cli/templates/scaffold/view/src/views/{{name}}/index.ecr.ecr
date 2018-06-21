@@ -20,7 +20,7 @@
     <%="<"%>%- <%= name_plural %>.each do |<%= @name %>| %>
       <tr>
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
-        <td><%="<"%>%= <%= @name %>.<%= field.name %><%= field.reference? ? ".id" : "" %> %></td>
+        <td><%="<"%>%= <%= @name %>.<%= field.name %><% if field.reference? %><% if @model == "crecto" %>_id<% else %>.id<% end %><% end %> %></td>
 <% end -%>
         <td>
           <span>

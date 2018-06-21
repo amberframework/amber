@@ -10,6 +10,11 @@ cache:
     - lib
     - .shards
 
+env:
+  global:
+    - PGPORT=5432
+    - PGHOST=localhost
+
 matrix:
   include:
     - os: linux
@@ -19,27 +24,29 @@ matrix:
         - TEST_SUITE=./spec/amber_spec.cr
         - DEPLOY_DIR=bin/linux
         - STATIC_FLAG="--static"
-        - LINK_FLAGS=""
     - os: linux
       dist: trusty
       sudo: required
       env:
-        - TEST_SUITE=./spec/build_spec.cr
-        - LINK_FLAGS=""
+        - TEST_SUITE=./spec/build_spec_granite.cr
+    - os: linux
+      dist: trusty
+      sudo: required
+      env:
+        - TEST_SUITE=./spec/build_spec_crecto.cr
     - os: osx
       env:
         - TEST_SUITE=./spec/amber_spec.cr
         - DEPLOY_DIR=bin/darwin
-        - # NOTE: https://developer.apple.com/library/content/qa/qa1118/_index.html
-        - STATIC_FLAG=""
-        - PGPORT=5432
-        - PGHOST=localhost
+        - # NOTE: why no static flag on osx? https://developer.apple.com/library/content/qa/qa1118/_index.html
         - LINK_FLAGS="--link-flags -L/usr/local/opt/openssl/lib"
     - os: osx
       env:
-        - TEST_SUITE=./spec/build_spec.cr
-        - PGPORT=5432
-        - PGHOST=localhost
+        - TEST_SUITE=./spec/build_spec_granite.cr
+        - LINK_FLAGS="--link-flags -L/usr/local/opt/openssl/lib"
+    - os: osx
+      env:
+        - TEST_SUITE=./spec/build_spec_crecto.cr
         - LINK_FLAGS="--link-flags -L/usr/local/opt/openssl/lib"
 
 before_script:
@@ -70,7 +77,7 @@ deploy:
   on:
     branch: stable
     repo: amberframework/amber
-    condition: $TEST_SUITE = ./spec/amber
+    condition: $TEST_SUITE = ./spec/amber_spec.cr
 
 notifications:
   webhooks:
