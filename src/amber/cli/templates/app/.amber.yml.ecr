@@ -3,7 +3,7 @@ database: <%= @database %>
 language: <%= @language %>
 model: <%= @model %>
 watch:
-  server: # required: the first command for this task is blocking
+  server: # Required: the first command for this task is blocking
     files:
       - "src/**/*.cr"
       - "src/**/*.<%= @language %>"
@@ -12,12 +12,12 @@ watch:
       - "crystal build -o bin/<%= @name %> src/<%= @name %>.cr -p --no-color"
       - "bin/<%= @name %>"
 
-  client: # optional: these files changes trigger browser reloading
+  client: # Optional: these files changes trigger browser reloading
     files:
       - "public/**/*"
     commands: []
 
-  webpack: # optional: compiles assets using webpack
+  webpack: # Optional: compiles assets using webpack
     files: [] # webpack already manage this
     commands:
       - "npm install --loglevel=error"
