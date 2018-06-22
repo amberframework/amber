@@ -1,74 +1,61 @@
 class <%= class_name %>Controller < ApplicationController
+  getter <%= @name %> = <%= class_name %>.new
+
+  before_action do
+    only [:show, :edit, :update, :destroy] { set_<%= @name %> }
+  end
+
   def index
     <%= name_plural %> = <%= class_name %>.all
     render("index.<%= @language %>")
   end
 
   def show
-    if <%= @name %> = <%= class_name %>.find params["id"]
-      render("show.<%= @language %>")
-    else
-      flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
-      redirect_to "/<%= name_plural %>"
-    end
+    render("show.<%= @language %>")
   end
 
   def new
-    <%= @name %> = <%= class_name %>.new
     render("new.<%= @language %>")
+  end
+
+  def edit
+    render("edit.<%= @language %>")
+  end
+
+  def update
+    <%= @name %>.set_attributes(<%= @name %>_params.validate!)
+    if <%= @name %>.save
+      redirect_to action: :index, flash: {"success" => "Updated <%= @name %> successfully."}
+    else
+      flash["danger"] = "Could not update <%= class_name %>!"
+      render("edit.<%= @language %>")
+    end
   end
 
   def create
     <%= @name %> = <%= class_name %>.new(<%= @name %>_params.validate!)
-
-    if <%= @name %>.valid? && <%= @name %>.save
-      flash["success"] = "Created <%= class_name %> successfully."
-      redirect_to "/<%= name_plural %>"
+    if <%= @name %>.save
+      redirect_to action: :index, flash: {"success" => "Created <%= @name %> successfully."}
     else
       flash["danger"] = "Could not create <%= class_name %>!"
       render("new.<%= @language %>")
     end
   end
 
-  def edit
-    if <%= @name %> = <%= class_name %>.find params["id"]
-      render("edit.<%= @language %>")
-    else
-      flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
-      redirect_to "/<%= name_plural %>"
-    end
-  end
-
-  def update
-    if <%= @name %> = <%= class_name %>.find(params["id"])
-      <%= @name %>.set_attributes(<%= @name %>_params.validate!)
-      if <%= @name %>.valid? && <%= @name %>.save
-        flash["success"] = "Updated <%= class_name %> successfully."
-        redirect_to "/<%= name_plural %>"
-      else
-        flash["danger"] = "Could not update <%= class_name %>!"
-        render("edit.<%= @language %>")
-      end
-    else
-      flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
-      redirect_to "/<%= name_plural %>"
-    end
-  end
-
   def destroy
-    if <%= @name %> = <%= class_name %>.find params["id"]
-      <%= @name %>.destroy
-    else
-      flash["warning"] = "<%= class_name %> with ID #{params["id"]} Not Found"
-    end
-    redirect_to "/<%= name_plural %>"
+    <%= @name %>.destroy
+    redirect_to action: :index, flash: {"success" => "Deleted <%= @name %> successfully."}
   end
 
-  def <%= @name %>_params
+  private def <%= @name %>_params
     params.validation do
       <%- @fields_hash.keys.each do |k| -%>
       required(:<%= k %>) { |f| !f.nil? }
       <%- end -%>
     end
+  end
+
+  private def set_<%= @name %>
+    @<%= @name %> = <%= class_name %>.find! params[:id]
   end
 end

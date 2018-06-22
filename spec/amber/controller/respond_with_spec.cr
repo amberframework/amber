@@ -172,7 +172,6 @@ module Amber::Controller
         context.response.headers["Location"].should eq "/some_path"
         context.response.status_code.should eq 301
       end
-
     end
   end
 end
