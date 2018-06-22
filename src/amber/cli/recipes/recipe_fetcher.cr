@@ -12,7 +12,6 @@ module Amber::Recipes
     end
 
     def fetch
-
       if Dir.exists?(@directory)
         return @directory
       end

@@ -5,7 +5,9 @@ module Amber::Controller::Helpers
     end
 
     def redirect_to(action : Symbol, **args)
-      Redirector.from_controller_action(controller_name, action, **args).redirect(self)
+      Redirector.from_controller_action(
+        controller_name_no_underscore, action, **args
+      ).redirect(self)
     end
 
     def redirect_to(controller : Symbol | Class, action : Symbol, **args)
@@ -33,7 +35,7 @@ module Amber::Controller::Helpers
       redirect(route, **options)
     end
 
-    def self.from_controller_action(controller : Symbol, action : Symbol, **options)
+    def self.from_controller_action(controller : Symbol | String, action : Symbol, **options)
       route = Amber::Server.router.match_by_controller_action("#{controller}controller", action)
       redirect(route, **options)
     end

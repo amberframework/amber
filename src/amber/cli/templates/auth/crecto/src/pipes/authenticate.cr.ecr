@@ -6,7 +6,7 @@ class Authenticate < Amber::Pipe::Base
   PUBLIC_PATHS = ["/", "/signin", "/session", "/signup", "/registration"]
 
   def call(context)
-    <%= @name %>_id = context.session["<%= @name %>_id"]? 
+    <%= @name %>_id = context.session["<%= @name %>_id"]?
     if <%= @name %> = Repo.get(<%= class_name %>, <%= @name %>_id)
       context.current_<%= @name %> = <%= @name %>
       call_next(context)

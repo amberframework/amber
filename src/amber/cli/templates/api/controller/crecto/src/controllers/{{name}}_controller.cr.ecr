@@ -1,8 +1,8 @@
 class <%= class_name %>Controller < ApplicationController
   def index
-    <%= Inflector.pluralize(@name) %> = Repo.all(<%= class_name %>)
+    <%= name_plural %> = Repo.all(<%= class_name %>)
     respond_with 200 do
-      json <%= Inflector.pluralize(@name) %>.to_json
+      json <%= name_plural %>.to_json
     end
   end
 

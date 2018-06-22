@@ -3,7 +3,7 @@
     - <%= @model == "crecto" ? "changeset" : @name %>.errors.each do |error|
       li = error.to_s
 
-== form(action: "/<%= Inflector.pluralize(@name) -%>/#{<%= @name -%>.id.to_s}", method: <%= @name %>.id ? :patch : :post) do
+== form(action: "/<%= name_plural -%>/#{<%= @name -%>.id.to_s}", method: <%= @name %>.id ? :patch : :post) do
   == csrf_tag
 <%- @fields.reject{|f| f.hidden }.each do |field| -%>
   .form-group
@@ -15,10 +15,10 @@
         == check_box(<%=":#{field.name}, checked: #{@name}.#{field.name}.to_s == \"1\""%>)
   <%- when "reference" -%>
     == label(<%=":#{field.name}"%>)
-    == select_field(name: "<%= field.name %>_id", collection: <%= field.name.capitalize %>.all.map{|<%= field.name %>| [<%= field.name %>.id, <%= field.name %>.id]}, selected: <%= @name %>.<%= field.name %>_id, class: "form-control")
+    == select_field(name: "<%= field.name %>_id", collection: <% if @model == "crecto" %>Repo.all(<%= field.name.capitalize %>)<% else %><%= field.name.capitalize %>.all<% end %>.map{|<%= field.name %>| [<%= field.name %>.id, <%= field.name %>.id]}, selected: <%= @name %>.<%= field.name %>_id, class: "form-control")
   <%- else -%>
     == text_field(name: "<%= field.name %>", value: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control")
   <%- end -%>
 <%- end -%>
   == submit("Submit", class: "btn btn-primary btn-sm")
-  == link_to("back", "/<%= Inflector.pluralize(@name) %>", class: "btn btn-light btn-sm")
+  == link_to("back", "/<%= name_plural %>", class: "btn btn-light btn-sm")
