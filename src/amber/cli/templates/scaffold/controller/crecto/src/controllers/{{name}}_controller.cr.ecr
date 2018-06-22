@@ -62,6 +62,6 @@ class <%= class_name %>Controller < ApplicationController
   end
 
   private def set_<%= @name %>
-    @<%= @name %> = Repo.get(<%= class_name %>, params[:id]).not_nil!
+    @<%= @name %> = Repo.get!(<%= class_name %>, params[:id])
   end
 end
