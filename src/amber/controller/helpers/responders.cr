@@ -1,6 +1,5 @@
 module Amber::Controller::Helpers
   module Responders
-
     alias ProcType = Proc(String) | Proc(Int32)
 
     class Content
@@ -55,13 +54,13 @@ module Amber::Controller::Helpers
 
       def body
         @body ||= begin
-           case _body = @available_responses[type]?
-           when Proc
-              _body.call
-           else
-             _body
-           end
-         end
+          case _body = @available_responses[type]?
+          when Proc
+            _body.call
+          else
+            _body
+          end
+        end
       end
 
       private def select_type
