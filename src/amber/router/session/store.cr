@@ -1,9 +1,9 @@
 module Amber::Router::Session
   class Store
     STORES = {
-      :redis => RedisStore,
+      :redis            => RedisStore,
       :encrypted_cookie => CookieStore,
-      :signed_cookie => CookieStore
+      :signed_cookie    => CookieStore,
     }
 
     getter config : Hash(Symbol, Symbol | String | Int32)

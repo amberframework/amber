@@ -8,7 +8,6 @@ module Amber::Router::Session
 
     describe CookieStore do
       context "#{store_type.class}" do
-
         Spec.before_each do
           subject.destroy
         end
@@ -36,8 +35,8 @@ module Amber::Router::Session
           end
 
           it "accepts symbol as key" do
-            subject[:name] = "Fake Name"  
-            
+            subject[:name] = "Fake Name"
+
             subject[:name].should eq "Fake Name"
           end
 
