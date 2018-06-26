@@ -41,7 +41,7 @@ if ('WebSocket' in window) {
         var socket = new WebSocket(address);
         socket.onmessage = function (msg) {
             if (msg.data == 'reload') {
-                window.location.reload();
+                tryReload();
             } else if (msg.data == 'refreshcss') {
                 refreshCSS();
             }
