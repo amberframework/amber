@@ -1,56 +1,53 @@
 module Amber::Controller::Helpers
   module Responders
+    TYPE_EXT_REGEX         = /\.(#{TYPE.keys.join("|")})$/
+    ACCEPT_SEPARATOR_REGEX = /,|,\s/
+    TYPE = {
+      html: "text/html",
+      json: "application/json",
+      txt:  "text/plain",
+      text: "text/plain",
+      xml:  "application/xml",
+    }
+
     alias ProcType = Proc(String) | Proc(Int32)
 
     class Content
-      TYPE = {
-        html: "text/html",
-        json: "application/json",
-        txt:  "text/plain",
-        text: "text/plain",
-        xml:  "application/xml",
-      }
-
-      TYPE_EXT_REGEX         = /\.(#{TYPE.keys.join("|")})$/
-      ACCEPT_SEPARATOR_REGEX = /,|,\s/
-
+      @type : String?
       @requested_responses : Array(String)
       @available_responses = Hash(String, String | ProcType).new
-      @type : String? = nil
       @body : String | Int32 | Nil = nil
 
       def initialize(@requested_responses)
       end
 
       def html(html : String | ProcType)
-        @available_responses[TYPE[:html]] = html; self
-      end
-
-      def xml(xml : String | ProcType)
-        @available_responses[TYPE[:xml]] = xml; self
-      end
-
-      def json(json : String)
-        json
+        @available_responses[TYPE[:html]] = html
         self
       end
 
-      def json(json : ProcType)
-        @available_responses[TYPE[:json]] = json
+      def text(text : String | ProcType)
+        @available_responses[TYPE[:text]] = text
+        self
+      end
+
+      def xml(xml : String | ProcType)
+        @available_responses[TYPE[:xml]] = xml
+        self
+      end
+
+      def json(json : String | ProcType)
+        @availabie_responses[TYPE[:json]] = json
         self
       end
 
       def json(json : Hash(Symbol | String, String))
-        json.to_json
+        @available_responses[TYPE[:json]] = json.to_json
         self
       end
 
       def json(**args : Object)
         json(args.to_h)
-      end
-
-      def text(text : String | ProcType)
-        @available_responses[TYPE[:text]] = text; self
       end
 
       def type
@@ -80,7 +77,7 @@ module Amber::Controller::Helpers
       end
     end
 
-    def set_response(body, status_code = 200, content_type = Content::TYPE[:html])
+    def set_response(body, status_code = 200, content_type = TYPE[:html])
       if context.response.status_code == 200
         context.response.status_code = status_code
       else
@@ -91,14 +88,14 @@ module Amber::Controller::Helpers
     end
 
     private def extension_request_type
-      path_ext = request.path.match(Content::TYPE_EXT_REGEX).try(&.[1])
-      return [Content::TYPE[path_ext]] if path_ext
+      path_ext = request.path.match(TYPE_EXT_REGEX).try(&.[1])
+      return [TYPE[path_ext]] if path_ext
     end
 
     private def accepts_request_type
       accept = context.request.headers["Accept"]?
       if accept && !accept.empty?
-        accepts = accept.split(";").first?.try(&.split(Content::ACCEPT_SEPARATOR_REGEX))
+        accepts = accept.split(";").first?.try(&.split(ACCEPT_SEPARATOR_REGEX))
         return accepts if !accepts.nil? && accepts.any?
       end
     end
@@ -112,7 +109,7 @@ module Amber::Controller::Helpers
       if content.body
         set_response(body: content.body.to_s, status_code: status_code, content_type: content.type)
       else
-        set_response(body: "Response Not Acceptable.", status_code: 406, content_type: Content::TYPE[:text])
+        set_response(body: "Response Not Acceptable.", status_code: 406, content_type: TYPE[:text])
       end
     end
   end
