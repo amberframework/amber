@@ -22,7 +22,6 @@ module Amber::Controller::Helpers
       def initialize(@requested_responses)
       end
 
-      # TODO: add JS type similar to rails.
       def html(html : String | ProcType)
         @available_responses[TYPE[:html]] = html; self
       end
@@ -31,12 +30,18 @@ module Amber::Controller::Helpers
         @available_responses[TYPE[:xml]] = xml; self
       end
 
-      def json(json : String | ProcType | Hash(Symbol | String, String))
-        if json.is_a?(Proc)
-          @available_responses[TYPE[:json]] = json
-        else
-          @available_responses[TYPE[:json]] = json.is_a?(String) ? json : json.to_json
-        end
+      def json(json : String)
+        json
+        self
+      end
+
+      def json(json : ProcType)
+        @available_responses[TYPE[:json]] = json
+        self
+      end
+
+      def json(json : Hash(Symbol | String, String))
+        json.to_json
         self
       end
 
