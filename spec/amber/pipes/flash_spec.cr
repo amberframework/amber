@@ -44,7 +44,7 @@ module Amber
           flash_store.fetch(:some_key).should eq "some_value"
         end
 
-        it "supports default value" do
+        it "returns the default value" do
           flashes = {"some_key" => "some_value"}
           json = flashes.to_json
           flash_store = Flash::FlashStore.from_session json
