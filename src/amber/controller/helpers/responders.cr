@@ -1,42 +1,40 @@
 module Amber::Controller::Helpers
   module Responders
-    TYPE_EXT_REGEX         = /\.(#{TYPE.keys.join("|")})$/
-    ACCEPT_SEPARATOR_REGEX = /,|,\s/
-    TYPE                   = {
-      "html" => "text/html",
-      "json" => "application/json",
-      "txt" =>  "text/plain",
-      "text" => "text/plain",
-      "xml" =>  "application/xml",
-    }
-
     alias ProcType = Proc(String) | Proc(Int32)
 
     class Content
+      UNACCEPTABLE = "Response Not Acceptable."
       SUPPORTED_CONTENT_TYPES = %w[html json xml text]
       @content = {} of String => String? | Int32 | ProcType
 
-      def initialize(@type : String)
+      def initialize(@request_type : String)
       end
 
       {% for type in SUPPORTED_CONTENT_TYPES %}
-        def {{type.id}}(content : Object)
-          @content[{{type}}] ||= body(content) if @type == {{type}}
+        def {{type.id}}(content)
+          mime_type = mime({{type}})
+          @content[mime_type] ||= body(content) if @request_type == mime_type
           self
         end
       {% end %}
 
       def json(**args : Object)
-        @content["json"] ||= body(args.to_h)
+        @content["application/json"] ||= body(args.to_h)
         self
       end
 
       def response
-        case content = @content[@type]
+        case content = @content[@request_type]?
         when Proc then content.call
+        when Nil then UNACCEPTABLE
         else content
         end
       end
+
+      def unacceptable?
+        response == UNACCEPTABLE
+      end
+
 
       private def body(content : String | ProcType)
         content
@@ -45,17 +43,26 @@ module Amber::Controller::Helpers
       private def body(content : Hash(String | Symbol, String))
         content.to_json
       end
+
+      private def mime(type)
+        Amber::Support::MimeTypes.mime_type(type)
+      end
     end
 
     protected def respond_with(status_code = 200, &block)
-      content = with Content.new(content_format) yield
-      context.response.status_code = status_code
-      context.response.content_type = TYPE[content_format]
+      content = with Content.new(mime_type) yield
+      status_code = content.unacceptable? ? 406 : status_code
+      response.status_code = status_code
+      response.content_type = mime_type
       context.content = content.response.to_s
     end
 
     private def content_format
       format || "html"
+    end
+
+    private def mime_type
+      Amber::Support::MimeTypes.mime_type(content_format)
     end
   end
 end
