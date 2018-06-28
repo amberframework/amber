@@ -73,10 +73,10 @@ module Sentry
     private def create_all_processes
       process = create_watch_process
       @processes << process if process.is_a? Process
-      unless @npm_process
-        create_npm_process
-        @npm_process = true
-      end
+
+      return if Amber::CLI.config.api_only || @npm_process
+      create_npm_process
+      @npm_process = true
     end
 
     private def build_app_process
