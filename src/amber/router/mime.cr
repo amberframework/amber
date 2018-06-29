@@ -11,10 +11,10 @@ module Amber::Router
     # Returns the Mime Type for a given format or file extname.
     #
     # ```
-    # Amber::Support::Mime.type("json")                  # => "application/json"
-    # Amber::Support::Mime.type(".jpg")                  # => "image/jpeg"
-    # Amber::Support::Mime.type("unknown")               # => "application/octet-stream"
-    # Amber::Support::Mime.type("unknown", "text/plain") # => "text/plain"
+    # Amber::Router::Mime.type("json")                  # => "application/json"
+    # Amber::Router::Mime.type(".jpg")                  # => "image/jpeg"
+    # Amber::Router::Mime.type("unknown")               # => "application/octet-stream"
+    # Amber::Router::Mime.type("unknown", "text/plain") # => "text/plain"
     # ```
     def self.type(format, fallback = DEFAULT_TYPE)
       format = format[1..-1] if format.starts_with?('.')
