@@ -42,7 +42,7 @@ describe HTTP::Server::Context do
      ics:   "text/calendar"}.each do |format, content_type|
       it "gets request format for #{content_type}" do
         headers = HTTP::Headers.new
-        headers[Amber::Support::MimeTypes::FORMAT_HEADER] = content_type
+        headers[Amber::Router::Mime::FORMAT_HEADER] = content_type
         request = HTTP::Request.new("GET", "/", headers)
         context = create_context(request)
         context.format.should eq format.to_s

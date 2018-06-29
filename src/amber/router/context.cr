@@ -2,6 +2,7 @@ require "./request"
 require "./cookies"
 require "./session"
 require "./flash"
+require "./mime"
 
 class HTTP::Server::Context
   METHODS = %i(get post put patch delete head)
@@ -49,7 +50,7 @@ class HTTP::Server::Context
   {% end %}
 
   def format
-    Amber::Support::MimeTypes.get_request_format(request)
+    Amber::Router::Mime.get_request_format(request)
   end
 
   def port

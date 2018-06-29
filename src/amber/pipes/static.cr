@@ -80,14 +80,13 @@ module Amber
       end
 
       private def mime_type(path)
-        Support::MimeTypes.mime_type File.extname(path)
+        Amber::Router::Mime.type File.extname(path)
       end
 
       private def serve_file(env, path : String, mime_type : String? = nil)
         config = static_config
         file_path = File.expand_path(path, Dir.current)
-        mime_type ||= mime_type(file_path)
-        env.response.content_type = mime_type
+        env.response.content_type = mime_type(file_path)
         env.response.headers["Accept-Ranges"] = "bytes"
         env.response.headers["X-Content-Type-Options"] = "nosniff"
         minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
@@ -97,12 +96,12 @@ module Amber
           if env.request.method == "GET" && env.request.headers.has_key?("Range")
             next multipart(file, env)
           end
-          if request_headers.includes_word?("Accept-Encoding", "gzip") && config.is_a?(Hash) && config["gzip"] == true && filesize > minsize && Support::MimeTypes.zip_types(file_path)
+          if request_headers.includes_word?("Accept-Encoding", "gzip") && config.is_a?(Hash) && config["gzip"] == true && filesize > minsize && Router::Mime.zip_types(file_path)
             env.response.headers["Content-Encoding"] = "gzip"
             Gzip::Writer.open(env.response) do |deflate|
               IO.copy(file, deflate)
             end
-          elsif request_headers.includes_word?("Accept-Encoding", "deflate") && config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Support::MimeTypes.zip_types(file_path)
+          elsif request_headers.includes_word?("Accept-Encoding", "deflate") && config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Router::Mime.zip_types(file_path)
             env.response.headers["Content-Encoding"] = "deflate"
             Flate::Writer.open(env.response) do |deflate|
               IO.copy(file, deflate)
