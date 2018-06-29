@@ -4,17 +4,17 @@ require "uuid"
 module Amber::Router::Session
   class RedisStore < AbstractStore
     @id : String?
-    getter store : Redis
+    getter store : Redis = Redis.new(url: Amber.settings.redis_url.to_s)
     property expires : Int32
     property key : String
     property session_id : String
-    property cookies : Amber::Router::Cookies::Store
+    property cookies : Cookies::EncryptedStore | Cookies::SignedStore
 
-    def self.build(store, cookies, session)
-      new(store, cookies, session[:key].to_s, session[:expires].to_i)
+    def self.build(cookies, session)
+      new(cookies, session[:key].to_s, session[:expires].to_i)
     end
 
-    def initialize(@store, @cookies, @key, @expires = 120)
+    def initialize(@cookies, @key, @expires = 120)
       @session_id = current_session || "#{key}:#{id}"
     end
 
@@ -36,7 +36,7 @@ module Amber::Router::Session
     end
 
     def []?(key : String | Symbol)
-      fetch(key.to_s, nil)
+      fetch(key.to_s, false)
     end
 
     def []=(key : String | Symbol, value)
@@ -77,7 +77,7 @@ module Amber::Router::Session
     end
 
     def set_session
-      cookies.encrypted.set(key, session_id, expires: expires_at, http_only: true)
+      cookies.set(key, session_id, expires: expires_at, http_only: true)
 
       store.pipelined do |pipeline|
         pipeline.hset(session_id, key, session_id)
@@ -90,7 +90,7 @@ module Amber::Router::Session
     end
 
     def current_session
-      cookies.encrypted[key]
+      cookies[key]
     end
   end
 end
