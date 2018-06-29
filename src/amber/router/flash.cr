@@ -34,8 +34,25 @@ module Amber
           fetch key.to_s
         end
 
+        def fetch(key : String, default_value : String?)
+          @read << key
+          super
+        end
+
+        def fetch(key : Symbol, default_value : String?)
+          fetch key.to_s, default_value
+        end
+
         def []=(key : Symbol, value : String)
           self[key.to_s] = value
+        end
+
+        def []?(key : Symbol)
+          fetch(key.to_s, nil)
+        end
+
+        def []?(key : String)
+          fetch(key, nil)
         end
 
         def each
