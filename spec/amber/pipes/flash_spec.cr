@@ -44,11 +44,29 @@ module Amber
           flash_store.fetch(:some_key).should eq "some_value"
         end
 
+        it "returns the default value" do
+          flashes = {"some_key" => "some_value"}
+          json = flashes.to_json
+          flash_store = Flash::FlashStore.from_session json
+
+          flash_store.fetch(:some_other_key, "default").should eq "default"
+        end
+
         it "marks the value as read" do
           flashes = {"some_key" => "some_value"}
           json = flashes.to_json
           flash_store = Flash::FlashStore.from_session json
           flash_store.fetch("some_key")
+          flash_store = Flash::FlashStore.from_session flash_store.to_session
+
+          flash_store.has_key?("some_key").should be_false
+        end
+
+        it "marks the value as read for default value implementation" do
+          flashes = {"some_key" => "some_value"}
+          json = flashes.to_json
+          flash_store = Flash::FlashStore.from_session json
+          flash_store.fetch("some_key", nil)
           flash_store = Flash::FlashStore.from_session flash_store.to_session
 
           flash_store.has_key?("some_key").should be_false
@@ -135,6 +153,24 @@ module Amber
           flash_store[:some_key] = "some_value"
 
           flash_store["some_key"].should eq "some_value"
+        end
+
+        it "supports []? with Symbol" do
+          flashes = {"some_key" => "some_value"}
+          json = flashes.to_json
+          flash_store = Flash::FlashStore.from_session json
+
+          flash_store[:some_other_key]?.should eq nil
+          flash_store[:some_key]?.should eq "some_value"
+        end
+
+        it "supports []? with String" do
+          flashes = {"some_key" => "some_value"}
+          json = flashes.to_json
+          flash_store = Flash::FlashStore.from_session json
+
+          flash_store["some_other_key"]?.should eq nil
+          flash_store["some_key"]?.should eq "some_value"
         end
       end
     end
