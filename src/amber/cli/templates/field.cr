@@ -86,5 +86,10 @@ module Amber::CLI
     def reference?
       self.type == "reference"
     end
+
+    def class_name
+      Inflector.classify(@name)
+    end
+
   end
 end
