@@ -79,6 +79,5 @@ module Amber::Recipes
         end
       end
     end
-
   end
 end
