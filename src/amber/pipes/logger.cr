@@ -7,7 +7,7 @@ module Amber
 
       def initialize(@filter : Params = log_config.filter,
                      @skip : Params = log_config.skip,
-                     @context : Params = log_config.context)
+                     @context : Array(String) = log_config.context)
       end
 
       def call(context : HTTP::Server::Context)

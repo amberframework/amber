@@ -42,6 +42,7 @@ describe Amber do
           server.logger = Amber::Environment::Logger.new(STDOUT)
           server.logger.level = ::Logger::INFO
           server.logging.colorize = false
+          server.logging.context = %w(request headers cookies session params)
         end
 
         settings = Amber.settings
@@ -50,6 +51,7 @@ describe Amber do
         settings.port.should eq 8080
         settings.logging.colorize.should eq false
         settings.secret_key_base.should eq "ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4"
+        settings.logging.context.should eq %w(request headers cookies session params)
       end
 
       it "retains environment.yml settings that haven't been overwritten" do

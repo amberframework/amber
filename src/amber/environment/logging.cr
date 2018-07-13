@@ -5,7 +5,7 @@ module Amber::Environment
       colorize: Bool,
       filter: Array(String?),
       skip: Array(String?),
-      context: Array(String?))
+      context: Array(String))
 
     SEVERITY_MAP = {
       "debug":   Logger::DEBUG,
@@ -21,12 +21,12 @@ module Amber::Environment
       colorize: true,
       filter:   ["password", "confirm_password"] of String?,
       skip:     [] of String?,
-      context:  ["request", "headers", "cookies", "session", "params"] of String?,
+      context:  ["request", "headers", "cookies", "session", "params"],
     }
 
     setter severity : String
     property colorize : Bool,
-      context : Array(String?),
+      context : Array(String),
       skip : Array(String?),
       filter : Array(String?)
 
