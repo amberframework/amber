@@ -43,6 +43,8 @@ describe Amber do
           server.logger.level = ::Logger::INFO
           server.logging.colorize = false
           server.logging.context = %w(request headers cookies session params)
+          server.logging.filter = %w(password confirm_password)
+          # server.logging.skip = %w()
         end
 
         settings = Amber.settings
@@ -52,6 +54,8 @@ describe Amber do
         settings.logging.colorize.should eq false
         settings.secret_key_base.should eq "ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4"
         settings.logging.context.should eq %w(request headers cookies session params)
+        settings.logging.filter.should eq %w(password confirm_password)
+        # settings.logging.skip.should eq %w()
       end
 
       it "retains environment.yml settings that haven't been overwritten" do

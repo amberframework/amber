@@ -3,8 +3,8 @@ module Amber::Environment
     alias OptionsType = NamedTuple(
       severity: String,
       colorize: Bool,
-      filter: Array(String?),
-      skip: Array(String?),
+      filter: Array(String),
+      skip: Array(String),
       context: Array(String))
 
     SEVERITY_MAP = {
@@ -19,16 +19,16 @@ module Amber::Environment
     DEFAULTS = {
       severity: "debug",
       colorize: true,
-      filter:   ["password", "confirm_password"] of String?,
-      skip:     [] of String?,
+      filter:   ["password", "confirm_password"],
+      skip:     [] of String,
       context:  ["request", "headers", "cookies", "session", "params"],
     }
 
     setter severity : String
     property colorize : Bool,
       context : Array(String),
-      skip : Array(String?),
-      filter : Array(String?)
+      skip : Array(String),
+      filter : Array(String)
 
     def initialize(logging : OptionsType)
       @colorize = logging[:colorize]

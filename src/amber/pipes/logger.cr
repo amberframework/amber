@@ -1,13 +1,13 @@
 module Amber
   module Pipe
     class Logger < Base
-      alias Params = Array(String?)
+      alias Params = Array(String)
       Colorize.enabled = Amber.settings.logging.colorize
       FILTERED_TEXT = "FILTERED".colorize(:white).mode(:underline)
 
       def initialize(@filter : Params = log_config.filter,
                      @skip : Params = log_config.skip,
-                     @context : Array(String) = log_config.context)
+                     @context : Params = log_config.context)
       end
 
       def call(context : HTTP::Server::Context)
