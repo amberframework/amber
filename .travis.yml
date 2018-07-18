@@ -1,5 +1,3 @@
-dist: trusty
-sudo: required
 language: crystal
 
 services:
@@ -13,13 +11,73 @@ cache:
     - .shards
 
 env:
-  - TEST_SUITE=./spec/build_spec_granite.cr
-  - TEST_SUITE=./spec/build_spec_crecto.cr
-  - TEST_SUITE=./spec/amber
+  global:
+    - PGPORT=5432
+    - PGHOST=localhost
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+      env:
+        - TEST_SUITE=./spec/amber_spec.cr
+        - DEPLOY_DIR=bin/linux
+        - STATIC_FLAG="--static"
+    - os: linux
+      dist: trusty
+      sudo: required
+      env:
+        - TEST_SUITE=./spec/build_spec_granite.cr
+    - os: linux
+      dist: trusty
+      sudo: required
+      env:
+        - TEST_SUITE=./spec/build_spec_crecto.cr
+    - os: osx
+      env:
+        - TEST_SUITE=./spec/amber_spec.cr
+        - DEPLOY_DIR=bin/darwin
+        - # NOTE: why no static flag on osx? https://developer.apple.com/library/content/qa/qa1118/_index.html
+        - LINK_FLAGS="--link-flags -L/usr/local/opt/openssl/lib"
+    - os: osx
+      env:
+        - TEST_SUITE=./spec/build_spec_granite.cr
+        - LINK_FLAGS="--link-flags -L/usr/local/opt/openssl/lib"
+    - os: osx
+      env:
+        - TEST_SUITE=./spec/build_spec_crecto.cr
+        - LINK_FLAGS="--link-flags -L/usr/local/opt/openssl/lib"
+
+before_script:
+  - # HACK: https://github.com/travis-ci/travis-ci/issues/1875#issuecomment-263847183
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rm -rf /usr/local/var/postgres; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then initdb /usr/local/var/postgres; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start postgres; fi
+  - # NOTE: https://github.com/docker-library/postgres/issues/146
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then while ! pg_isready; do sleep 1; done; createuser -s postgres; fi
+  - # HACK: https://gist.github.com/subfuzion/9631143
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install redis; brew services start redis; fi
 
 script:
   - bin/ameba src/ $TEST_SUITE
-  - crystal spec $TEST_SUITE
+  - # HACK: https://github.com/crystal-lang/crystal/issues/6231
+  - crystal run $TEST_SUITE -s $LINK_FLAGS
+
+before_deploy:
+  - mkdir -p $DEPLOY_DIR
+  - crystal build src/amber/cli.cr -s --release $STATIC_FLAG -o $DEPLOY_DIR/amber --no-debug
+  - tar -cvzf $DEPLOY_FILENAME $DEPLOY_DIR/amber
+
+deploy:
+  provider: releases
+  api_key: $API_KEY
+  file: $DEPLOY_FILENAME
+  skip_cleanup: true
+  on:
+    branch: stable
+    repo: amberframework/amber
+    condition: $TEST_SUITE = ./spec/amber_spec.cr
 
 notifications:
   webhooks:
