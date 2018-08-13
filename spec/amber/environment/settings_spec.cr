@@ -26,5 +26,11 @@ module Amber::Environment
       settings.ssl_key_file.should be_nil
       settings.ssl_cert_file.should be_nil
     end
+
+    it "loads logging color setting from yaml file" do
+      color_yaml = File.read(File.expand_path("./spec/support/config/test_with_color.yml"))
+      settings = Amber::Settings.from_yaml(color_yaml)
+      settings.logging.color.should eq :red
+    end
   end
 end

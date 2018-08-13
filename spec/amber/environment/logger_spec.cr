@@ -24,5 +24,34 @@ module Amber::Environment
         end
       end
     end
+    describe "#color" do
+      it "logs messages with passed color attribute" do
+        IO.pipe do |r, w|
+          logger = Logger.new(w)
+          Colorize.enabled = true
+          logger.info "Test", "Amber", :blue
+          r.gets.should match(/\[34mAmber/)
+        end
+      end
+      it "logs messages with default color attribute" do
+        IO.pipe do |r, w|
+          logger = Logger.new(w)
+          logger.progname = "Amber"
+          Colorize.enabled = true
+          logger.info "Test"
+          r.gets.should match(/\[96mAmber/)
+        end
+      end
+      it "logs messages when #color is used" do
+        IO.pipe do |r, w|
+          logger = Logger.new(w)
+          logger.progname = "Amber"
+          logger.color = :green
+          Colorize.enabled = true
+          logger.info "Test"
+          r.gets.should match(/\[32mAmber/)
+        end
+      end
+    end
   end
 end
