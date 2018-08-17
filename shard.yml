@@ -16,7 +16,7 @@ targets:
 dependencies:
   amber_router:
     github: amberframework/amber-router
-    version: ~> 0.1.0
+    version: ~> 0.2.0
 
   cli:
     github: mosop/cli
@@ -51,8 +51,8 @@ dependencies:
     version: ~> 2.0.0
 
   shell-table:
-    github: jwaldrip/shell-table.cr
-    version: ~> 0.9.2
+    github: luckyframework/shell-table.cr
+    commit: 078a04ea58ead5203bb435a3b5fff448ddabaeea
 
   slang:
     github: jeromegn/slang

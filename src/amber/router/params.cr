@@ -68,7 +68,13 @@ module Amber::Router
       params_hash = Types::Params.new
       query.each { |key, _| params_hash[key] = query[key] }
       form.each { |key, _| params_hash[key] = form[key] }
-      route.each_key { |key| params_hash[key] = route[key] }
+
+      route.each_key do |key|
+        if value = route[key]
+          params_hash[key] = value
+        end
+      end
+
       json.each_key { |key| params_hash[key] = json[key].to_s }
       multipart.each_key { |key| params_hash[key] = multipart[key].to_s }
       params_hash
