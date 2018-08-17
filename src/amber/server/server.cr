@@ -56,7 +56,13 @@ module Amber
       logger.info "#{version.colorize(:light_cyan)} serving application \"#{settings.name.capitalize}\" at #{host_url.colorize(:light_cyan).mode(:underline)}"
       handler.prepare_pipelines
       server = HTTP::Server.new(handler)
-      server.tls = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls if ssl_enabled?
+
+      if ssl_enabled?
+        ssl_config = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls
+        server.bind_ssl Amber.settings.host, Amber.settings.port, ssl_config
+      else
+        server.bind_tcp Amber.settings.host, Amber.settings.port
+      end
 
       Signal::INT.trap do
         Signal::INT.reset
