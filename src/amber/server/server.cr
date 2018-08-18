@@ -74,7 +74,7 @@ module Amber
         begin
           logger.info "Server started in #{Amber.env.colorize(:yellow)}."
           logger.info "Startup Time #{Time.now - time}".colorize(:white)
-          server.listen(settings.host, settings.port, settings.port_reuse)
+          server.listen
           break
         rescue e : Errno
           if e.errno == Errno::EMFILE
