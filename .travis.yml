@@ -19,6 +19,7 @@ env:
 
 script:
   - bin/ameba src/ $TEST_SUITE
+  - crystal tool format --check
   - crystal spec $TEST_SUITE
 
 notifications:
