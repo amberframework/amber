@@ -90,6 +90,5 @@ module Amber::CLI
     def class_name
       Inflector.classify(@name)
     end
-
   end
 end
