@@ -35,10 +35,10 @@ class <%= class_name %>ControllerTest < GarnetSpec::Controller::Test
   def initialize
     @handler = Amber::Pipe::Pipeline.new
     @handler.build :web do
-      plug Amber::Pipe::Error.new
+      plug <%= class_name %>.new
     end
     @handler.build :static do
-      plug Amber::Pipe::Error.new
+      plug <%= class_name %>.new
     end
     @handler.prepare_pipelines
   end

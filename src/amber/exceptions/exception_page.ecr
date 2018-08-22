@@ -1,0 +1,860 @@
+<!-- This Amber Framework exception page is based on Phoenix Framework exception page by Rico Sta. Cruz (@rstacruz) -->
+<%-
+accent = "#e57310"
+highlight = "#ebe1d7"
+red_highlight = "#ffe5e5"
+light_accent = "#c0bda0"
+gray = "#807e60"
+line_color = "#eee"
+text_color = "#271708"
+logo_uri = "data:image/png;base64,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"
+monospace_font = "menlo, consolas, monospace"
+-%>
+<!DOCTYPE html>
+<html>
+<head>
+    <%
+        details = @message.split('\n')
+        headline = details.first
+    %>
+    <meta charset="utf-8">
+    <title><%= @title %> at <%= @method %> <%= @path %> - <%= headline %></title>
+    <meta name="viewport" content="width=device-width">
+    <style>/*! normalize.css v4.2.0 | MIT License | github.com/necolas/normalize.css */html{font-family:sans-serif;line-height:1.15;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}article,aside,details,figcaption,figure,footer,header,main,menu,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block}audio:not([controls]){display:none;height:0}progress{vertical-align:baseline}template,[hidden]{display:none}a{background-color:transparent;-webkit-text-decoration-skip:objects}a:active,a:hover{outline-width:0}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}b,strong{font-weight:inherit}b,strong{font-weight:bolder}dfn{font-style:italic}h1{font-size:2em;margin:0.67em 0}mark{background-color:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-0.25em}sup{top:-0.5em}img{border-style:none}svg:not(:root){overflow:hidden}code,kbd,pre,samp{font-family:monospace, monospace;font-size:1em}figure{margin:1em 40px}hr{box-sizing:content-box;height:0;overflow:visible}button,input,optgroup,select,textarea{font:inherit;margin:0}optgroup{font-weight:bold}button,input{overflow:visible}button,select{text-transform:none}button,html [type="button"],[type="reset"],[type="submit"]{-webkit-appearance:button}button::-moz-focus-inner,[type="button"]::-moz-focus-inner,[type="reset"]::-moz-focus-inner,[type="submit"]::-moz-focus-inner{border-style:none;padding:0}button:-moz-focusring,[type="button"]:-moz-focusring,[type="reset"]:-moz-focusring,[type="submit"]:-moz-focusring{outline:1px dotted ButtonText}fieldset{border:1px solid #c0c0c0;margin:0 2px;padding:0.35em 0.625em 0.75em}legend{box-sizing:border-box;color:inherit;display:table;max-width:100%;padding:0;white-space:normal}textarea{overflow:auto}[type="checkbox"],[type="radio"]{box-sizing:border-box;padding:0}[type="number"]::-webkit-inner-spin-button,[type="number"]::-webkit-outer-spin-button{height:auto}[type="search"]{-webkit-appearance:textfield;outline-offset:-2px}[type="search"]::-webkit-search-cancel-button,[type="search"]::-webkit-search-decoration{-webkit-appearance:none}::-webkit-input-placeholder{color:inherit;opacity:0.54}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}</style>
+    <style>
+    html, body, td, input {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html {
+        font-size: 15px;
+        line-height: 1.6;
+        background: #fff;
+        color: <%= text_color %>;
+    }
+
+    @media (max-width: 768px) {
+        html {
+             font-size: 14px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        html {
+             font-size: 13px;
+        }
+    }
+
+    button:focus,
+    summary:focus {
+        outline: 0;
+    }
+
+    summary {
+        cursor: pointer;
+    }
+
+    pre {
+        font-family: <%= monospace_font %>;
+        overflow: auto;
+        max-width: 100%;
+    }
+
+    .top-details {
+        padding: 48px;
+        background: #f9f9fa;
+    }
+
+    .top-details,
+    .conn-info {
+        padding: 48px;
+    }
+
+
+    @media (max-width: 768px) {
+        .top-details,
+        .conn-info {
+            padding: 32px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .top-details,
+        .conn-info {
+            padding: 16px;
+        }
+    }
+
+    /*
+     * Exception logo
+     */
+
+    .exception-logo {
+        position: absolute;
+        right: 48px;
+        top: 48px;
+        width: 64px;
+    }
+
+    .exception-logo:before {
+        content: '';
+        display: block;
+        height: 64px;
+        width: 100%;
+        background-size: auto 100%;
+        background-image: url("<%= logo_uri %>");
+        background-position: right 0;
+        background-repeat: no-repeat;
+    }
+
+    @media (max-width: 768px) {
+        .exception-logo {
+            position: static;
+        }
+
+        .exception-logo:before {
+            height: 32px;
+            background-position: left 0;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .exception-logo {
+            display: none;
+        }
+    }
+
+    /*
+     * Exception info
+     */
+
+    /* Compensate for logo placement */
+    @media (min-width: 769px) {
+        .exception-info {
+            max-width: 90%;
+        }
+    }
+
+    .exception-info > .struct,
+    .exception-info > .title,
+    .exception-info > .detail {
+        margin: 0;
+        padding: 0;
+    }
+
+    .exception-info > .struct {
+        font-size: 1em;
+        font-weight: 700;
+        color: <%= accent %>;
+    }
+
+    .exception-info > .struct > small {
+        font-size: 1em;
+        color: <%= light_accent %>;
+        font-weight: 400;
+    }
+
+    .exception-info > .title {
+        font-size: <%= 1.2 ** 4 %>em;
+        line-height: 1.4;
+        font-weight: 300;
+        color: <%= accent %>;
+    }
+
+    @media (max-width: 768px) {
+        .exception-info > .title {
+            font-size: <%= 1.15 **  4 %>em;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .exception-info > .title {
+            font-size: <%= 1.1 ** 4 %>em;
+        }
+    }
+
+    .exception-info > .detail {
+        margin-top: 1.3em;
+        white-space: pre;
+    }
+
+    /*
+     * Code explorer
+     */
+
+    .code-explorer {
+      margin: 32px 0 0 0;
+    }
+
+    @media (max-width: 768px) {
+        .code-explorer {
+            margin-top: 16px;
+        }
+    }
+
+    .code-explorer:after {
+        content: '';
+        display: table;
+        clear: both;
+        zoom: 1;
+    }
+
+    .code-explorer > .code-snippets {
+        float: left;
+        width: 45%;
+    }
+
+    .code-explorer > .stack-trace {
+        float: right;
+        width: 55%;
+        padding-left: 32px;
+    }
+
+    /* Collapse to single-column */
+    @media (max-width: 960px) {
+        .code-explorer > .code-snippets {
+            float: none;
+            width: auto;
+            margin-bottom: 16px;
+        }
+
+        .code-explorer > .stack-trace {
+            float: none;
+            width: auto;
+            padding-left: 0;
+        }
+    }
+
+    /*
+     * Snippets
+     */
+
+    .code-snippets {
+    }
+
+    /*
+     * Frame info:
+     * Holds the code (code-block) and more
+     */
+
+    .frame-info {
+        background: white;
+        box-shadow:
+            0 1px 3px rgba(80, 100, 140, .1),
+            0 8px 15px rgba(80, 100, 140, .05);
+    }
+
+    .frame-info > .meta,
+    .frame-info > .file {
+        padding: 12px 16px;
+        white-space: no-wrap;
+        font-size: <%= 1.2 ** -1 %>em;
+    }
+
+    @media (max-width: 480px) {
+        .frame-info > .meta,
+        .frame-info > .file {
+            padding: 6px 16px;
+            font-size: <%= 1.1 ** -1 %>em;
+        }
+    }
+
+    .frame-info > .file > a {
+        text-decoration: none;
+        color: <%= text_color %>;
+        font-weight: 700;
+    }
+
+    .frame-info > .code {
+        border-top: solid 1px <%= line_color %>;
+        border-bottom: solid 1px <%= line_color %>;
+    }
+
+    /* Hiding */
+    .frame-info {
+        display: none;
+    }
+
+    .frame-info.-active {
+        display: block;
+    }
+
+    .frame-info > details.meta {
+        padding: 0;
+    }
+
+    .frame-info > details.meta > summary {
+        padding: 12px 16px;
+    }
+
+    /*
+     * Frame details
+     */
+
+    .frame-summary.-short {
+        color: <%= light_accent %>;
+    }
+
+    .frame-summary > .app {
+        color: <%= accent %>;
+        font-weight: 700;
+    }
+
+    .frame-summary > .app:after {
+        content: '·';
+        margin: 0 .2em;
+    }
+
+    /*
+     * Code block:
+     * The `pre` that holds the code
+     */
+
+    .code-block {
+        margin: 0;
+        padding: 12px 0;
+        font-size: .8em;
+        line-height: 1.4;
+        white-space: normal;
+    }
+
+    .code-block > .line {
+        white-space: pre;
+        display: block;
+        padding: 0 16px;
+    }
+
+    /* Line highlight */
+    .code-block > .line.-highlight {
+        background-color: <%= highlight %>;
+        -webkit-animation: line-highlight 750ms linear;
+        animation: line-highlight 750ms linear;
+    }
+
+    @-webkit-keyframes line-highlight {
+        0% { background-color: <%= highlight %>; }
+        25% { background-color: <%= red_highlight %>; }
+        50% { background-color: <%= highlight %>; }
+        75% { background-color: <%= red_highlight %>; }
+    }
+
+    @keyframes line-highlight {
+        0% { background-color: <%= highlight %>; }
+        25% { background-color: <%= red_highlight %>; }
+        50% { background-color: <%= highlight %>; }
+        75% { background-color: <%= red_highlight %>; }
+    }
+
+    .code-block > .line > .ln {
+        color: <%= light_accent %>;
+        margin-right: 1.5em;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    .code-block > .line > .code {
+        font-family: <%= monospace_font %>;
+    }
+
+    /*
+     * Empty code
+     */
+
+    .code-block-empty {
+        text-align: center;
+        color: <%= light_accent %>;
+        padding-top: 48px;
+        padding-bottom: 48px;
+    }
+
+    /*
+     * Stack trace heading
+     */
+
+    .stack-trace-heading {
+        padding-top: 8px;
+    }
+
+    .stack-trace-heading:after {
+        content: '';
+        display: block;
+        clear: both;
+        zoom: 1;
+        border-bottom: solid 1px <%= line_color %>;
+        padding-top: 12px;
+        margin-bottom: 16px;
+    }
+
+    .stack-trace-heading > h3 {
+        display: none;
+    }
+
+    .stack-trace-heading > label {
+        display: block;
+        padding-left: 8px;
+        line-height: 1.9;
+        font-size: <%= 1.2 ** -1 %>em;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    .stack-trace-heading > label > input {
+        margin-right: .3em;
+    }
+
+    @media (max-width: 480px) {
+        .stack-trace-heading > label {
+            font-size: <%= 1.1 ** -1 %>em;
+        }
+    }
+
+    /*
+     * Stack trace
+     */
+
+    .stack-trace-list,
+    .stack-trace-list > li {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+    }
+
+    .stack-trace-list > li > .stack-trace-item.-all {
+        display: none;
+    }
+
+    .stack-trace-list.-show-all > li > .stack-trace-item.-all {
+        display: block;
+    }
+
+    /*
+     * Stack trace item:
+     * The clickable line to inspect a stack trace
+     */
+
+    .stack-trace-item {
+        font-size: <%= 1.2 ** -1 %>em;
+        display: block;
+        width: 100%;
+        border: 0;
+        margin: 0;
+        padding: 4px 8px;
+        background: transparent;
+        cursor: pointer;
+        text-align: left;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .stack-trace-item:hover,
+    .stack-trace-item:focus {
+        background-color: rgba(80, 100, 140, 0.05);
+    }
+
+    .stack-trace-item,
+    .stack-trace-item:active {
+        color: <%= text_color %>;
+    }
+
+    .stack-trace-item:active {
+        background-color: rgba(80, 100, 140, 0.1);
+    }
+
+    .stack-trace-item.-active {
+        background-color: white;
+    }
+
+    /* Circle */
+    .stack-trace-item > .left:before {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: <%= light_accent %>;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+
+    .stack-trace-item.-app > .left:before {
+        background: <%= accent %>;
+        opacity: 1;
+    }
+
+    .stack-trace-item.-app > .left > .app {
+        display: none;
+    }
+
+    .stack-trace-item > .left {
+        float: left;
+        max-width: 55%;
+    }
+
+    .stack-trace-item > .info {
+        color: <%= gray %>;
+        float: right;
+        max-width: 45%;
+    }
+
+    .stack-trace-item > .left,
+    .stack-trace-item > .info {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .stack-trace-item > .left > .filename > .line {
+        color: <%= light_accent %>;
+    }
+
+    /* App name */
+    .stack-trace-item > .left > .app {
+        color: <%= light_accent %>;
+    }
+
+    .stack-trace-item > .left > .app:after {
+        content: '·';
+        margin: 0 .2em;
+    }
+
+    /*
+     * Code as a blockquote:
+     * Like `pre` but with wrapping
+     */
+
+    .code-quote {
+        font-family: <%= monospace_font %>;
+        font-size: <%= 1.2 ** -1 %>em;
+        margin: 0;
+        overflow: auto;
+        max-width: 100%;
+        word-wrap: break-word;
+        white-space: normal;
+    }
+
+    .code-quote.-padded {
+        padding: 0 16px 16px 16px;
+    }
+
+    /*
+     * Conn info
+     */
+
+    .conn-info {
+        border-top: solid 1px <%= line_color %>;
+    }
+
+    /*
+     * Conn details
+     */
+
+    .conn-details {
+    }
+
+    .conn-details + .conn-details {
+        margin-top: 16px;
+    }
+
+    .conn-details > summary {
+    }
+
+    .conn-details > dl {
+        display: block;
+        overflow: hidden;
+        margin: 0;
+        padding: 4px 0;
+        border-bottom: solid 1px <%= line_color %>;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .conn-details > dl:first-of-type {
+        margin-top: 16px;
+        border-top: solid 1px <%= line_color %>;
+    }
+
+    /* Term */
+    .conn-details > dl > dt {
+        width: 20%;
+        float: left;
+        font-size: <%= 1.2 ** -1 %>em;
+        color: <%= gray %>;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        position: relative;
+        top: -1px; /* Compensate for font metrics */
+    }
+
+    /* Definition */
+    .conn-details > dl > dd {
+        width: 80%;
+        float: left;
+    }
+
+    @media (max-width: 480px) {
+        .conn-details > dl > dt {
+            font-size: <%= 1.1 ** -1 %>em;
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="top-details">
+        <a class="exception-logo" href="https://amberframework.org" target="_blank"></a>
+        <header class="exception-info">
+            <h5 class="struct">
+                <%= @title %>
+                <small>at <%= @method %> <%= @path %></small>
+            </h5>
+            <h1 class="title"><%= HTML.escape(headline).gsub("&#39;", '\'').gsub("&quot;", '"') %></h1>
+            <details class="meta">
+                <summary class="frame-summary">
+                See raw message
+                </summary>
+<pre class="code code-block"><%- details.each do |detail| -%><span class="line"><span class="code"><%= HTML.escape(detail).gsub("&#39;", '\'').gsub("&quot;", '"') %></span></span>
+<%- end -%>
+</pre>
+            </details>
+        </header>
+        <% if !@frames.empty? %>
+        <div class="code-explorer">
+            <div class="code-snippets">
+                <% @frames.each do |frame| %>
+                  <div class="frame-info" data-index="<%= frame.index %>" role="stack-trace-details">
+                    <div class="file">
+                        <a href="#"><%= frame.file %></a>
+                    </div>
+
+                    <%- if (snippet = frame.snippet) && !snippet.empty? -%>
+<pre class="code code-block"><%- snippet.each do |index, line, highlight| -%><span class="line <% if highlight %>-highlight<% end %>">
+<span class="ln"><%= index %></span><span class="code"><%= HTML.escape(line.rstrip).gsub("&#39;", '\'').gsub("&quot;", '"') %></span></span>
+<%- end -%>
+</pre>
+                    <%- else -%>
+                    <div class="code code-block-empty">No code available.</div>
+                    <%- end -%>
+
+                    <% if !frame.args.blank? %>
+                    <details class="meta">
+                        <summary class="frame-summary">
+                            <% if app = frame.app %>
+                            <span class="app"><%= app %></span>
+                            <% end %>
+                            <%= frame.info %>
+                        </summary>
+                        <blockquote class="code-quote -padded"><%= HTML.escape(frame.args).gsub("&#39;", '\'').gsub("&quot;", '"') %></blockquote>
+                    </details>
+                    <% else %>
+                    <div class="meta">
+                        <div class="frame-summary -short">
+                            <% if app = frame.app %>
+                            <span class="app"><%= app %></span>
+                            <% end %>
+                            <%= frame.info %>
+                        </div>
+                    </div>
+                    <% end %>
+                </div>
+                <% end %>
+            </div>
+
+            <div class="stack-trace">
+                <div class="stack-trace-heading">
+                    <label><input type="checkbox" role="reload-toggle" checked="true"> Watch server changes</label>
+                    <label><input type="checkbox" role="show-all-toggle"> Show all frames</label>
+                </div>
+
+                <ul class="stack-trace-list" role="stack-trace-list">
+                    <% @frames.each do |frame| %>
+                    <li>
+                        <button class="stack-trace-item -<%= frame.context %>" role="stack-trace-item" data-index="<%= frame.index %>">
+                            <span class="left">
+                                <% if app = frame.app %>
+                                <span class="app"><%= app %></span>
+                                <% end %>
+
+                                <span class="filename">
+                                    <%= frame.file %><% if frame.line %><span class="line">:<%= frame.line %></span><% end %>
+                                </span>
+                            </span>
+
+                            <span class="info"><%= frame.info %></span>
+                        </button>
+                    </li>
+                    <% end %>
+                </ul>
+            </div>
+        </div>
+        <% end %>
+    </div>
+
+    <div class="conn-info">
+        <% if @params && !@params.empty? %>
+        <details class="conn-details" open>
+            <summary>Params</summary>
+            <% @params.each do |key, value| %>
+            <dl>
+                <dt><%= key %></dt>
+                <dd><pre><%= value.inspect %></pre></dd>
+            </dl>
+            <% end %>
+        </details>
+        <% end %>
+
+        <details class="conn-details">
+            <summary>Request info</summary>
+
+            <dl>
+                <dt>URI:</dt>
+                <dd class="code-quote"><%= @url %></dd>
+            </dl>
+
+            <dl>
+                <dt>Query string:</dt>
+                <dd class="code-quote"><%= @query %></dd>
+            </dl>
+        </details>
+
+        <details class="conn-details">
+            <summary>Headers</summary>
+            <% @headers.each do |key, value| %>
+            <dl>
+                <dt><%= key %></dt>
+                <dd class="code-quote"><%= value %></dd>
+            </dl>
+            <% end %>
+        </details>
+
+        <% if (session = @session) && !session.empty? %>
+        <details class="conn-details">
+            <summary>Session</summary>
+            <% session.each do |key, value| %>
+            <dl>
+                <dt><%= key %></dt>
+                <dd><pre><%= value.inspect %></pre></dd>
+            </dl>
+            <% end %>
+        </details>
+        <% end %>
+    </div>
+
+    <script>
+    (function () {
+        var items = document.querySelectorAll('[role~="stack-trace-item"]');
+        var toggle = document.querySelector('[role~="show-all-toggle"]');
+
+        var list = document.querySelector('[role~="stack-trace-list"]');
+
+
+        each(items, function (item) {
+            on(item, 'click', itemOnclick);
+        })
+
+        on(toggle, 'click', toggleOnclick);
+
+
+
+        // Auto-check "show all" if there are no app frames.
+        if (document.querySelectorAll('[role~="stack-trace-list"] .-app').length === 0) {
+            toggle.checked = true;
+            toggleOnclick.call(toggle);
+        }
+
+        function toggleOnclick() {
+            if (this.checked) {
+                addClass(list, '-show-all');
+            } else {
+                removeClass(list, '-show-all');
+            }
+        }
+
+        function reloadOnclick() {
+            if (this.checked) {
+                recursiveReload();
+            } else {
+                clearTimeout(reloadTimeout);
+            }
+        }
+
+        <%= @reload_code %>
+
+        function itemOnclick() {
+            var idx = this.getAttribute('data-index')
+
+            var detail = document.querySelector('[role~="stack-trace-details"].-active');
+            if (detail) {
+                removeClass(detail, '-active');
+            }
+
+            detail = document.querySelector('[role~="stack-trace-details"][data-index="' + idx + '"]')
+            if (detail) {
+                addClass(detail, '-active')
+            }
+
+            var item = document.querySelector('[role~="stack-trace-item"].-active')
+            if (item) {
+                removeClass(item, '-active')
+            }
+
+            item = document.querySelector('[role~="stack-trace-item"][data-index="' + idx + '"]')
+            if (item) {
+                addClass(item, '-active')
+            }
+        }
+
+        var first =
+            document.querySelector('[role~="stack-trace-item"].-app:first-of-type') ||
+            document.querySelector('[role~="stack-trace-item"]:first-of-type');
+
+        if (first) {
+            itemOnclick.call(first);
+        }
+
+        /*
+        * Helpers
+        */
+
+        function each(list, fn) {
+            for (var i = 0, len = list.length; i < len; i++) {
+                var item = list[i];
+                fn(item);
+            }
+        }
+
+        function addClass(el, className) {
+            if (el.classList) {
+                el.classList.add(className);
+            } else {
+                el.className += ' ' + className;
+            }
+        }
+
+        function removeClass(el, className) {
+            if (el.classList) {
+                el.classList.remove(className);
+            } else {
+                var expr = new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi');
+                el.className = el.className.replace(expr, ' ');
+            }
+        }
+
+        function on(el, event, handler) {
+            if (el.addEventListener) {
+                el.addEventListener(event, handler);
+            } else {
+                el.attachEvent('on' + event, function () {
+                    handler.call(el);
+                });
+            }
+        }
+    }());
+    </script>
+</body>
+</html>

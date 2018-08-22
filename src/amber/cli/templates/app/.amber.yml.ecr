@@ -2,3 +2,44 @@ type: app
 database: <%= @database %>
 language: <%= @language %>
 model: <%= @model %>
+watch:
+  server: # required: the first command for this task is blocking
+    files:
+      - "src/**/*.cr"
+      - "src/**/*.<%= @language %>"
+      - "config/**/*.cr"
+    commands:
+      - "crystal build -o bin/<%= @name %> src/<%= @name %>.cr -p --no-color"
+      - "bin/<%= @name %>"
+
+  client: # optional: these files changes trigger browser reloading
+    files:
+      - "public/**/*"
+    commands: []
+
+  amber:  # optional: Amber.Socket client, a[data-method] handler, and Date prototype.toGranite
+    files: []
+    commands:
+      - "cp lib/amber/assets/js/amber.js public/dist/amber.js"
+
+  js:     # optional: concat and copy js files to public dir
+    files:
+      - "src/assets/javascripts/*.js"
+    commands:
+      - "cat src/assets/javascripts/*.js > public/dist/main.bundle.js"
+
+  css:    # optional: concat and copy css files to public dir
+    files:
+      - "src/assets/stylesheets/*.css"
+    commands:
+      - "cat src/assets/stylesheets/*.css > public/dist/main.bundle.css"
+
+  images: # optional: concat and copy images to public dir
+    files:
+      - "src/assets/images/*"
+    commands:
+      - "cp -r src/assets/images public/"
+
+  mytask: # Minimal valid task example
+    files: [] # Tasks with empty "files" execute "commands" just once.
+    commands: [] # Tasks with empty "commands" are ignored, except "client" task.

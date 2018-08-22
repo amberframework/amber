@@ -55,7 +55,7 @@ module Amber::CLI
           when "create"
             Micrate.logger.info create_database
           when "seed"
-            Helpers.run("crystal db/seeds.cr", wait: true, shell: true)
+            Helpers.run("crystal db/seeds.cr", shell: true).wait
             Micrate.logger.info "Seeded database"
           when "migrate"
             begin

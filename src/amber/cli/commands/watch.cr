@@ -1,28 +1,27 @@
 require "cli"
-require "../helpers/sentry"
+require "../helpers/process_runner"
 
 module Amber::CLI
   class MainCommand < ::Cli::Supercommand
     command "w", aliased: "watch"
 
-    class Watch < Sentry::SentryCommand
-      command_name "watch"
-
+    class Watch < ::Cli::Command
       class Options
         bool "--no-color", desc: "# Disable colored output", default: false
         help
       end
 
       class Help
-        header "Starts amber development server and rebuilds on file changes"
-        caption "# Starts amber development server and rebuilds on file changes"
+        header <<-HEADER
+        Starts amber development server and rebuilds on file changes.
+        See `.amber.yml` for more settings.
+        HEADER
       end
 
       def run
         CLI.toggle_colors(options.no_color?)
-        options.watch << "./config/**/*.cr"
-        options.watch << "./src/views/**/*.slang"
-        super
+        process_runner = Helpers::ProcessRunner.new
+        process_runner.run
       end
     end
   end
