@@ -1,14 +1,13 @@
 secret_key_base: <%= Random::Secure.urlsafe_base64(32) %>
 port: 3000
 name: <%= @name %>
+
 logging:
   severity: debug
   colorize: true
   filter:
     - password
     - confirm_password
-  skip:
-    -
   context:
     - request
     - session
@@ -22,14 +21,15 @@ process_count: 1
 # ssl_key_file:
 # ssl_cert_file:
 redis_url: "redis://localhost:6379"
-<%case @database
-  when "mysql" -%>
+<% case @database
+when "mysql" -%>
 database_url: mysql://root@localhost:3306/<%= database_name_base %>_development
-<%when "pg" -%>
+<% when "pg" -%>
 database_url: postgres://postgres:@localhost:5432/<%= database_name_base %>_development
-<%when "sqlite" -%>
+<% when "sqlite" -%>
 database_url: sqlite3:./db/<%= database_name_base %>_development.db
-<%end -%>
+<% end -%>
+
 session:
   key: amber.session
   store: signed_cookie
@@ -37,7 +37,6 @@ session:
 
 smtp:
   enabled: false
-
 
 secrets:
   description: Store your development secrets credentials and settings here.

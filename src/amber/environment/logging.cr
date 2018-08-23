@@ -1,6 +1,6 @@
 module Amber::Environment
   class Logging
-    alias OptionsType = Hash(String, String | Bool | Array(String?))
+    alias OptionsType = Hash(String, String | Bool | Array(String))
 
     SEVERITY_MAP = {
       "debug":   Logger::DEBUG,
@@ -34,27 +34,27 @@ module Amber::Environment
       "severity" => "debug",
       "colorize" => true,
       "color"    => "light_cyan",
-      "filter"   => ["password", "confirm_password"] of String?,
-      "skip"     => [] of String?,
-      "context"  => ["request", "headers", "cookies", "session", "params"] of String?,
+      "filter"   => ["password", "confirm_password"],
+      "skip"     => [] of String,
+      "context"  => ["request", "headers", "cookies", "session", "params"],
     }
 
     setter severity : String,
       color : String
 
     property colorize : Bool,
-      context : Array(String?),
-      skip : Array(String?),
-      filter : Array(String?)
+      context : Array(String),
+      skip : Array(String),
+      filter : Array(String)
 
     def initialize(initial_logging : OptionsType)
       logging = DEFAULTS.merge(initial_logging)
       @colorize = logging["colorize"].as(Bool)
       @color = logging["color"].as(String)
       @severity = logging["severity"].as(String)
-      @filter = logging["filter"].as(Array(String?))
-      @skip = logging["skip"].as(Array(String?))
-      @context = logging["context"].as(Array(String?))
+      @filter = logging["filter"].as(Array(String))
+      @skip = logging["skip"].as(Array(String))
+      @context = logging["context"].as(Array(String))
     end
 
     def severity : Logger::Severity
