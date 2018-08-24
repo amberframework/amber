@@ -4,8 +4,6 @@ logging:
   filter:
     - password
     - confirm_password
-  skip:
-    -
   context:
     - request
     - session
@@ -30,5 +28,4 @@ session:
 
 secrets:
   description: "Store your test secrets credentials and settings here."
-
 
