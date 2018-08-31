@@ -1,8 +1,0 @@
-class <%= class_name %>Mailer < ApplicationMailer
-  def initialize(<%= @fields.map{|f| "#{f.name} : #{f.cr_type}"}.join(", ") %>)
-    to "to@example.com"
-    subject "Example Subject"
-    text render("mailers/<%= @name %>_mailer.txt.<%= @language %>")
-    html render("mailers/<%= @name %>_mailer.html.<%= @language %>", "mailer.<%= @language %>")
-  end
-end
