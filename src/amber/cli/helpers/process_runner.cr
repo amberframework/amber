@@ -5,7 +5,7 @@ module Sentry
     property processes = [] of Process
     property process_name : String
     property files = [] of String
-    @logger : Amber::Environment::Logger
+    @logger : Environment::Logger
     FILE_TIMESTAMPS = {} of String => String
 
     def initialize(

@@ -7,7 +7,7 @@ require "./command"
 require "./commands/*"
 
 module Amber::CLI
-  include Amber::Environment
+  include Environment
   AMBER_YML = ".amber.yml"
 
   def self.toggle_colors(on_off)

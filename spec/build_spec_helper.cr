@@ -27,7 +27,7 @@ module Amber::CLI
 
     prepare_yaml(Dir.current)
     Amber::CLI.env = "test"
-    Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
+    Amber::CLI.settings.logger = Environment::Logger.new(nil)
     MainCommand.run ["db", "drop", "create", "migrate"]
   end
 end

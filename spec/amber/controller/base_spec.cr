@@ -43,7 +43,7 @@ module Amber::Controller
       end
 
       it "has logger" do
-        controller.logger.class.should eq Amber::Environment::Logger
+        controller.logger.class.should eq Environment::Logger
       end
     end
   end

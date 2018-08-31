@@ -18,8 +18,8 @@ require "./amber/pipes/**"
 require "./amber/server/**"
 require "./amber/validators/**"
 require "./amber/websockets/**"
-require "./amber/environment"
+require "environment"
 
 module Amber
-  include Amber::Environment
+  include Environment
 end

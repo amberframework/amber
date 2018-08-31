@@ -14,6 +14,10 @@ targets:
     main: src/amber/cli.cr
 
 dependencies:
+  environment:
+    github: amberframework/environment
+    version: ~> 0.9.0
+
   amber_router:
     github: amberframework/amber-router
     version: ~> 0.2.0

@@ -13,8 +13,6 @@ cache:
     - .shards
 
 env:
-  - TEST_SUITE=./spec/build_spec_granite.cr
-  - TEST_SUITE=./spec/build_spec_crecto.cr
   - TEST_SUITE=./spec/amber
 
 script:
