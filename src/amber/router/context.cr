@@ -80,6 +80,9 @@ class HTTP::Server::Context
   protected def finalize_response
     response.headers["Connection"] = "Keep-Alive"
     response.headers.add("Keep-Alive", "timeout=5, max=10000")
+    unless response.headers["Content-Type"]?
+      response.headers["Content-Type"] = Amber::Support::MimeTypes.mime_type(format)
+    end
     response.print(@content) unless request.method == "HEAD"
   end
 end
