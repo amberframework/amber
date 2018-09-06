@@ -4,7 +4,7 @@ require "./session"
 require "./flash"
 
 class HTTP::Server::Context
-  METHODS = %i(get post put patch delete head)
+  METHODS      = %i(get post put patch delete head)
   CONTENT_TYPE = "Content-Type"
 
   include Amber::Router::Session
