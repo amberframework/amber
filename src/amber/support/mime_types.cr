@@ -624,9 +624,13 @@ module Amber
       # Amber::Support::Mime.mime_type("unknown")               # => "application/octet-stream"
       # Amber::Support::Mime.mime_type("unknown", "text/plain") # => "text/plain"
       # ```
-      def self.mime_type(format, fallback = DEFAULT_MIME_TYPE)
+      def self.mime_type(format : String, fallback = DEFAULT_MIME_TYPE)
         format = format[1..-1] if format.starts_with?('.')
         MIME_TYPES.fetch(format, fallback)
+      end
+
+      def self.mime_type(format : Nil, fallback = DEFAULT_MIME_TYPE)
+        fallback
       end
 
       def self.zip_types(path)
