@@ -4,7 +4,8 @@ require "./session"
 require "./flash"
 
 class HTTP::Server::Context
-  METHODS = %i(get post put patch delete head)
+  METHODS      = %i(get post put patch delete head)
+  CONTENT_TYPE = "Content-Type"
 
   include Amber::Router::Session
   include Amber::Router::Flash
@@ -61,7 +62,7 @@ class HTTP::Server::Context
   end
 
   def halt!(status_code : Int32 = 200, @content = "")
-    response.headers["Content-Type"] = "text/plain"
+    response.headers[CONTENT_TYPE] = "text/plain"
     response.status_code = status_code
   end
 
@@ -77,9 +78,12 @@ class HTTP::Server::Context
     request.route.call(self)
   end
 
-  protected def finalize_response
+  protected def finalize_response!
     response.headers["Connection"] = "Keep-Alive"
     response.headers.add("Keep-Alive", "timeout=5, max=10000")
+    unless response.headers[CONTENT_TYPE]?
+      response.headers[CONTENT_TYPE] = Amber::Support::MimeTypes.mime_type(format, "text/html")
+    end
     response.print(@content) unless request.method == "HEAD"
   end
 end

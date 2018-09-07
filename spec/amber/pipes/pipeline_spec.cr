@@ -35,36 +35,42 @@ module Amber
           request = HTTP::Request.new("GET", "/index/elias")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Hello World!"
+          response.headers[HTTP::Server::Context::CONTENT_TYPE].should eq "text/html"
         end
 
         it "responds to GET request" do
           request = HTTP::Request.new("GET", "/hello")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Index"
+          response.headers[HTTP::Server::Context::CONTENT_TYPE].should eq "text/html"
         end
 
         it "responds to PUT request" do
           request = HTTP::Request.new("PUT", "/hello/1")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Update"
+          response.headers[HTTP::Server::Context::CONTENT_TYPE].should eq "text/html"
         end
 
         it "responds to PATCH request" do
           request = HTTP::Request.new("PATCH", "/hello/1")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Update"
+          response.headers[HTTP::Server::Context::CONTENT_TYPE].should eq "text/html"
         end
 
         it "responds to POST request" do
           request = HTTP::Request.new("POST", "/hello")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Create"
+          response.headers[HTTP::Server::Context::CONTENT_TYPE].should eq "text/html"
         end
 
         it "responds to DELETE request" do
           request = HTTP::Request.new("DELETE", "/hello/1")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Destroy"
+          response.headers[HTTP::Server::Context::CONTENT_TYPE].should eq "text/html"
         end
 
         it "responds to HEAD request" do
@@ -72,6 +78,7 @@ module Amber
           response = create_request_and_return_io(pipeline, request)
           response.headers["Content-Length"].should eq "0"
           response.body.empty?.should be_true
+          response.headers[HTTP::Server::Context::CONTENT_TYPE].should eq "text/html"
         end
       end
     end
