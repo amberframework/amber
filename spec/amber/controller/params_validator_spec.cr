@@ -42,6 +42,7 @@ module Amber
       controller = build_controller_for(request)
 
       it "does have have errors" do
+        p controller.user.to_h
         controller.user.valid?.should be_false
         controller.user.errors.empty?.should be_false
         controller.user.errors.size.should eq 5

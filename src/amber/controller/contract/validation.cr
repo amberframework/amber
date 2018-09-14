@@ -116,7 +116,7 @@ module Contract
       end
 
       def to_h
-        fields = {} of String => Any
+        fields = {} of String => {{TYPES.join('|').id}}
 
         {% for name, options in FIELD_OPTIONS %}
           {% type = options[:type] %}

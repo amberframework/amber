@@ -3,7 +3,7 @@ macro contract(klass, key = "")
     {{klass.id}}.instance(@raw_params, {{key.id.stringify}})
   end
 
-  class {{klass.id}}
+  struct {{klass.id}}
     include Contract::Validation
     @raw_params : Amber::Router::Params
 
