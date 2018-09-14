@@ -8,6 +8,7 @@ class FakeController < Amber::Controller::Base
     param age : Int32, gte: 58, eq: 24, be: "Age"
     param alive : Bool, be: false
     param childrens : Array(String)
+    param childrens_age : Array(Int32)
 
     contract("Address", "user.address") do
       param street : String, length: (10..35)

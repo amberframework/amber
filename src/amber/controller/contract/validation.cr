@@ -1,7 +1,8 @@
 module Contract
   module Validation
-    VERSION           = "0.1.0"
-    TYPES             = [Nil, String, Bool, Int32, Int64, Float32, Float64, Time, Bytes]
+    VERSION = "0.1.0"
+
+    TYPES             = [Nil, String, Bool, Int32, Int64, Float32, Float64, Time, Bytes, Array(Any), Hash(Any, Any)]
     TIME_FORMAT_REGEX = /\d{4,}-\d{2,}-\d{2,}\s\d{2,}:\d{2,}:\d{2,}/
     DATETIME_FORMAT   = "%F %X%z"
 
@@ -11,11 +12,15 @@ module Contract
 
     record Error, param : String, value : Any, message : String
 
-    class ValidationError < Exception
-      getter errors : Array(Error)
+    macro param(attribute, **options)
+      {% TYPES << attribute.type %}
+      {% FIELD_OPTIONS[attribute.var] = options %}
+      {% CONTENT_FIELDS[attribute.var] = options || {} of Nil => Nil %}
+      {% CONTENT_FIELDS[attribute.var][:type] = attribute.type %}
+    end
 
-      def initialize(@errors)
-      end
+    macro param!(attribute, **options)
+      param {{attribute}}, {{options.double_splat(", ")}}raise_on_nil: true
     end
 
     macro included
@@ -27,14 +32,11 @@ module Contract
       end
     end
 
-    macro param(attribute, **options)
-      {% FIELD_OPTIONS[attribute.var] = options %}
-      {% CONTENT_FIELDS[attribute.var] = options || {} of Nil => Nil %}
-      {% CONTENT_FIELDS[attribute.var][:type] = attribute.type %}
-    end
+    class ValidationError < Exception
+      getter errors : Array(Error)
 
-    macro param!(attribute, **options)
-      param {{attribute}}, {{options.double_splat(", ")}}raise_on_nil: true
+      def initialize(@errors)
+      end
     end
 
     private macro __process_params
@@ -69,13 +71,17 @@ module Contract
         end
       {% end %}
 
+      {% properties = FIELD_OPTIONS.keys.map { |p| p.id } %}
+      def_equals_and_hash {{*properties}}
+
       def initialize(@raw_params : Amber::Router::Params, key : String)
         {% for name, options in FIELD_OPTIONS %}
           {% field_type = CONTENT_FIELDS[name][:type] %}
           param_key = !key.empty? ? "#{key}.{{name.id}}" : {{name.id.stringify}}
-          {% if field_type.stringify == "Array(String)" %}
+          {% if field_type.is_a?(Generic) %}
+            {% sub_type = field_type.type_vars %}
             @{{name.id}} = @raw_params.fetch_all(param_key).map do |item|
-              cast(item, String).as(String)
+              cast(item, typeof({{sub_type.join('|').id}})).as({{sub_type.join('|').id}})
             end
           {% else %}
             @{{name.id}} = cast(@raw_params[param_key], {{field_type}}).as({{field_type}})
@@ -107,6 +113,23 @@ module Contract
         when Float64.class then value.is_a?(String) ? value.to_f64(strict: false) : value.as(Float64)
         else value
         end
+      end
+
+      def to_h
+        fields = {} of String => Any
+
+        {% for name, options in FIELD_OPTIONS %}
+          {% type = options[:type] %}
+          {% if type.id == Time.id %}
+            fields["{{name}}"] = {{name.id}}.try(&.to_s(DATETIME_FORMAT))
+          {% elsif type.id == Slice.id %}
+            fields["{{name}}"] = {{name.id}}.try(&.to_s(""))
+          {% else %}
+            fields["{{name}}"] = {{name.id}}
+          {% end %}
+        {% end %}
+
+        fields
       end
 
       def validate
