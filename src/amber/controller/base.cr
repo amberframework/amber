@@ -1,7 +1,7 @@
 require "http"
 
 require "./filters"
-require "./params_validator"
+require "./contract"
 require "./helpers/*"
 
 module Amber::Controller
@@ -42,23 +42,6 @@ module Amber::Controller
 
     def initialize(@context : HTTP::Server::Context)
       @raw_params = context.params
-    end
-
-    macro params(klass, key = "")
-      class {{klass.id}}
-        include ParamsValidator
-
-        def self.instance(raw_params)
-          @@instance ||= new(raw_params, {{key.stringify.id}})
-        end
-
-        getter errors = [] of Error
-        @raw_params : Amber::Router::Params
-
-        {{yield}}
-      end
-
-      getter {{klass.id.downcase}} = {{klass.id}}.instance(@raw_params)
     end
   end
 end

@@ -2,37 +2,76 @@ require "http"
 require "../../../spec_helper"
 
 class FakeController < Amber::Controller::Base
-  params("User") do
-    param email : String, size: (50..50), regex: /\w+@\w+\.\w{2,}/
-    param name : String, size: (1..20)
-    param age : Int32, gte: 500
-    param alive : Bool, in: [true, false]
-  end
+  contract("User") do
+    param email : String, length: (50..50), regex: /\w+@\w+\.\w{2,}/
+    param name : String, length: (1..20)
+    param age : Int32, gte: 58, eq: 24, be: "Age"
+    param alive : Bool, be: false
+    param childrens : Array(String)
 
-  def index
-    user.valid?
-    p user.to_h
-    user.valid?
+    contract("Address", "user.address") do
+      param street : String, length: (10..35)
+      param city : String, eq: "Jersey City"
+      param state : String, in: ["NJ", "NY"]
+      param zip_code : String, length: (5..5)
+
+      contract("Location", "user.address.location") do
+        param longitude : Int32
+        param latitude : Int32
+      end
+    end
   end
 end
 
 module Amber
   describe Controller do
-    request = HTTP::Request.new(
-      "GET",
-      "/?user.address.street=303 Laerence Ave&" \
-      "user.address.city=Jersey City&" \
-      "user.address.state=NJ&" \
-      "user.address.zip_code=60459&" \
-      "email=eliasjpr@gmail.com&name=elias&age=37&alive=true"
-    )
+    context "when params is not within contract" do
+      request = HTTP::Request.new(
+        "GET",
+        "/?user.address.street=303 Lawrence Ave&" \
+        "user.address.city=Jersey City&" \
+        "user.address.state=NJ&" \
+        "user.address.zip_code=60459&" \
+        "user.address.location.latitude=123456.9765&" \
+        "user.address.location.longitude=123456.9765&" \
+        "email=eliasjprgmail.com&name=elias&age=37&alive=true" \
 
-    request.headers.add("Referer", "")
-    context = create_context(request)
-    controller = FakeController.new(context)
+      )
 
-    it "works" do
-      controller.index.should be_true
+      controller = build_controller_for(request)
+
+      it "does have have errors" do
+        controller.user.valid?.should be_false
+        controller.user.errors.empty?.should be_false
+        controller.user.errors.size.should eq 5
+        controller.user.errors.each do |error|
+        end
+      end
+    end
+
+    context "when params is within contract" do
+    end
+
+    context "nested params" do
+      request = HTTP::Request.new(
+        "GET",
+        "/?user.address.street=303 Lawrence Ave&" \
+        "user.address.city=Jersey City&" \
+        "user.address.state=NJ&" \
+        "user.address.zip_code=60459&" \
+        "email=eliasjprgmail.com&name=elias&age=37&alive=true"
+      )
+
+      controller = build_controller_for(request)
+      it "supports nested params" do
+        controller.user.address.street.should eq "303 Lawrence Ave"
+      end
     end
   end
+end
+
+def build_controller_for(request)
+  request.headers.add("Referer", "")
+  context = create_context(request)
+  FakeController.new(context)
 end
