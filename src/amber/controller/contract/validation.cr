@@ -81,7 +81,7 @@ module Contract
           {% if field_type.is_a?(Generic) %}
             {% sub_type = field_type.type_vars %}
             @{{name.id}} = @raw_params.fetch_all(param_key).map do |item|
-              cast(item, typeof({{sub_type.join('|').id}})).as({{sub_type.join('|').id}})
+              cast(item, {{sub_type.join('|').id}}).as({{sub_type.join('|').id}})
             end
           {% else %}
             @{{name.id}} = cast(@raw_params[param_key], {{field_type}}).as({{field_type}})
