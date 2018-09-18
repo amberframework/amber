@@ -1,4 +1,7 @@
+require "./contract/error"
+require "./contract/cast"
 require "./contract/definition"
+require "./contract/validators"
 require "./contract/validation"
 
 # A contract is an abstraction to handle validation of
@@ -8,4 +11,6 @@ require "./contract/validation"
 # The Contract macros helps you define contracts and assists
 # with instantiating and validating data with those contracts at runtime.
 module Contract
+  VERSION = "0.1.0"
+  alias Key = String | Symbol
 end

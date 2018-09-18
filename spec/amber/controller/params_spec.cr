@@ -5,8 +5,8 @@ class FakeController < Amber::Controller::Base
   contract("User") do
     param email : String, length: (50..50), regex: /\w+@\w+\.\w{2,}/
     param name : String, length: (1..20)
-    param age : Int32, gte: 58, eq: 24, be: "Age"
-    param alive : Bool, be: false
+    param age : Int32, gte: 58, eq: 24
+    param alive : Bool, eq: false
     param childrens : Array(String)
     param childrens_ages : Array(Int32)
 
@@ -34,7 +34,7 @@ module Amber
       "user.address.zip_code=60459&" \
       "user.address.location.latitude=123456.9765&" \
       "user.address.location.longitude=123456.9765&" \
-      "email=eliasjprgmail.com&name=elias&age=37&alive=true&" \
+      "email=eliasjpr@gmail.com&name=elias&age=37&alive=true&" \
       "childrens=camila&childrens=eva&childrens_ages=6&childrens_ages=3"
     )
 
@@ -43,7 +43,7 @@ module Amber
     it "does have have errors" do
       controller.user.valid?.should be_false
       controller.user.errors.empty?.should be_false
-      controller.user.errors.size.should eq 5
+      controller.user.errors.size.should eq 4
     end
   end
 end

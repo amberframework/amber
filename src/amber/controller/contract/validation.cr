@@ -1,22 +1,34 @@
 module Contract
   module Validation
-    VERSION = "0.1.0"
+    TYPES = [
+      Nil, Bool, Int32, Int64, Float64, String, Array(Any), Hash(String, Any),
+      Range(Int32, Int32), Regex,
+    ]
 
-    TYPES             = [Nil, String, Bool, Int32, Int64, Float32, Float64, Time, Bytes, Array(Any), Hash(Any, Any)]
     TIME_FORMAT_REGEX = /\d{4,}-\d{2,}-\d{2,}\s\d{2,}:\d{2,}:\d{2,}/
     DATETIME_FORMAT   = "%F %X%z"
 
     {% begin %}
-      alias Any = Union({{*TYPES}})
+    alias Any = Union({{*TYPES}})
     {% end %}
 
-    record Error, param : String, value : Any, message : String
+    class Error
+      property attribute : Contract::Key, value : String, message : String
+
+      def initialize(validator : Contract::Validator)
+        @attribute = validator.attribute
+        @value = validator.value.to_s
+        @message = validator.message
+      end
+
+      def initialize(@attribute, @value, @message)
+      end
+    end
 
     macro param(attribute, **options)
-      {% TYPES << attribute.type %}
       {% FIELD_OPTIONS[attribute.var] = options %}
-      {% CONTENT_FIELDS[attribute.var] = options || {} of Nil => Nil %}
-      {% CONTENT_FIELDS[attribute.var][:type] = attribute.type %}
+      {% CONTENT_attributes[attribute.var] = options || {} of Nil => Nil %}
+      {% CONTENT_attributes[attribute.var][:type] = attribute.type %}
     end
 
     macro param!(attribute, **options)
@@ -24,7 +36,7 @@ module Contract
     end
 
     macro included
-      CONTENT_FIELDS = {} of Nil => Nil
+      CONTENT_attributes = {} of Nil => Nil
       FIELD_OPTIONS = {} of Nil => Nil
 
       macro finished
@@ -32,16 +44,8 @@ module Contract
       end
     end
 
-    class ValidationError < Exception
-      getter errors : Array(Error)
-
-      def initialize(@errors)
-      end
-    end
-
     private macro __process_params
-      alias Key = String | Symbol
-
+      getter rules = [] of Contract::Validator
       getter errors = [] of Error
 
       {% for name, options in FIELD_OPTIONS %}
@@ -76,15 +80,22 @@ module Contract
 
       def initialize(@raw_params : Amber::Router::Params, key : String)
         {% for name, options in FIELD_OPTIONS %}
-          {% field_type = CONTENT_FIELDS[name][:type] %}
+          {% field_type = CONTENT_attributes[name][:type] %}
           param_key = !key.empty? ? "#{key}.{{name.id}}" : {{name.id.stringify}}
+
           {% if field_type.is_a?(Generic) %}
             {% sub_type = field_type.type_vars %}
             @{{name.id}} = @raw_params.fetch_all(param_key).map do |item|
-              cast(item, {{sub_type.join('|').id}}).as({{sub_type.join('|').id}})
+              Contract::Cast.convert!(item, {{sub_type.join('|').id}}).as({{sub_type.join('|').id}})
             end
           {% else %}
-            @{{name.id}} = cast(@raw_params[param_key], {{field_type}}).as({{field_type}})
+            @{{name.id}} = Contract::Cast.convert!(@raw_params[param_key], {{field_type}}).as({{field_type}})
+          {% end %}
+
+          {% for key, expected_value in options %}
+            {% if Contract::VALIDATOR.keys.includes?(key) %}
+            rules << Contract::VALIDATOR[:{{key.id}}].new({{name.id.stringify}}, @{{name.id}}, {{options[key]}})
+            {% end %}
           {% end %}
         {% end %}
       end
@@ -96,85 +107,34 @@ module Contract
       end
 
       def valid!
-        valid? || raise ValidationError.new(errors)
+        valid? || raise Contract::Error.new(errors)
       end
 
-      def error(attribute, value, message)
-        @errors << Error.new(attribute, value, message)
-      end
-
-      private def cast(value : Any, cast_type : Class)
-        case cast_type
-        when String.class then value.to_s
-        when Bool.class then [1,true, 0, false, nil].includes?(value)
-        when Int32.class then value.is_a?(String) ? value.to_i32(strict: false) : value.as(Int32)
-        when Int64.class then value.is_a?(String) ? value.to_i64(strict: false) : value.as(Int64)
-        when Float32.class then value.is_a?(String) ? value.to_f32(strict: false) : value.as(Float32)
-        when Float64.class then value.is_a?(String) ? value.to_f64(strict: false) : value.as(Float64)
-        else value
+      def validate
+        @rules.each do |validator|
+          @errors << Error.new(validator) unless validator.valid?
         end
       end
 
+      def error(attribute, value, message)
+        @errors << Validator::Error.new(attribute, value, message)
+      end
+
       def to_h
-        fields = {} of String => {{TYPES.join('|').id}}
+        attributes = {} of String => {{TYPES.join('|').id}}
 
         {% for name, options in FIELD_OPTIONS %}
           {% type = options[:type] %}
           {% if type.id == Time.id %}
-            fields["{{name}}"] = {{name.id}}.try(&.to_s(DATETIME_FORMAT))
+            attributes["{{name}}"] = {{name.id}}.try(&.to_s(DATETIME_FORMAT))
           {% elsif type.id == Slice.id %}
-            fields["{{name}}"] = {{name.id}}.try(&.to_s(""))
+            attributes["{{name}}"] = {{name.id}}.try(&.to_s(""))
           {% else %}
-            fields["{{name}}"] = {{name.id}}
+            attributes["{{name}}"] = {{name.id}}
           {% end %}
         {% end %}
 
-        fields
-      end
-
-      def validate
-        {% for name, options in FIELD_OPTIONS %}
-          {% property_name = name.id %}
-          unless {{property_name}}.nil?
-            value = {{property_name}}.not_nil!
-
-            {% if options[:be] %}
-              error({{property_name.stringify}}, value, "must be {{options[:be].id}}") unless value === {{options[:be]}}
-            {% end %}
-
-            {% if options[:eq] %}
-              error({{property_name.stringify}}, value, "must be equal to {{options[:eq].id}}") unless value == {{options[:eq]}}
-            {% end %}
-
-            {% if options[:gte] %}
-              error({{property_name.stringify}}, value, "must be greater than or equal to {{options[:gte].id}}") unless value >= {{options[:gte]}}
-            {% end %}
-
-            {% if options[:lte] %}
-              error({{property_name.stringify}}, value, "must be less than or equal to {{options[:lte].id}}") unless value <= {{options[:lte]}}
-            {% end %}
-
-            {% if options[:gt] %}
-              error({{property_name.stringify}}, value, "must be greater than {{options[:gt].id}}") unless value > {{options[:gt]}}
-            {% end %}
-
-            {% if options[:lt] %}
-              error({{property_name.stringify}}, value, "must be less than {{options[:lt].id}}") unless value < {{options[:lt]}}
-            {% end %}
-
-            {% if options[:in] %}
-              error({{property_name.stringify}}, value, "must be in {{options[:in].join(", ").id}}") unless {{options[:in]}}.includes?(value)
-            {% end %}
-
-            {% if options[:length] %}
-              error({{property_name.stringify}}, value, "must have size in {{options[:length].id}}") unless {{options[:length]}}.includes?(value.size)
-            {% end %}
-
-            {% if options[:regex] %}
-              error({{property_name.stringify}}, value, "must match " + {{options[:regex].stringify}}) unless ({{options[:regex]}}).match(value)
-            {% end %}
-          end
-        {% end %}
+        attributes
       end
     end
   end
