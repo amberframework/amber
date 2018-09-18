@@ -26,7 +26,6 @@ module Amber
       getter socket : HTTP::WebSocket
       protected getter context : HTTP::Server::Context
       protected getter raw_params : Amber::Router::Params
-      protected getter params : Amber::Validators::Params
       protected getter session : Amber::Router::Session::AbstractStore?
       protected getter cookies : Amber::Router::Cookies::Store?
       private property pongs = Array(Time).new
@@ -66,7 +65,6 @@ module Amber
         @id = UUID.random.to_s
         @subscription_manager = SubscriptionManager.new
         @raw_params = @context.params
-        @params = Amber::Validators::Params.new(@raw_params)
         @socket.on_pong do
           @pongs.push(Time.now)
           @pongs.delete_at(0) if @pongs.size > 3

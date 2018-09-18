@@ -16,7 +16,6 @@ require "./amber/extensions/**"
 require "./amber/router/context"
 require "./amber/pipes/**"
 require "./amber/server/**"
-require "./amber/validators/**"
 require "./amber/websockets/**"
 require "./amber/environment"
 
