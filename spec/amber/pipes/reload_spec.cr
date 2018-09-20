@@ -1,6 +1,6 @@
 # TODO: remove this file after https://github.com/amberframework/amber/pull/860 is merged
 
-# class FakeEnvironment < Amber::Environment::Env
+# class FakeEnvironment < Environment::Env
 #   def development?
 #     true
 #   end

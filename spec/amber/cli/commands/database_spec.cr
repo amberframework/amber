@@ -26,7 +26,7 @@ module Amber::CLI
           cleanup
           scaffold_app("#{TESTING_APP}", "-d", "sqlite")
           Amber::CLI.env = "development"
-          Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
+          Amber::CLI.settings.logger = Environment::Logger.new(nil)
           env_yml = prepare_test_app
           MainCommand.run ["generate", "model", "Post"]
           MainCommand.run ["db", "migrate"]
