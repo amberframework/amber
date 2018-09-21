@@ -22,53 +22,17 @@ dependencies:
     github: amberframework/amber-router
     version: ~> 0.2.0
 
-  cli:
-    github: mosop/cli
-    version: ~> 0.7.0
-
-  compiled_license:
-    github: elorest/compiled_license
-    version: ~> 0.1.3
-
   kilt:
     github: jeromegn/kilt
     version: ~> 0.4.0
-
-  liquid:
-    github: TechMagister/liquid.cr
-    version: ~> 0.3.0
-
-  micrate:
-    github: amberframework/micrate
-    version: ~> 0.3.0
-
-  mysql:
-    github: crystal-lang/crystal-mysql
-    version: ~> 0.5.0
-
-  pg:
-    github: will/crystal-pg
-    version: ~> 0.15.0
 
   redis:
     github: stefanwille/crystal-redis
     version: ~> 2.0.0
 
-  shell-table:
-    github: luckyframework/shell-table.cr
-    commit: 078a04ea58ead5203bb435a3b5fff448ddabaeea
-
   slang:
     github: jeromegn/slang
     version: ~> 1.7.1
-
-  sqlite3:
-    github: crystal-lang/crystal-sqlite3
-    version: ~> 0.10.0
-
-  inflector:
-    github: phoffer/inflector.cr
-    version: ~> 0.1.8
 
   teeplate:
     github: mosop/teeplate
