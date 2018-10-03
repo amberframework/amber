@@ -61,7 +61,7 @@ module CLIFixtures
 
       belongs_to :user
 
-      primar id : Int64
+      primary id : Int64
       field title : String
       field body : String
       field published : Bool
