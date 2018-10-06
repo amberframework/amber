@@ -22,16 +22,6 @@ class <%= class_name %>Controller < ApplicationController
     render "edit.<%= @language %>"
   end
 
-  def update
-    <%= @name %>.set_attributes <%= @name %>_params.validate!
-    if <%= @name %>.save
-      redirect_to action: :index, flash: {"success" => "Updated <%= @name %> successfully."}
-    else
-      flash["danger"] = "Could not update <%= class_name %>!"
-      render "edit.<%= @language %>"
-    end
-  end
-
   def create
     <%= @name %> = <%= class_name %>.new <%= @name %>_params.validate!
     if <%= @name %>.save
@@ -39,6 +29,16 @@ class <%= class_name %>Controller < ApplicationController
     else
       flash["danger"] = "Could not create <%= class_name %>!"
       render "new.<%= @language %>"
+    end
+  end
+
+  def update
+    <%= @name %>.set_attributes <%= @name %>_params.validate!
+    if <%= @name %>.save
+      redirect_to action: :index, flash: {"success" => "Updated <%= @name %> successfully."}
+    else
+      flash["danger"] = "Could not update <%= class_name %>!"
+      render "edit.<%= @language %>"
     end
   end
 
