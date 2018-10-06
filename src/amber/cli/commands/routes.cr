@@ -44,7 +44,16 @@ module Amber::CLI
       end
 
       private def parse_routes
-        File.read_lines("config/routes.cr").each do |line|
+        # parse each routes file in modules
+        Dir.glob(["src/modules/**/*_routes.cr"]) do |file|
+          parse_routes_file(file)
+        end
+        # read global routes last
+        parse_routes_file("config/routes.cr")
+      end
+
+      private def parse_routes_file(filename)
+        File.read_lines(filename).each do |line|
           case line.strip
           when .starts_with?("routes")
             set_pipe(line)
