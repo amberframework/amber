@@ -10,6 +10,7 @@ Amber::Server.configure do
     plug Amber::Pipe::Session.new
     plug Amber::Pipe::Flash.new
     plug Amber::Pipe::CSRF.new
+    plug Amber::Pipe::Reload.new if Amber.env.development?
   end
 
   pipeline :api do
