@@ -1,4 +1,4 @@
-require "./client_reload"
+require "../../support/client_reload"
 
 module Amber
   module Pipe
