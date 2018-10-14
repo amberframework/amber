@@ -10,6 +10,8 @@ Amber::Server.configure do
     plug Amber::Pipe::Session.new
     plug Amber::Pipe::Flash.new
     plug Amber::Pipe::CSRF.new
+    # Reload clients browsers (development only)
+    plug Amber::Pipe::Reload.new if Amber.env.development?
   end
 
   pipeline :api do
