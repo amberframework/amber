@@ -57,6 +57,7 @@ module Amber::CLI
       end
 
       private def set_route(route_string)
+        return if route_string.to_s.lstrip.starts_with?("#")
         if route_match = route_string.to_s.match(VERB_ROUTE_REGEX)
           return unless ACTION_MAPPING.keys.includes?(route_match[1]?.to_s)
           build_route(route_match)

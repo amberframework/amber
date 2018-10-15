@@ -5,7 +5,7 @@ class <%= class_name %> < Granite::Base
   belongs_to :<%= field.name %>
 <% end -%>
 
-  # id : Int64 primary key is created for you
+  primary id : Int64
 <% @fields.reject{|f| f.hidden || f.reference? }.each do |field| -%>
   field <%= field.name %> : <%= field.cr_type %>
 <% end -%>

@@ -2,7 +2,7 @@ PREFIX=/usr/local
 INSTALL_DIR=$(PREFIX)/bin
 AMBER_SYSTEM=$(INSTALL_DIR)/amber
 
-OUT_DIR=$(shell pwd)/bin
+OUT_DIR=./bin
 AMBER=$(OUT_DIR)/amber
 AMBER_SOURCES=$(shell find src/ -type f -name '*.cr')
 

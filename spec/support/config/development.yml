@@ -1,11 +1,10 @@
+secret_key_base: ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4
 logging:
   severity: debug
   colorize: true
   filter:
     - password
     - confirm_password
-  skip:
-    -
   context:
     - request
     - session
@@ -13,16 +12,16 @@ logging:
     - cookies
     - params
 
-database_url: "mysql://root@localhost:3306/development_settings_test"
 host: "localhost"
 name: development_settings
 port: 3000
 port_reuse: true
 process_count: 1
 redis_url: "redis://localhost:6379"
-secret_key_base: ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4
+database_url: "mysql://root@localhost:3306/development_settings_test"
 # ssl_key_file:
 # ssl_cert_file:
+
 session:
   key: "myapp.session"
   store: "encrypted_cookie"

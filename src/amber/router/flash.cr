@@ -9,7 +9,10 @@ module Amber
         FlashStore.from_session(flash_content)
       end
 
-      class FlashStore < Hash(String, String)
+      class FlashStore
+        @store : Hash(String, String)
+        forward_missing_to @store
+
         def self.from_session(json)
           flash = new
           values = JSON.parse(json)
@@ -20,14 +23,14 @@ module Amber
         end
 
         def initialize
+          @store = {} of String => String
           @read = [] of String
           @now = [] of String
-          super
         end
 
         def fetch(key : String)
           @read << key
-          super
+          @store.fetch(key)
         end
 
         def fetch(key : Symbol)
@@ -36,7 +39,7 @@ module Amber
 
         def fetch(key : String, default_value : String?)
           @read << key
-          super
+          @store.fetch(key, default_value)
         end
 
         def fetch(key : Symbol, default_value : String?)
@@ -44,7 +47,7 @@ module Amber
         end
 
         def []=(key : Symbol, value : String)
-          self[key.to_s] = value
+          @store[key.to_s] = value
         end
 
         def []?(key : Symbol)
@@ -55,14 +58,15 @@ module Amber
           fetch(key, nil)
         end
 
+        def [](key : Symbol)
+          fetch(key)
+        end
+
         def each
-          current = @first
-          while current
-            yield({current.key, current.value})
-            @read << current.key
-            current = current.fore
+          @store.each do |key, value|
+            yield({key, value})
+            @read << key
           end
-          self
         end
 
         def now(key, value)

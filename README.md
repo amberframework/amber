@@ -6,8 +6,9 @@ _Amber makes building web applications fast, simple, and enjoyable - with fewer 
 
 [![Build Status](https://travis-ci.org/amberframework/amber.svg?branch=master)](https://travis-ci.org/amberframework/amber)
 [![Version](https://img.shields.io/github/tag/amberframework/amber.svg?maxAge=360)](https://github.com/amberframework/amber/releases/latest)
-[![Dependencies](https://img.shields.io/badge/dependencies-shards-brightgreen.svg)](https://github.com/amberframework/amber/blob/master/shard.yml#L16)
 [![License](https://img.shields.io/github/license/amberframework/amber.svg)](https://github.com/amberframework/amber/blob/master/LICENSE)
+
+[![Liberapay patrons](https://img.shields.io/liberapay/patrons/amber-framework.svg?label=liberapay%20patrons)](https://liberapay.com/amber-framework/)
 [![Gitter](https://img.shields.io/gitter/room/amberframework/amber.svg)](https://gitter.im/amberframework/amber)
 
 # Welcome to Amber
@@ -20,7 +21,7 @@ Amber borrows concepts that have already been battle tested and successful, and 
 
 ## Community
 
-Questions? Join our IRC channel [#amber](https://webchat.freenode.net/?channels=#amber) and [Gitter room](https://gitter.im/amberframework/amber) or ask on Stack Overflow under the [amber-framework](https://stackoverflow.com/questions/tagged/amber-framework) tag.
+Questions? Join our IRC channel [#amber](https://webchat.freenode.net/?channels=#amber) or [Gitter room](https://gitter.im/amberframework/amber) or ask on Stack Overflow under the [amber-framework](https://stackoverflow.com/questions/tagged/amber-framework) tag.
 
 Guidelines? We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) for Amber.
 

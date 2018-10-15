@@ -3,7 +3,7 @@ FROM amberframework/amber:v<%= Amber::VERSION %>
 WORKDIR /app
 
 COPY shard.* /app/
-RUN crystal deps
+RUN shards install 
 
 COPY . /app
 

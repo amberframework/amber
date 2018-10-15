@@ -13,6 +13,7 @@ module Amber::CLI
     @database : String = CLI.config.database
     @language : String = CLI.config.language
     @timestamp : String
+    @table_name : String?
     @primary_key : String
 
     def initialize(@name, fields)
@@ -28,6 +29,10 @@ module Amber::CLI
 
     def filter(entries)
       entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
+    end
+
+    def table_name
+      @table_name ||= name_plural
     end
 
     private def setup_routes

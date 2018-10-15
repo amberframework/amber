@@ -26,7 +26,7 @@ describe HTTP::Server::Context do
     end
   end
 
-  describe "port" do
+  describe "#port" do
     it "gets the port from the requested URL" do
       url = "http://localhost:9450"
       request = HTTP::Request.new("GET", url)
