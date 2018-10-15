@@ -4,8 +4,8 @@ module Amber
   module Router
     # This is the main application handler all routers should finally hit this handler.
     class Router
+      PATH_EXT_REGEX = Controller::Helpers::Responders::Content::TYPE_EXT_REGEX
       property :routes, :routes_hash, :socket_routes
-      PATH_EXT_REGEX = /\.[^$\/]+$/
 
       def initialize
         @routes = RouteSet(Route).new
@@ -54,16 +54,19 @@ module Amber
       end
 
       def match(http_verb, resource) : RoutedResult(Route)
-        result = @routes.find build_node(http_verb, resource)
-        if result.found?
-          result
-        else
-          @routes.find build_node(http_verb, resource.sub(PATH_EXT_REGEX, ""))
+        if has_content_ext(resource) 
+          result = @routes.find build_node(http_verb, resource.sub(PATH_EXT_REGEX, ""))
+          return result if result.found?
         end
+        @routes.find build_node(http_verb, resource)
       end
 
       private def build_node(http_verb : Symbol | String, resource : String)
         "#{http_verb.to_s.downcase}#{resource}"
+      end
+
+      private def has_content_ext(str)
+        str.includes?('.') && str.match PATH_EXT_REGEX
       end
     end
   end
