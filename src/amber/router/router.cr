@@ -54,7 +54,7 @@ module Amber
       end
 
       def match(http_verb, resource) : RoutedResult(Route)
-        if has_content_ext(resource) 
+        if has_content_ext(resource)
           result = @routes.find build_node(http_verb, resource.sub(PATH_EXT_REGEX, ""))
           return result if result.found?
         end
