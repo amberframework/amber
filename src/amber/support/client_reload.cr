@@ -1,6 +1,4 @@
 module Amber::Support
-  # Used by `Amber::Pipe::Reload`
-  #
   # Allow clients browser reloading using WebSockets and file watchers.
   struct ClientReload
     FILE_TIMESTAMPS = {} of String => String
