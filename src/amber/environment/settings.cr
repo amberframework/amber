@@ -39,6 +39,7 @@ module Amber::Environment
       ssl_cert_file : String,
       logging : Logging::OptionsType,
       logger : Logger?
+    property? auto_reload : Bool
 
     @smtp_settings : SMTPSettings?
 
@@ -71,7 +72,8 @@ module Amber::Environment
         default: Hash(String, SettingValue){
           "enabled" => false,
         },
-      }
+      },
+      auto_reload: {type: Bool, default: false}
     )
 
     def session

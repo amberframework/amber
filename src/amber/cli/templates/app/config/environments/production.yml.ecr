@@ -29,6 +29,7 @@ database_url: postgres://postgres:@localhost:5432/<%= database_name_base %>
 <% when "sqlite" -%>
 database_url: sqlite3:./db/<%= database_name_base %>.db
 <% end -%>
+auto_reload: false
 
 session:
   key: amber.session
@@ -44,4 +45,3 @@ smtp:
 
 secrets:
   description: Store your production secrets credentials and settings here.
-
