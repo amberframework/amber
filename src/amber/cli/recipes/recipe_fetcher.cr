@@ -4,10 +4,11 @@ require "zip"
 module Amber::Recipes
   class RecipeFetcher
     getter kind : String # one of the supported kinds [app, controller, scaffold]
-    getter name : String | Nil
+    getter name : String
     getter directory : String
+    getter app_dir : String | Nil
 
-    def initialize(@kind : String, @name : String | Nil)
+    def initialize(@kind : String, @name : String, @app_dir = nil)
       @directory = "#{Dir.current}/#{@name}/#{@kind}"
     end
 
@@ -16,21 +17,74 @@ module Amber::Recipes
         return @directory
       end
 
+      # try absolute path
       if Dir.exists?("#{@name}/#{@kind}")
         return "#{@name}/#{@kind}"
       end
 
-      template_path = "#{AMBER_RECIPE_FOLDER}/#{@name}"
+      parts = @name.split("/")
+
+      recipes_folder = @kind == "app" ? "#{app_dir}/.recipes" : "./.recipes"
+
+      if parts.size == 2
+        shard_name = parts[-1]
+
+        if shard_name && @kind != "app"
+          if Dir.exists?("#{recipes_folder}/lib/#{shard_name}/#{@kind}")
+            return "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
+          end
+          return nil
+        end
+
+        if shard_name && @kind == "app" && try_github
+          fetch_github shard_name
+          if Dir.exists?("#{recipes_folder}/lib/#{shard_name}/#{@kind}")
+            return "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
+          end
+        end
+      end
+
+      template_path = "#{recipes_folder}/zip/#{@name}"
 
       if Dir.exists?("#{template_path}/#{@kind}")
         return "#{template_path}/#{@kind}"
       end
 
-      if @name.not_nil!.downcase.starts_with?("http") && @name.not_nil!.downcase.ends_with?(".zip")
-        return fetch_zip @name.as(String), template_path
+      if @name.downcase.starts_with?("http") && @name.downcase.ends_with?(".zip")
+        return fetch_zip @name, template_path
       end
 
       return fetch_url template_path
+    end
+
+
+    def try_github
+      url = "https://raw.githubusercontent.com/#{@name}/master/shard.yml"
+
+      HTTP::Client.get(url) do |response|
+        if response.status_code == 200
+          return true
+        end
+      end
+      false
+    end
+
+    def create_recipe_shard(shard_name)
+      dirname = "#{app_dir}/.recipes"
+      Dir.mkdir_p(dirname)
+      filename = "#{dirname}/shard.yml"
+
+      yaml = {name: "recipe", version: "0.1.0", dependencies: {shard_name => {github: @name, branch: "master"} }}
+
+      CLI.logger.info "Create Recipe shard #{filename}", "Generate", :light_cyan
+      File.open(filename, "w") { |f| yaml.to_yaml(f) }
+    end
+
+    def fetch_github(shard_name)
+      create_recipe_shard shard_name
+
+      CLI.logger.info "Installing Recipe", "Generate", :light_cyan
+      Amber::CLI::Helpers.run("cd #{app_dir}/.recipes && shards update")
     end
 
     def recipe_source
