@@ -58,7 +58,6 @@ module Amber::Recipes
       return fetch_url
     end
 
-
     def try_github
       url = "https://raw.githubusercontent.com/#{@name}/master/shard.yml"
 
@@ -75,7 +74,7 @@ module Amber::Recipes
       Dir.mkdir_p(dirname)
       filename = "#{dirname}/shard.yml"
 
-      yaml = {name: "recipe", version: "0.1.0", dependencies: {shard_name => {github: @name, branch: "master"} }}
+      yaml = {name: "recipe", version: "0.1.0", dependencies: {shard_name => {github: @name, branch: "master"}}}
 
       CLI.logger.info "Create Recipe shard #{filename}", "Generate", :light_cyan
       File.open(filename, "w") { |f| yaml.to_yaml(f) }
