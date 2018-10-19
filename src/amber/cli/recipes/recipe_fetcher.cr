@@ -19,7 +19,6 @@ module Amber::Recipes
         return @directory
       end
 
-      # try absolute path
       if Dir.exists?("#{@name}/#{@kind}")
         return "#{@name}/#{@kind}"
       end
@@ -113,7 +112,6 @@ module Amber::Recipes
     end
 
     def save_zip(response : HTTP::Client::Response)
-      # make a temp directory and expand the zip into the temp directory
       Dir.mkdir_p(@template_path)
 
       Zip::Reader.open(response.body_io) do |zip|
@@ -127,7 +125,6 @@ module Amber::Recipes
         end
       end
 
-      # return the path of the template directory
       if Dir.exists?("#{@template_path}/#{@kind}")
         return "#{@template_path}/#{@kind}"
       end
