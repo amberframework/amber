@@ -11,6 +11,7 @@ module Amber::Recipes
 
     def initialize(@kind : String, @name : String, @app_dir = nil)
       @directory = "#{Dir.current}/#{@name}/#{@kind}"
+      @template_path = "#{Dir.current}/.recipes/zip/#{@name}"
     end
 
     def fetch
@@ -23,7 +24,6 @@ module Amber::Recipes
         return "#{@name}/#{@kind}"
       end
 
-<<<<<<< HEAD
       parts = @name.split("/")
 
       recipes_folder = @kind == "app" ? "#{app_dir}/.recipes" : "./.recipes"

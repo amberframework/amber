@@ -32,12 +32,6 @@ module Amber::CLI
         end
         name = File.basename(args.name)
 
-        # if (options.r? != nil)
-        #   template = Amber::Recipes::Recipe.new(name, "./#{args.name}", "#{options.r}")
-        # else
-        #   template = Amber::Recipes::Recipe.new(name, "./#{args.name}", "damianham/amber_base")
-        # end
-
         template = Amber::Recipes::Recipe.new(name, "./#{args.name}", "#{options.r}")
 
         template.generate("app", options)
