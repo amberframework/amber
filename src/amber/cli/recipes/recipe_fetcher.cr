@@ -3,7 +3,7 @@ require "zip"
 
 module Amber::Recipes
   class RecipeFetcher
-    getter kind : String # one of the supported kinds [app, controller, scaffold]
+    getter kind : String # one of the supported kinds [app, model, controller, scaffold]
     getter name : String
     getter directory : String
     getter app_dir : String | Nil

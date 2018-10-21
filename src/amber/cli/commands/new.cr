@@ -12,7 +12,7 @@ module Amber::CLI
         string "-m", desc: "Select the model type, can be one of: granite | crecto", default: "granite"
         bool "--no-color", desc: "Disable colored output", default: false
         string "-t", desc: "Selects the template engine language, can be one of: slang | ecr", default: "slang"
-        string "-r", desc: "Use a named recipe.  See documentation at  https://docs.amberframework.org/amber/cli/recipes.", default: "damianham/amber_base"
+        string "-r", desc: "Use a named recipe.  See documentation at  https://docs.amberframework.org/amber/cli/recipes.", default: nil
         help
       end
 
@@ -32,8 +32,11 @@ module Amber::CLI
         end
         name = File.basename(args.name)
 
-        template = Amber::Recipes::Recipe.new(name, "./#{args.name}", "#{options.r}")
-
+        if (options.r? != nil)
+          template = Amber::Recipes::Recipe.new(name, "./#{args.name}", "#{options.r}")
+        else
+          template = Template.new(name, "./#{args.name}")
+        end
         template.generate("app", options)
 
         # Encrypts production.yml by default.

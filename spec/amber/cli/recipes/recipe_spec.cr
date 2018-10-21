@@ -16,19 +16,15 @@ module Amber::Recipes
         FileUtils.rm_rf("./mydefault")
       end
 
-      it "should return true for default app" do
-        Recipe.can_generate?("app", recipe).should eq true
-      end
-
-      it "should return true for default controller" do
+      it "should return true for controller" do
         Recipe.can_generate?("controller", recipe).should eq true
       end
 
-      it "should return true for default model" do
+      it "should return true for model" do
         Recipe.can_generate?("model", recipe).should eq true
       end
 
-      it "should return true for default scaffold" do
+      it "should return true for scaffold" do
         Recipe.can_generate?("scaffold", recipe).should eq true
       end
     end
