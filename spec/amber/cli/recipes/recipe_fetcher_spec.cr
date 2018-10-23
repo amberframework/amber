@@ -52,9 +52,9 @@ module Amber::Recipes
 
       describe "RecipeFetcher" do
         it "should use a shard app folder" do
-          template = RecipeFetcher.new("app", "damianham/amber_base", "./mydefault").fetch
+          template = RecipeFetcher.new("app", "damianham/amber_granite", "./mydefault").fetch
           template.should_not be nil
-          template.should match(/.+mydefault\/.recipes\/lib\/amber_base\/app$/)
+          template.should match(/.+mydefault\/.recipes\/lib\/amber_granite\/app$/)
         end
       end
     end
@@ -62,29 +62,29 @@ module Amber::Recipes
     context "using a github shard" do
       describe "RecipeFetcher" do
         Dir.mkdir_p("./myapp")
-        RecipeFetcher.new("app", "damianham/amber_base", "./myapp").fetch
+        RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
 
         it "should use a shard controller folder" do
           Dir.cd("./myapp") do
-            template = RecipeFetcher.new("controller", "damianham/amber_base").fetch
+            template = RecipeFetcher.new("controller", "damianham/amber_granite").fetch
             template.should_not be nil
-            template.should match(/.+\.recipes\/lib\/amber_base\/controller$/)
+            template.should match(/.+\.recipes\/lib\/amber_granite\/controller$/)
           end
         end
 
         it "should use a shard model folder" do
           Dir.cd("./myapp") do
-            template = RecipeFetcher.new("model", "damianham/amber_base").fetch
+            template = RecipeFetcher.new("model", "damianham/amber_granite").fetch
             template.should_not be nil
-            template.should match(/.+\.recipes\/lib\/amber_base\/model$/)
+            template.should match(/.+\.recipes\/lib\/amber_granite\/model$/)
           end
         end
 
         it "should use a shard scaffold folder" do
           Dir.cd("./myapp") do
-            template = RecipeFetcher.new("scaffold", "damianham/amber_base").fetch
+            template = RecipeFetcher.new("scaffold", "damianham/amber_granite").fetch
             template.should_not be nil
-            template.should match(/.+\.recipes\/lib\/amber_base\/scaffold$/)
+            template.should match(/.+\.recipes\/lib\/amber_granite\/scaffold$/)
           end
         end
 
