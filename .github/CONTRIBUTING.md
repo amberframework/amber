@@ -58,7 +58,7 @@ Bugs are tracked as [GitHub issues](https://github.com/amberframework/amber/issu
 Explain the problem and include additional details to help maintainers reproduce the problem:
 
 * Use a clear and descriptive title for the issue to identify the problem.
-* Describe the exact steps which reproduce the problem in as many details as possible. For example, start by explaining how you started Amber, e.g. which command exactly you used in the terminal, or how you started A,ber otherwise. When listing steps, don't just say what you did, but explain how you did it. For example, if you moved the cursor to the end of a line, explain if you used the mouse, or a keyboard shortcut or an Amber command, and if so which one?
+* Describe the exact steps which reproduce the problem in as many details as possible. For example, start by explaining how you started Amber, e.g. which command exactly you used in the terminal, or how you started Amber otherwise. When listing steps, don't just say what you did, but explain how you did it. For example, if you moved the cursor to the end of a line, explain if you used the mouse, or a keyboard shortcut or an Amber command, and if so which one?
 * Provide specific examples to demonstrate the steps. Include links to files or GitHub projects, or copy/pasteable snippets, which you use in those examples. If you're providing snippets in the issue, use Markdown code blocks.
 * Describe the behavior you observed after following the steps and point out what exactly is the problem with that behavior.
 * Explain which behavior you expected to see instead and why.
@@ -120,4 +120,4 @@ Both issue lists are sorted by total number of comments. While not perfect, numb
 
 * Include thoughtfully-worded, well-structured Crystal specs in the `./spec` folder.
 * Treat `describe` as a noun or situation.
-* Teat `it` as a statement about state or how an operation changes state.
+* Treat `it` as a statement about state or how an operation changes state.
