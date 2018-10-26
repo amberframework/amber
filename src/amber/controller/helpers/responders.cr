@@ -9,6 +9,7 @@ module Amber::Controller::Helpers
         txt:  "text/plain",
         text: "text/plain",
         xml:  "application/xml",
+        js:   "application/javascript",
       }
 
       TYPE_EXT_REGEX         = /\.(#{TYPE.keys.join("|")})$/
@@ -22,7 +23,10 @@ module Amber::Controller::Helpers
       def initialize(@requested_responses)
       end
 
-      # TODO: add JS type similar to rails.
+      def js(js : String | ProcType)
+        @available_responses[TYPE[:js]] = js; self
+      end
+
       def html(html : String | ProcType)
         @available_responses[TYPE[:html]] = html; self
       end

@@ -116,6 +116,7 @@ class ResponsesController < Amber::Controller::Base
       json type: "json", name: "Amberator"
       xml "<xml><body><h1>Sort of xml</h1></body></xml>"
       text "Hello I'm text!"
+      js "console.log('Everyone <3 Amber')"
     end
   end
 
