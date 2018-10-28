@@ -15,7 +15,7 @@ module Amber
 
       def get_socket_handler(request)
         raise Exceptions::RouteNotFound.new(request) unless socket_route_defined?(request)
-        @socket_routes.select { |sr| sr[:path] == request.path }.first.[:handler]
+        @socket_routes.find { |sr| sr[:path] == request.path }.[:handler]
       end
 
       # This registers all the routes for the application
