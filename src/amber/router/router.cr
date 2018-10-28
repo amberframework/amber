@@ -13,9 +13,12 @@ module Amber
         @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new
       end
 
-      def get_socket_handler(request)
-        raise Exceptions::RouteNotFound.new(request) unless socket_route_defined?(request)
-        @socket_routes.select { |sr| sr[:path] == request.path }.first.[:handler]
+      def get_socket_handler(request) : WebSockets::Server::Handler
+        if socket_route = @socket_routes.find { |sr| sr[:path] == request.path }
+          socket_route.[:handler]
+        else
+          raise Exceptions::RouteNotFound.new(request)
+        end
       end
 
       # This registers all the routes for the application
