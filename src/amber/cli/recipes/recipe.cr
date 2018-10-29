@@ -15,15 +15,13 @@ require "./scaffold/controller"
 require "./scaffold/view"
 
 module Amber::Recipes
-  AMBER_RECIPE_FOLDER = ENV["HOME"] + "/.amber/recipe_cache"
-
   class Recipe
     getter name : String
     getter directory : String
-    getter recipe : String | Nil
+    getter recipe : String
 
     def self.can_generate?(template_type, recipe)
-      return false unless ["app", "controller", "model", "scaffold"].includes? template_type
+      return false unless ["controller", "model", "scaffold"].includes? template_type
 
       if recipe.nil?
         return false
@@ -55,8 +53,10 @@ module Amber::Recipes
       case template
       when "app"
         if options
-          info "Rendering App #{name} in #{directory} from #{options.r}"
-          App.new(name, options.d, options.t, options.m, options.r).render(directory, list: true, color: true)
+          info "Rendering App #{name} in #{directory} from #{recipe}"
+          app = App.new(name, options.d, options.t, options.m, recipe)
+          app.fetch_recipe(directory)
+          app.render(directory, list: true, color: true)
           if options.deps?
             info "Installing Dependencies"
             Amber::CLI::Helpers.run("cd #{name} && shards update")

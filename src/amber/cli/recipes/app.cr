@@ -4,6 +4,7 @@ module Amber::Recipes
 
     getter database_name_base
     getter template
+    getter recipe
 
     @name : String
     @database : String
@@ -18,15 +19,17 @@ module Amber::Recipes
     @template : String | Nil
     @recipe : String
 
-    def initialize(@name, @database = "pg", @language = "slang", @model = "granite", @recipe = "default")
+    def initialize(@name, @database = "pg", @language = "slang", @model = "granite", @recipe = "base")
       @db_url = ""
       @wait_for = ""
       @database_name_base = generate_database_name_base
       @author = fetch_author
       @email = fetch_email
       @github_name = fetch_github_name
+    end
 
-      @template = RecipeFetcher.new("app", @recipe).fetch
+    def fetch_recipe(directory)
+      @template = RecipeFetcher.new("app", recipe, directory).fetch
     end
 
     # setup the Liquid context

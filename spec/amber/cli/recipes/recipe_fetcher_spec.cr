@@ -41,42 +41,54 @@ module Amber::Recipes
       end
     end
 
-    context "using the recipe cache" do
+    context "app from a github shard" do
       Spec.before_each do
-        Dir.mkdir_p("#{AMBER_RECIPE_FOLDER}/mydefault/app")
-        Dir.mkdir_p("#{AMBER_RECIPE_FOLDER}/mydefault/controller")
-        Dir.mkdir_p("#{AMBER_RECIPE_FOLDER}/mydefault/model")
-        Dir.mkdir_p("#{AMBER_RECIPE_FOLDER}/mydefault/scaffold")
+        Dir.mkdir_p("./mydefault")
       end
 
       Spec.after_each do
-        FileUtils.rm_rf("#{AMBER_RECIPE_FOLDER}/mydefault")
+        FileUtils.rm_rf("./mydefault")
       end
 
       describe "RecipeFetcher" do
-        it "should use a cached app folder" do
-          template = RecipeFetcher.new("app", "mydefault").fetch
+        it "should use a shard app folder" do
+          template = RecipeFetcher.new("app", "damianham/amber_granite", "./mydefault").fetch
           template.should_not be nil
-          template.should match(/.+mydefault\/app$/)
+          template.should match(/.+mydefault\/.recipes\/lib\/amber_granite\/app$/)
+        end
+      end
+    end
+
+    context "using a github shard" do
+      describe "RecipeFetcher" do
+        Dir.mkdir_p("./myapp")
+        RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
+
+        it "should use a shard controller folder" do
+          Dir.cd("./myapp") do
+            template = RecipeFetcher.new("controller", "damianham/amber_granite").fetch
+            template.should_not be nil
+            template.should match(/.+\.recipes\/lib\/amber_granite\/controller$/)
+          end
         end
 
-        it "should use a cached controller folder" do
-          template = RecipeFetcher.new("controller", "mydefault").fetch
-          template.should_not be nil
-          template.should match(/.+mydefault\/controller$/)
+        it "should use a shard model folder" do
+          Dir.cd("./myapp") do
+            template = RecipeFetcher.new("model", "damianham/amber_granite").fetch
+            template.should_not be nil
+            template.should match(/.+\.recipes\/lib\/amber_granite\/model$/)
+          end
         end
 
-        it "should use a cached model folder" do
-          template = RecipeFetcher.new("model", "mydefault").fetch
-          template.should_not be nil
-          template.should match(/.+mydefault\/model$/)
+        it "should use a shard scaffold folder" do
+          Dir.cd("./myapp") do
+            template = RecipeFetcher.new("scaffold", "damianham/amber_granite").fetch
+            template.should_not be nil
+            template.should match(/.+\.recipes\/lib\/amber_granite\/scaffold$/)
+          end
         end
 
-        it "should use a cached scaffold folder" do
-          template = RecipeFetcher.new("scaffold", "mydefault").fetch
-          template.should_not be nil
-          template.should match(/.+mydefault\/scaffold$/)
-        end
+        FileUtils.rm_rf("./myapp")
       end
     end
   end

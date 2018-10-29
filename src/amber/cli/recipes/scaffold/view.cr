@@ -13,7 +13,7 @@ module Amber::Recipes::Scaffold
     @model : String = CLI.config.model
 
     @template : String | Nil
-    @recipe : String | Nil
+    @recipe : String
 
     def initialize(@name, @recipe, fields)
       @fields = fields.map { |field| Amber::CLI::Field.new(field, database: @database) }

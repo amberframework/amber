@@ -10,7 +10,7 @@ module Amber::Recipes
     @model : String = CLI.config.model
     @database : String = CLI.config.database
 
-    @recipe : String?
+    @recipe : String
     @template : String?
     @table_name : String?
 
