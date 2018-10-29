@@ -46,6 +46,22 @@ module Amber::Controller
         context.response.status_code.should eq 200
       end
 
+      it "responds with javascript" do
+        expected_result = %(console.log('Everyone <3 Amber'))
+        context.request.headers["Accept"] = "application/javascript"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "application/javascript"
+        context.response.status_code.should eq 200
+      end
+
+      it "responds with javascript having */* at end" do
+        expected_result = %(console.log('Everyone <3 Amber'))
+        context.request.headers["Accept"] = "application/javascript,*/*"
+        ResponsesController.new(context).index.should eq expected_result
+        context.response.headers["Content-Type"].should eq "application/javascript"
+        context.response.status_code.should eq 200
+      end
+
       it "responds with xml" do
         expected_result = "<xml><body><h1>Sort of xml</h1></body></xml>"
         context.request.headers["Accept"] = "application/xml"
