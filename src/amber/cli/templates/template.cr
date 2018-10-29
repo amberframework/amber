@@ -53,7 +53,7 @@ module Amber::CLI
           App.new(name, options.d, options.t, options.m).render(directory, list: true, color: true)
           if options.deps?
             info "Installing Dependencies"
-            Helpers.run("cd #{name} && shards update")
+            Helpers.run("cd #{directory} && shards update")
           end
         end
       when "migration"
