@@ -108,7 +108,7 @@ module Amber::Router
         return unless @cookies.has_key?(name)
 
         value = @cookies.delete(name)
-        @delete_cookies[name] = HTTP::Cookie.new(name, "", path, Time.epoch(0), domain)
+        @delete_cookies[name] = HTTP::Cookie.new(name, "", path, ::Time.unix(0), domain)
         value
       end
 

@@ -30,7 +30,7 @@ module Amber
 
         def fetch(key : String)
           @read << key
-          @store.fetch(key)
+          @store.fetch(key, nil)
         end
 
         def fetch(key : Symbol)

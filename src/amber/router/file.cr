@@ -1,9 +1,8 @@
 require "http/headers"
-require "tempfile"
 
 module Amber::Router
   struct File
-    getter file : Tempfile
+    getter file : ::File
     getter filename : String?
     getter headers : HTTP::Headers
     getter creation_time : Time?
@@ -13,7 +12,7 @@ module Amber::Router
 
     def initialize(upload)
       @filename = upload.filename
-      @file = Tempfile.new(filename)
+      @file = ::File.tempfile(filename)
       ::File.open(@file.path, "w") do |f|
         ::IO.copy(upload.body, f)
       end
