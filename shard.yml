@@ -68,7 +68,7 @@ dependencies:
 
   teeplate:
     github: mosop/teeplate
-    version: ~> 0.6.1
+    version: ~> 0.7.0
 
 development_dependencies:
   ameba:

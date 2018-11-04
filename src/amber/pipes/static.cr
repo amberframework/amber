@@ -70,7 +70,7 @@ module Amber
       end
 
       private def etag(context, file_path)
-        etag = %{W/"#{File.info(file_path).modification_time.epoch.to_s}"}
+        etag = %{W/"#{File.info(file_path).modification_time.to_unix.to_s}"}
         context.response.headers["ETag"] = etag
         return false if !context.request.headers["If-None-Match"]? || context.request.headers["If-None-Match"] != etag
         context.response.headers.delete "Content-Type"

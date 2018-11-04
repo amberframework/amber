@@ -24,11 +24,11 @@ dependencies:
 <% case @model when "crecto" -%>
   crecto:
     github: Crecto/crecto
-    version: ~> 0.9.0
+    version: ~> 0.10.1
 <% else -%>
   granite:
     github: amberframework/granite
-    version: ~> 0.14.0
+    version: ~> 0.15.0
 <% end -%>
 
   quartz_mailer:
@@ -37,7 +37,7 @@ dependencies:
 
   jasper_helpers:
     github: amberframework/jasper-helpers
-    version: ~> 0.2.0
+    version: ~> 0.2.1
 
 <% case @database when "pg" -%>
   pg:

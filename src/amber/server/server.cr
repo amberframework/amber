@@ -59,7 +59,7 @@ module Amber
 
       if ssl_enabled?
         ssl_config = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls
-        server.bind_ssl Amber.settings.host, Amber.settings.port, ssl_config, settings.port_reuse
+        server.bind_tls Amber.settings.host, Amber.settings.port, ssl_config, settings.port_reuse
       else
         server.bind_tcp Amber.settings.host, Amber.settings.port, settings.port_reuse
       end
