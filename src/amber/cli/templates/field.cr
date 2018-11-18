@@ -9,7 +9,7 @@ module Amber::CLI
         integer:    ["integer", "Int32", "INT"],
         int64:      ["bigint", "Int64", "BIGINT"],
         bigint:     ["bigint", "Int64", "BIGINT"],
-        float:      ["float", "Float32", "FLOAT"],
+        float:      ["float", "Float64", "FLOAT"],
         float64:    ["real", "Float64", "FLOAT"],
         real:       ["real", "Float64", "REAL"],
         bool:       ["boolean", "Bool", "BOOL"],
@@ -25,6 +25,7 @@ module Amber::CLI
       },
       mysql: {
         string:    ["string", "String", "VARCHAR(255)"],
+        float:     ["float", "Float32", "FLOAT"],
         password:  ["password", "String", "VARCHAR(255)"],
         time:      ["time", "Time", "TIMESTAMP NULL"],
         timestamp: ["time", "Time", "TIMESTAMP NULL"],
