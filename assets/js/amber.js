@@ -227,12 +227,13 @@ module.exports = {
   Socket: Socket
 }
 
+require('./polyfills')
 
 /**
  * Allows delete links to post for security and ease of use similar to Rails jquery_ujs
  */
 document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll("a[data-method='delete']").forEach(function (element) {
+    Array.from(document.querySelectorAll("a[data-method='delete']")).forEach(function (element) {
         element.addEventListener("click", function (e) {
             e.preventDefault();
             var message = element.getAttribute("data-confirm") || "Are you sure?";
