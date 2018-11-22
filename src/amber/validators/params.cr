@@ -8,6 +8,11 @@ module Amber::Validators
     getter field : String
     getter value : String?
 
+    def initialize(field : String | Symbol, @msg : String?)
+      @field = field.to_s
+      @predicate = ->(_s : String) { true }
+    end
+
     def initialize(field : String | Symbol, @msg : String?, &block : String -> Bool)
       @field = field.to_s
       @predicate = block
@@ -34,7 +39,7 @@ module Amber::Validators
 
   class RequiredRule < BaseRule
     def apply(params : Amber::Router::Params)
-      return false unless params.has_key? @field
+      return false unless params.has_key?(@field)
       call_predicate(params)
     end
   end
@@ -42,7 +47,7 @@ module Amber::Validators
   # OptionalRule only validates if the key is present.
   class OptionalRule < BaseRule
     def apply(params : Amber::Router::Params)
-      return true unless params.has_key? @field
+      return true unless params.has_key?(@field) && params[@field] != ""
       call_predicate(params)
     end
   end
@@ -54,6 +59,10 @@ module Amber::Validators
 
     def required(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
       _validator.add_rule RequiredRule.new(param, msg, &b)
+    end
+
+    def optional(param : String | Symbol, msg : String? = nil)
+      _validator.add_rule OptionalRule.new(param, msg)
     end
 
     def optional(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
