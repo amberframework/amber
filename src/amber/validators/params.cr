@@ -10,7 +10,7 @@ module Amber::Validators
 
     def initialize(field : String | Symbol, @msg : String?)
       @field = field.to_s
-      @predicate = ->(_s : String){ true }
+      @predicate = ->(_s : String) { true }
     end
 
     def initialize(field : String | Symbol, @msg : String?, &block : String -> Bool)
