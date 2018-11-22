@@ -52,8 +52,19 @@ module Amber::Validators
 
       context "optional params" do
         context "when missing" do
-          it "is valid and there is no errors" do
+          it "is valid and there is no errors when param not present" do
             http_params = params_builder("last_name=&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              optional(:name) { |v| !v.nil? }
+            end
+
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
+          end
+          it "is valid and there is no errors when param present, but blank" do
+            http_params = params_builder("name=&last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
             validator.validation do
@@ -81,7 +92,7 @@ module Amber::Validators
 
         context "when block evaluates to false" do
           it "fails validation and it has errors" do
-            http_params = params_builder("name=")
+            http_params = params_builder("name=asdf")
             validator = Validators::Params.new(http_params)
 
             validator.validation do
@@ -90,6 +101,32 @@ module Amber::Validators
 
             validator.valid?.should be_false
             validator.errors.size.should eq 1
+          end
+        end
+
+        context "when no block given" do
+          it "passes validation and there is no errors when param not present" do
+            http_params = params_builder("last_name=&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              optional(:name)
+            end
+
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
+          end
+
+          it "passes validation and there is no errors when param present, but blank" do
+            http_params = params_builder("name=&last_name=&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              optional(:name)
+            end
+
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
           end
         end
 
