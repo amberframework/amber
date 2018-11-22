@@ -33,11 +33,9 @@ Read Amber documentation on https://docs.amberframework.org
 
 ## Benchmarks
 
-[Techempower Framework Benchmarks - Round 16 (2018-06-06)](https://www.techempower.com/benchmarks/#section=data-r16&hw=ph&test=fortune&f=zik073-zik0zj-zik0zj-zik0zj-zhxjwf-zik0zj-yelnge-4zsot)
+[Techempower Framework Benchmarks - Round 17 (2018-10-30)](https://www.techempower.com/benchmarks/#section=data-r17&hw=ph&test=json&c=6&d=9&o=e)
 
-Fortunes test comparing [Amber](https://amberframework.org/), [Kemal](https://kemalcr.com/), [Rails](https://rubyonrails.org/), [Phoenix](https://phoenixframework.org/), and [Hanami](https://hanamirb.org/):
-
-[![framework-benchmark](https://github.com/amberframework/site-assets/raw/master/images/benchmarks-fortunes-round-16.png "TFB Round 16 Fortunes test for Crystal, Elixir and Ruby frameworks")](https://www.techempower.com/benchmarks/#section=data-r16&hw=ph&test=fortune&f=zik073-zik0zj-zik0zj-zik0zj-zhxjwf-zik0zj-yelnge-4zsot)
+* Filtered by Full Stack, Full ORM, Mysql or Pg for comparing similar frameworks.
 
 ## Installation & Usage
 
