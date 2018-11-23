@@ -37,17 +37,19 @@ module Amber::Validators
     end
   end
 
+  # RequiredRule returns false if key is missing or value is blank or if block returns false.
   class RequiredRule < BaseRule
     def apply(params : Amber::Router::Params)
       return false unless params.has_key?(@field)
+      return false if params[@field].blank?
       call_predicate(params)
     end
   end
 
-  # OptionalRule only validates if the key is present.
+  # OptionalRule only validates (evaluates block) if the key is present and the value is not blank.
   class OptionalRule < BaseRule
     def apply(params : Amber::Router::Params)
-      return true unless params.has_key?(@field) && params[@field] != ""
+      return true unless params.has_key?(@field) && !params[@field].blank?
       call_predicate(params)
     end
   end

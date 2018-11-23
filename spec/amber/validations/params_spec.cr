@@ -48,6 +48,47 @@ module Amber::Validators
             validator.errors.first.param.should eq "name"
           end
         end
+
+        context "when no block passed" do
+          it "is valid and there are no errors when param is present and not blank" do
+            http_params = params_builder("name=elias&last_name=perez&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              required(:name)
+              required(:last_name)
+            end
+
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
+          end
+
+          it "is not valid when param is missing" do
+            http_params = params_builder("last_name=perez&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              required(:name)
+              required(:last_name)
+            end
+
+            validator.valid?.should be_false
+            validator.errors.size.should eq 1
+          end
+
+          it "is not valid when param is present, but blank" do
+            http_params = params_builder("name= &last_name=&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              required(:name)
+              required(:last_name)
+            end
+
+            validator.valid?.should be_false
+            validator.errors.size.should eq 2
+          end
+        end
       end
 
       context "optional params" do
