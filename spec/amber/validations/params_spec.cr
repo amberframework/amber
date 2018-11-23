@@ -19,7 +19,7 @@ module Amber::Validators
         end
 
         context "when params present" do
-          it "is valid and there is no errors" do
+          it "is valid and there are no errors" do
             http_params = params_builder("name=elias&last_name=perez&middle=j")
             validator = Validators::Params.new(http_params)
 
@@ -92,33 +92,8 @@ module Amber::Validators
       end
 
       context "optional params" do
-        context "when missing" do
-          it "is valid and there is no errors when param not present" do
-            http_params = params_builder("last_name=&middle=j")
-            validator = Validators::Params.new(http_params)
-
-            validator.validation do
-              optional(:name) { |v| !v.nil? }
-            end
-
-            validator.valid?.should be_true
-            validator.errors.size.should eq 0
-          end
-          it "is valid and there is no errors when param present, but blank" do
-            http_params = params_builder("name=&last_name=&middle=j")
-            validator = Validators::Params.new(http_params)
-
-            validator.validation do
-              optional(:name) { |v| !v.nil? }
-            end
-
-            validator.valid?.should be_true
-            validator.errors.size.should eq 0
-          end
-        end
-
         context "when block evaluates to true" do
-          it "passes validation and there is no errors" do
+          it "is valid and there are no errors if param is missing" do
             http_params = params_builder("last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
@@ -129,10 +104,35 @@ module Amber::Validators
             validator.valid?.should be_true
             validator.errors.size.should eq 0
           end
+
+          it "is valid and there are no errors if param is missing" do
+            http_params = params_builder("last_name=&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              optional(:name) { true }
+            end
+
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
+          end
+
+          it "is valid and there are no errors when param is present, but blank" do
+            http_params = params_builder("name= &last_name=&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              optional(:name) { true }
+              optional(:last_name) { true }
+            end
+
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
+          end
         end
 
         context "when block evaluates to false" do
-          it "fails validation and it has errors" do
+          it "is not valid and it has errors if param is present and not blank" do
             http_params = params_builder("name=asdf")
             validator = Validators::Params.new(http_params)
 
@@ -143,10 +143,35 @@ module Amber::Validators
             validator.valid?.should be_false
             validator.errors.size.should eq 1
           end
+
+          it "is valid and there are no errors if param is missing" do
+            http_params = params_builder("last_name=&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              optional(:name) { false }
+            end
+
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
+          end
+
+          it "is valid and there are no errors when param is present, but blank" do
+            http_params = params_builder("name=&last_name= &middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              optional(:name) { false }
+              optional(:last_name) { false }
+            end
+
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
+          end
         end
 
-        context "when no block given" do
-          it "passes validation and there is no errors when param not present" do
+        context "when no block passed" do
+          it "is valid and there are no errors when param is not present" do
             http_params = params_builder("last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
@@ -158,8 +183,20 @@ module Amber::Validators
             validator.errors.size.should eq 0
           end
 
-          it "passes validation and there is no errors when param present, but blank" do
-            http_params = params_builder("name=&last_name=&middle=j")
+          it "is valid and there are no errors when param is present" do
+            http_params = params_builder("name=asdf&last_name=&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              optional(:name)
+            end
+
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
+          end
+
+          it "is valid and there are no errors when param is present, but blank" do
+            http_params = params_builder("name=%20&last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
             validator.validation do
@@ -170,23 +207,23 @@ module Amber::Validators
             validator.errors.size.should eq 0
           end
         end
+      end
 
-        context "casting" do
-          it "returns false for the given block" do
-            params = params_builder("name=john&number=1&price=3.45&list=[1,2,3]")
-            validator = Validators::Params.new(params)
-            validator.validation do
-              required(:name) { |f| !f.to_s.empty? }
-              required(:number) { |f| f.as(String).to_i > 0 }
-              required(:price) { |f| f.as(String).to_f == 3.45 }
-              required(:list) do |f|
-                list = JSON.parse(f.as(String)).as_a
-                (list == [1, 2, 3] && !list.includes? 6)
-              end
+      context "casting" do
+        it "returns false for the given block" do
+          params = params_builder("name=john&number=1&price=3.45&list=[1,2,3]")
+          validator = Validators::Params.new(params)
+          validator.validation do
+            required(:name) { |f| !f.to_s.empty? }
+            required(:number) { |f| f.as(String).to_i > 0 }
+            required(:price) { |f| f.as(String).to_f == 3.45 }
+            required(:list) do |f|
+              list = JSON.parse(f.as(String)).as_a
+              (list == [1, 2, 3] && !list.includes? 6)
             end
-
-            validator.valid?.should be_truthy
           end
+
+          validator.valid?.should be_truthy
         end
       end
     end
