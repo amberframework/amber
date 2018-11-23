@@ -88,6 +88,19 @@ module Amber::Validators
             validator.valid?.should be_false
             validator.errors.size.should eq 2
           end
+
+          it "is valid when param is present, but blank, and allow_blank = true" do
+            http_params = params_builder("name= &last_name=&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              required(:name, allow_blank: true)
+              required(:last_name, allow_blank: true)
+            end
+
+            validator.valid?.should be_true
+            validator.errors.size.should eq 0
+          end
         end
       end
 
@@ -167,6 +180,19 @@ module Amber::Validators
 
             validator.valid?.should be_true
             validator.errors.size.should eq 0
+          end
+
+          it "is not valid and it has errors when param is present, but blank, and allow_blank = false" do
+            http_params = params_builder("name=%20&last_name=&middle=j")
+            validator = Validators::Params.new(http_params)
+
+            validator.validation do
+              optional(:name, allow_blank: false) { false }
+              optional(:last_name, allow_blank: false) { false }
+            end
+
+            validator.valid?.should be_false
+            validator.errors.size.should eq 2
           end
         end
 

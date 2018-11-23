@@ -8,12 +8,12 @@ module Amber::Validators
     getter field : String
     getter value : String?
 
-    def initialize(field : String | Symbol, @msg : String?)
+    def initialize(field : String | Symbol, @msg : String?, @allow_blank : Bool)
       @field = field.to_s
       @predicate = ->(_s : String) { true }
     end
 
-    def initialize(field : String | Symbol, @msg : String?, &block : String -> Bool)
+    def initialize(field : String | Symbol, @msg : String?, @allow_blank : Bool, &block : String -> Bool)
       @field = field.to_s
       @predicate = block
     end
@@ -41,7 +41,7 @@ module Amber::Validators
   class RequiredRule < BaseRule
     def apply(params : Amber::Router::Params)
       return false unless params.has_key?(@field)
-      return false if params[@field].blank?
+      return false if params[@field].blank? && !@allow_blank
       call_predicate(params)
     end
   end
@@ -49,26 +49,27 @@ module Amber::Validators
   # OptionalRule only validates (evaluates block) if the key is present and the value is not blank.
   class OptionalRule < BaseRule
     def apply(params : Amber::Router::Params)
-      return true unless params.has_key?(@field) && !params[@field].blank?
+      return true if !params.has_key?(@field)
+      return true if params.has_key?(@field) && (@allow_blank && params[@field].blank?)
       call_predicate(params)
     end
   end
 
   record ValidationBuilder, _validator : Params do
-    def required(param : String | Symbol, msg : String? = nil)
-      _validator.add_rule RequiredRule.new(param, msg)
+    def required(param : String | Symbol, msg : String? = nil, allow_blank = false)
+      _validator.add_rule RequiredRule.new(param, msg, allow_blank)
     end
 
-    def required(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
-      _validator.add_rule RequiredRule.new(param, msg, &b)
+    def required(param : String | Symbol, msg : String? = nil, allow_blank = false, &b : String -> Bool)
+      _validator.add_rule RequiredRule.new(param, msg, allow_blank, &b)
     end
 
-    def optional(param : String | Symbol, msg : String? = nil)
-      _validator.add_rule OptionalRule.new(param, msg)
+    def optional(param : String | Symbol, msg : String? = nil, allow_blank = true)
+      _validator.add_rule OptionalRule.new(param, msg, allow_blank)
     end
 
-    def optional(param : String | Symbol, msg : String? = nil, &b : String -> Bool)
-      _validator.add_rule OptionalRule.new(param, msg, &b)
+    def optional(param : String | Symbol, msg : String? = nil, allow_blank = true, &b : String -> Bool)
+      _validator.add_rule OptionalRule.new(param, msg, allow_blank, &b)
     end
   end
 
