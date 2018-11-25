@@ -8,12 +8,12 @@ module Amber::Validators
     getter field : String
     getter value : String?
 
-    def initialize(field : String | Symbol, @msg : String?, @allow_blank : Bool)
+    def initialize(field : String | Symbol, @msg : String?, @allow_blank : Bool = true)
       @field = field.to_s
       @predicate = ->(_s : String) { true }
     end
 
-    def initialize(field : String | Symbol, @msg : String?, @allow_blank : Bool, &block : String -> Bool)
+    def initialize(field : String | Symbol, @msg : String?, @allow_blank : Bool = true, &block : String -> Bool)
       @field = field.to_s
       @predicate = block
     end
