@@ -21,20 +21,14 @@
     </div>
 
     <div class="container">
-      <div class="row">
-        <div class="col-sm">
-          <%="<"%>%- flash.each do |key, value| %>
-            <div class="alert alert-<%="<"%>%= key %>">
-              <p><%="<"%>%= flash[key] %></p>
-            </div>
-          <%="<"%>%- end %>
+      <%="<"%>%- flash.each do |key, value| %>
+        <div class="alert alert-<%="<"%>%= key %>">
+          <p><%="<"%>%= flash[key] %></p>
         </div>
-      </div>
+      <%="<"%>%- end %>
 
-      <div class="row">
-        <div class="col-sm-12 main">
-          <%="<"%>%= content %>
-        </div>
+      <div class="main">
+        <%="<"%>%= content %>
       </div>
     </div>
 

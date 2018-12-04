@@ -76,21 +76,6 @@ h6, .h6 {
   padding-top: 20px;
 }
 
-#logo {
-  background-color: $background-color;
-  background-image: url("../images/logo.png");
-  background-size:contain;
-  width: 200px;
-  height:278px;
-}
-
-/* Hide logo in small screens */
-@media (max-width: 767px) {
-  #logo {
-    display: none;
-  }
-}
-
 .table td, .table th {
   vertical-align: middle;
 }

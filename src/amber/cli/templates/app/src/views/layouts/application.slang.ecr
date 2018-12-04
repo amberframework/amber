@@ -17,14 +17,11 @@ html
         nav.nav
           == render(partial: "layouts/_nav.slang")
     .container
-      .row
-        .col-sm
-          - flash.each do |key, value|
-            div class="alert alert-#{key}"
-              p = flash[key]
-      .row
-        .col-sm-12.main
-          == content
+      - flash.each do |key, value|
+        div class="alert alert-#{key}"
+          p = flash[key]
+
+      .main== content
 
     script src="https://code.jquery.com/jquery-3.3.1.min.js"
     script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"
