@@ -232,23 +232,47 @@ module.exports = {
  * Allows delete links to post for security and ease of use similar to Rails jquery_ujs
  */
 document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll("a[data-method='delete']").forEach(function (element) {
-        element.addEventListener("click", function (e) {
-            e.preventDefault();
-            var message = element.getAttribute("data-confirm") || "Are you sure?";
-            if (confirm(message)) {
-                var form = document.createElement("form");
-                var input = document.createElement("input");
-                form.setAttribute("action", element.getAttribute("href"));
-                form.setAttribute("method", "POST");
-                input.setAttribute("type", "hidden");
-                input.setAttribute("name", "_method");
-                input.setAttribute("value", "DELETE");
-                form.appendChild(input);
-                document.body.appendChild(form);
-                form.submit();
-            }
-            return false;
-        })
+  var elements = document.querySelectorAll("a[data-method='delete']");
+  var i;
+  for (i = 0; i < elements.length; i++) {
+    elements[i].addEventListener("click", function (e) {
+      e.preventDefault();
+      var message = e.target.getAttribute("data-confirm") || "Are you sure?";
+      if (confirm(message)) {
+        var form = document.createElement("form");
+        var input = document.createElement("input");
+        form.setAttribute("action", e.target.getAttribute("href"));
+        form.setAttribute("method", "POST");
+        input.setAttribute("type", "hidden");
+        input.setAttribute("name", "_method");
+        input.setAttribute("value", "DELETE");
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+      }
+      return false;
     })
+  }
 });
+
+if (!Date.prototype.toGranite) {
+  (function() {
+
+    function pad(number) {
+      if (number < 10) {
+        return '0' + number;
+      }
+      return number;
+    }
+
+    Date.prototype.toGranite = function() {
+      return this.getUTCFullYear() +
+        '-' + pad(this.getUTCMonth() + 1) +
+        '-' + pad(this.getUTCDate()) +
+        ' ' + pad(this.getUTCHours()) +
+        ':' + pad(this.getUTCMinutes()) +
+        ':' + pad(this.getUTCSeconds())  ;
+    };
+
+  }());
+}
