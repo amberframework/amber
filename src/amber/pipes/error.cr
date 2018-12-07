@@ -9,16 +9,13 @@ module Amber
         call_next(context)
       rescue ex : Amber::Exceptions::Forbidden
         context.response.status_code = 403
-        error = Amber::Controller::Error.new(context, ex)
-        context.response.print(error.forbidden)
+        context.response.print Amber::Controller::Error.for_runtime_exception(context, ex).to_s
       rescue ex : Amber::Exceptions::RouteNotFound
         context.response.status_code = 404
-        error = Amber::Controller::Error.new(context, ex)
-        context.response.print(error.not_found)
+        context.response.print Amber::Controller::Error.for_runtime_exception(context, ex).to_s
       rescue ex : Exception
         context.response.status_code = 500
-        error = Amber::Controller::Error.new(context, ex)
-        context.response.print(error.internal_server_error)
+        context.response.print Amber::Controller::Error.for_runtime_exception(context, ex).to_s
       end
     end
   end
