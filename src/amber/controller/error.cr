@@ -1,7 +1,13 @@
+require "./base"
 require "../exceptions/page"
 
 module Amber::Controller
   class Error < Base
+    def initialize(@context : HTTP::Server::Context, @ex : Exception)
+      super(@context)
+      @context.response.content_type = content_type
+    end
+
     def bad_request
       response_format
     end
@@ -31,7 +37,7 @@ module Amber::Controller
       when "application/json"
         {"error": @ex.message}.to_json
       when "text/html"
-        Amber::Exceptions::Page.from_runtime_exception(content, @ex).to_s
+        Amber::Exceptions::Page.for_runtime_exception(context, @ex).to_s
       else
         @ex.message
       end
