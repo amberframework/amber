@@ -37,9 +37,17 @@ module Amber::Controller
       when "application/json"
         {"error": @ex.message}.to_json
       when "text/html"
-        Amber::Exceptions::Page.for_runtime_exception(context, @ex).to_s
+        html_response
       else
         @ex.message
+      end
+    end
+
+    private def html_response
+      if Amber.env.development?
+        Amber::Exceptions::Page.for_runtime_exception(context, @ex).to_s
+      else
+        "<html><body><pre>#{@ex.message}</pre></body></html>"
       end
     end
   end
