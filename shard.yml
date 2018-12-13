@@ -70,6 +70,9 @@ dependencies:
     github: mosop/teeplate
     version: ~> 0.7.0
 
+  exception_page:
+    github: crystal-loot/exception_page
+
 development_dependencies:
   ameba:
     github: veelenga/ameba
