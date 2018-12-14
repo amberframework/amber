@@ -21,10 +21,10 @@ class <%= class_name %>Controller < ApplicationController
     <%= @name %>_changeset = Repo.update(<%= @name %>.as(<%= class_name %>))
 
     if <%= @name %>_changeset.valid?
-      flash[:success] = "Updated Profile successfully."
+      flash[:success] = t("<%= @name %>.update.success")
       redirect_to "/profile"
     else
-      flash[:danger] = "Could not update Profile!"
+      flash[:danger] = t("<%= @name %>.update.failure")
       render("edit.<%= @language %>")
     end
   end

@@ -14,10 +14,10 @@ class <%= class_name %>Controller < ApplicationController
   def update
     <%= @name %> = current_<%= @name %>
     if update(<%= @name %>)
-      flash[:success] = "Updated Profile successfully."
+      flash[:success] = t("<%= @name %>.update.success")
       redirect_to "/profile"
     elsif <%= @name %>
-      flash[:danger] = "Could not update Profile!"
+      flash[:danger] = t("<%= @name %>.update.failure")
       render("edit.<%= @language %>")
     else
       flash[:info] = "Must be logged in"

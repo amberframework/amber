@@ -9,10 +9,10 @@ class SessionController < ApplicationController
 
     if <%= @name %> && <%= @name %>.authenticate(params["password"].to_s)
       session[:<%= @name %>_id] = <%= @name %>.id
-      flash[:info] = "Successfully logged in"
+      flash[:info] = t("session.create.success")
       redirect_to "/"
     else
-      flash[:danger] = "Invalid email or password"
+      flash[:danger] = t("session.create.failure")
       <%= @name %> = <%= class_name %>.new
       render("new.<%= @language %>")
     end
@@ -20,7 +20,7 @@ class SessionController < ApplicationController
 
   def delete
     session.delete(:<%= @name %>_id)
-    flash[:info] = "Logged out. See ya later!"
+    flash[:info] = t("session.delete.success")
     redirect_to "/"
   end
 end

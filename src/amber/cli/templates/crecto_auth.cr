@@ -27,7 +27,7 @@ module Amber::CLI
     end
 
     def filter(entries)
-      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
+      entries.reject { |entry| !view_template?(entry) && !locale_template(entry) }
     end
 
     private def setup_routes
@@ -41,6 +41,14 @@ module Amber::CLI
           get "/signup", RegistrationController, :new
           post "/registration", RegistrationController, :create
       ROUTES
+    end
+
+    private def view_template?(entry)
+      entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}")
+    end
+
+    private def locale_template(entry)
+      entry.path.includes?("src/locales") && !entry.path.includes?(".yml")
     end
 
     private def setup_plugs
