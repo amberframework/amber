@@ -28,7 +28,7 @@ module Amber::CLI
     end
 
     def filter(entries)
-      entries.reject { |entry| !view_template?(entry) && !locale_template(entry) }
+      entries.reject { |entry| !view_template?(entry) || !locale_template(entry) }
     end
 
     def table_name
