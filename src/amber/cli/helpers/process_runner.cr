@@ -25,22 +25,25 @@ module Sentry
     def run
       loop do
         scan_files
+        check_processes
         sleep 1
       end
     end
 
     # Compiles and starts the application
     def start_app
+      time = Time.monotonic
       build_result = build_app_process
-      if build_result.is_a? Process::Status
-        if build_result.success?
-          stop_all_processes
-          create_all_processes
-          @app_running = true
-        elsif !@app_running
-          log "Compile time errors detected. Shutting down..."
-          exit 1
-        end
+      return unless build_result.is_a? Process::Status
+
+      if build_result.success?
+        log "Compiled in #{(Time.monotonic - time)}"
+        stop_all_processes if @app_running
+        create_all_processes
+        @app_running = true
+      elsif !@app_running
+        log "Compile time errors detected. Shutting down..."
+        exit 1
       end
     end
 
@@ -49,16 +52,24 @@ module Sentry
       Dir.glob(files) do |file|
         timestamp = get_timestamp(file)
         if FILE_TIMESTAMPS[file]? != timestamp
-          if @app_running
-            log "File changed: #{file.colorize(:light_gray)}"
-          end
+          log "File changed: #{file.colorize(:light_gray)}" if @app_running
           FILE_TIMESTAMPS[file] = timestamp
           file_counter += 1
         end
       end
       if file_counter > 0
-        log "Watching #{file_counter} files (server reload)..."
+        log "#{file_counter} file(s) changed. Recompiling..." if @app_running
         start_app
+      end
+    end
+
+    private def check_processes
+      @processes.reject!(&.terminated?)
+      if @processes.empty?
+        log "All processed died. Trying to start..."
+        if (process = create_watch_process).is_a? Process
+          @processes << process
+        end
       end
     end
 
