@@ -34,10 +34,15 @@ module Amber::CLI::Helpers
   end
 
   def self.run(command, wait = true, shell = true)
-    if wait
-      Process.run(command, shell: shell, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
-    else
-      Process.new(command, shell: shell, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
+    begin
+      if wait
+        Process.run(command, shell: shell, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
+      else
+        Process.new(command, shell: shell, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
+      end
+    rescue ex : Errno
+      # typically means we could not find the executable
+      ex
     end
   end
 end

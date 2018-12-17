@@ -2,3 +2,33 @@ type: app
 database: <%= @database %>
 language: <%= @language %>
 model: <%= @model %>
+
+# list of tasks to be run by `amber watch`
+watch:
+  # NOTE: names that match crystal commands are special (e.g. run, spec)
+  run:
+    # commands will be joined with && (join them yourself if need || or ;)
+    build_commands:
+      - mkdir -p bin
+      - crystal build ./src/<%= @name %>.cr -o bin/<%= @name %>
+    run_commands:
+      - bin/<%= @name %>
+    include:
+      - ./config/**/*.cr
+      - ./src/**/*.cr
+      - ./src/**/*.ecr
+      <%- if @language == "slang" -%>
+      - ./src/views/**/*.slang
+      <%- end -%>
+    # exclude: # NOTE simplistic implementation: (1) enumerate all includes and excludes; (2) return (includes - excludes)
+    #  - ./src/some_irrelevant_file.cr
+  spec:
+    run_commands:
+      - crystal spec
+    include:
+      - ./spec/**/*.cr
+  npm:
+    build_commands:
+      - npm install --loglevel=error
+    run_commands:
+      - npm run watch
