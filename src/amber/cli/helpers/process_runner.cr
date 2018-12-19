@@ -95,9 +95,9 @@ module Sentry
       end
     end
 
-    private def stop_processes(task = :all)
+    private def stop_processes(task_to_stop = :all)
       @processes.each do |task, procs|
-        next unless task == :all || task.to_s == task
+        next unless task_to_stop == :all || task_to_stop.to_s == task
 
         if task == "run"
           log task, "Terminating app #{project_name}..."
@@ -114,14 +114,14 @@ module Sentry
     private def start_processes(task_to_start = :all, skip_build = false)
       if task_to_start == :all || task_to_start == "run"
         # handle run task first, exit immediately if it fails
-        if (build_command = @build_commands["run"]) && (run_command = @run_commands["run"])
+        if (build_command_run = @build_commands["run"]) && (run_command_run = @run_commands["run"])
           ok_to_run = false
           if skip_build
             ok_to_run = true
           else
             log :run, "Building..."
             time = Time.monotonic
-            build_result = Amber::CLI::Helpers.run(build_command)
+            build_result = Amber::CLI::Helpers.run(build_command_run)
             exit 1 unless build_result.is_a? Process::Status
             if build_result.success?
               log :run, "Compiled in #{(Time.monotonic - time)}"
@@ -134,7 +134,7 @@ module Sentry
           end
 
           if ok_to_run
-            process = Amber::CLI::Helpers.run(run_command, wait: false, shell: false)
+            process = Amber::CLI::Helpers.run(run_command_run, wait: false, shell: false)
             if process.is_a? Process
               @processes["run"] ||= Array(Process).new
               @processes["run"] << process

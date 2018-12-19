@@ -62,7 +62,7 @@ module Sentry
       run_commands = Hash(String, String).new
       includes = Hash(String, Array(String)).new
       excludes = Hash(String, Array(String)).new
-      (watch = Amber::CLI.config.watch).each do |task, opts|
+      Amber::CLI.config.watch.each do |task, opts|
         build_commands[task] = Options.join_commands(opts["build_commands"]) if opts.has_key?("build_commands")
         run_commands[task] = Options.join_commands(opts["run_commands"]) if opts.has_key?("run_commands")
         includes[task] = opts["include"] if opts.has_key?("include")
