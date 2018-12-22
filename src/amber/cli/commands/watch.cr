@@ -20,8 +20,6 @@ module Amber::CLI
 
       def run
         CLI.toggle_colors(options.no_color?)
-        options.watch << "./config/**/*.cr"
-        options.watch << "./src/views/**/*.slang"
         super
       end
     end

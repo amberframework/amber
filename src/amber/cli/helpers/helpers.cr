@@ -39,5 +39,8 @@ module Amber::CLI::Helpers
     else
       Process.new(command, shell: shell, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
     end
+  rescue ex : Errno
+    # typically means we could not find the executable
+    ex
   end
 end
