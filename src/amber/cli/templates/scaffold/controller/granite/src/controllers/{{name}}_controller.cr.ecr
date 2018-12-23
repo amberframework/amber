@@ -50,7 +50,7 @@ class <%= class_name %>Controller < ApplicationController
   private def <%= @name %>_params
     params.validation do
       <%- @fields_hash.keys.each do |k| -%>
-      required :<%= k %> { |f| !f.nil? }
+      required :<%= k %>
       <%- end -%>
     end
   end
