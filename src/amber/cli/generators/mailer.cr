@@ -3,7 +3,7 @@ require "./field.cr"
 module Amber::CLI
   class Mailer < Teeplate::FileTree
     include Amber::CLI::Helpers
-    directory "#{__DIR__}/mailer"
+    directory "#{__DIR__}/../templates/mailer"
 
     @name : String
     @language : String

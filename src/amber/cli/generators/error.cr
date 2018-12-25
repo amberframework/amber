@@ -1,7 +1,7 @@
 module Amber::CLI
   class ErrorTemplate < Teeplate::FileTree
     include Amber::CLI::Helpers
-    directory "#{__DIR__}/error"
+    directory "#{__DIR__}/../templates/error"
 
     @name : String
     @actions : Hash(String, String)

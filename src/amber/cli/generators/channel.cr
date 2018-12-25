@@ -1,7 +1,7 @@
 module Amber::CLI
   class WebSocketChannel < Teeplate::FileTree
     include Amber::CLI::Helpers
-    directory "#{__DIR__}/channel"
+    directory "#{__DIR__}/../templates/channel"
     @name : String
 
     def initialize(@name)

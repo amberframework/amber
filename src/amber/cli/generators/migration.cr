@@ -5,7 +5,7 @@ module Amber::CLI
   class Migration < Teeplate::FileTree
     include Helpers
     include Helpers::Migration
-    directory "#{__DIR__}/migration/empty"
+    directory "#{__DIR__}/../templates/migration/empty"
 
     @name : String
     @fields : Array(Field)

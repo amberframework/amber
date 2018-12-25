@@ -1,6 +1,6 @@
 module Amber::CLI
   class App < Teeplate::FileTree
-    directory "#{__DIR__}/app"
+    directory "#{__DIR__}/../templates/app"
     getter database_name_base
 
     @name : String

@@ -5,7 +5,7 @@ module Amber::CLI
   class GraniteAuth < Teeplate::FileTree
     include Helpers
     include Helpers::Migration
-    directory "#{__DIR__}/auth/granite"
+    directory "#{__DIR__}/../templates/auth/granite"
 
     @name : String
     @fields : Array(Field)

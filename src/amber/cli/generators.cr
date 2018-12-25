@@ -2,29 +2,11 @@ require "teeplate"
 require "random/secure"
 require "inflector"
 
-require "../helpers/helpers"
-require "./app"
-require "./migration"
-require "./crecto_migration"
-require "./granite_migration"
-require "./model"
-require "./crecto_model"
-require "./granite_model"
-require "./controller"
-require "./scaffold/crecto_controller"
-require "./scaffold/granite_controller"
-require "./scaffold/view"
-require "./api/crecto_controller"
-require "./api/granite_controller"
-require "./mailer"
-require "./socket"
-require "./channel"
-require "./crecto_auth"
-require "./granite_auth"
-require "./error"
+require "./helpers/helpers"
+require "./generators/**"
 
 module Amber::CLI
-  class Template
+  class Generators
     getter name : String
     getter directory : String
     getter fields : Array(String)

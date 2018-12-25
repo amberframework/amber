@@ -33,11 +33,11 @@ module Amber::CLI
         name = File.basename(args.name)
 
         if (options.r? != nil)
-          template = Amber::Recipes::Recipe.new(name, "./#{args.name}", "#{options.r}")
+          generator = Amber::Recipes::Recipe.new(name, "./#{args.name}", "#{options.r}")
         else
-          template = Template.new(name, "./#{args.name}")
+          generator = Generators.new(name, "./#{args.name}")
         end
-        template.generate("app", options)
+        generator.generate("app", options)
 
         # Encrypts production.yml by default.
         cwd = Dir.current; Dir.cd(args.name)

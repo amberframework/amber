@@ -1,7 +1,7 @@
 module Amber::CLI
   class WebSocket < Teeplate::FileTree
     include Amber::CLI::Helpers
-    directory "#{__DIR__}/socket"
+    directory "#{__DIR__}/../templates/socket"
 
     @name : String
     @fields : Array(String)

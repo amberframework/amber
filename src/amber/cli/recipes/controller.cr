@@ -1,5 +1,5 @@
 require "file_utils"
-require "../templates/field.cr"
+require "../generators/field.cr"
 
 module Amber::Recipes
   class Controller < Teeplate::FileTree

@@ -5,7 +5,7 @@ module Amber::CLI
   class CrectoAuth < Teeplate::FileTree
     include Helpers
     include Helpers::Migration
-    directory "#{__DIR__}/auth/crecto"
+    directory "#{__DIR__}/../templates/auth/crecto"
 
     @name : String
     @fields : Array(Field)

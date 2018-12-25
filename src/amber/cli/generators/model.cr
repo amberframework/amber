@@ -3,7 +3,7 @@ require "./field.cr"
 module Amber::CLI
   class Model < Teeplate::FileTree
     include Amber::CLI::Helpers
-    directory "#{__DIR__}/model/granite"
+    directory "#{__DIR__}/../templates/model/granite"
 
     @name : String
     @fields : Array(Field)

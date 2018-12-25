@@ -1,3 +1,5 @@
+require "../generators"
+
 module Amber::CLI
   class_property color = true
 
@@ -20,18 +22,14 @@ module Amber::CLI
 
       def run
         CLI.toggle_colors(options.no_color?)
-        if args.type == "error"
-          template = Template.new("error", ".")
-        else
-          ensure_name_argument!
+        ensure_name_argument!
 
-          if recipe && Amber::Recipes::Recipe.can_generate?(args.type, recipe)
-            template = Amber::Recipes::Recipe.new(args.name, ".", recipe.as(String), args.fields)
-          else
-            template = Template.new(args.name, ".", args.fields)
-          end
+        if recipe && Amber::Recipes::Recipe.can_generate?(args.type, recipe)
+          generator = Amber::Recipes::Recipe.new(args.name, ".", recipe.as(String), args.fields)
+        else
+          generator = Generators.new(args.name, ".", args.fields)
         end
-        template.generate args.type
+        generator.generate args.type
       end
 
       def recipe

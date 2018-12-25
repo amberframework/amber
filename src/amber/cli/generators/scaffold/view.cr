@@ -3,7 +3,7 @@ require "../field.cr"
 module Amber::CLI::Scaffold
   class View < Teeplate::FileTree
     include Amber::CLI::Helpers
-    directory "#{__DIR__}/view"
+    directory "#{__DIR__}/../../templates/scaffold/view"
 
     @name : String
     @fields : Array(Field)

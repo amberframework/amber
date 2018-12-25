@@ -4,7 +4,7 @@ require "./field.cr"
 module Amber::CLI
   class Controller < Teeplate::FileTree
     include Amber::CLI::Helpers
-    directory "#{__DIR__}/controller"
+    directory "#{__DIR__}/../templates/controller"
     private getter language
 
     @name : String
