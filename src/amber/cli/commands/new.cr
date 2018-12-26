@@ -7,7 +7,7 @@ module Amber::CLI
     class New < Command
       class Options
         arg "name", desc: "name/path of project", required: true
-        string "-d", desc: "Select the database database engine", any_of: %w(pg mysql sqlie), default: "pg"
+        string "-d", desc: "Select the database database engine", any_of: %w(pg mysql sqlite), default: "pg"
         bool "--deps", desc: "Installs project dependencies, this is the equivalent of running (shards update)", default: false
         string "-m", desc: "Select the model type", any_of: %w(granite crecto), default: "granite"
         bool "--no-color", desc: "Disable colored output", default: false
