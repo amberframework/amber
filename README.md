@@ -42,6 +42,7 @@ Read Amber documentation on https://docs.amberframework.org
 #### macOS
 
 ```
+brew tap amberframework/amber
 brew install amber
 ```
 
