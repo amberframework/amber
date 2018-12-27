@@ -1,15 +1,15 @@
 class <%= class_name %>Controller < Amber::Controller::Error
-  LAYOUT = "application.<%= @language %>"
+  LAYOUT = "application.<%= config.language %>"
 
   def forbidden
-    render("forbidden.<%= @language %>")
+    render("forbidden.<%= config.language %>")
   end
 
   def not_found
-    render("not_found.<%= @language %>")
+    render("not_found.<%= config.language %>")
   end
 
   def internal_server_error
-    render("internal_server_error.<%= @language %>")
+    render("internal_server_error.<%= config.language %>")
   end
 end

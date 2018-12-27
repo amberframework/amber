@@ -1,10 +1,18 @@
-module Amber::CLI
-  class WebSocketChannel < Teeplate::FileTree
-    include Amber::CLI::Helpers
-    directory "#{__DIR__}/../templates/channel"
-    @name : String
+require "./generator"
 
-    def initialize(@name)
+module Amber::CLI
+  class WebSocketChannel < Generator
+    directory "#{__DIR__}/../templates/channel"
+
+    def initialize(name, fields)
+      super(name, fields)
+    end
+
+    def pre_render(directory)
+      add_dependencies
+    end
+
+    private def add_dependencies
       add_dependencies <<-DEPENDENCY
       require "../src/channels/**"
       DEPENDENCY

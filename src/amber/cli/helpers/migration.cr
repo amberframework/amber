@@ -9,7 +9,7 @@ module Amber::CLI::Helpers::Migration
   def create_table_sql
     <<-SQL
     CREATE TABLE #{name_plural} (
-      #{@primary_key},
+      #{primary_key},
       #{create_table_fields_sql}
     );
     SQL

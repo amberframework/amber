@@ -32,7 +32,7 @@ module Amber::CLI
       when "app"
         if options
           info "Rendering App #{name} in #{directory}"
-          App.new(name, options.d, options.t, options.m).render(directory, list: true, color: true)
+          App.new(name, options.d, options.t, options.m).render(directory)
           if options.deps?
             info "Installing Dependencies"
             Helpers.run("cd #{directory} && shards update")
@@ -40,67 +40,38 @@ module Amber::CLI
         end
       when "migration"
         info "Rendering Migration #{name}"
-        Migration.new(name, fields).render(directory, list: true, color: true)
+        Migration.new(name, fields).render(directory)
       when "model"
         info "Rendering Model #{name}"
-        if model == "crecto"
-          CrectoMigration.new(name, fields).render(directory, list: true, color: true)
-          CrectoModel.new(name, fields).render(directory, list: true, color: true)
-        else
-          GraniteMigration.new(name, fields).render(directory, list: true, color: true)
-          GraniteModel.new(name, fields).render(directory, list: true, color: true)
-        end
+        Model.new(name, fields).render(directory)
       when "controller"
         info "Rendering Controller #{name}"
-        Controller.new(name, fields).render(directory, list: true, color: true)
+        Controller.new(name, fields).render(directory)
       when "scaffold"
         info "Rendering Scaffold #{name}"
-        if model == "crecto"
-          CrectoMigration.new(name, fields).render(directory, list: true, color: true)
-          CrectoModel.new(name, fields).render(directory, list: true, color: true)
-          Scaffold::CrectoController.new(name, fields).render(directory, list: true, color: true)
-        else
-          GraniteMigration.new(name, fields).render(directory, list: true, color: true)
-          GraniteModel.new(name, fields).render(directory, list: true, color: true)
-          Scaffold::GraniteController.new(name, fields).render(directory, list: true, color: true)
-        end
-        Scaffold::View.new(name, fields).render(directory, list: true, color: true)
+        Scaffold.new(name, fields).render(directory)
       when "api"
         info "Rendering Api #{name}"
-        if model == "crecto"
-          CrectoMigration.new(name, fields).render(directory, list: true, color: true)
-          CrectoModel.new(name, fields).render(directory, list: true, color: true)
-          Api::CrectoController.new(name, fields).render(directory, list: true, color: true)
-        else
-          GraniteMigration.new(name, fields).render(directory, list: true, color: true)
-          GraniteModel.new(name, fields).render(directory, list: true, color: true)
-          Api::GraniteController.new(name, fields).render(directory, list: true, color: true)
-        end
+        Api.new(name, fields).render(directory)
       when "mailer"
         info "Rendering Mailer #{name}"
-        Mailer.new(name, fields).render(directory, list: true, color: true)
+        Mailer.new(name, fields).render(directory)
       when "socket"
         info "Rendering Socket #{name}"
-        if fields != [] of String
-          fields.each do |field|
-            WebSocketChannel.new(field).render(directory, list: true, color: true)
-          end
-        end
-        WebSocket.new(name, fields).render(directory, list: true, color: true)
+        WebSocket.new(name, fields).render(directory)
       when "channel"
         info "Rendering Channel #{name}"
-        WebSocketChannel.new(name).render(directory, list: true, color: true)
+        WebSocketChannel.new(name, fields).render(directory)
       when "auth"
         info "Rendering Auth #{name}"
         if model == "crecto"
-          CrectoAuth.new(name, fields).render(directory, list: true, color: true)
+          CrectoAuth.new(name, fields).render(directory)
         else
-          GraniteAuth.new(name, fields).render(directory, list: true, color: true)
+          GraniteAuth.new(name, fields).render(directory)
         end
       when "error"
         info "Rendering Error Template"
-        actions = ["forbidden", "not_found", "internal_server_error"]
-        ErrorTemplate.new("error", actions).render(directory, list: true, color: true)
+        ErrorTemplate.new("error", fields).render(directory)
       else
         CLI.logger.error "Template not found", "Generate", :light_red
       end

@@ -1,6 +1,6 @@
 module Amber::CLI
-  class Migration < Generator
-    directory "#{__DIR__}/../templates/migration/empty"
+  class ScaffoldView < Amber::CLI::Generator
+    directory "#{__DIR__}/../templates/scaffold/view"
 
     def initialize(name, fields)
       super(name, fields)

@@ -1,7 +1,7 @@
 class SessionController < ApplicationController
   def new
     <%= @name %> = <%= class_name %>.new
-    render("new.<%= @language %>")
+    render("new.<%= config.language %>")
   end
 
   def create
@@ -13,7 +13,7 @@ class SessionController < ApplicationController
     else
       flash[:danger] = "Invalid email or password"
       <%= @name %> = <%= class_name %>.new
-      render("new.<%= @language %>")
+      render("new.<%= config.language %>")
     end
   end
 

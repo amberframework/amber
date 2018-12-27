@@ -4,11 +4,11 @@ class <%= class_name %>Controller < ApplicationController
   end
 
   def show
-    render("show.<%= @language %>") if (<%= @name %> = current_<%= @name %>)
+    render("show.<%= config.language %>") if (<%= @name %> = current_<%= @name %>)
   end
 
   def edit
-    render("edit.<%= @language %>") if (<%= @name %> = current_<%= @name %>)
+    render("edit.<%= config.language %>") if (<%= @name %> = current_<%= @name %>)
   end
 
   def update
@@ -18,7 +18,7 @@ class <%= class_name %>Controller < ApplicationController
       redirect_to "/profile"
     elsif <%= @name %>
       flash[:danger] = "Could not update Profile!"
-      render("edit.<%= @language %>")
+      render("edit.<%= config.language %>")
     else
       flash[:info] = "Must be logged in"
       redirect_to "/signin"

@@ -1,12 +1,16 @@
 module Amber::CLI
-  class WebSocket < Teeplate::FileTree
-    include Amber::CLI::Helpers
+  class WebSocket < Generator
     directory "#{__DIR__}/../templates/socket"
 
-    @name : String
-    @fields : Array(String)
+    def initialize(name, fields)
+      super(name, fields)
+    end
 
-    def initialize(@name, @fields)
+    def pre_render(directory)
+      add_dependencies
+    end
+
+    private def add_dependencies
       add_dependencies <<-DEPENDENCY
       require "../src/sockets/**"
       DEPENDENCY

@@ -1,14 +1,15 @@
 module Amber::CLI
-  class ErrorTemplate < Teeplate::FileTree
-    include Amber::CLI::Helpers
+  class ErrorTemplate < Generator
     directory "#{__DIR__}/../templates/error"
+    getter actions : Array(String)
 
-    @name : String
-    @actions : Hash(String, String)
-    @language : String = CLI.config.language
+    def initialize(name, fields)
+      super(name, nil)
 
-    def initialize(@name, actions)
-      @actions = actions.map { |action| [action, "get"] }.to_h
+      @actions = ["forbidden", "not_found", "internal_server_error"]
+    end
+
+    def pre_render(directory)
       add_plugs
       add_dependencies
     end
@@ -21,10 +22,6 @@ module Amber::CLI
       add_dependencies <<-DEPENDENCY
       require "../src/pipes/error.cr"
       DEPENDENCY
-    end
-
-    def filter(entries)
-      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
     end
   end
 end

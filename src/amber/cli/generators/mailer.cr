@@ -1,25 +1,21 @@
 require "./field.cr"
 
 module Amber::CLI
-  class Mailer < Teeplate::FileTree
-    include Amber::CLI::Helpers
+  class Mailer < Generator
     directory "#{__DIR__}/../templates/mailer"
 
-    @name : String
-    @language : String
-    @fields : Array(Field)
+    def initialize(name, fields)
+      super(name, fields)
+    end
 
-    def initialize(@name, fields)
-      @language = CLI.config.language
-      @fields = fields.map { |field| Field.new(field) }
+    def pre_render(directory)
+      add_dependencies
+    end
 
+    private def add_dependencies
       add_dependencies <<-DEPENDENCY
       require "../src/mailers/**"
       DEPENDENCY
-    end
-
-    def filter(entries)
-      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }
     end
   end
 end

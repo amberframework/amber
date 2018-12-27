@@ -1,6 +1,6 @@
 h1 Show <%= display_name %>
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
-p = <%= @name %>.<%= field.name %><% if field.reference? %><% if @model == "crecto" %>_id<% else %>.id<% end %><% end %>
+p = <%= @name %>.<%= field.name %><% if field.reference? %><% if config.model == "crecto" %>_id<% else %>.id<% end %><% end %>
 <% end -%>
 p
   == link_to("Back", "/<%= name_plural %>", class: "btn btn-light btn-sm")
