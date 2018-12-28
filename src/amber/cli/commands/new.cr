@@ -7,18 +7,18 @@ module Amber::CLI
     class New < Command
       class Options
         arg "name", desc: "name/path of project", required: true
-        string "-d", desc: "Select the database database engine", any_of: %w(pg mysql sqlite), default: "pg"
-        bool "--deps", desc: "Installs project dependencies, this is the equivalent of running (shards update)", default: false
-        string "-m", desc: "Select the model type", any_of: %w(granite crecto), default: "granite"
-        bool "--no-color", desc: "Disable colored output", default: false
-        string "-t", desc: "Selects the template engine language", any_of: %w(slang ecr), default: "slang"
-        string "-r", desc: "Use a named recipe. See documentation at https://docs.amberframework.org/amber/cli/recipes.", default: nil
+        string "-d", desc: "select the database database engine", any_of: %w(pg mysql sqlite), default: "pg"
+        bool "--deps", desc: "installs project dependencies, this is the equivalent of running (shards update)", default: false
+        string "-m", desc: "select the model type", any_of: %w(granite crecto), default: "granite"
+        bool "--no-color", desc: "disable colored output", default: false
+        string "-t", desc: "selects the template engine language", any_of: %w(slang ecr), default: "slang"
+        string "-r", desc: "use a named recipe. See documentation at https://docs.amberframework.org/amber/cli/recipes.", default: nil
         help
       end
 
       class Help
         header "Generates a new Amber project"
-        caption "# Generates a new Amber project"
+        caption "generates a new Amber project"
       end
 
       def run
