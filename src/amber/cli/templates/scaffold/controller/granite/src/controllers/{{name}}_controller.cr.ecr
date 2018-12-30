@@ -27,7 +27,7 @@ class <%= class_name %>Controller < ApplicationController
     if <%= @name %>.save
       redirect_to action: :index, flash: {"success" => "Created <%= @name %> successfully."}
     else
-      flash["danger"] = "Could not create <%= class_name %>!"
+      flash[:danger] = "Could not create <%= class_name %>!"
       render "new.<%= @language %>"
     end
   end
@@ -37,7 +37,7 @@ class <%= class_name %>Controller < ApplicationController
     if <%= @name %>.save
       redirect_to action: :index, flash: {"success" => "Updated <%= @name %> successfully."}
     else
-      flash["danger"] = "Could not update <%= class_name %>!"
+      flash[:danger] = "Could not update <%= class_name %>!"
       render "edit.<%= @language %>"
     end
   end
