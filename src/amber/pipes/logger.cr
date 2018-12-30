@@ -46,7 +46,7 @@ module Amber
       end
 
       private def method(context)
-        context.request.method.colorize(:light_red).to_s + " "
+        context.request.method.colorize(:light_red).to_s
       end
 
       private def http_status(status)

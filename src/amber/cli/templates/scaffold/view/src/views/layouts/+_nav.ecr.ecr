@@ -1,2 +1,4 @@
 <%="<"%>%- active = context.request.path == "/<%= name_plural %>" ? "active" : "" %>
-<a class="nav-item <%="<"%>%= active %>" href="/<%= name_plural %>"><%= display_name %>s</a>
+<li class="nav-item <%="<"%>%= active %>">
+  <a class="nav-link" href="/<%= name_plural %>"><%= display_name %>s</a>
+</li>
