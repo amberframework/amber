@@ -29,7 +29,7 @@ class <%= class_name %>Controller < ApplicationController
     changeset = Repo.insert <%= @name %>
 
     if changeset.errors.any?
-      flash["danger"] = "Could not create <%= class_name %>!"
+      flash[:danger] = "Could not create <%= class_name %>!"
       render "new.<%= @language %>"
     else
       redirect_to action: :index, flash: {"success" => "Created <%= @name %> successfully."}
@@ -41,7 +41,7 @@ class <%= class_name %>Controller < ApplicationController
     changeset = Repo.update <%= @name %>
 
     if changeset.errors.any?
-      flash["danger"] = "Could not update <%= class_name %>!"
+      flash[:danger] = "Could not update <%= class_name %>!"
       render "edit.<%= @language %>"
     else
       redirect_to action: :index, flash: {"success" => "Updated <%= @name %> successfully."}
