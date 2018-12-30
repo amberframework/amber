@@ -9,13 +9,13 @@ module Amber::CLI
         arg "type", desc: "scaffold, api, model, controller, migration, mailer, socket, channel, auth, error", required: true
         arg "name", desc: "name of resource", required: false
         arg_array "fields", desc: "user:reference name:string body:text age:integer published:bool"
-        bool "--no-color", desc: "Disable colored output", default: false
+        bool "--no-color", desc: "disable colored output", default: false
         help
       end
 
       class Help
         header "Generates application based on templates"
-        caption "# Generates application based on templates"
+        caption "Generates application based on templates"
       end
 
       def run
@@ -46,7 +46,7 @@ module Amber::CLI
       end
 
       class Help
-        caption "# Generate Amber classes"
+        caption "generate Amber classes"
       end
     end
   end

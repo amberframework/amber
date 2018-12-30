@@ -24,11 +24,11 @@ module Amber::CLI
 
       class Help
         header "Prints all defined application routes"
-        caption "# Prints all defined application routes"
+        caption "prints all defined application routes"
       end
 
       class Options
-        bool "--no-color", desc: "Disable colored output", default: false
+        bool "--no-color", desc: "disable colored output", default: false
         help
       end
 

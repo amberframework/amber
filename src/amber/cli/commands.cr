@@ -19,7 +19,7 @@ module Amber::CLI
     version "Amber CLI (amberframework.org) - v#{VERSION}"
 
     class Help
-      title "\nAmber - Command Line Interface"
+      title "\nAmber CLI"
       header <<-EOS
         The `amber new` command creates a new Amber application with a default
         directory structure and configuration at the path you specify.
@@ -43,12 +43,12 @@ module Amber::CLI
     end
 
     class Options
-      version desc: "# Prints Amber version"
-      help desc: "# Describe available commands and usages"
-      string ["-t", "--template"], desc: "# Preconfigure for selected template engine. Options: slang | ecr", default: "slang"
-      string ["-d", "--database"], desc: "# Preconfigure for selected database. Options: pg | mysql | sqlite", default: "pg"
-      string ["-m", "--model"], desc: "# Preconfigure for selected model. Options: granite | crecto", default: "granite"
-      string ["-r", "--recipe"], desc: "# Use a named recipe.  See documentation at https://docs.amberframework.org/amber/cli/recipes.", default: nil
+      version desc: "prints Amber version"
+      help desc: "describe available commands and usages"
+      string ["-t", "--template"], desc: "preconfigure for selected template engine", any_of: %w(slang ecr), default: "slang"
+      string ["-d", "--database"], desc: "preconfigure for selected database.", any_of: %w(pg mysql sqlite), default: "pg"
+      string ["-m", "--model"], desc: "preconfigure for selected model", any_of: %w(granite crecto), default: "granite"
+      string ["-r", "--recipe"], desc: "use a named recipe. See documentation at https://docs.amberframework.org/amber/cli/recipes.", default: nil
     end
   end
 end

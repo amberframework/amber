@@ -19,7 +19,7 @@ module Amber::CLI
 
       class Options
         arg_array "commands", desc: "drop create migrate rollback redo status version seed"
-        bool "--no-color", desc: "# Disable colored output", default: false
+        bool "--no-color", desc: "disable colored output", default: false
         help
       end
 
@@ -28,16 +28,16 @@ module Amber::CLI
           Performs database migrations and maintenance tasks. Powered by micrate (https://github.com/juanedi/micrate)
 
         Commands:
-          drop      # Drops the database
-          create    # Creates the database
-          migrate   # Migrate the database to the most recent version available
-          rollback  # Roll back the database version by 1
-          redo      # Re-run the latest database migration
-          status    # dump the migration status for the current database
-          version   # Print the current version of the database
-          seed      # Initialize the database with seed data
+          drop      drops the database
+          create    dreates the database
+          migrate   migrate the database to the most recent version available
+          rollback  roll back the database version by 1
+          redo      re-run the latest database migration
+          status    dump the migration status for the current database
+          version   print the current version of the database
+          seed      initialize the database with seed data
         EOS
-        caption "# Performs database migrations and maintenance tasks"
+        caption "performs database migrations and maintenance tasks"
       end
 
       def run
