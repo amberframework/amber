@@ -23,7 +23,7 @@ module Amber::CLI
         split_action = action.split(":")
         actions[split_action.first] = split_action[1]? || "get"
       end
-      return actions
+      actions
     end
 
     private def add_routes

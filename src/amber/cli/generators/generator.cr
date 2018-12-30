@@ -49,7 +49,7 @@ module Amber::CLI
       else
         fields = [] of Field
       end
-      return fields
+      fields
     end
 
     private def parse_fields_hash
