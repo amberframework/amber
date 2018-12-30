@@ -10,6 +10,8 @@
 
 <form action="/profile" method="patch">
   <%="<"%>%= csrf_tag %>
+  <input type="hidden" name="_method" value="patch" />
+
   <div class="form-group">
     <input class="form-control" type="email" name="email" placeholder="Email" value="<%="<"%>%= <%= @name %>.email %>" />
   </div>
