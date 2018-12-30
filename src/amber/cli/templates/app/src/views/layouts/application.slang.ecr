@@ -11,10 +11,13 @@ html
     link rel="icon" type="image/x-icon" href="/favicon.ico"
 
   body
-    .masthead
+    nav.navbar.navbar-dark.bg-primary
       .container
-        nav.nav
+        a.navbar-brand href="#"
+            img src="/dist/images/logo.svg" height="30" alt="Amber logo"
+        ul.navbar-nav.mr-auto
           == render(partial: "layouts/_nav.slang")
+
     .container
       - flash.each do |key, value|
         div class="alert alert-#{key}"
