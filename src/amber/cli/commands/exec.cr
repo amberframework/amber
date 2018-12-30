@@ -17,15 +17,15 @@ module Amber::CLI
 
       class Options
         arg "code", desc: "Crystal code or .cr file to execute within the application scope", default: ""
-        string ["-e", "--editor"], desc: "Preferred editor: [vim, nano, pico, etc], only used when no code or .cr file is specified", default: "vim"
-        string ["-b", "--back"], desc: "Runs previous command files: 'amber exec -b [times_ago]'", default: "0"
-        bool "--no-color", desc: "Disable colored output", default: false
+        string ["-e", "--editor"], desc: "preferred editor: [vim, nano, pico, etc], only used when no code or .cr file is specified", default: "vim"
+        string ["-b", "--back"], desc: "runs previous command files: 'amber exec -b [times_ago]'", default: "0"
+        bool "--no-color", desc: "disable colored output", default: false
         help
       end
 
       class Help
         header "Executes Crystal code within the application scope"
-        caption "# Executes Crystal code within the application scope"
+        caption "executes Crystal code within the application scope"
       end
 
       private def prepare_file

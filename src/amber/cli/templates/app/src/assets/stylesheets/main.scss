@@ -1,41 +1,13 @@
-$font-stack: "Helvetica Neue", Helvetica, Arial, sans-serif;
-$background-color: #f4994b;
+$primary: #f4994b;
 $nav-item-color: #ffe4cd;
 
-/*
- * Globals
- */
-body {
-  font-family: $font-stack;
-  color: #555;
-}
-
-h1, .h1,
-h2, .h2,
-h3, .h3,
-h4, .h4,
-h5, .h5,
-h6, .h6 {
-  margin-top: 0;
-  font-family: $font-stack;
-  font-weight: normal;
-  color: #333;
-}
-
-/*
- * Override Bootstrap's default container.
- */
-@media (min-width: 1200px) {
-  .container {
-    width: 970px;
-  }
-}
+@import '~bootstrap/scss/bootstrap';
 
 /*
  * Masthead for nav
  */
 .masthead {
-  background-color: $background-color;
+  background-color: $primary;
   -webkit-box-shadow: inset 0 -2px 5px rgba(0,0,0,.1);
           box-shadow: inset 0 -2px 5px rgba(0,0,0,.1);
 }

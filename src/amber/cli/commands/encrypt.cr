@@ -5,14 +5,14 @@ module Amber::CLI
     class Encrypt < Command
       class Options
         arg "env", desc: "environment file to encrypt", default: "production"
-        string ["-e", "--editor"], desc: "Preferred editor: [vim, nano, pico, etc]", default: "vim"
-        bool ["--noedit"], desc: "Skip editing and just encrypt", default: false
+        string ["-e", "--editor"], desc: "preferred editor: [vim, nano, pico, etc]", default: "vim"
+        bool ["--noedit"], desc: "skip editing and just encrypt", default: false
         help
       end
 
       class Help
         header "Encrypts environment YAML file."
-        caption "# Encrypts environment YAML file. [env | -e --editor | --noedit]"
+        caption "encrypts environment YAML file"
       end
 
       def run

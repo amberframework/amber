@@ -9,13 +9,13 @@ module Amber::CLI
       command_name "watch"
 
       class Options
-        bool "--no-color", desc: "# Disable colored output", default: false
+        bool "--no-color", desc: "disable colored output", default: false
         help
       end
 
       class Help
-        header "Starts amber development server and rebuilds on file changes"
-        caption "# Starts amber development server and rebuilds on file changes"
+        header "Starts Amber development server and rebuilds on file changes"
+        caption "starts Amber development server and rebuilds on file changes"
       end
 
       def run

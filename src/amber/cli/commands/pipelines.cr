@@ -9,8 +9,8 @@ module Amber::CLI
       property current_pipe : String?
 
       class Options
-        bool "--no-color", desc: "Disable colored output", default: false
-        bool "--no-plugs", desc: "Don't output the plugs", default: false
+        bool "--no-color", desc: "disable colored output", default: false
+        bool "--no-plugs", desc: "don't output the plugs", default: false
         help
       end
 
