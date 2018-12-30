@@ -1,2 +1,3 @@
 - active = context.request.path == "/" ? "active" : ""
-a class="nav-item #{active}" href="/" Home
+li.nav-item class=active
+  a.nav-link href="/" Home

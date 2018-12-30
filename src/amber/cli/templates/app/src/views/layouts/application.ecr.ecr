@@ -11,11 +11,14 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
   </head>
   <body>
-    <div class="masthead">
+    <nav class="navbar navbar-dark bg-primary">
       <div class="container">
-        <nav class="nav">
+        <a href="/" class="navbar-brand">
+          <img src="/dist/images/logo.svg" height="30" alt="Amber logo">
+        </a>
+        <ul class="navbar-nav mr-auto">
           <%="<"%>%= render(partial: "layouts/_nav.ecr") %>
-        </nav>
+        </ul>
       </div>
     </div>
 
