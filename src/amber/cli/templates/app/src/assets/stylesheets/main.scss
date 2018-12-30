@@ -18,15 +18,3 @@ $primary: #f4994b;
     margin-bottom: 0;
   }
 }
-
-// For Navigation pulling right
-.nav-item-auth {
-  &.nav-item-auth-signout, &.nav-item-auth-signup {
-    order: 9999;
-  }
-
-  &.nav-item-auth-profile, &.nav-item-auth-signin {
-    order: 9990;
-    margin-left: auto;
-  }
-}
