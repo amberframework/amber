@@ -1,10 +1,9 @@
 module Amber::CLI
   class WebSocket < Generator
     directory "#{__DIR__}/../templates/socket"
-    getter channels : Array(String)
 
-    def initialize(name, @channels)
-      super(name, nil)
+    def initialize(name, fields)
+      super(name, fields)
     end
 
     def pre_render(directory)
@@ -12,8 +11,8 @@ module Amber::CLI
     end
 
     def post_render(directory)
-      channels.each do |channel|
-        WebSocketChannel.new(channel, nil).render(directory)
+      fields.each do |field|
+        WebSocketChannel.new(field.name, nil).render(directory)
       end
     end
 

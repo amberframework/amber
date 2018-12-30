@@ -26,6 +26,10 @@ module Amber::CLI
       @github_name = fetch_github_name
     end
 
+    def filter(entries)
+      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }
+    end
+
     private def generate_database_name
       name.gsub('-', '_')
     end

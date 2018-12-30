@@ -33,7 +33,7 @@ module Amber::CLI
         if options
           info "Rendering App #{name} in #{directory}"
           App.new(name, options.d, options.t, options.m).render(directory)
-          if options.deps?
+          unless options.no_deps?
             info "Installing Dependencies"
             Helpers.run("cd #{directory} && shards update")
           end

@@ -57,7 +57,7 @@ module Amber::Recipes
           app = App.new(name, options.d, options.t, options.m, recipe)
           app.fetch_recipe(directory)
           app.render(directory, list: true, color: true)
-          if options.deps?
+          unless options.no_deps?
             info "Installing Dependencies"
             Amber::CLI::Helpers.run("cd #{name} && shards update")
           end
