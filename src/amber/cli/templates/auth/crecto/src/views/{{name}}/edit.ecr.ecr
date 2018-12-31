@@ -8,8 +8,10 @@
   </ul>
 <%="<"%>%- end %>
 
-<form action="/profile" method="patch">
+<form action="/profile" method="post">
   <%="<"%>%= csrf_tag %>
+  <input type="hidden" name="_method" value="patch" />
+
   <div class="form-group">
     <input class="form-control" type="email" name="email" placeholder="Email" value="<%="<"%>%= <%= @name %>.email %>" />
   </div>
