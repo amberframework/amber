@@ -4,5 +4,5 @@ form action="/posts" method="post"
     input.form-control type="text" name="title" placeholder="Title" value="hey you"
   .form-group
     textarea.form-control rows="10" name="content" placeholder="Content" = "out there in the cold"
-  button.btn.btn-primary.btn-sm type="submit" Submit
+  button.btn.btn-info.btn-sm type="submit" Submit
   a.btn.btn-light.btn-sm href="/posts" back
