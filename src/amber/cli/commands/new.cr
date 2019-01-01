@@ -22,24 +22,29 @@ module Amber::CLI
 
       def run
         CLI.toggle_colors(options.no_color?)
-        full_path_name = File.join(Dir.current, args.name)
+        if args.name == "."
+          name = Dir.current.split("/").last
+          full_path_name = Dir.current
+        else
+          name = File.basename(args.name)
+          full_path_name = File.join(Dir.current, args.name)
+        end
+
         if full_path_name =~ /\s+/
           error "Path and project name can't contain a space."
           info "Replace spaces with underscores or dashes."
           info "#{full_path_name} should be #{full_path_name.gsub(/\s+/, "_")}"
           exit! error: true
         end
-        name = File.basename(args.name)
-
         if (options.r? != nil)
-          generator = Amber::Recipes::Recipe.new(name, "./#{args.name}", "#{options.r}")
+          generator = Amber::Recipes::Recipe.new(name, full_path_name, "#{options.r}")
         else
-          generator = Generators.new(name, "./#{args.name}")
+          generator = Generators.new(name, full_path_name)
         end
         generator.generate("app", options)
 
         # Encrypts production.yml by default.
-        cwd = Dir.current; Dir.cd(args.name)
+        cwd = Dir.current; Dir.cd(full_path_name)
         MainCommand.run ["encrypt", "production", "--noedit"]
         Dir.cd(cwd)
       end

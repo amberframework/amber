@@ -33,7 +33,7 @@ module Amber::CLI
 
     def render(directory)
       pre_render(directory)
-      super(directory, list: true, color: true)
+      super(directory, interactive: true, list: true, color: true)
       post_render(directory)
     end
 
