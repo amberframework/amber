@@ -1,6 +1,6 @@
 struct <%= class_name %>Socket < Amber::WebSockets::ClientSocket
   <%- @fields.each do |field| -%>
-  channel "<%= field.underscore %>_room:*", <%= field.capitalize %>Channel
+  channel "<%= field.name.underscore %>_room:*", <%= field.name.capitalize %>Channel
   <%- end -%>
 
   def on_connect

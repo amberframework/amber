@@ -1,11 +1,12 @@
-module Amber::CLI
-  class App < Teeplate::FileTree
-    directory "#{__DIR__}/app"
-    getter database_name_base
+require "./generator"
 
-    @name : String
+module Amber::CLI
+  class App < Generator
+    directory "#{__DIR__}/../templates/app"
+    getter database_name
+
     @database : String
-    @database_name_base : String
+    @database_name : String
     @language : String
     @model : String
     @db_url : String
@@ -14,10 +15,12 @@ module Amber::CLI
     @email : String
     @github_name : String
 
-    def initialize(@name, @database = "pg", @language = "slang", @model = "granite")
+    def initialize(name, @database = "pg", @language = "slang", @model = "granite")
+      super(name, nil)
+
       @db_url = ""
       @wait_for = ""
-      @database_name_base = generate_database_name_base
+      @database_name = generate_database_name
       @author = fetch_author
       @email = fetch_email
       @github_name = fetch_github_name
@@ -27,8 +30,8 @@ module Amber::CLI
       entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }
     end
 
-    private def generate_database_name_base
-      @name.gsub('-', '_')
+    private def generate_database_name
+      name.gsub('-', '_')
     end
 
     def which_git_command

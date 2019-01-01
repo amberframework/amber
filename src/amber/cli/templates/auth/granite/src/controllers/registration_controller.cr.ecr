@@ -1,7 +1,7 @@
 class RegistrationController < ApplicationController
   def new
     <%= @name %> = <%= class_name %>.new
-    render("new.<%= @language %>")
+    render("new.<%= config.language %>")
   end
 
   def create
@@ -14,7 +14,7 @@ class RegistrationController < ApplicationController
       redirect_to "/"
     else
       flash[:danger] = "Could not create <%= class_name %>!"
-      render("new.<%= @language %>")
+      render("new.<%= config.language %>")
     end
   end
 

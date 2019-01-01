@@ -1,4 +1,4 @@
-require "../../templates/field.cr"
+require "../../generators/field.cr"
 
 module Amber::Recipes::Scaffold
   class View < Teeplate::FileTree

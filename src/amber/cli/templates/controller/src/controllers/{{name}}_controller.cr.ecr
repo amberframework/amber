@@ -3,7 +3,7 @@ class <%= class_name %>Controller < ApplicationController
   actions = @actions.map do |action, verb|
     <<-ACTION
       def #{action}
-        render("#{action}.#{@language}")
+        render("#{action}.#{config.language}")
       end
     ACTION
   end

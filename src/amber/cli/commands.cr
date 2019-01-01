@@ -1,9 +1,8 @@
 require "../version"
 require "cli"
 require "./recipes/recipe"
-require "./templates/template"
 require "./config"
-require "./command"
+require "./commands/command"
 require "./commands/*"
 
 module Amber::CLI

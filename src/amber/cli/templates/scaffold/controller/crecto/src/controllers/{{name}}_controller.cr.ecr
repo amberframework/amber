@@ -7,21 +7,21 @@ class <%= class_name %>Controller < ApplicationController
 
   def index
     <%= name_plural %> = Repo.all <%= class_name %>
-    render "index.<%= @language %>"
+    render "index.<%= config.language %>"
   end
 
   def show
-    render "show.<%= @language %>"
+    render "show.<%= config.language %>"
   end
 
   def new
     changeset = <%= class_name %>.changeset <%= @name %>
-    render "new.<%= @language %>"
+    render "new.<%= config.language %>"
   end
 
   def edit
     changeset = Repo.update <%= @name %>
-    render "edit.<%= @language %>"
+    render "edit.<%= config.language %>"
   end
 
   def create
@@ -30,7 +30,7 @@ class <%= class_name %>Controller < ApplicationController
 
     if changeset.errors.any?
       flash[:danger] = "Could not create <%= class_name %>!"
-      render "new.<%= @language %>"
+      render "new.<%= config.language %>"
     else
       redirect_to action: :index, flash: {"success" => "Created <%= @name %> successfully."}
     end
@@ -42,7 +42,7 @@ class <%= class_name %>Controller < ApplicationController
 
     if changeset.errors.any?
       flash[:danger] = "Could not update <%= class_name %>!"
-      render "edit.<%= @language %>"
+      render "edit.<%= config.language %>"
     else
       redirect_to action: :index, flash: {"success" => "Updated <%= @name %> successfully."}
     end

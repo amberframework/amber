@@ -1,36 +1,23 @@
-require "./field.cr"
-require "../helpers/migration"
+require "./generator"
+require "./field"
 
 module Amber::CLI
-  class CrectoAuth < Teeplate::FileTree
-    include Helpers
-    include Helpers::Migration
-    directory "#{__DIR__}/auth/crecto"
+  class Auth < Generator
+    property fields : Array(Field)
 
-    @name : String
-    @fields : Array(Field)
-    @visible_fields : Array(String)
-    @database : String = CLI.config.database
-    @language : String = CLI.config.language
-    @timestamp : String
-    @primary_key : String
-
-    def initialize(@name, fields)
+    def initialize(name, fields)
+      super(name, nil)
       @fields = all_fields(fields)
-      @timestamp = Time.now.to_s("%Y%m%d%H%M%S%L")
-      @primary_key = primary_key
-      @visible_fields = @fields.reject(&.hidden).map(&.name)
-      setup_routes
-      setup_plugs
-      setup_dependencies
-      setup_application_controller
     end
 
-    def filter(entries)
-      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?(".#{@language}") }
+    def pre_render(directory)
+      add_routes
+      add_plugs
+      add_dependencies
+      inject_application_controller_methods
     end
 
-    private def setup_routes
+    private def add_routes
       add_routes :web, <<-ROUTES
         get "/profile", #{class_name}Controller, :show
           get "/profile/edit", #{class_name}Controller, :edit
@@ -43,20 +30,20 @@ module Amber::CLI
       ROUTES
     end
 
-    private def setup_plugs
+    private def add_plugs
       add_plugs :web, <<-PLUGS
         plug Authenticate.new
       PLUGS
     end
 
-    private def setup_dependencies
+    private def add_dependencies
       add_dependencies <<-DEPENDENCY
       require "../src/models/**"
       require "../src/pipes/**"
       DEPENDENCY
     end
 
-    private def setup_application_controller
+    private def inject_application_controller_methods
       filename = "./src/controllers/application_controller.cr"
       controller = File.read(filename)
       append_text = ""
@@ -109,20 +96,20 @@ module Amber::CLI
     end
 
     private def all_fields(fields)
-      fields.map { |field| Field.new(field, database: @database) } +
+      fields.map { |field| Field.new(field, database: config.database) } +
         auth_fields +
         timestamp_fields
     end
 
     private def auth_fields
       %w(email:string hashed_password:password).map do |f|
-        Field.new(f, hidden: false, database: @database)
+        Field.new(f, hidden: false, database: config.database)
       end
     end
 
     private def timestamp_fields
       %w(created_at:time updated_at:time).map do |f|
-        Field.new(f, hidden: true, database: @database)
+        Field.new(f, hidden: true, database: config.database)
       end
     end
   end

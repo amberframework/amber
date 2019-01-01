@@ -1,6 +1,6 @@
-- if <%= @model == "crecto" ? "changeset" : @name %>.errors
+- if <%= config.model == "crecto" ? "changeset" : @name %>.errors
   ul.errors
-    - <%= @model == "crecto" ? "changeset" : @name %>.errors.each do |error|
+    - <%= config.model == "crecto" ? "changeset" : @name %>.errors.each do |error|
       li = error.to_s
 
 == form(action: "/<%= name_plural -%>/#{<%= @name -%>.id.to_s}", method: <%= @name %>.id ? :patch : :post) do
@@ -15,7 +15,7 @@
         == check_box(<%=":#{field.name}, checked: #{@name}.#{field.name}.to_s == \"1\""%>)
   <%- when "reference" -%>
     == label(<%=":#{field.name}"%>)
-    == select_field(name: "<%= field.name %>_id", collection: <% if @model == "crecto" %>Repo.all(<%= field.class_name %>)<% else %><%= field.class_name %>.all<% end %>.map{|<%= field.name %>| [<%= field.name %>.id, <%= field.name %>.id]}, selected: <%= @name %>.<%= field.name %>_id, class: "form-control")
+    == select_field(name: "<%= field.name %>_id", collection: <% if config.model == "crecto" %>Repo.all(<%= field.class_name %>)<% else %><%= field.class_name %>.all<% end %>.map{|<%= field.name %>| [<%= field.name %>.id, <%= field.name %>.id]}, selected: <%= @name %>.<%= field.name %>_id, class: "form-control")
   <%- else -%>
     == text_field(name: "<%= field.name %>", value: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control")
   <%- end -%>

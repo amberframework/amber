@@ -7,19 +7,19 @@ class <%= class_name %>Controller < ApplicationController
 
   def index
     <%= name_plural %> = <%= class_name %>.all
-    render "index.<%= @language %>"
+    render "index.<%= config.language %>"
   end
 
   def show
-    render "show.<%= @language %>"
+    render "show.<%= config.language %>"
   end
 
   def new
-    render "new.<%= @language %>"
+    render "new.<%= config.language %>"
   end
 
   def edit
-    render "edit.<%= @language %>"
+    render "edit.<%= config.language %>"
   end
 
   def create
@@ -28,7 +28,7 @@ class <%= class_name %>Controller < ApplicationController
       redirect_to action: :index, flash: {"success" => "Created <%= @name %> successfully."}
     else
       flash[:danger] = "Could not create <%= class_name %>!"
-      render "new.<%= @language %>"
+      render "new.<%= config.language %>"
     end
   end
 
@@ -38,7 +38,7 @@ class <%= class_name %>Controller < ApplicationController
       redirect_to action: :index, flash: {"success" => "Updated <%= @name %> successfully."}
     else
       flash[:danger] = "Could not update <%= class_name %>!"
-      render "edit.<%= @language %>"
+      render "edit.<%= config.language %>"
     end
   end
 
