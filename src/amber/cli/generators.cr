@@ -62,13 +62,6 @@ module Amber::CLI
       when "channel"
         info "Rendering Channel #{name}"
         WebSocketChannel.new(name, fields).render(directory)
-      when "auth"
-        info "Rendering Auth #{name}"
-        if model == "crecto"
-          CrectoAuth.new(name, fields).render(directory)
-        else
-          GraniteAuth.new(name, fields).render(directory)
-        end
       when "error"
         info "Rendering Error Template"
         ErrorTemplate.new("error", fields).render(directory)
