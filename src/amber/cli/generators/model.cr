@@ -1,5 +1,6 @@
 module Amber::CLI
   class Model < Generator
+    command :model
     property migration : Generator
     property model : Generator
 

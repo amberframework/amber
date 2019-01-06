@@ -2,6 +2,7 @@ require "file_utils"
 
 module Amber::CLI
   class Controller < Generator
+    command :controller
     directory "#{__DIR__}/../templates/controller"
 
     property actions : Hash(String, String)

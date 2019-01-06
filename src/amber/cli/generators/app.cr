@@ -1,10 +1,10 @@
 require "./generator"
 
 module Amber::CLI
-  class App < Generator
+  class App < Teeplate::FileTree
     directory "#{__DIR__}/../templates/app"
     getter database_name
-
+    @name : String
     @database : String
     @database_name : String
     @language : String
@@ -15,9 +15,7 @@ module Amber::CLI
     @email : String
     @github_name : String
 
-    def initialize(name, @database = "pg", @language = "slang", @model = "granite")
-      super(name, nil)
-
+    def initialize(@name, @database = "pg", @language = "slang", @model = "granite")
       @db_url = ""
       @wait_for = ""
       @database_name = generate_database_name
@@ -31,7 +29,7 @@ module Amber::CLI
     end
 
     private def generate_database_name
-      name.gsub('-', '_')
+      @name.gsub('-', '_')
     end
 
     def which_git_command

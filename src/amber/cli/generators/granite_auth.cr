@@ -1,7 +1,7 @@
 require "./auth"
 
 module Amber::CLI
-  class GraniteAuth < Auth
+  class GraniteAuth < AuthBase
     directory "#{__DIR__}/../templates/auth/granite"
   end
 end

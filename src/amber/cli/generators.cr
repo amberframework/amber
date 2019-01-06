@@ -27,9 +27,8 @@ module Amber::CLI
       @fields = fields
     end
 
-    def generate(template : String, options = nil)
-      case template
-      when "app"
+    def generate(command : String, options = nil)
+      if command == "app"
         if options
           info "Rendering App #{name} in #{directory}"
           App.new(name, options.d, options.t, options.m).render(directory)
@@ -38,42 +37,13 @@ module Amber::CLI
             Helpers.run("cd #{directory} && shards update")
           end
         end
-      when "migration"
-        info "Rendering Migration #{name}"
-        Migration.new(name, fields).render(directory)
-      when "model"
-        info "Rendering Model #{name}"
-        Model.new(name, fields).render(directory)
-      when "controller"
-        info "Rendering Controller #{name}"
-        Controller.new(name, fields).render(directory)
-      when "scaffold"
-        info "Rendering Scaffold #{name}"
-        Scaffold.new(name, fields).render(directory)
-      when "api"
-        info "Rendering Api #{name}"
-        Api.new(name, fields).render(directory)
-      when "mailer"
-        info "Rendering Mailer #{name}"
-        Mailer.new(name, fields).render(directory)
-      when "socket"
-        info "Rendering Socket #{name}"
-        WebSocket.new(name, fields).render(directory)
-      when "channel"
-        info "Rendering Channel #{name}"
-        WebSocketChannel.new(name, fields).render(directory)
-      when "auth"
-        info "Rendering Auth #{name}"
-        if model == "crecto"
-          CrectoAuth.new(name, fields).render(directory)
-        else
-          GraniteAuth.new(name, fields).render(directory)
-        end
-      when "error"
-        info "Rendering Error Template"
-        ErrorTemplate.new("error", fields).render(directory)
       else
-        CLI.logger.error "Template not found", "Generate", :light_red
+        if gen_class = Amber::CLI::Generator.registered_commands[command]?
+          info "Generating #{gen_class}"
+          gen_class.new(name, fields).render(directory)
+        else
+          CLI.logger.error "Generator for #{command} not found", "Generate", :light_red
+        end
       end
     end
 

@@ -2,6 +2,7 @@ require "./generator"
 
 module Amber::CLI
   class WebSocketChannel < Generator
+    command :channel
     directory "#{__DIR__}/../templates/channel"
 
     def initialize(name, fields)
