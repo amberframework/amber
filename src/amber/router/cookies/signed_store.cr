@@ -3,19 +3,9 @@ require "http"
 require "../../support/*"
 
 module Amber::Router::Cookies
-  class SignedStore
-    getter store : Store
-
+  class SignedStore < AbstractStore
     def initialize(@store, secret)
       @verifier = Support::MessageVerifier.new(secret)
-    end
-
-    def [](name)
-      get(name)
-    end
-
-    def []=(name, value)
-      set(name, value)
     end
 
     def get(name)

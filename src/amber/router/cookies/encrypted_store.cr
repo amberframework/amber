@@ -2,19 +2,9 @@ require "http"
 require "../../support/*"
 
 module Amber::Router::Cookies
-  class EncryptedStore
-    getter store : Store
-
+  class EncryptedStore < AbstractStore
     def initialize(@store, secret)
       @encryptor = Support::MessageEncryptor.new(secret, digest: :sha256)
-    end
-
-    def [](name)
-      get(name)
-    end
-
-    def []=(name, value)
-      set(name, value)
     end
 
     def get(name)
