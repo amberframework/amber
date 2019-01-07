@@ -11,8 +11,7 @@ Micrate::DB.connection_url = Amber.settings.database_url
 # Automatically run migrations on the test database
 Micrate::Cli.run_up
 
-<%- if @model == "granite" -%>	
-# Disable Granite logs in tests	
-Granite.settings.logger = nil	
+<%- if @model == "granite" -%>
+# Disable Granite logs in tests
+Granite.settings.logger = nil
 <%- end -%>
-  
