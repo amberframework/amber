@@ -223,11 +223,6 @@ export class Socket {
   }
 }
 
-module.exports = {
-  Socket: Socket
-}
-
-
 /**
  * Allows delete links to post for security and ease of use similar to Rails jquery_ujs
  */
