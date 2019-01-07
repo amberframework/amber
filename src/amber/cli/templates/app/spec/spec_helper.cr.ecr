@@ -13,6 +13,5 @@ Micrate::Cli.run_up
 
 <%- if @model == "granite" -%>
 # Disable Granite logs in tests
-Granite.settings.logger = Logger.new nil
+Granite.settings.logger = nil
 <%- end -%>
-
