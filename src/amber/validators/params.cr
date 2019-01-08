@@ -32,7 +32,7 @@ module Amber::Validators
 
     private def call_predicate(params : Amber::Router::Params)
       @value = params[@field]
-      @present = !!params.has_key?(@field)
+      @present = params.has_key?(@field)
       @predicate.call params[@field] unless @predicate.nil?
     end
 
