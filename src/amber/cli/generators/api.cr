@@ -2,6 +2,7 @@ require "./generator"
 
 module Amber::CLI
   class Api < Generator
+    command :api
     property migration : Generator
     property model : Generator
     property controller : Generator

@@ -1,5 +1,6 @@
 module Amber::CLI
   class Scaffold < Generator
+    command :scaffold
     property migration : Generator
     property model : Generator
     property controller : Generator

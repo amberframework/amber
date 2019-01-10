@@ -1,5 +1,6 @@
 module Amber::CLI
   class WebSocket < Generator
+    command :socket
     directory "#{__DIR__}/../templates/socket"
 
     def initialize(name, fields)

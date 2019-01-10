@@ -1,5 +1,6 @@
 module Amber::CLI
   class ErrorTemplate < Generator
+    command :error
     directory "#{__DIR__}/../templates/error"
     getter actions : Array(String)
 

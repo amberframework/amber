@@ -3,6 +3,12 @@ require "./field.cr"
 
 module Amber::CLI
   abstract class Generator < Teeplate::FileTree
+    class_getter registered_commands = Hash(String, Amber::CLI::Generator.class).new
+
+    macro command(name)
+      Amber::CLI::Generator.registered_commands[{{name.id.stringify}}] = {{ @type.id }}
+    end
+
     include Helpers::Migration
     include Helpers
 

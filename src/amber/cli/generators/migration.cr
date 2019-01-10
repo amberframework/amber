@@ -1,5 +1,6 @@
 module Amber::CLI
   class Migration < Generator
+    command :migration
     directory "#{__DIR__}/../templates/migration/empty"
 
     def initialize(name, fields)

@@ -12,7 +12,7 @@ module Amber::CLI
         context "in an `amber new` app with default options" do
           cleanup
           scaffold_app(TESTING_APP)
-          MainCommand.run %w(generate error a)
+          MainCommand.run %w(generate error error)
 
           it "generates expected controller class" do
             expected = ErrorController.expected_error_controller
