@@ -19,7 +19,7 @@ let config = {
   module: {
     rules: [
       {
-        test: /\.(sa|sc|c)ss$/,
+        test: /\.(sass|scss|css)$/,
         exclude: /node_modules/,
         use: [
           MiniCssExtractPlugin.loader,
