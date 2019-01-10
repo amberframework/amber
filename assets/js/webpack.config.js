@@ -1,26 +1,26 @@
-var webpack = require('webpack')
-
 module.exports = {
   entry: './amber.js',
   output: {
     filename: 'amber.min.js',
-    library: 'Amber'
+    library: 'Amber',
+    path: __dirname
   },
+  optimization: {
+    minimize: true
+  },
+  mode: 'production',
   module: {
-    loaders: [
+    rules: [
       {
-        test: /\.js?$/,
+        test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'babel-loader',
-        query: {
-          presets: ['env']
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env']
+          }
         }
       }
     ]
-  },
-  plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      compress: { warnings: false }
-    })
-  ]
+  }
 };

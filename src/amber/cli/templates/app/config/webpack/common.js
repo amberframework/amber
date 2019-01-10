@@ -1,14 +1,13 @@
 const webpack = require('webpack');
 const path = require('path');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 let config = {
   entry: {
-    'main.bundle.js': './src/assets/javascripts/main.js',
-    'main.bundle.css': './src/assets/stylesheets/main.scss'
+    main: path.resolve(__dirname, 'entry.js')
   },
   output: {
-    filename: '[name]',
+    filename: '[name].bundle.js',
     path: path.resolve(__dirname, '../../public/dist'),
     publicPath: '/dist'
   },
@@ -20,20 +19,13 @@ let config = {
   module: {
     rules: [
       {
-        test: /\.css$/,
+        test: /\.(sass|scss|css)$/,
         exclude: /node_modules/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: 'css-loader'
-        })
-      },
-      {
-        test: /\.scss$/,
-        exclude: /node_modules/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: ['css-loader', 'sass-loader']
-        })
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          'sass-loader'
+        ]
       },
       {
         test: /\.(png|svg|jpg|gif)$/,
@@ -50,17 +42,21 @@ let config = {
         ]
       },
       {
-        test: /\.js?$/,
+        test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'babel-loader',
-        query: {
-          presets: ['env']
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env']
+          }
         }
       }
     ]
   },
   plugins: [
-    new ExtractTextPlugin('main.bundle.css'),
+    new MiniCssExtractPlugin({
+      filename: '[name].bundle.css'
+    })
   ],
   // For more info about webpack logs see: https://webpack.js.org/configuration/stats/
   stats: 'errors-only'
