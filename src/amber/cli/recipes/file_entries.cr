@@ -44,7 +44,7 @@ module Amber::Recipes
           # process the filename with liquid
           template = Liquid::Template.parse filename
           filename = template.render @ctx.as(Liquid::Context)
-	  
+
           if /^(.+)\.lqd$/ =~ filename || /^(.+)\.liquid$/ =~ filename
             # process the file with liquid
             pack_liquid files, absolute_path, $1
@@ -52,7 +52,7 @@ module Amber::Recipes
             # pack the file without processing
             pack_blob files, absolute_path, filename
           end
-	end
+        end
       end
     end
 
