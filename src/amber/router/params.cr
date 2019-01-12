@@ -42,7 +42,7 @@ module Amber::Router
     end
 
     def has_key?(key : Types::Key)
-      self.[key.to_s]?
+      !!self.[key.to_s]?
     end
 
     def fetch_all(key : Types::Key) : Array

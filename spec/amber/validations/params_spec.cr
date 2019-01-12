@@ -318,6 +318,32 @@ module Amber::Validators
 
         validator.validate!.should eq result
       end
+
+      it "should not present optional fields when param is not present" do
+        http_params = params_builder("name=elias&middle=j")
+        validator = Validators::Params.new(http_params)
+        result : Hash(String, String) = {"name" => "elias"}
+
+        validator.validation do
+          required("name") { |v| !v.nil? }
+          optional("last_name")
+        end
+
+        validator.validate!.should eq result
+      end
+
+      it "should present optional fields when param is present" do
+        http_params = params_builder("name=elias&last_name=perez&middle=j")
+        validator = Validators::Params.new(http_params)
+        result : Hash(String, String) = {"name" => "elias", "last_name" => "perez"}
+
+        validator.validation do
+          required("name") { |v| !v.nil? }
+          optional("last_name")
+        end
+
+        validator.validate!.should eq result
+      end
     end
   end
 end
