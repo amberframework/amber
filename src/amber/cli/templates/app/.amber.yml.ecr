@@ -15,6 +15,7 @@ watch:
       - bin/<%= @name %>
     include:
       - ./config/**/*.cr
+      - ./config/environments/*.yml
       - ./src/**/*.cr
       - ./src/**/*.ecr
       <%- if @language == "slang" -%>
