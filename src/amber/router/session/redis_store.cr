@@ -43,7 +43,7 @@ module Amber::Router::Session
       store.hset(session_id, key.to_s, value)
     end
 
-    def has_key?(key : String | Symbol)
+    def has_key?(key : String | Symbol) : Bool
       store.hexists(session_id, key.to_s) == 1 ? true : false
     end
 
