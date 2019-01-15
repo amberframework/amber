@@ -12,17 +12,10 @@ module Amber::CLI
 
     def pre_render(directory)
       add_plugs
-      add_dependencies
     end
 
     private def add_plugs
       add_plugs :web, "plug Amber::Pipe::Error.new"
-    end
-
-    private def add_dependencies
-      add_dependencies <<-DEPENDENCY
-      require "../src/pipes/error.cr"
-      DEPENDENCY
     end
   end
 end
