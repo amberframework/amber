@@ -150,5 +150,9 @@ module Amber::Validators
     def to_h
       @params
     end
+
+    def to_unsafe_h
+      @raw_params.to_h
+    end
   end
 end
