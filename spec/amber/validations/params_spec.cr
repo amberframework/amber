@@ -345,5 +345,16 @@ module Amber::Validators
         validator.validate!.should eq result
       end
     end
+
+    describe "#to_unsafe_h" do
+      it "returns request raw_params as a hash" do
+        http_params = params_builder("first_name=elias&last_name=perez")
+        validator = Validators::Params.new(http_params)
+
+        validator.to_h.should eq({} of String => String)
+
+        validator.to_unsafe_h.should eq({"first_name" => "elias", "last_name" => "perez"})
+      end
+    end
   end
 end
