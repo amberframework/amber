@@ -20,6 +20,7 @@ module Amber::Environment
       settings.redis_url.should eq "redis://localhost:6379"
       settings.secret_key_base.should_not be_nil
       settings.secrets.should eq({"description" => "Store your test secrets credentials and settings here."})
+      settings.secrets.is_a?(Hash(String, String)?).should be_true
       settings.session.should eq({
         :key => "amber.session", :store => :signed_cookie, :expires => 0,
       })
