@@ -223,6 +223,11 @@ export class Socket {
   }
 }
 
+export default {
+  Channel,
+  Socket
+};
+
 /**
  * Allows delete links to post for security and ease of use similar to Rails jquery_ujs
  */
