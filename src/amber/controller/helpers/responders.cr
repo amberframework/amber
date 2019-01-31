@@ -24,32 +24,51 @@ module Amber::Controller::Helpers
       end
 
       def js(js : String | ProcType)
-        @available_responses[TYPE[:js]] = js; self
+        add_response(:js, js)
+      end
+
+      def js(&js : -> _)
+        js(js)
       end
 
       def html(html : String | ProcType)
-        @available_responses[TYPE[:html]] = html; self
+        add_response(:html, html)
+      end
+
+      def html(&html : -> _)
+        html(html)
       end
 
       def xml(xml : String | ProcType)
-        @available_responses[TYPE[:xml]] = xml; self
+        add_response(:xml, xml)
+      end
+
+      def xml(&xml : -> _)
+        xml(xml)
       end
 
       def json(json : String | ProcType | Hash(Symbol | String, String))
         if json.is_a?(Proc)
-          @available_responses[TYPE[:json]] = json
+          add_response(:json, json)
         else
-          @available_responses[TYPE[:json]] = json.is_a?(String) ? json : json.to_json
+          add_response(:json, (json.is_a?(String) ? json : json.to_json))
         end
-        self
       end
 
       def json(**args : Object)
         json(args.to_h)
       end
 
+      def json(&json : -> _)
+        json(json)
+      end
+
       def text(text : String | ProcType)
-        @available_responses[TYPE[:text]] = text; self
+        add_response(:text, text)
+      end
+
+      def text(&text : -> _)
+        text(text)
       end
 
       def type
@@ -58,13 +77,13 @@ module Amber::Controller::Helpers
 
       def body
         @body ||= begin
-          case _body = @available_responses[type]?
-          when Proc
-            _body.call
-          else
-            _body
-          end
-        end
+                    case _body = @available_responses[type]?
+                    when Proc
+                      _body.call
+                    else
+                      _body
+                    end
+                  end
       end
 
       private def select_type
@@ -76,6 +95,10 @@ module Amber::Controller::Helpers
         @requested_responses.find do |resp|
           @available_responses.keys.includes?(resp)
         end
+      end
+
+      private def add_response(rtype : Symbol, rbody : String | ProcType)
+        @available_responses[TYPE[rtype]] = rbody; self
       end
     end
 
@@ -96,9 +119,9 @@ module Amber::Controller::Helpers
 
     private def accepts_request_type
       accept = context.request.headers["Accept"]?
-      if accept && !accept.empty?
-        accepts = accept.split(";").first?.try(&.split(Content::ACCEPT_SEPARATOR_REGEX))
-        return accepts if !accepts.nil? && accepts.any?
+        if accept && !accept.empty?
+          accepts = accept.split(";").first?.try(&.split(Content::ACCEPT_SEPARATOR_REGEX))
+          return accepts if !accepts.nil? && accepts.any?
       end
     end
 
