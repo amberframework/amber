@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo "Running './bin/ameba':"
+./bin/ameba
+
+echo "\nRunning 'crystal tool --format --check':"
+crystal tool format --check
+
+echo "\nRunning 'crystal spec':"
+crystal spec
