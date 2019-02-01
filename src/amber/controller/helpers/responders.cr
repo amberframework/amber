@@ -77,13 +77,13 @@ module Amber::Controller::Helpers
 
       def body
         @body ||= begin
-                    case _body = @available_responses[type]?
-                    when Proc
-                      _body.call
-                    else
-                      _body
-                    end
-                  end
+          case _body = @available_responses[type]?
+          when Proc
+            _body.call
+          else
+            _body
+          end
+        end
       end
 
       private def select_type
@@ -119,9 +119,9 @@ module Amber::Controller::Helpers
 
     private def accepts_request_type
       accept = context.request.headers["Accept"]?
-        if accept && !accept.empty?
-          accepts = accept.split(";").first?.try(&.split(Content::ACCEPT_SEPARATOR_REGEX))
-          return accepts if !accepts.nil? && accepts.any?
+      if accept && !accept.empty?
+        accepts = accept.split(";").first?.try(&.split(Content::ACCEPT_SEPARATOR_REGEX))
+        return accepts if !accepts.nil? && accepts.any?
       end
     end
 
