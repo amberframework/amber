@@ -41,6 +41,7 @@ module Amber::Controller::Helpers
       def json(**args : Object)
         json(args.to_h)
       end
+
       def type
         (@type ||= select_type).to_s
       end
@@ -65,10 +66,6 @@ module Amber::Controller::Helpers
         @requested_responses.find do |resp|
           @available_responses.keys.includes?(resp)
         end
-      end
-
-      private def add_response(rtype : Symbol, rbody : String | ProcType)
-        @available_responses[TYPE[rtype]] = rbody; self
       end
     end
 
