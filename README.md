@@ -5,7 +5,7 @@
 _Amber makes building web applications fast, simple, and enjoyable - with fewer bugs and blazing fast performance._
 
 [![Build Status](https://travis-ci.org/amberframework/amber.svg?branch=master)](https://travis-ci.org/amberframework/amber)
-[![Version](https://img.shields.io/github/tag/amberframework/amber.svg?maxAge=360)](https://github.com/amberframework/amber/releases/latest)
+[![Version](https://img.shields.io/github/tag/amberframework/amber.svg?maxAge=360&label=version)](https://github.com/amberframework/amber/releases/latest)
 [![License](https://img.shields.io/github/license/amberframework/amber.svg)](https://github.com/amberframework/amber/blob/master/LICENSE)
 
 [![Liberapay patrons](https://img.shields.io/liberapay/patrons/amber-framework.svg?label=liberapay%20patrons)](https://liberapay.com/amber-framework/)
@@ -104,7 +104,7 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 
 1. Fork it https://github.com/amberframework/amber/fork
 2. Create your feature branch `git checkout -b my-new-feature`
-3. Write and execute specs `crystal spec`
+3. Write and execute specs and formatting checks `./bin/amber_spec`
 4. Commit your changes `git commit -am 'Add some feature'`
 5. Push to the branch `git push origin my-new-feature`
 6. Create a new Pull Request
