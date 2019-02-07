@@ -23,33 +23,23 @@ module Amber::Controller::Helpers
       def initialize(@requested_responses)
       end
 
-      def js(js : String | ProcType)
-        @available_responses[TYPE[:js]] = js; self
-      end
-
-      def html(html : String | ProcType)
-        @available_responses[TYPE[:html]] = html; self
-      end
-
-      def xml(xml : String | ProcType)
-        @available_responses[TYPE[:xml]] = xml; self
-      end
-
-      def json(json : String | ProcType | Hash(Symbol | String, String))
-        if json.is_a?(Proc)
-          @available_responses[TYPE[:json]] = json
-        else
-          @available_responses[TYPE[:json]] = json.is_a?(String) ? json : json.to_json
+      {% for type in %w(html xml js json text) %}
+        def {{type.id}}(value : String | ProcType)
+          @available_responses[TYPE[:{{type.id}}]] = value
+          self
         end
-        self
+
+        def {{type.id}}(&block : -> _)
+          {{type.id}}(block)
+        end
+      {% end %}
+
+      def json(value : Hash(Symbol | String, String))
+        json(value.to_json)
       end
 
       def json(**args : Object)
         json(args.to_h)
-      end
-
-      def text(text : String | ProcType)
-        @available_responses[TYPE[:text]] = text; self
       end
 
       def type
