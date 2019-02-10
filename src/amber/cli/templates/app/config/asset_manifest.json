@@ -1,1 +1,5 @@
-{}
+{
+  "main.css": "/dist/main.bundle.css",
+  "main.js": "/dist/main.bundle.js",
+  "images/logo.svg": "/dist/images/logo.svg"
+}

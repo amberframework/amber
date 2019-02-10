@@ -1,8 +1,8 @@
 const webpack = require('webpack');
 const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 let config = {
   entry: {
@@ -30,20 +30,6 @@ let config = {
         ]
       },
       {
-        test: /\.(png|svg|jpg|gif)$/,
-        exclude: /node_modules/,
-        use: [
-          'file-loader?name=images/[name]-[hash].[ext]'
-        ]
-      },
-      {
-        test: /\.(woff|woff2|eot|ttf|otf)$/,
-        exclude: /node_modules/,
-        use: [
-          'file-loader?name=[name]-[hash].[ext]'
-        ]
-      },
-      {
         test: /\.js$/,
         exclude: /node_modules/,
         use: {
@@ -56,9 +42,6 @@ let config = {
     ]
   },
   plugins: [
-    new MiniCssExtractPlugin({
-      filename: '[name]-[hash].bundle.css'
-    }),
     new CleanWebpackPlugin([path.resolve(__dirname, '../../public/dist')], {
       allowExternal: true
     }),
