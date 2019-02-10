@@ -53,6 +53,7 @@ module Amber::CLI
           ],
           "include" => [
             "./config/**/*.cr",
+            "./config/asset_manifest.json",
             "./src/**/*.cr",
             "./src/views/**/*.slang",
           ],

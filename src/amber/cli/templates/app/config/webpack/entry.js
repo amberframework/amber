@@ -3,8 +3,9 @@
 // stylesheets from the javascripts asset directory and keep those concerns
 // separate from each other within the src directory.
 //
-// This will be removed from Webpack 5 onward.
+// The css imports can be removed from Webpack 5 onward.
 // See: https://github.com/webpack-contrib/mini-css-extract-plugin/issues/151
-
+require.context('../../src/assets/images', true);
+require.context('../../src/assets/fonts', true);
 import '../../src/assets/javascripts/main.js';
 import '../../src/assets/stylesheets/main.scss';

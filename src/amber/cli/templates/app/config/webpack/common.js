@@ -1,15 +1,17 @@
 const webpack = require('webpack');
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const ManifestPlugin = require('webpack-manifest-plugin');
 
 let config = {
   entry: {
     main: path.resolve(__dirname, 'entry.js')
   },
   output: {
-    filename: '[name].bundle.js',
+    filename: '[name]-[hash].bundle.js',
     path: path.resolve(__dirname, '../../public/dist'),
-    publicPath: '/dist'
+    publicPath: '/dist/'
   },
   resolve: {
     alias: {
@@ -31,14 +33,14 @@ let config = {
         test: /\.(png|svg|jpg|gif)$/,
         exclude: /node_modules/,
         use: [
-          'file-loader?name=/images/[name].[ext]'
+          'file-loader?name=images/[name]-[hash].[ext]'
         ]
       },
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/,
         exclude: /node_modules/,
         use: [
-          'file-loader?name=/[name].[ext]'
+          'file-loader?name=[name]-[hash].[ext]'
         ]
       },
       {
@@ -55,7 +57,15 @@ let config = {
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: '[name].bundle.css'
+      filename: '[name]-[hash].bundle.css'
+    }),
+    new CleanWebpackPlugin([path.resolve(__dirname, '../../public/dist')], {
+      allowExternal: true
+    }),
+    new ManifestPlugin({
+      fileName: '../../config/asset_manifest.json',
+      publicPath: '/dist/',
+      writeToFileEmit: true
     })
   ],
   // For more info about webpack logs see: https://webpack.js.org/configuration/stats/

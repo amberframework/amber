@@ -5,7 +5,7 @@ html
     meta charset="utf-8"
     meta http-equiv="X-UA-Compatible" content="IE=edge"
     meta name="viewport" content="width=device-width, initial-scale=1"
-    link rel="stylesheet" href="/dist/main.bundle.css"
+    link rel="stylesheet" href="#{asset_path("main.css")}"
     link rel="apple-touch-icon" href="/favicon.png"
     link rel="icon" href="/favicon.png"
     link rel="icon" type="image/x-icon" href="/favicon.ico"
@@ -14,7 +14,7 @@ html
     nav.navbar.navbar-expand.navbar-dark.bg-primary.mb-3
       .container
         a.navbar-brand href="/"
-          img src="/dist/images/logo.svg" height="30" alt="Amber logo"
+          img src="#{asset_path("images/logo.svg")}" height="30" alt="Amber logo"
         ul.navbar-nav.mr-auto
           == render(partial: "layouts/_nav.slang")
         ul.navbar-nav
@@ -27,7 +27,7 @@ html
 
       .main== content
 
-    script src="/dist/main.bundle.js"
+    script src="#{asset_path("main.js")}"
 
     - if Amber.settings.auto_reload?
       script src="/js/client_reload.js"
