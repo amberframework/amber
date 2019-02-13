@@ -74,7 +74,7 @@ dependencies:
     github: amberframework/amber
 ```
 
-[Read Amber quick start guide](https://docs.amberframework.org/amber/getting-started/quick-start)
+[Read Amber quick start guide](https://docs.amberframework.org/amber/getting-started)
 
 [Read Amber CLI commands usage](https://docs.amberframework.org/amber/cli)
 
