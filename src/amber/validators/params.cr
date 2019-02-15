@@ -33,6 +33,9 @@ module Amber::Validators
     private def call_predicate(params : Amber::Router::Params)
       @value = params[@field]
       @present = params.has_key?(@field)
+
+      return true if (params[@field].blank? && @allow_blank)
+
       @predicate.call params[@field] unless @predicate.nil?
     end
 
@@ -50,11 +53,10 @@ module Amber::Validators
     end
   end
 
-  # OptionalRule only validates (evaluates block) if the key is present and the value is not blank.
+  # OptionalRule only validates (evaluates block) if the key is present and the value is not blank (see call_predicate).
   class OptionalRule < BaseRule
     def apply(params : Amber::Router::Params)
       return true if !params.has_key?(@field)
-      return true if params.has_key?(@field) && (@allow_blank && params[@field].blank?)
       call_predicate(params)
     end
   end
