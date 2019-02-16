@@ -21,7 +21,11 @@ module Amber
         context.response.status_code = 500
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.internal_server_error)
-        Amber.logger.error ex.message, "Error: 500", :red
+        if ex.backtrace && ex.class.name
+          Amber.logger.error "#{ex.class.name} #{ex.message} #{ex.backtrace.join('\n')}", "Error: 500", :red
+        else
+          Amber.logger.error ex.message, "Error: 500", :red
+        end
       end
     end
   end
