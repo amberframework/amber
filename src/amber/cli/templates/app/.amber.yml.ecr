@@ -25,7 +25,7 @@ watch:
     #  - ./src/some_irrelevant_file.cr
   spec:
     run_commands:
-      - crystal spec
+      - AMBER_ENV=test crystal spec
     include:
       - ./spec/**/*.cr
   npm:
