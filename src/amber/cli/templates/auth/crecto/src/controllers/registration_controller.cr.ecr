@@ -5,6 +5,8 @@ class RegistrationController < ApplicationController
   end
 
   def create
+    @validation_errors = [] of Amber::Validators::Error
+    registration_params.validate!
     <%= @name %> = <%= class_name %>.new
     <%= @name %>.email = params["email"].to_s
     <%= @name %>.password = params["password"].to_s
@@ -18,6 +20,9 @@ class RegistrationController < ApplicationController
       flash[:danger] = "Could not create <%= class_name %>!"
       render("new.<%= config.language %>")
     end
+  rescue e : Amber::Exceptions::Validator::ValidationFailed
+    @validation_errors = e.errors
+    render("new.<%= config.language %>") 
   end
 
   private def registration_params
