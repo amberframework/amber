@@ -17,6 +17,8 @@ html
           img src="/dist/images/logo.svg" height="30" alt="Amber logo"
         ul.navbar-nav.mr-auto
           == render(partial: "layouts/_nav.slang")
+        ul.navbar-nav
+            == render(partial: "layouts/_session.slang")
 
     .container
       - flash.each do |key, value|
