@@ -22,7 +22,6 @@ module Amber::Validators
         end
 
         rule.apply(params).should be_true
-        rule.value.should_not be_nil
         rule.value.should eq "val"
       end
 
@@ -34,7 +33,6 @@ module Amber::Validators
         end
 
         rule.apply(params).should be_true
-        rule.value.should_not be_nil
         rule.value.should eq ""
       end
     end
