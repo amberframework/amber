@@ -27,10 +27,10 @@ class <%= class_name %>Controller < ApplicationController
         json <%= @name %>.to_json
       end
     else
-        results = {status: "invalid"}
-        respond_with 422 do
-          json results.to_json
-        end
+      results = {status: "invalid"}
+      respond_with 422 do
+        json results.to_json
+      end
     end
   end
 

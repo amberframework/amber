@@ -1,4 +1,5 @@
 class <%= class_name %>Controller < ApplicationController
+<%- unless @actions.empty? -%>
 <%=
   actions = @actions.map do |action, verb|
     <<-ACTION
@@ -9,4 +10,5 @@ class <%= class_name %>Controller < ApplicationController
   end
   actions.join("\n\n") if actions
 %>
+<%- end -%>
 end

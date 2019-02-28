@@ -25,7 +25,6 @@ describe <%= class_name %>Controller do
       subject.internal_server_error.should contain "500"
     end
   end
-
 end
 
 # Controller Integration Test
@@ -53,5 +52,4 @@ describe <%= class_name %>ControllerTest do
     response.status_code.should eq 404
     response.body.should contain "404"
   end
-
 end
