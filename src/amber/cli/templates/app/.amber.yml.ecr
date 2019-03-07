@@ -21,6 +21,7 @@ watch:
       <%- if @language == "slang" -%>
       - ./src/views/**/*.slang
       <%- end -%>
+      - ./src/locales/*.yml
     # exclude: # NOTE simplistic implementation: (1) enumerate all includes and excludes; (2) return (includes - excludes)
     #  - ./src/some_irrelevant_file.cr
   spec:
