@@ -73,6 +73,9 @@ dependencies:
   exception_page:
     github: crystal-loot/exception_page
 
+  crecto:
+    github: Crecto/crecto
+
 development_dependencies:
   ameba:
     github: veelenga/ameba
