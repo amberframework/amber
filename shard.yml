@@ -75,6 +75,7 @@ dependencies:
 
   crecto:
     github: Crecto/crecto
+    version: ~> 0.10.1
 
 development_dependencies:
   ameba:
