@@ -29,13 +29,18 @@ module Amber::CLI
 
       class Options
         bool "--no-color", desc: "disable colored output", default: false
+        bool "--json", desc: "display the routes as a json-compatible format", default: false
         help
       end
 
       def run
         CLI.toggle_colors(options.no_color?)
         parse_routes
-        print_routes_table
+        if options.json?
+          print_routes_table_json
+        else
+          print_routes_table
+        end
       rescue
         error "Not valid project root directory."
         info "Run `amber routes` in project root directory."
@@ -116,6 +121,12 @@ module Amber::CLI
           @current_pipe = route_match[2]?
           @current_scope = route_match[3]?
         end
+      end
+
+      private def print_routes_table_json
+        puts routes.map { |route|
+          route.transform_keys { |key| key.to_s.downcase.gsub(' ', '_') }
+        }.to_json
       end
 
       private def print_routes_table

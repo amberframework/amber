@@ -48,6 +48,34 @@ module Amber::CLI
           end
         end
 
+        describe "with the default routes as json" do
+          MainCommand.run ["routes", "--json"] { |cmd| output = cmd.out.gets_to_end }
+          routes = route_table_from_json(output)
+          it "outputs the static file handler" do
+            expected = routes.find { |route| route.controller == "Amber::Controller::Static" }
+            expected.nil?.should be_false
+            if expected
+              expected.verb.should eq "get"
+              expected.uri_pattern.should eq "/*"
+              expected.action.should eq "index"
+              expected.pipeline.should eq "static"
+              expected.scope.should eq ""
+            end
+          end
+
+          it "outputs the HomeController index action" do
+            expected = routes.find { |route| route.controller == "HomeController" }
+            expected.nil?.should be_false
+            if expected
+              expected.verb.should eq "get"
+              expected.uri_pattern.should eq "/"
+              expected.action.should eq "index"
+              expected.pipeline.should eq "web"
+              expected.scope.should eq ""
+            end
+          end
+        end
+
         describe "with a websocket route" do
           add_routes :web, %(websocket "/electric", ElectricSocket)
           MainCommand.run %w(routes) { |cmd| output = cmd.out.gets_to_end }

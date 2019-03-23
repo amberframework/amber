@@ -1,4 +1,16 @@
 require "file_utils"
+require "json"
+
+class RouteJSON
+  JSON.mapping({
+    verb:        String,
+    controller:  String,
+    action:      String,
+    pipeline:    String,
+    scope:       String,
+    uri_pattern: String,
+  })
+end
 
 module CLIHelper
   BASE_ENV_PATH       = "./config/environments/"
@@ -108,5 +120,9 @@ module CLIHelper
 
   def route_table_rows(route_table_text)
     route_table_text.split("\n").reject { |line| line =~ /(─┼─|═╦═|═╩═)/ }
+  end
+
+  def route_table_from_json(route_table_json)
+    Array(RouteJSON).from_json(route_table_json)
   end
 end
