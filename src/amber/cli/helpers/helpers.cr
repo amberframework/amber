@@ -3,7 +3,7 @@ module Amber::CLI::Helpers
     routes = File.read("./config/routes.cr")
     replacement = <<-ROUTES
     routes :#{pipeline.to_s} do
-      #{route}
+    #{route}
     ROUTES
     File.write("./config/routes.cr", routes.gsub("routes :#{pipeline.to_s} do", replacement))
   end
@@ -24,14 +24,16 @@ module Amber::CLI::Helpers
 
   def add_dependencies(dependencies)
     app_file_path = "./config/application.cr"
+    injection_marker = "# Start Generator Dependencies: Don't modify."
     application = File.read(app_file_path)
     deps = dependencies.split("\n").reject { |d| application.includes?(d) }
 
     replacement = <<-REQUIRES
-    # Start Generator Dependencies: Don't modify.
+    #{injection_marker} 
     #{deps.join("\n")}
     REQUIRES
-    File.write(app_file_path, application.gsub("# Start Generator Dependencies: Don't modify.", replacement)) if deps.size > 1
+
+    File.write(app_file_path, application.gsub(injection_marker, replacement)) if deps.size > 0
   end
 
   def self.run(command, wait = true, shell = true)
