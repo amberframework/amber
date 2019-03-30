@@ -29,7 +29,7 @@ module Amber::CLI::Helpers
     deps = dependencies.split("\n").reject { |d| application.includes?(d) }
 
     replacement = <<-REQUIRES
-    #{injection_marker} 
+    #{injection_marker}
     #{deps.join("\n")}
     REQUIRES
 
