@@ -21,7 +21,7 @@ module Amber
           json.field "valve", valve.to_s
           json.field "scope", scope
           json.field "resource", resource
-          json.field "constraints" do 
+          json.field "constraints" do
             json.object do
               constraints.each do |key, value|
                 json.field key, value.to_s

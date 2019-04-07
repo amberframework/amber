@@ -31,16 +31,16 @@ module Amber
         end
 
         context "when specifying constraints" do
-          it "uses constraints for defining crud routes" do 
+          it "uses constraints for defining crud routes" do
             router = Router.new
             router.draw :web do
-              resources "/orders", HelloController, constraints: { "id" => /\d\d\d/ } 
+              resources "/orders", HelloController, constraints: { "id" => /\d\d\d/ }
             end
 
             # unchanged
             router.match("POST", "/orders").found?.should be_true
             router.match("GET", "/orders").found?.should be_true
-            
+
             # would have matched without regex constraint
             router.match("GET", "/orders/abc").found?.should be_false
             router.match("GET", "/orders/def/edit").found?.should be_false
@@ -55,7 +55,7 @@ module Amber
             router.match("PATCH", "/orders/511").found?.should be_true
             router.match("DELETE", "/orders/511").found?.should be_true
           end
-          
+
         end
 
         context "when specifying actions" do
@@ -130,11 +130,11 @@ module Amber
           route.path.should eq "get/checkout/:name"
         end
 
-        it "registers routes with constraints as Hash" do 
+        it "registers routes with constraints as Hash" do
           router = Router.new
           router.draw :web do
             get "/checkout/:cart", HelloController, :world, { "cart" => /\d\d\d/ }
-          end    
+          end
 
           request = HTTP::Request.new("GET", "/checkout/hello")
           route = router.match_by_request(request)
@@ -169,7 +169,7 @@ module Amber
           request = HTTP::Request.new("GET", "/posts/hello")
           route = router.match_by_request(request)
           route.found?.should eq false
-          
+
           request = HTTP::Request.new("GET", "/posts/55-hello")
           route = router.match_by_request(request)
           route.found?.should eq true
