@@ -34,7 +34,7 @@ module Amber
           it "uses constraints for defining crud routes" do
             router = Router.new
             router.draw :web do
-              resources "/orders", HelloController, constraints: { "id" => /\d\d\d/ }
+              resources "/orders", HelloController, constraints: {"id" => /\d\d\d/}
             end
 
             # unchanged
@@ -55,7 +55,6 @@ module Amber
             router.match("PATCH", "/orders/511").found?.should be_true
             router.match("DELETE", "/orders/511").found?.should be_true
           end
-
         end
 
         context "when specifying actions" do
@@ -133,7 +132,7 @@ module Amber
         it "registers routes with constraints as Hash" do
           router = Router.new
           router.draw :web do
-            get "/checkout/:cart", HelloController, :world, { "cart" => /\d\d\d/ }
+            get "/checkout/:cart", HelloController, :world, {"cart" => /\d\d\d/}
           end
 
           request = HTTP::Request.new("GET", "/checkout/hello")
@@ -163,7 +162,7 @@ module Amber
             context.content = "hey world"
           }
 
-          route = Route.new("GET", "/posts/:slug", handler, :index, :web, "", "PostsController", { "slug" => /\d\d\-\w+/ })
+          route = Route.new("GET", "/posts/:slug", handler, :index, :web, "", "PostsController", {"slug" => /\d\d\-\w+/})
           router.add(route)
 
           request = HTTP::Request.new("GET", "/posts/hello")
