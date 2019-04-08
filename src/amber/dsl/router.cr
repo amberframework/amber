@@ -54,20 +54,20 @@ module Amber::DSL
 
     private macro define_action(path, controller, action)
       {% if action == :index %}
-        get "{{path.id}}", {{controller}}, :index
+        get "/{{path.id}}", {{controller}}, :index
       {% elsif action == :show %}
-        get "{{path.id}}/:id", {{controller}}, :show
+        get "/{{path.id}}/:id", {{controller}}, :show
       {% elsif action == :new %}
-        get "{{path.id}}/new", {{controller}}, :new
+        get "/{{path.id}}/new", {{controller}}, :new
       {% elsif action == :edit %}
-        get "{{path.id}}/:id/edit", {{controller}}, :edit
+        get "/{{path.id}}/:id/edit", {{controller}}, :edit
       {% elsif action == :create %}
-        post "{{path.id}}", {{controller}}, :create
+        post "/{{path.id}}", {{controller}}, :create
       {% elsif action == :update %}
-        put "{{path.id}}/:id", {{controller}}, :update
-        patch "{{path.id}}/:id", {{controller}}, :update
+        put "/{{path.id}}/:id", {{controller}}, :update
+        patch "/{{path.id}}/:id", {{controller}}, :update
       {% elsif action == :destroy %}
-        delete "{{path.id}}/:id", {{controller}}, :destroy
+        delete "/{{path.id}}/:id", {{controller}}, :destroy
       {% else %}
         {% raise "Invalid route action '#{action}'" %}
       {% end %}
