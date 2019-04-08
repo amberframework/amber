@@ -54,20 +54,20 @@ module Amber::DSL
 
     private macro define_action(path, controller, action, constraints = {} of String => Regex)
       {% if action == :index %}
-        get "{{path.id}}", {{controller}}, :index, {{constraints}}
+        get "/{{path.id}}", {{controller}}, :index, {{constraints}}
       {% elsif action == :show %}
-        get "{{path.id}}/:id", {{controller}}, :show, {{constraints}}
+        get "/{{path.id}}/:id", {{controller}}, :show, {{constraints}}
       {% elsif action == :new %}
-        get "{{path.id}}/new", {{controller}}, :new, {{constraints}}
+        get "/{{path.id}}/new", {{controller}}, :new, {{constraints}}
       {% elsif action == :edit %}
-        get "{{path.id}}/:id/edit", {{controller}}, :edit, {{constraints}}
+        get "/{{path.id}}/:id/edit", {{controller}}, :edit, {{constraints}}
       {% elsif action == :create %}
-        post "{{path.id}}", {{controller}}, :create, {{constraints}}
+        post "/{{path.id}}", {{controller}}, :create, {{constraints}}
       {% elsif action == :update %}
-        put "{{path.id}}/:id", {{controller}}, :update, {{constraints}}
-        patch "{{path.id}}/:id", {{controller}}, :update, {{constraints}}
+        put "/{{path.id}}/:id", {{controller}}, :update, {{constraints}}
+        patch "/{{path.id}}/:id", {{controller}}, :update, {{constraints}}
       {% elsif action == :destroy %}
-        delete "{{path.id}}/:id", {{controller}}, :destroy, {{constraints}}
+        delete "/{{path.id}}/:id", {{controller}}, :destroy, {{constraints}}
       {% else %}
         {% raise "Invalid route action '#{action}'" %}
       {% end %}

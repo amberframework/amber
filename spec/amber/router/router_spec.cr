@@ -8,7 +8,7 @@ module Amber
           router = Router.new
 
           router.draw :web do
-            resources "/hello", HelloController
+            resources "hello", HelloController
           end
 
           router.match("GET", "/hello").path.should eq "get/hello"
@@ -62,7 +62,7 @@ module Amber
             router = Router.new
 
             router.draw :web do
-              resources "/hello", HelloController, only: [:index, :update]
+              resources "hello", HelloController, only: [:index, :update]
             end
 
             router.match("GET", "/hello").path.should eq "get/hello"
@@ -78,7 +78,7 @@ module Amber
             router = Router.new
 
             router.draw :web do
-              resources "/hello", HelloController, except: [:index, :update]
+              resources "hello", HelloController, except: [:index, :update]
             end
 
             router.match("GET", "/hello").found?.should be_false
