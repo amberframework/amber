@@ -76,7 +76,7 @@ class <%= class_name %>Controller < ApplicationController
   def <%= @name %>_params
     params.validation do
       <%- @fields_hash.keys.each do |k| -%>
-      required(:<%= k %>) { |f| !f.nil? }
+      required(:<%= k %>, msg: nil, allow_blank: true)
       <%- end -%>
     end
   end

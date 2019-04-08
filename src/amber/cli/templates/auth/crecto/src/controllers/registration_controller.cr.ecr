@@ -27,8 +27,8 @@ class RegistrationController < ApplicationController
 
   private def registration_params
     params.validation do
-      required(:email) { |f| !f.nil? }
-      required(:password) { |f| !f.nil? }
+      required(:email, msg: nil, allow_blank: true)
+      required(:password, msg: nil, allow_blank: true)
     end
   end
 end
