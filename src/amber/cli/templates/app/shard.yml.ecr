@@ -21,11 +21,15 @@ dependencies:
     version: <%= Amber::VERSION %>
     #branch: master
 
-<% case @model when "crecto" -%>
+<% case @model when "clear" -%>
+  clear:
+    github: anykeyh/clear
+    version: ~> 0.6
+<% when "crecto" -%>
   crecto:
     github: Crecto/crecto
     version: ~> 0.10.1
-<% else -%>
+<% when "granite" -%>
   granite:
     github: amberframework/granite
     version: ~> 0.15.0

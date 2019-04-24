@@ -1,0 +1,18 @@
+class MigrationCreate<%= name %><%= timestamp %>
+  include Clear::Migration
+
+  def change(direction)
+    direction.up do
+      create_table(:<%= name_plural %>) do |t|
+        <%- @fields.each do |field| -%>
+          t.<%= field.db_type %> "<%= field.name %><%= field.reference? ? "_id" : "" %>"
+        <%- end -%>
+        t.timestamps
+      end
+    end
+
+    direction.down do
+      drop_table(:<%= name_plural %>)
+    end
+  end
+end

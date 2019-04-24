@@ -1,0 +1,13 @@
+class <%= class_name %>
+  include Clear::Model
+
+  self.table = "<%= table_name %>"
+<%- @fields.reject{|f| f.hidden }.each do |field| -%>
+  <%- if field.reference? -%>
+    belongs_to <%= field.name %> : <%= field.name.camelcase %>
+  <%- else -%>
+    column <%= field.name %> : <%= field.cr_type %>
+  <%- end -%>
+<%- end -%>
+  end
+end

@@ -1,11 +1,7 @@
-<% if @model == "granite" -%>
-require "granite/adapter/<%= @database %>"
-
-Granite::Adapters << Granite::Adapter::<%= @database.capitalize %>.new({name: "<%= @database %>", url: Amber.settings.database_url})
-Granite.settings.logger = Amber.settings.logger.dup
-Granite.settings.logger.not_nil!.progname = "Granite"
-
-<% else -%>
+<% case @model when "clear" %>
+require "clear"
+Clear::SQL.init("postgres://postgres@localhost/my_database", connection_pool_size: 5)
+<% when "crecto" %>
 require "<%= @database == "sqlite" ? "sqlite3" : @database %>"
 require "crecto"
 
@@ -16,12 +12,11 @@ module Repo
   extend Crecto::Repo
 
   config do |c|
-<% case @database
-     when "pg" -%>
+<% case @database when "pg" -%>
     c.adapter = Crecto::Adapters::Postgres
-<%   when "mysql" -%>
+<% when "mysql" -%>
     c.adapter = Crecto::Adapters::Mysql
-<%   when "sqlite" -%>
+<% when "sqlite" -%>
     c.adapter = Crecto::Adapters::SQLite3
 <% end -%>
 
@@ -30,4 +25,10 @@ module Repo
 end
 
 Crecto::DbLogger.set_handler(Amber.settings.logger.dup)
-<% end -%>
+<% when "granite" %>
+require "granite/adapter/<%= @database %>"
+
+Granite::Adapters << Granite::Adapter::<%= @database.capitalize %>.new({name: "<%= @database %>", url: Amber.settings.database_url})
+Granite.settings.logger = Amber.settings.logger.dup
+Granite.settings.logger.not_nil!.progname = "Granite"
+<% end %>

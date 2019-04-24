@@ -5,9 +5,12 @@ module Amber::CLI
 
     def initialize(name, fields)
       super(name, fields)
-      if config.model == "crecto"
+      case config.model
+      when "clear"
+        @auth = ClearAuth.new(name, fields)
+      when "crecto"
         @auth = CrectoAuth.new(name, fields)
-      else
+      else # "granite"
         @auth = GraniteAuth.new(name, fields)
       end
     end

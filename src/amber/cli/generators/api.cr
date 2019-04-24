@@ -9,11 +9,16 @@ module Amber::CLI
 
     def initialize(name, fields)
       super(name, fields)
-      if config.model == "crecto"
+      case config.model
+      when "clear"
+        @migration = ClearMigration.new(name, fields)
+        @model = ClearModel.new(name, fields)
+        @controller = ApiClearController.new(name, fields)
+      when "crecto"
         @migration = CrectoMigration.new(name, fields)
         @model = CrectoModel.new(name, fields)
         @controller = ApiCrectoController.new(name, fields)
-      else
+      else # "granite"
         @migration = GraniteMigration.new(name, fields)
         @model = GraniteModel.new(name, fields)
         @controller = ApiGraniteController.new(name, fields)

@@ -1,0 +1,14 @@
+- if (current_<%= @name %> = context.current_<%= @name %>)
+  - active = context.request.path == "/profile" ? "active" : ""
+  li.nav-item class=active
+    a.nav-link href="/profile"
+      == current_<%= @name %>.email
+  li.nav-item
+    a.nav-link href="/signout" Sign Out
+- else
+  - active = context.request.path == "/signin" ? "active" : ""
+  li.nav-item class=active
+    a.nav-link href="/signin" Sign In
+  - active = context.request.path == "/signup" ? "active" : ""
+  li.nav-item class=active
+    a.nav-link href="/signup" Sign Up
