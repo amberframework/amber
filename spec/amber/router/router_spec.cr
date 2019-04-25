@@ -30,6 +30,33 @@ module Amber
           router.match("POST", "/hello").path.should eq "post/hello"
         end
 
+        context "when specifying constraints" do
+          it "uses constraints for defining crud routes" do
+            router = Router.new
+            router.draw :web do
+              resources "/orders", HelloController, constraints: {"id" => /\d\d\d/}
+            end
+
+            # unchanged
+            router.match("POST", "/orders").found?.should be_true
+            router.match("GET", "/orders").found?.should be_true
+
+            # would have matched without regex constraint
+            router.match("GET", "/orders/abc").found?.should be_false
+            router.match("GET", "/orders/def/edit").found?.should be_false
+            router.match("PUT", "/orders/3ghifds").found?.should be_false
+            router.match("PATCH", "/orders/3ghifds").found?.should be_false
+            router.match("DELETE", "/orders/abb").found?.should be_false
+
+            # will match due to constraints
+            router.match("GET", "/orders/554").found?.should be_true
+            router.match("GET", "/orders/511/edit").found?.should be_true
+            router.match("PUT", "/orders/511").found?.should be_true
+            router.match("PATCH", "/orders/511").found?.should be_true
+            router.match("DELETE", "/orders/511").found?.should be_true
+          end
+        end
+
         context "when specifying actions" do
           it "defines only specified resources" do
             router = Router.new
@@ -101,6 +128,21 @@ module Amber
           route.found?.should eq true
           route.path.should eq "get/checkout/:name"
         end
+
+        it "registers routes with constraints as Hash" do
+          router = Router.new
+          router.draw :web do
+            get "/checkout/:cart", HelloController, :world, {"cart" => /\d\d\d/}
+          end
+
+          request = HTTP::Request.new("GET", "/checkout/hello")
+          route = router.match_by_request(request)
+          route.found?.should eq false
+
+          request = HTTP::Request.new("GET", "/checkout/he110")
+          route = router.match_by_request(request)
+          route.found?.should eq true
+        end
       end
 
       describe "#add" do
@@ -112,6 +154,25 @@ module Amber
 
           route = Route.new("GET", "/some/joe", handler)
           router.add(route)
+        end
+
+        it "correctly passes constraints from Route as Hash" do
+          router = Router.new
+          handler = ->(context : HTTP::Server::Context) {
+            context.content = "hey world"
+          }
+
+          route = Route.new("GET", "/posts/:slug", handler, :index, :web, "", "PostsController", {"slug" => /\d\d\-\w+/})
+          router.add(route)
+
+          request = HTTP::Request.new("GET", "/posts/hello")
+          route = router.match_by_request(request)
+          route.found?.should eq false
+
+          request = HTTP::Request.new("GET", "/posts/55-hello")
+          route = router.match_by_request(request)
+          route.found?.should eq true
+          route.path.should eq "get/posts/:slug"
         end
       end
 
