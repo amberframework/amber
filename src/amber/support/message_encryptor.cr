@@ -9,7 +9,7 @@ module Amber::Support
   class MessageEncryptor
     getter verifier : MessageVerifier
 
-    def initialize(@secret : String, @cipher_algorithm = "aes-256-cbc", @digest = :sha256)
+    def initialize(@secret : String, @cipher_algorithm = "aes-256-cbc", @digest = OpenSSL::Algorithm::SHA256)
       @verifier = MessageVerifier.new(@secret, digest: @digest)
       @block_size = 16
       @signature_size = 32

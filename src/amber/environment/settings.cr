@@ -62,8 +62,8 @@ module Amber::Environment
       secret_key_base: {type: String, default: Random::Secure.urlsafe_base64(32)},
       secrets: {type: Hash(String, String), default: Hash(String, String).new},
       session: {type: Hash(String, Int32 | String), default: {
-                  "key" => "amber.session", "store" => "signed_cookie", "expires" => 0,
-                }},
+        "key" => "amber.session", "store" => "signed_cookie", "expires" => 0,
+      }},
       ssl_key_file: {type: String?, default: nil},
       ssl_cert_file: {type: String?, default: nil},
       smtp: {

@@ -4,7 +4,7 @@ require "../../support/*"
 module Amber::Router::Cookies
   class EncryptedStore < AbstractStore
     def initialize(@store, secret)
-      @encryptor = Support::MessageEncryptor.new(secret, digest: :sha256)
+      @encryptor = Support::MessageEncryptor.new(secret, digest: OpenSSL::Algorithm::SHA256)
     end
 
     def get(name)
