@@ -73,7 +73,7 @@ module Amber::CLI
   context "Database settings" do
     %w(pg mysql sqlite).each do |db|
       cleanup
-      MainCommand.run ["new", TESTING_APP, "-d", db]
+      MainCommand.run ["new", TESTING_APP, "--no-deps", "-d", db]
 
       describe "#{db}" do
         %w(development test).each do |env|
@@ -95,13 +95,13 @@ module Amber::CLI
       describe "template" do
         it "sets ECR templates" do
           cleanup
-          MainCommand.run ["new", TESTING_APP, "-t", "ecr"]
+          MainCommand.run ["new", TESTING_APP, "--no-deps", "-t", "ecr"]
           amber_yml["language"].should eq "ecr"
         end
 
         it "it defaults to Slang templates" do
           cleanup
-          MainCommand.run ["new", TESTING_APP, "-t", "slang"]
+          MainCommand.run ["new", TESTING_APP, "--no-deps", "-t", "slang"]
           amber_yml["language"].should eq "slang"
         end
       end

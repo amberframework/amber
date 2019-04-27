@@ -47,7 +47,7 @@ module Amber::Support
     end
 
     private def generate_digest(data)
-      encode(OpenSSL::HMAC.digest(@digest, @secret, data))
+      encode(OpenSSL::HMAC.digest(OpenSSL::Algorithm.parse(@digest.to_s), @secret, data))
     end
   end
 end
