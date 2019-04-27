@@ -91,7 +91,7 @@ module CLIHelper
   def prepare_yaml(path)
     if File.exists?("#{path}/shard.yml")
       shard = File.read("#{path}/shard.yml")
-      shard = shard.gsub("github: amberframework/amber\n", "path: ../../\n")
+      shard = shard.gsub(/github\:\samberframework\/amber\n.*(?=\n)/, "path: ../../../amber")
       File.write("#{path}/shard.yml", shard)
     end
   end
