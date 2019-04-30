@@ -75,7 +75,6 @@ module Amber::CLI
       cleanup
       MainCommand.run ["new", TESTING_APP, "--no-deps", "-d", db]
       prepare_yaml(TESTING_APP)
-      MainCommand.run ["shards install"]
 
       describe "#{db}" do
         %w(development test).each do |env|
