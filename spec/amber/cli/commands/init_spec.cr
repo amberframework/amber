@@ -74,6 +74,7 @@ module Amber::CLI
     %w(pg mysql sqlite).each do |db|
       cleanup
       MainCommand.run ["new", TESTING_APP, "--no-deps", "-d", db]
+      prepare_yaml(TESTING_APP)
 
       describe "#{db}" do
         %w(development test).each do |env|
