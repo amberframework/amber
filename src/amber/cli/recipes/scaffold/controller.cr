@@ -33,7 +33,7 @@ module Amber::Recipes::Scaffold
       end
 
       add_routes :web, <<-ROUTE
-        resources "/#{name_plural}", #{class_name}Controller
+        resources "#{name_plural}", #{class_name}Controller
       ROUTE
     end
 

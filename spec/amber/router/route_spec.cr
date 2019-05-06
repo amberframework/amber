@@ -22,6 +22,15 @@ module Amber
       end
     end
 
+    describe "#to_json" do
+      it "includes constraints key" do
+        route = Route.new("GET", "/", handler, constraints: {"id" => /\d/, "slug" => /\w+/})
+        obj = JSON.parse(route.to_json)
+        obj["constraints"]["id"].should be_truthy
+        obj["constraints"]["slug"].should be_truthy
+      end
+    end
+
     describe "#call" do
       context "before action" do
         it "does not execute action" do

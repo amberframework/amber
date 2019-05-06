@@ -1,4 +1,16 @@
 require "file_utils"
+require "json"
+
+class RouteJSON
+  JSON.mapping({
+    verb:        String,
+    controller:  String,
+    action:      String,
+    pipeline:    String,
+    scope:       String,
+    uri_pattern: String,
+  })
+end
 
 module CLIHelper
   BASE_ENV_PATH       = "./config/environments/"
@@ -79,9 +91,11 @@ module CLIHelper
   def prepare_yaml(path)
     if File.exists?("#{path}/shard.yml")
       shard = File.read("#{path}/shard.yml")
-      shard = shard.gsub("github: amberframework/amber\n", "path: ../../\n")
+      shard = shard.gsub(/github\:\samberframework\/amber\n.*(?=\n)/, "path: ../../../amber")
       File.write("#{path}/shard.yml", shard)
     end
+
+    system("shards install")
   end
 
   def prepare_db_yml(path = ENV_CONFIG_PATH)
@@ -97,7 +111,7 @@ module CLIHelper
   end
 
   def scaffold_app(app_name, *options)
-    Amber::CLI::MainCommand.run ["new", app_name] | options.to_a
+    Amber::CLI::MainCommand.run ["new", app_name, "--no-deps"] | options.to_a
     Dir.cd(app_name)
     prepare_yaml(Dir.current)
   end
@@ -108,5 +122,9 @@ module CLIHelper
 
   def route_table_rows(route_table_text)
     route_table_text.split("\n").reject { |line| line =~ /(─┼─|═╦═|═╩═)/ }
+  end
+
+  def route_table_from_json(route_table_json)
+    Array(RouteJSON).from_json(route_table_json)
   end
 end

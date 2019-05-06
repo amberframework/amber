@@ -48,8 +48,5 @@ if ('WebSocket' in window) {
         refreshCSS();
       }
     };
-    socket.onclose = function () {
-      tryReload();
-    }
   })();
 }

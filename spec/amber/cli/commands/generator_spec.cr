@@ -181,7 +181,6 @@ module Amber::CLI
           migration_filename = Dir["./db/migrations/*_#{snake_case}.sql"].first
           File.read("#{migration_filename}").should contain migration_definition_prefix
           File.read("./db/seeds.cr").should contain camel_case
-          File.read("./db/seeds.cr").should contain snake_case
           File.read("./spec/models/admin_user_spec.cr").should contain spec_definition_prefix
           File.read("./src/controllers/registration_controller.cr").should contain camel_case
           File.read("./src/controllers/registration_controller.cr").should contain snake_case

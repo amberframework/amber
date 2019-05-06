@@ -63,7 +63,7 @@ module Amber::Support
     end
 
     private def sign_bytes(data : Bytes)
-      OpenSSL::HMAC.digest(@digest, @secret, data)
+      OpenSSL::HMAC.digest(OpenSSL::Algorithm.parse(@digest.to_s), @secret, data)
     end
   end
 end

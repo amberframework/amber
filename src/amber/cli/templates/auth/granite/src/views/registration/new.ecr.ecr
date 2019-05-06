@@ -1,10 +1,19 @@
 <h1>Sign Up</h1>
 
-<%="<"%>%- if <%= @name %>.errors %>
-  <ul class="errors">
-  <%="<"%>%- <%= @name %>.errors.each do |error| %>
-    <li><%="<"%>%= error.to_s %></li>
+<%="<"%>%- if user %>
+  <%="<"%>%- if <%= @name %>.errors %>
+    <ul class="errors">
+    <%="<"%>%- <%= @name %>.errors.each do |error| %>
+      <li><%="<"%>%= error.to_s %></li>
+    <%="<"%>%- end %>
+    </ul>
   <%="<"%>%- end %>
+<%="<"%>%- end %>
+<%="<"%>%- if @validation_errors %>
+  <ul class="errors">
+   <%="<"%>%-  @validation_errors.not_nil!.each do |error| %>
+      <li><%="<"%>%= error.message %></li>
+   <%="<"%>%- end %>
   </ul>
 <%="<"%>%- end %>
 

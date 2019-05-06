@@ -1,6 +1,6 @@
 module Amber
   struct Route
-    property :handler, :action, :verb, :resource, :valve, :params, :scope, :controller
+    property :handler, :action, :verb, :resource, :valve, :params, :scope, :controller, :constraints
 
     def initialize(@verb : String,
                    @resource : String,
@@ -8,7 +8,8 @@ module Amber
                    @action : Symbol = :index,
                    @valve : Symbol = :web,
                    @scope : String = "",
-                   @controller : String = "")
+                   @controller : String = "",
+                   @constraints : Hash = {} of String => Regex)
     end
 
     def to_json
@@ -20,6 +21,13 @@ module Amber
           json.field "valve", valve.to_s
           json.field "scope", scope
           json.field "resource", resource
+          json.field "constraints" do
+            json.object do
+              constraints.each do |key, value|
+                json.field key, value.to_s
+              end
+            end
+          end
         end
       end
     end

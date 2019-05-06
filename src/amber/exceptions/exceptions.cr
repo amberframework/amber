@@ -65,8 +65,10 @@ module Amber
 
     module Validator
       class ValidationFailed < Base
-        def initialize(errors)
-          super("Validation failed. #{errors}")
+        getter errors
+
+        def initialize(@errors : Array(Amber::Validators::Error))
+          super("Validation failed. #{@errors}")
         end
       end
 
