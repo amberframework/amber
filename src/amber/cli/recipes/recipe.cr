@@ -54,7 +54,7 @@ module Amber::Recipes
       when "app"
         if options
           info "Rendering App #{name} in #{directory} from #{recipe}"
-          app = App.new(name, options.d, options.t, options.m, recipe)
+          app = App.new(name, options.d, options.t, recipe)
           app.fetch_recipe(directory)
           app.render(directory, list: true, color: true)
           unless options.no_deps?
@@ -67,19 +67,11 @@ module Amber::Recipes
         Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
       when "model"
         info "Rendering Model #{name} from #{@recipe}"
-        if model == "crecto"
-          Amber::CLI::CrectoMigration.new(name, @fields).render(directory, list: true, color: true)
-        else
-          Amber::CLI::GraniteMigration.new(name, @fields).render(directory, list: true, color: true)
-        end
+        Amber::CLI::GraniteMigration.new(name, @fields).render(directory, list: true, color: true)
         Model.new(name, @recipe, @fields).render(directory, list: true, color: true)
       when "scaffold"
         info "Rendering Scaffold #{name} from #{@recipe}"
-        if model == "crecto"
-          Amber::CLI::CrectoMigration.new(name, @fields).render(directory, list: true, color: true)
-        else
-          Amber::CLI::GraniteMigration.new(name, @fields).render(directory, list: true, color: true)
-        end
+        Amber::CLI::GraniteMigration.new(name, @fields).render(directory, list: true, color: true)
         Model.new(name, @recipe, @fields).render(directory, list: true, color: true)
         Scaffold::Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
         Scaffold::View.new(name, @recipe, @fields).render(directory, list: true, color: true)

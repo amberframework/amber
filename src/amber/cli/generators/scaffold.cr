@@ -8,15 +8,9 @@ module Amber::CLI
 
     def initialize(name, fields)
       super(name, fields)
-      if config.model == "crecto"
-        @migration = CrectoMigration.new(name, fields)
-        @model = CrectoModel.new(name, fields)
-        @controller = ScaffoldCrectoController.new(name, fields)
-      else
-        @migration = GraniteMigration.new(name, fields)
-        @model = GraniteModel.new(name, fields)
-        @controller = ScaffoldGraniteController.new(name, fields)
-      end
+      @migration = GraniteMigration.new(name, fields)
+      @model = GraniteModel.new(name, fields)
+      @controller = ScaffoldGraniteController.new(name, fields)
       @view = ScaffoldView.new(name, fields)
     end
 
