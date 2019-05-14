@@ -5,7 +5,7 @@ module Amber::CLI
     generate_app("new", "--no-deps", "-m", "granite", "-t", "slang")
 
     it "check formatting" do
-      system("crystal tool format --check src").should be_true
+      system("crystal tool format --check").should be_true
     end
 
     it "shards update - dependencies" do
@@ -31,7 +31,7 @@ module Amber::CLI
     generate_app("new", "--no-deps", "-m", "granite", "-t", "ecr")
 
     it "check formatting" do
-      system("crystal tool format --check src").should be_true
+      system("crystal tool format --check").should be_true
     end
 
     it "shards update - dependencies" do

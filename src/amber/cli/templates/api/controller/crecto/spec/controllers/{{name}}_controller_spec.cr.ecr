@@ -4,7 +4,11 @@
 require "./spec_helper"
 
 def <%= hash_name %>
+  <%- if @fields_hash.empty? -%>
+  {} of String => String
+  <%- else -%>
   <%= @fields_hash.to_s %>
+  <%- end -%>
 end
 
 def <%= params_name %>
@@ -43,7 +47,9 @@ describe <%= class_name %>ControllerTest do
     response = subject.get "/<%= name_plural %>"
 
     response.status_code.should eq(200)
+    <%- unless @fields_hash.empty? -%>
     response.body.should contain("Fake")
+    <%- end -%>
   end
 
   it "renders <%= @name %> show json" do
@@ -54,7 +60,9 @@ describe <%= class_name %>ControllerTest do
     response = subject.get location
 
     response.status_code.should eq(200)
+    <%- unless @fields_hash.empty? -%>
     response.body.should contain("Fake")
+    <%- end -%>
   end
 
   it "creates a <%= @name %>" do
@@ -62,7 +70,9 @@ describe <%= class_name %>ControllerTest do
     response = subject.post "/<%= name_plural %>", body: <%= params_name %>
 
     response.status_code.should eq(201)
+    <%- unless @fields_hash.empty? -%>
     response.body.should contain "Fake"
+    <%- end -%>
   end
 
   it "updates a <%= @name %>" do
@@ -71,7 +81,9 @@ describe <%= class_name %>ControllerTest do
     response = subject.patch "/<%= name_plural %>/#{model.id}", body: <%= params_name %>
 
     response.status_code.should eq(200)
+    <%- unless @fields_hash.empty? -%>
     response.body.should contain "Fake"
+    <%- end -%>
   end
 
   it "deletes a <%= @name %>" do

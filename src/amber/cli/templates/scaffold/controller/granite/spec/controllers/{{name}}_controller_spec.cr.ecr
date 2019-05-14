@@ -4,7 +4,11 @@
 require "./spec_helper"
 
 def <%= hash_name %>
+  <%- if @fields_hash.empty? -%>
+  {} of String => String
+  <%- else -%>
   <%= @fields_hash.to_s %>
+  <%- end -%>
 end
 
 def <%= params_name %>
