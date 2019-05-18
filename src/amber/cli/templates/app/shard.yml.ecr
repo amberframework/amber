@@ -21,15 +21,9 @@ dependencies:
     branch: master
     #version: <%= Amber::VERSION %>
 
-<% case @model when "crecto" -%>
-  crecto:
-    github: Crecto/crecto
-    version: ~> 0.10.1
-<% else -%>
   granite:
     github: amberframework/granite
     version: ~> 0.15.0
-<% end -%>
 
   quartz_mailer:
     github: amberframework/quartz-mailer

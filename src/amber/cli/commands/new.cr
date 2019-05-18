@@ -9,7 +9,6 @@ module Amber::CLI
         arg "name", desc: "name/path of project", required: true
         string "-d", desc: "Select the database database engine, can be one of: pg | mysql | sqlite", default: "pg"
         bool "--no-deps", desc: "Does not install dependencies, this avoids running shards update", default: false
-        string "-m", desc: "Select the model type, can be one of: granite | crecto", default: "granite"
         bool "--no-color", desc: "Disable colored output", default: false
         string "-t", desc: "Selects the template engine language, can be one of: slang | ecr", default: "slang"
         string "-r", desc: "Use a named recipe.  See documentation at  https://docs.amberframework.org/amber/cli/recipes.", default: nil

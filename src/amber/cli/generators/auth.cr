@@ -5,11 +5,7 @@ module Amber::CLI
 
     def initialize(name, fields)
       super(name, fields)
-      if config.model == "crecto"
-        @auth = CrectoAuth.new(name, fields)
-      else
-        @auth = GraniteAuth.new(name, fields)
-      end
+      @auth = GraniteAuth.new(name, fields)
     end
 
     def render(directory)
