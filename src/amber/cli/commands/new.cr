@@ -8,10 +8,11 @@ module Amber::CLI
       class Options
         arg "name", desc: "name/path of project", required: true
         string "-d", desc: "Select the database database engine, can be one of: pg | mysql | sqlite", default: "pg"
-        bool "--no-deps", desc: "Does not install dependencies, this avoids running shards update", default: false
-        bool "--no-color", desc: "Disable colored output", default: false
         string "-t", desc: "Selects the template engine language, can be one of: slang | ecr", default: "slang"
         string "-r", desc: "Use a named recipe.  See documentation at  https://docs.amberframework.org/amber/cli/recipes.", default: nil
+        bool "--no-color", desc: "Disable colored output", default: false
+        bool "--assume-yes", desc: "Assume yes to disable interactive mode", default: false
+        bool "--no-deps", desc: "Does not install dependencies, this avoids running shards update", default: false
         help
       end
 
@@ -41,7 +42,7 @@ module Amber::CLI
         else
           generator = Generators.new(name, full_path_name)
         end
-        generator.generate("app", options)
+        generator.generate_app(options)
 
         # Encrypts production.yml by default.
         cwd = Dir.current; Dir.cd(full_path_name)

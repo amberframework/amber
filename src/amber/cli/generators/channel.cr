@@ -9,7 +9,7 @@ module Amber::CLI
       super(name, fields)
     end
 
-    def pre_render(directory)
+    def pre_render(directory, **args)
       add_dependencies
     end
 
