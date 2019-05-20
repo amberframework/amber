@@ -12,7 +12,7 @@ module Amber::CLI
         arg "name", desc: "name of resource", required: false
         arg_array "fields", desc: "user:reference name:string body:text age:integer published:bool"
         bool "--no-color", desc: "disable colored output", default: false
-        bool "--assume-yes", desc: "Assume yes to disable interactive mode", default: false
+        bool ["-y", "--assume-yes"], desc: "Assume yes to disable interactive mode", default: false
         help
       end
 

@@ -20,7 +20,7 @@ module Amber::CLI
 
     it "follows naming conventions for all files and class names" do
       [camel_case, snake_case].each do |arg|
-        MainCommand.run ["generate", "model", arg]
+        MainCommand.run ["generate", "model", "-y", arg]
         filename = snake_case
         granite_table_name = "table_name #{snake_case}s"
         src_filepath = "./src/models/#{filename}.cr"
@@ -48,7 +48,7 @@ module Amber::CLI
   context "Database settings" do
     %w(pg mysql sqlite).each do |db|
       cleanup
-      MainCommand.run ["new", TESTING_APP, "--no-deps", "-d", db]
+      MainCommand.run ["new", TESTING_APP, "-y", "--no-deps", "-d", db]
       prepare_yaml(TESTING_APP)
 
       describe "#{db}" do
@@ -71,13 +71,13 @@ module Amber::CLI
       describe "template" do
         it "sets ECR templates" do
           cleanup
-          MainCommand.run ["new", TESTING_APP, "--no-deps", "-t", "ecr"]
+          MainCommand.run ["new", TESTING_APP, "-y", "--no-deps", "-t", "ecr"]
           amber_yml["language"].should eq "ecr"
         end
 
         it "it defaults to Slang templates" do
           cleanup
-          MainCommand.run ["new", TESTING_APP, "--no-deps", "-t", "slang"]
+          MainCommand.run ["new", TESTING_APP, "-y", "--no-deps", "-t", "slang"]
           amber_yml["language"].should eq "slang"
         end
       end

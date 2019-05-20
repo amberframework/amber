@@ -11,7 +11,7 @@ module Amber::CLI
         string "-t", desc: "Selects the template engine language, can be one of: slang | ecr", default: "slang"
         string "-r", desc: "Use a named recipe.  See documentation at  https://docs.amberframework.org/amber/cli/recipes.", default: nil
         bool "--no-color", desc: "Disable colored output", default: false
-        bool "--assume-yes", desc: "Assume yes to disable interactive mode", default: false
+        bool ["-y", "--assume-yes"], desc: "Assume yes to disable interactive mode", default: false
         bool "--no-deps", desc: "Does not install dependencies, this avoids running shards update", default: false
         help
       end

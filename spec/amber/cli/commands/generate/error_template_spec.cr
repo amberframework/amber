@@ -10,7 +10,7 @@ module Amber::CLI
         context "in an `amber new` app with default options" do
           cleanup
           scaffold_app(TESTING_APP)
-          MainCommand.run %w(generate error error)
+          MainCommand.run %w(generate error -y error)
 
           it "generates a controller class file" do
             File.exists?("./src/controllers/error_controller.cr").should be_true

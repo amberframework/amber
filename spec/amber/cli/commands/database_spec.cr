@@ -28,7 +28,7 @@ module Amber::CLI
           Amber::CLI.env = "development"
           Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
           env_yml = prepare_test_app
-          MainCommand.run ["generate", "model", "Post"]
+          MainCommand.run ["generate", "model", "-y", "Post"]
           MainCommand.run ["db", "migrate"]
           db_filename = env_yml["database_url"].to_s.gsub("sqlite3:", "")
           File.exists?(db_filename).should be_true
@@ -38,7 +38,7 @@ module Amber::CLI
         it "deletes the database when db drop" do
           env_yml = prepare_test_app
           db_filename = env_yml["database_url"].to_s.gsub("sqlite3:", "")
-          MainCommand.run ["generate", "model", "Post"]
+          MainCommand.run ["generate", "model", "-y", "Post"]
           MainCommand.run ["db", "migrate"]
           MainCommand.run ["db", "drop"]
           File.exists?(db_filename).should be_false
