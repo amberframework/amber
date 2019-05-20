@@ -34,6 +34,10 @@ module Amber
       instance.handler
     end
 
+    def self.load_manifest
+      Amber::Controller::Helpers.load_manifest
+    end
+
     def initialize
     end
 
