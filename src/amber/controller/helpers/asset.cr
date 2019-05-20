@@ -2,16 +2,10 @@
 module Amber::Controller::Helpers
   module Asset
     ASSET_MANIFEST = {} of String => String
-    CONFIG         = {has_loaded_manifest: false}
-
-    macro load_manifest
-      {{ run "../../run_macros/generate_asset_helpers" }}
-      {% CONFIG[:has_loaded_manifest] = true %}
-    end
 
     macro asset_path(path)
-      {% unless CONFIG[:has_loaded_manifest] %}
-        {% raise "No manifest loaded. Call 'Amber::Server.load_manifest'" %}
+      {% unless Amber::Support::Assets::CONFIG[:has_loaded_manifest] %}
+        {% raise "No manifest loaded. Call 'Amber::Support::Assets.load_manifest'" %}
       {% end %}
 
       {% if path.is_a?(StringLiteral) %}
