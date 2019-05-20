@@ -5,7 +5,7 @@ module Amber::CLI
     class Encrypt < Command
       class Options
         arg "env", desc: "environment file to encrypt", default: "production"
-        string ["-e", "--editor"], desc: "preferred editor: [vim, nano, pico, etc]", default: "vim"
+        string ["-e", "--editor"], desc: "preferred editor: [vim, nano, pico, etc]", default: ENV.fetch("EDITOR", "vim")
         bool ["--noedit"], desc: "skip editing and just encrypt", default: false
         help
       end
