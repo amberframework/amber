@@ -5,7 +5,7 @@ module Amber::CLI
   describe Migration do
     describe "#render" do
       context "when rendering a migration with an index for belongs_to" do
-        migration = MigrationSpecHelper.sample_migration_for(GraniteMigration)
+        migration = MigrationSpecHelper.sample_migration_for(Migration)
         migration_text = MigrationSpecHelper.text_for(migration)
 
         it "create the index with proper naming convention" do
@@ -15,7 +15,7 @@ module Amber::CLI
       end
 
       context "pg" do
-        migration = MigrationSpecHelper.sample_migration_for(GraniteMigration)
+        migration = MigrationSpecHelper.sample_migration_for(Migration)
         migration_text = MigrationSpecHelper.text_for(migration)
 
         it "should contain correct CREATE TABLE statement" do
