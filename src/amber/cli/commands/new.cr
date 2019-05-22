@@ -24,7 +24,7 @@ module Amber::CLI
       def run
         CLI.toggle_colors(options.no_color?)
         if args.name == "."
-          name = Dir.current.split("/").last
+          name = File.basename(Dir.current)
           full_path_name = Dir.current
         else
           name = File.basename(args.name)
