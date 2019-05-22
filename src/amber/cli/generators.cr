@@ -229,23 +229,21 @@ module Amber::CLI
       @fields = fields
     end
 
-    def generate(command : String, options = nil)
-      if command == "app"
-        if options
-          info "Rendering App #{name} in #{directory}"
-          App.new(name, options.d, options.t).render(directory)
-          unless options.no_deps?
-            info "Installing Dependencies"
-            Helpers.run("cd #{directory} && shards update")
-          end
-        end
+    def generate_app(options)
+      info "Rendering App #{name} in #{directory}"
+      App.new(name, options.d, options.t).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
+      unless options.no_deps?
+        info "Installing Dependencies"
+        Helpers.run("cd #{directory} && shards update")
+      end
+    end
+
+    def generate(command : String, options)
+      if gen_class = Amber::CLI::Generator.registered_commands[command]?
+        info "Generating #{gen_class}"
+        gen_class.new(name, fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
       else
-        if gen_class = Amber::CLI::Generator.registered_commands[command]?
-          info "Generating #{gen_class}"
-          gen_class.new(name, fields).render(directory)
-        else
-          CLI.logger.error "Generator for #{command} not found", "Generate", :light_red
-        end
+        CLI.logger.error "Generator for #{command} not found", "Generate", :light_red
       end
     end
 

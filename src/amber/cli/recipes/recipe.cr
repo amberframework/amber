@@ -49,32 +49,32 @@ module Amber::Recipes
       @fields = fields
     end
 
-    def generate(template : String, options = nil)
+    def generate_app(options)
+      info "Rendering App #{name} in #{directory} from #{recipe}"
+      app = App.new(name, options.d, options.t, recipe)
+      app.fetch_recipe(directory)
+      app.render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
+      unless options.no_deps?
+        info "Installing Dependencies"
+        Amber::CLI::Helpers.run("cd #{name} && shards update")
+      end
+    end
+
+    def generate(template : String, options)
       case template
-      when "app"
-        if options
-          info "Rendering App #{name} in #{directory} from #{recipe}"
-          app = App.new(name, options.d, options.t, recipe)
-          app.fetch_recipe(directory)
-          app.render(directory, list: true, color: true)
-          unless options.no_deps?
-            info "Installing Dependencies"
-            Amber::CLI::Helpers.run("cd #{name} && shards update")
-          end
-        end
       when "controller"
         info "Rendering Controller #{name} from #{@recipe}"
-        Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
+        Controller.new(name, @recipe, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
       when "model"
         info "Rendering Model #{name} from #{@recipe}"
-        Amber::CLI::GraniteMigration.new(name, @fields).render(directory, list: true, color: true)
-        Model.new(name, @recipe, @fields).render(directory, list: true, color: true)
+        Amber::CLI::Migration.new(name, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
+        Model.new(name, @recipe, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
       when "scaffold"
         info "Rendering Scaffold #{name} from #{@recipe}"
-        Amber::CLI::GraniteMigration.new(name, @fields).render(directory, list: true, color: true)
-        Model.new(name, @recipe, @fields).render(directory, list: true, color: true)
-        Scaffold::Controller.new(name, @recipe, @fields).render(directory, list: true, color: true)
-        Scaffold::View.new(name, @recipe, @fields).render(directory, list: true, color: true)
+        Amber::CLI::Migration.new(name, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
+        Model.new(name, @recipe, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
+        Scaffold::Controller.new(name, @recipe, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
+        Scaffold::View.new(name, @recipe, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
       else
         error "Template not found"
         exit 1

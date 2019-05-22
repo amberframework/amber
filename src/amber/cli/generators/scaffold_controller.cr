@@ -1,11 +1,13 @@
 module Amber::CLI
   class ScaffoldController < Amber::CLI::Generator
+    directory "#{__DIR__}/../templates/scaffold/controller"
+
     def initialize(name, fields)
       super(name, fields)
       add_timestamp_fields
     end
 
-    def pre_render(directory)
+    def pre_render(directory, **args)
       add_routes
     end
 

@@ -1,8 +1,0 @@
-require "./spec_helper"
-require "../../src/models/<%= @name %>.cr"
-
-describe <%= class_name %> do
-  Spec.before_each do
-    Repo.delete_all(<%= class_name %>)
-  end
-end

@@ -31,16 +31,16 @@ module Amber::CLI
       entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("#{config.language}") }
     end
 
-    def render(directory)
-      pre_render(directory)
-      super(directory, list: true, color: true)
-      post_render(directory)
+    def render(directory, **args)
+      pre_render(directory, **args)
+      super(directory, **args)
+      post_render(directory, **args)
     end
 
-    def pre_render(directory)
+    def pre_render(directory, **args)
     end
 
-    def post_render(directory)
+    def post_render(directory, **args)
     end
 
     def add_timestamp_fields
