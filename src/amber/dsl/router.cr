@@ -25,13 +25,18 @@ module Amber::DSL
       router.add(%route)
     end
 
+    macro namespace(scoped_namespace)
+      router.push_scope({{scoped_namespace}})
+      {{yield}}
+      router.pop_scope
+    end
+
     {% for verb in RESOURCES %}
       macro {{verb.id}}(*args)
         route {{verb}}, \{{*args}}
         {% if verb == :get %}
         route :head, \{{*args}}
         {% end %}
-        route {{verb}}, \{{*args}}
         {% if ![:trace, :connect, :options, :head].includes? verb %}
         route :options, \{{*args}}
         {% end %}

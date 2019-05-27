@@ -176,6 +176,33 @@ module Amber
         end
       end
 
+      describe "#push_scope" do
+        it "register a scope" do
+          router = Router.new
+
+          stack = router.push_scope "foo"
+          stack.should eq(["foo"])
+
+          stack = router.push_scope "bar"
+          stack.should eq(["foo", "bar"])
+        end
+      end
+
+      describe "#pop_scope" do
+        it "throw exception on empty stack" do
+          router = Router.new
+
+          expect_raises(IndexError) { router.pop_scope }
+        end
+
+        it "remove one scope level" do
+          router = Router.new
+          router.push_scope "foo"
+
+          router.pop_scope.should eq("foo")
+        end
+      end
+
       describe "#match_by_controller_action" do
         handler = ->(_context : HTTP::Server::Context) {}
         router = Router.new
