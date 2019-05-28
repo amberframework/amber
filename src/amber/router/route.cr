@@ -1,3 +1,5 @@
+require "./scope"
+
 module Amber
   struct Route
     property :handler, :action, :verb, :resource, :valve, :params, :scope, :controller, :constraints
@@ -7,7 +9,7 @@ module Amber
                    @handler : HTTP::Server::Context ->,
                    @action : Symbol = :index,
                    @valve : Symbol = :web,
-                   @scope : String = "",
+                   @scope : Router::Scope = Router::Scope.new,
                    @controller : String = "",
                    @constraints : Hash = {} of String => Regex)
     end
@@ -19,7 +21,7 @@ module Amber
           json.field "controller", controller
           json.field "action", action.to_s
           json.field "valve", valve.to_s
-          json.field "scope", scope
+          json.field "scope", scope.to_s
           json.field "resource", resource
           json.field "constraints" do
             json.object do

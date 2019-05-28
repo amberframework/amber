@@ -1,29 +1,18 @@
 require "amber_router"
+require "./scope"
 
 module Amber
   module Router
     # This is the main application handler all routers should finally hit this handler.
     class Router
       PATH_EXT_REGEX = Controller::Helpers::Responders::Content::TYPE_EXT_REGEX
-      property :routes, :routes_hash, :socket_routes
+      property :routes, :routes_hash, :socket_routes, :scope
 
       def initialize
         @routes = RouteSet(Route).new
         @routes_hash = {} of String => Route
         @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new
-        @scopes = [] of String
-      end
-
-      def push_scope(scope : String)
-        @scopes << scope
-      end
-
-      def pop_scope
-        @scopes.pop
-      end
-
-      private def scope_str
-        @scopes.join("")
+        @scope = Scope.new
       end
 
       def get_socket_handler(request) : WebSockets::Server::Handler
@@ -36,15 +25,16 @@ module Amber
 
       # This registers all the routes for the application
       def draw(valve : Symbol)
-        with DSL::Router.new(self, valve, "") yield
-      end
-
-      def draw(valve : Symbol, scope : String)
         with DSL::Router.new(self, valve, scope) yield
       end
 
+      def draw(valve : Symbol, namespace : String)
+        scope.push(namespace)
+        with DSL::Router.new(self, valve, scope) yield
+        scope.pop
+      end
+
       def add(route : Route)
-        route.resource = scope_str + route.resource
         build_node(route.verb, route.resource)
         @routes.add(route.trail, route, route.constraints)
         @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route

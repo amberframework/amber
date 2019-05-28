@@ -5,7 +5,7 @@ module Amber::DSL
     end
   end
 
-  record Router, router : Amber::Router::Router, valve : Symbol, scope : String do
+  record Router, router : Amber::Router::Router, valve : Symbol, scope : Amber::Router::Scope do
     RESOURCES = [:get, :post, :put, :patch, :delete, :options, :head, :trace, :connect]
 
     macro route(verb, resource, controller, action, constraints = {} of String => Regex)
@@ -26,9 +26,9 @@ module Amber::DSL
     end
 
     macro namespace(scoped_namespace)
-      router.push_scope({{scoped_namespace}})
+      scope.push({{scoped_namespace}})
       {{yield}}
-      router.pop_scope
+      scope.pop
     end
 
     {% for verb in RESOURCES %}

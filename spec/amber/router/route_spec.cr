@@ -3,7 +3,7 @@ require "../../../spec_helper"
 module Amber
   describe Route do
     handler = ->(_context : HTTP::Server::Context) {}
-    subject = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, "", "FakeController")
+    subject = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, Router::Scope.new, "FakeController")
 
     it "Initializes correctly with Descendant controller" do
       request = HTTP::Request.new("GET", "/?test=test")
