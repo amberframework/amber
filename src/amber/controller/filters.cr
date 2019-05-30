@@ -48,7 +48,7 @@ module Amber::Controller
     end
 
     def except(action : Symbol, &block : -> Nil)
-      filters.concat([actions]).uniq.each { |action| add(action, &block) }
+      filters.concat([action]).uniq.each { |action| add(action, &block) }
     end
 
     def except(actions : Array(Symbol), &block : -> Nil)
