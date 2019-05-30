@@ -27,10 +27,12 @@ class HelloController < Amber::Controller::Base
     only [:index, :world, :show] { increment(3) }
     only :index { increment(1) }
     all { say_hello }
+    except :index { increment(2) }
   end
 
   after_action do
     only [:index, :world] { increment(2) }
+    except [:index, :world] { increment(1) }
   end
 
   def index

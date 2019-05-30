@@ -9,7 +9,7 @@ module Amber::Controller
           controller.before_filters
 
           before_filters = controller.filters[:before]
-          before_filters.size.should eq 5
+          before_filters.size.should eq 6
         end
 
         it "registers a after action" do
@@ -17,7 +17,7 @@ module Amber::Controller
           controller.after_filters
 
           after_filters = controller.filters[:after]
-          after_filters.size.should eq 2
+          after_filters.size.should eq 3
         end
       end
 
@@ -28,10 +28,22 @@ module Amber::Controller
           controller.total.should eq 4
         end
 
+        it "runs except filters on before" do
+          controller = build_controller
+          controller.run_before_filter(:world)
+          controller.total.should eq 5
+        end
+
         it "runs after filters" do
           controller = build_controller
           controller.run_after_filter(:index)
           controller.total.should eq 2
+        end
+
+        it "runs except filters on after" do
+          controller = build_controller
+          controller.run_after_filter(:new)
+          controller.total.should eq 1
         end
       end
     end

@@ -10,6 +10,7 @@ module Amber::Controller
         if self.responds_to? :before_filters
           self.before_filters
           @filters.run(:before, :all)
+          @filters.run(:before, :except, action)
           @filters.run(:before, action)
         end
       end
@@ -18,13 +19,14 @@ module Amber::Controller
         if self.responds_to? :after_filters
           self.after_filters
           @filters.run(:after, action)
+          @filters.run(:after, :except, action)
           @filters.run(:after, :all)
         end
       end
     end
   end
 
-  record Filter, precedence : Symbol, action : Symbol, blk : -> Nil do
+  record Filter, precedence : Symbol, action : Symbol, blk : -> Nil, excepts : Array(Symbol)|Nil = nil do
   end
 
   # Builds a BeforeAction filter.
@@ -48,11 +50,11 @@ module Amber::Controller
     end
 
     def except(action : Symbol, &block : -> Nil)
-      filters.concat([action]).uniq.each { |action| add(action, &block) }
+      filters.add Filter.new(precedence, :except, block, [action])
     end
 
     def except(actions : Array(Symbol), &block : -> Nil)
-      filters.concat(actions).uniq.each { |action| add(action, &block) }
+      filters.add Filter.new(precedence, :except, block, actions)
     end
 
     def all(&block : -> Nil)
@@ -78,8 +80,9 @@ module Amber::Controller
       filters[filter.precedence] << filter
     end
 
-    def run(precedence : Symbol, action : Symbol)
+    def run(precedence : Symbol, action : Symbol, except_action : Symbol|Nil = nil)
       filters[precedence].each do |filter|
+        next if filter.action == :except && filter.try(&.excepts).try(&.includes?(except_action))
         filter.blk.call if filter.action == action
       end
     end
