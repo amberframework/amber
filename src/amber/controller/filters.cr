@@ -47,6 +47,14 @@ module Amber::Controller
       actions.each { |action| add(action, &block) }
     end
 
+    def except(action : Symbol, &block : -> Nil)
+      filters.concat([actions]).uniq.each { |action| add(action, &block) }
+    end
+
+    def except(actions : Array(Symbol), &block : -> Nil)
+      filters.concat(actions).uniq.each { |action| add(action, &block) }
+    end
+
     def all(&block : -> Nil)
       filters.add Filter.new(precedence, :all, block)
     end
