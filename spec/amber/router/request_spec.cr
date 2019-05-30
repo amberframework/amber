@@ -65,7 +65,7 @@ module Amber::Router
         context "when parsing route params" do
           it "parses params from route" do
             handler = ->(_context : HTTP::Server::Context) {}
-            route = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, "", "FakeController")
+            route = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, Scope.new, "FakeController")
             Amber::Server.router.add(route)
             request = HTTP::Request.new("GET", "/fake/action/123/john")
             request.params["id"].should eq "123"

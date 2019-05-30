@@ -162,7 +162,7 @@ module Amber
             context.content = "hey world"
           }
 
-          route = Route.new("GET", "/posts/:slug", handler, :index, :web, "", "PostsController", {"slug" => /\d\d\-\w+/})
+          route = Route.new("GET", "/posts/:slug", handler, :index, :web, Scope.new, "PostsController", {"slug" => /\d\d\-\w+/})
           router.add(route)
 
           request = HTTP::Request.new("GET", "/posts/hello")
@@ -179,10 +179,10 @@ module Amber
       describe "#match_by_controller_action" do
         handler = ->(_context : HTTP::Server::Context) {}
         router = Router.new
-        route_a = Route.new("GET", "/fake", handler, :index, :web, "", "FakeController")
-        route_b = Route.new("GET", "/fake/new", handler, :new, :web, "", "FakeController")
-        route_c = Route.new("GET", "/fake/:id", handler, :show, :web, "", "FakeController")
-        route_d = Route.new("GET", "/another/:id", handler, :another, :web, "", "FakeController")
+        route_a = Route.new("GET", "/fake", handler, :index, :web, Scope.new, "FakeController")
+        route_b = Route.new("GET", "/fake/new", handler, :new, :web, Scope.new, "FakeController")
+        route_c = Route.new("GET", "/fake/:id", handler, :show, :web, Scope.new, "FakeController")
+        route_d = Route.new("GET", "/another/:id", handler, :another, :web, Scope.new, "FakeController")
 
         router.add route_a
         router.add route_b
