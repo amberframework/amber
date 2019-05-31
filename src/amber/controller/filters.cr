@@ -26,7 +26,7 @@ module Amber::Controller
     end
   end
 
-  record Filter, precedence : Symbol, action : Symbol, blk : -> Nil, excepts : Array(Symbol)|Nil = nil do
+  record Filter, precedence : Symbol, action : Symbol, blk : -> Nil, excepts : Array(Symbol) | Nil = nil do
   end
 
   # Builds a BeforeAction filter.
@@ -80,7 +80,7 @@ module Amber::Controller
       filters[filter.precedence] << filter
     end
 
-    def run(precedence : Symbol, action : Symbol, except_action : Symbol|Nil = nil)
+    def run(precedence : Symbol, action : Symbol, except_action : Symbol | Nil = nil)
       filters[precedence].each do |filter|
         next if filter.action == :except && filter.try(&.excepts).try(&.includes?(except_action))
         filter.blk.call if filter.action == action
