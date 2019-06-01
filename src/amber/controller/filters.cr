@@ -26,7 +26,7 @@ module Amber::Controller
     end
   end
 
-  record Filter, precedence : Symbol, action : Symbol, blk : -> Nil, excepts : Array(Symbol) | Nil = nil do
+  record Filter, precedence : Symbol, action : Symbol, blk : -> Nil, excepts : Array(Symbol) = [] of Symbol do
   end
 
   # Builds a BeforeAction filter.
@@ -100,9 +100,7 @@ module Amber::Controller
     end
 
     private def except_filter_and_has_action?(filter : Filter, except_action : Symbol | Nil)
-      return false unless filter.action == :except
-      excepts = filter.excepts || [] of Symbol
-      excepts.includes?(except_action)
+      filter.action == :except && filter.excepts.includes?(except_action)
     end
   end
 end
