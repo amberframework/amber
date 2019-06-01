@@ -82,7 +82,7 @@ module Amber::Controller
 
     def run(precedence : Symbol, action : Symbol, except_action : Symbol | Nil = nil)
       filters[precedence].each do |filter|
-        next if filter.action == :except && filter.try(&.excepts).try(&.includes?(except_action))
+        next if filter.action == :except && except_filter_has_action?(filter, except_action)
         filter.blk.call if filter.action == action
       end
     end
@@ -97,6 +97,11 @@ module Amber::Controller
 
     def fetch(name)
       filters.fetch(name)
+    end
+
+    private def except_filter_has_action?(filter, except_action)
+      excepts = filter.excepts || [] of Symbol
+      excepts.includes?(except_action)
     end
   end
 end
