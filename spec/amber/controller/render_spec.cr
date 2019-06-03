@@ -1,5 +1,5 @@
-require "../../../spec_helper"
-require "../../../support/fixtures/render_fixtures"
+require "../../spec_helper"
+require "../../support/fixtures/render_fixtures"
 
 include RenderFixtures
 

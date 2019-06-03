@@ -1,4 +1,4 @@
-require "../../../spec_helper"
+require "../../spec_helper"
 
 describe HTTP::Server::Context do
   {% for request_method in HTTP::Server::Context::METHODS %}

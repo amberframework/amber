@@ -1,4 +1,4 @@
-require "../../../../spec_helper"
+require "../../../spec_helper"
 
 module Amber::Router::Parsers
   describe JSON do
