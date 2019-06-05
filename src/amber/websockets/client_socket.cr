@@ -68,7 +68,7 @@ module Amber
         @raw_params = @context.params
         @params = Amber::Validators::Params.new(@raw_params)
         @socket.on_pong do
-          @pongs.push(Time.now)
+          @pongs.push(Time.utc)
           @pongs.delete_at(0) if @pongs.size > 3
         end
       end
@@ -93,7 +93,7 @@ module Amber
       protected def beat
         @socket.send("ping")
         @socket.ping
-        @pings.push(Time.now)
+        @pings.push(Time.utc)
         @pings.delete_at(0) if @pings.size > 3
         check_alive!
       rescue ex : IO::Error
