@@ -24,7 +24,7 @@ module Amber::CLI
       @table_name ||= name_plural
       @fields = parse_fields(params)
       @fields_hash = parse_fields_hash
-      @timestamp = Time.now.to_s("%Y%m%d%H%M%S%L")
+      @timestamp = Time.utc.to_s("%Y%m%d%H%M%S%L")
     end
 
     def filter(entries)
@@ -76,7 +76,7 @@ module Amber::CLI
       when "bool", "boolean"
         "true"
       when "time", "timestamp"
-        Time.now.to_s
+        Time.utc.to_s
       when "ref", "reference", "references"
         rand(100).to_s
       else
