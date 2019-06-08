@@ -13,7 +13,7 @@ module Amber::Environment
 
     def log(severity, message, progname = nil, color = @color)
       return if severity < level || !@io
-      write(severity, Time.now, "#{progname || @progname} |".colorize(color).to_s, message)
+      write(severity, Time.utc, "#{progname || @progname} |".colorize(color).to_s, message)
     end
   end
 end

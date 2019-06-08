@@ -1,4 +1,4 @@
-require "../../../../spec_helper"
+require "../../../spec_helper"
 require "redis"
 
 # TODO: This test can't run on it's own because it needs the EXPIRES constant which is set elsewhere.
