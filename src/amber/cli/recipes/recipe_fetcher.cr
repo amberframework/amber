@@ -29,7 +29,7 @@ module Amber::Recipes
         if @kind == "app" && try_github
           fetch_github shard_name
           path = "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
-          return path if Dir.exists(path)
+          return path if Dir.exists?(path)
         end
       end
 

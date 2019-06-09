@@ -37,7 +37,7 @@ module Amber
           redirect_to context, file_redirect_path(expanded_path, is_dir_path)
         end
 
-        call_next_with_file_path(context, file_path)
+        call_next_with_file_path(context, request_path, file_path)
       end
 
       private def dir_path?(path)
@@ -63,7 +63,7 @@ module Amber
         "#{path}/#{is_dir_path ? "/" : ""}"
       end
 
-      private def call_next_with_file_path(context, file_path)
+      private def call_next_with_file_path(context, request_path, file_path)
         config = static_config
 
         if Dir.exists?(file_path)

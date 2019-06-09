@@ -53,7 +53,7 @@ module Amber::CLI
         exit! e.message, error: true
       end
 
-      private def process_commands
+      private def process_commands(commands)
         commands.each do |command|
           Micrate::DB.connection_url = database_url
           case command

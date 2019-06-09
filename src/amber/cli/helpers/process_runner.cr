@@ -143,7 +143,7 @@ module Sentry
         end
       end
 
-      run_commands(skip_build)
+      run_commands(skip_build, task_to_start)
     end
 
     private def start_process(run_command_run)
@@ -158,7 +158,7 @@ module Sentry
       end
     end
 
-    private def run_commands(skip_build)
+    private def run_commands(skip_build, task_to_start)
       @run_commands.each do |task, run_command|
         next if task == "run" # already handled
         next unless task_to_start == :all || task_to_start.to_s == task

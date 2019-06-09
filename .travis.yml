@@ -17,7 +17,7 @@ env:
   - TEST_SUITE=./spec/amber
 
 script:
-  #  - bin/ameba
+  - bin/ameba
   - crystal tool format --check
   - crystal spec $TEST_SUITE
 
