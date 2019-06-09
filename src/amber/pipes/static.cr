@@ -55,7 +55,7 @@ module Amber
             context.response.content_type = "text/html"
             directory_listing(context.response, request_path, file_path)
           else
-            return call_next(context)
+            call_next(context)
           end
         elsif File.exists?(file_path)
           return if etag(context, file_path)
@@ -76,7 +76,7 @@ module Amber
         context.response.headers.delete "Content-Type"
         context.response.content_length = 0
         context.response.status_code = 304 # not modified
-        return true
+        true
       end
 
       private def mime_type(path)

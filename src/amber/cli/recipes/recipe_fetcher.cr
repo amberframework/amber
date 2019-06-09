@@ -55,7 +55,7 @@ module Amber::Recipes
         return fetch_zip name
       end
 
-      return fetch_url
+      fetch_url
     end
 
     def try_github
@@ -129,11 +129,11 @@ module Amber::Recipes
       end
 
       CLI.logger.error "Cannot generate #{@kind} from #{@name} recipe", "Generate", :light_red
-      return nil
+      nil
     end
 
     def fetch_url
-      return fetch_zip "#{recipe_source}/#{@name}.zip"
+      fetch_zip "#{recipe_source}/#{@name}.zip"
     end
   end
 end

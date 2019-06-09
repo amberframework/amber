@@ -117,7 +117,7 @@ module Amber::CLI
         uri = URI.parse(url)
         if path = uri.path
           Micrate::DB.connection_url = url.gsub(path, "/#{uri.scheme}")
-          return path.gsub("/", "")
+          path.gsub("/", "")
         else
           error "Could not determine database name"
         end
