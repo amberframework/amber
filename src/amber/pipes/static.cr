@@ -94,25 +94,40 @@ module Amber
         request_headers = env.request.headers
         filesize = File.size(file_path)
         File.open(file_path) do |file|
-          if env.request.method == "GET" && env.request.headers.has_key?("Range")
-            next multipart(file, env)
-          end
-          if request_headers.includes_word?("Accept-Encoding", "gzip") && config.is_a?(Hash) && config["gzip"] == true && filesize > minsize && Support::MimeTypes.zip_types(file_path)
-            env.response.headers["Content-Encoding"] = "gzip"
-            Gzip::Writer.open(env.response) do |deflate|
-              IO.copy(file, deflate)
-            end
-          elsif request_headers.includes_word?("Accept-Encoding", "deflate") && config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Support::MimeTypes.zip_types(file_path)
-            env.response.headers["Content-Encoding"] = "deflate"
-            Flate::Writer.open(env.response) do |deflate|
-              IO.copy(file, deflate)
-            end
+          next multipart(file, env) if next_multipart?(env)
+
+          if request_headers.includes_word?("Accept-Encoding", "gzip") && config_gzip?(config) && filesize > minsize && Support::MimeTypes.zip_types(file_path)
+            gzip_encoding(env, file)
+          elsif request_headers.includes_word?("Accept-Encoding", "deflate") && config_gzip?(config) && filesize > minsize && Support::MimeTypes.zip_types(file_path)
+            deflate_endcoding(env, file)
           else
             env.response.content_length = filesize
             IO.copy(file, env.response)
           end
         end
         return
+      end
+
+      private def next_multipart?(env)
+        env.request.method == "GET" && env.request.headers.has_key?("Range")
+      end
+
+      private def config_gzip?(config)
+        config.is_a?(Hash) && config["gzip"] == true
+      end
+
+      private def gzip_encoding(env, file)
+        env.response.headers["Content-Encoding"] = "gzip"
+        Gzip::Writer.open(env.response) do |deflate|
+          IO.copy(file, deflate)
+        end
+      end
+
+      private def deflate_endcoding(env, file)
+        env.response.headers["Content-Encoding"] = "deflate"
+        Flate::Writer.open(env.response) do |deflate|
+          IO.copy(file, deflate)
+        end
       end
 
       private def multipart(file, env)
