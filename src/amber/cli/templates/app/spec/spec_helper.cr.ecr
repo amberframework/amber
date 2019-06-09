@@ -12,5 +12,5 @@ Micrate::DB.connection_url = Amber.settings.database_url
 Micrate::Cli.run_up
 <%- if @model == "granite" -%>
 # Disable Granite logs in tests
-Granite.settings.logger = nil
+Granite.settings.logger = Amber.settings.logger.dup
 <%- end -%>

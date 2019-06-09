@@ -23,15 +23,15 @@ dependencies:
 
   granite:
     github: amberframework/granite
-    version: ~> 0.15.0
+    version: ~> 0.16.0
 
   quartz_mailer:
     github: amberframework/quartz-mailer
-    version: ~> 0.5.1
+    version: ~> 0.5.3
 
   jasper_helpers:
     github: amberframework/jasper-helpers
-    version: ~> 0.2.1
+    version: ~> 0.2.4
 
 <% case @database when "pg" -%>
   pg:
@@ -44,7 +44,7 @@ dependencies:
 <% when "sqlite" -%>
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-    version: ~> 0.11.0
+    version: ~> 0.12.0
 <% end -%>
 
   citrine-i18n:
