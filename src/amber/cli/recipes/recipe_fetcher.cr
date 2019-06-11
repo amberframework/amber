@@ -15,47 +15,41 @@ module Amber::Recipes
     end
 
     def fetch
-      if Dir.exists?(@directory)
-        return @directory
-      end
+      return @directory if Dir.exists?(@directory)
+      return "#{@name}/#{@kind}" if Dir.exists?("#{@name}/#{@kind}")
 
-      if Dir.exists?("#{@name}/#{@kind}")
-        return "#{@name}/#{@kind}"
-      end
+      parts, recipes_folder = @name.split("/"), recipes
 
-      parts = @name.split("/")
-
-      recipes_folder = @kind == "app" ? "#{app_dir}/.recipes" : "./.recipes"
-
-      if parts.size == 2
-        shard_name = parts[-1]
-
-        if shard_name && @kind != "app"
-          if Dir.exists?("#{recipes_folder}/lib/#{shard_name}/#{@kind}")
-            return "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
-          end
-          return nil
+      if parts.size == 2 && (shard_name = parts[-1])
+        if @kind != "app"
+          path = "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
+          return Dir.exists?(path) ? path : nil
         end
 
-        if shard_name && @kind == "app" && try_github
+        if @kind == "app" && try_github
           fetch_github shard_name
-          if Dir.exists?("#{recipes_folder}/lib/#{shard_name}/#{@kind}")
-            return "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
-          end
+          path = "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
+          return path if Dir.exists?(path)
         end
       end
 
       @template_path = "#{recipes_folder}/zip/#{@name}"
+      fetch_template(recipes_folder, @name)
+    end
 
-      if Dir.exists?("#{@template_path}/#{@kind}")
-        return "#{@template_path}/#{@kind}"
-      end
+    def fetch_template(template_path, name)
+      path = "#{template_path}/#{@kind}"
+      return path if Dir.exists?(path)
 
-      if (name = @name) && name.downcase.starts_with?("http") && name.downcase.ends_with?(".zip")
+      if name && name.downcase.starts_with?("http") && name.downcase.ends_with?(".zip")
         return fetch_zip name
       end
 
-      return fetch_url
+      fetch_url
+    end
+
+    def recipes
+      @kind == "app" ? "#{app_dir}/.recipes" : "./.recipes"
     end
 
     def try_github
@@ -129,11 +123,11 @@ module Amber::Recipes
       end
 
       CLI.logger.error "Cannot generate #{@kind} from #{@name} recipe", "Generate", :light_red
-      return nil
+      nil
     end
 
     def fetch_url
-      return fetch_zip "#{recipe_source}/#{@name}.zip"
+      fetch_zip "#{recipe_source}/#{@name}.zip"
     end
   end
 end

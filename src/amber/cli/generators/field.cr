@@ -66,7 +66,7 @@ module Amber::CLI
         end
       end
       if mapping = TYPE_MAPPING["common"][@type]?
-        return mapping
+        mapping
       else
         raise "type #{@type} not available"
       end

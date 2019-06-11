@@ -84,7 +84,6 @@ class FakeController < Amber::Controller::Base
 
   def halt_action
     raise "Should not reach this action"
-    ""
   end
 end
 

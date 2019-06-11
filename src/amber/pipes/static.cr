@@ -8,19 +8,9 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
-        unless context.request.method == "GET" || context.request.method == "HEAD"
-          if @fallthrough
-            call_next(context)
-          else
-            context.response.status_code = 405
-            context.response.headers.add("Allow", "GET, HEAD")
-          end
-          return
-        end
+        return allow_get_or_head(context) unless method_get_or_head?(context.request.method)
 
-        config = static_config
         original_path = context.request.path.not_nil!
-        is_dir_path = original_path.ends_with? "/"
         request_path = URI.unescape(original_path)
 
         # File path cannot contains '\0' (NUL) because all filesystem I know
@@ -30,32 +20,58 @@ module Amber
           return
         end
 
+        is_dir_path = dir_path? original_path
         expanded_path = File.expand_path(request_path, "/")
-
-        if is_dir_path && !expanded_path.ends_with? "/"
-          expanded_path = "#{expanded_path}/"
-        end
-        is_dir_path = expanded_path.ends_with? "/"
-
+        expanded_path += "/" if is_dir_path && !dir_path?(expanded_path)
+        is_dir_path = dir_path? expanded_path
         file_path = File.join(@public_dir, expanded_path)
-        is_dir = Dir.exists? file_path
+        root_file = @public_dir + expanded_path + "index.html"
 
-        root_file = (@public_dir + expanded_path + "index.html")
         if is_dir_path && File.exists? root_file
           return if etag(context, root_file)
           return serve_file(context, root_file)
         end
 
-        if request_path != expanded_path || is_dir && !is_dir_path
-          redirect_to context, "#{expanded_path}#{is_dir && !is_dir_path ? "/" : ""}"
+        is_dir_path = Dir.exists?(file_path) && !is_dir_path
+        if request_path != expanded_path || is_dir_path
+          redirect_to context, file_redirect_path(expanded_path, is_dir_path)
         end
+
+        call_next_with_file_path(context, request_path, file_path)
+      end
+
+      private def dir_path?(path)
+        path.ends_with? "/"
+      end
+
+      private def method_get_or_head?(method)
+        method == "GET" || method == "HEAD"
+      end
+
+      private def allow_get_or_head(context)
+        if @fallthrough
+          call_next(context)
+        else
+          context.response.status_code = 405
+          context.response.headers.add("Allow", "GET, HEAD")
+        end
+
+        nil
+      end
+
+      private def file_redirect_path(path, is_dir_path)
+        "#{path}/#{is_dir_path ? "/" : ""}"
+      end
+
+      private def call_next_with_file_path(context, request_path, file_path)
+        config = static_config
 
         if Dir.exists?(file_path)
           if config.is_a?(Hash) && config["dir_listing"] == true
             context.response.content_type = "text/html"
             directory_listing(context.response, request_path, file_path)
           else
-            return call_next(context)
+            call_next(context)
           end
         elsif File.exists?(file_path)
           return if etag(context, file_path)
@@ -76,7 +92,7 @@ module Amber
         context.response.headers.delete "Content-Type"
         context.response.content_length = 0
         context.response.status_code = 304 # not modified
-        return true
+        true
       end
 
       private def mime_type(path)
@@ -94,25 +110,40 @@ module Amber
         request_headers = env.request.headers
         filesize = File.size(file_path)
         File.open(file_path) do |file|
-          if env.request.method == "GET" && env.request.headers.has_key?("Range")
-            next multipart(file, env)
-          end
-          if request_headers.includes_word?("Accept-Encoding", "gzip") && config.is_a?(Hash) && config["gzip"] == true && filesize > minsize && Support::MimeTypes.zip_types(file_path)
-            env.response.headers["Content-Encoding"] = "gzip"
-            Gzip::Writer.open(env.response) do |deflate|
-              IO.copy(file, deflate)
-            end
-          elsif request_headers.includes_word?("Accept-Encoding", "deflate") && config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Support::MimeTypes.zip_types(file_path)
-            env.response.headers["Content-Encoding"] = "deflate"
-            Flate::Writer.open(env.response) do |deflate|
-              IO.copy(file, deflate)
-            end
+          next multipart(file, env) if next_multipart?(env)
+
+          if request_headers.includes_word?("Accept-Encoding", "gzip") && config_gzip?(config) && filesize > minsize && Support::MimeTypes.zip_types(file_path)
+            gzip_encoding(env, file)
+          elsif request_headers.includes_word?("Accept-Encoding", "deflate") && config_gzip?(config) && filesize > minsize && Support::MimeTypes.zip_types(file_path)
+            deflate_endcoding(env, file)
           else
             env.response.content_length = filesize
             IO.copy(file, env.response)
           end
         end
         return
+      end
+
+      private def next_multipart?(env)
+        env.request.method == "GET" && env.request.headers.has_key?("Range")
+      end
+
+      private def config_gzip?(config)
+        config.is_a?(Hash) && config["gzip"] == true
+      end
+
+      private def gzip_encoding(env, file)
+        env.response.headers["Content-Encoding"] = "gzip"
+        Gzip::Writer.open(env.response) do |deflate|
+          IO.copy(file, deflate)
+        end
+      end
+
+      private def deflate_endcoding(env, file)
+        env.response.headers["Content-Encoding"] = "deflate"
+        Flate::Writer.open(env.response) do |deflate|
+          IO.copy(file, deflate)
+        end
       end
 
       private def multipart(file, env)
