@@ -5,7 +5,8 @@ require "./file"
 module Amber::Router
   module Types
     alias Key = String | Symbol
-    alias Files = Hash(String, Amber::Router::File)
+    alias File = Hash(String, Amber::Router::File)
+    alias Files = Hash(String, Array(Amber::Router::File))
     alias Params = Hash(String, String)
   end
 
@@ -15,7 +16,7 @@ module Amber::Router
     MULTIPART_FORM   = "multipart/form-data"
     APPLICATION_JSON = "application/json"
 
-    @files = Types::Files.new
+    @files: (Types::File | Types::Files)?
     @multipart : Types::Params?
     @json : Types::Params?
     @form : HTTP::Params?
@@ -34,7 +35,7 @@ module Amber::Router
 
     def files
       multipart unless @multipart
-      @files
+      @files.not_nil!
     end
 
     def []=(key : Types::Key, value)
