@@ -1,9 +1,7 @@
 module Amber
   module Router
     class Scope
-      @stack = [] of String
-
-      def initialize
+      def initialize(@stack = [] of String)
       end
 
       def push(scope : String) : Array(String)

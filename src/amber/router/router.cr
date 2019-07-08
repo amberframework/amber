@@ -6,13 +6,12 @@ module Amber
     # This is the main application handler all routers should finally hit this handler.
     class Router
       PATH_EXT_REGEX = Controller::Helpers::Responders::Content::TYPE_EXT_REGEX
-      property :routes, :routes_hash, :socket_routes, :scope
+      property :routes, :routes_hash, :socket_routes
 
       def initialize
         @routes = RouteSet(Route).new
         @routes_hash = {} of String => Route
         @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new
-        @scope = Scope.new
       end
 
       def get_socket_handler(request) : WebSockets::Server::Handler
@@ -25,13 +24,11 @@ module Amber
 
       # This registers all the routes for the application
       def draw(valve : Symbol)
-        with DSL::Router.new(self, valve, scope) yield
+        with DSL::Router.new(self, valve, Scope.new) yield
       end
 
       def draw(valve : Symbol, namespace : String)
-        scope.push(namespace)
-        with DSL::Router.new(self, valve, scope) yield
-        scope.pop
+        with DSL::Router.new(self, valve, Scope.new([namespace])) yield
       end
 
       def add(route : Route)

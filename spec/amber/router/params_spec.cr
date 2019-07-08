@@ -54,7 +54,8 @@ module Amber::Router
 
     describe "#files" do
       it "returns parsed multipart files" do
-        params.files["picture"].filename.should eq "index.html"
+        file = params.files["picture"].as Amber::Router::File
+        file.filename.should eq "index.html"
       end
     end
 

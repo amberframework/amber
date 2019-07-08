@@ -37,8 +37,8 @@ module Amber::Router
             multipart_content = ::File.read(::File.expand_path("spec/support/sample/multipart.txt"))
             multipart_body = multipart_content.gsub("\n", "\r\n")
             request = HTTP::Request.new("POST", "/?test=example", headers, multipart_body)
-
-            request.params.files["picture"].filename.should eq "index.html"
+            file = request.params.files["picture"].as Amber::Router::File
+            file.filename.should eq "index.html"
             request.params["title"].should eq "title field"
             request.params["_csrf"].should eq "PcCFp4oKJ1g-hZ-P7-phg0alC51pz7Pl12r0ZOncgxI"
           end

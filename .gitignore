@@ -3,7 +3,7 @@
 /.shards/
 /.vscode/
 .DS_Store
-lib/
+lib
 .shards/
 /amber
 /tmp

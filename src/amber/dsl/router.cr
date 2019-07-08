@@ -28,7 +28,6 @@ module Amber::DSL
     macro namespace(scoped_namespace)
       scope.push({{scoped_namespace}})
       {{yield}}
-      scope.pop
     end
 
     {% for verb in RESOURCES %}

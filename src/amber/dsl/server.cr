@@ -12,4 +12,10 @@ module Amber::DSL::Server
       end
     {% end %}
   end
+
+  macro namespace(scoped_namespace, value = :web)
+    router.draw {{value}}, {{scoped_namespace}} do
+      {{yield}}
+    end
+  end
 end

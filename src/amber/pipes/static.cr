@@ -10,7 +10,8 @@ module Amber
       def call(context : HTTP::Server::Context)
         return allow_get_or_head(context) unless method_get_or_head?(context.request.method)
 
-        original_path = context.request.path.not_nil!
+        scope = get_current_scope(context)
+        original_path = context.request.path.not_nil!.gsub scope, ""
         request_path = URI.unescape(original_path)
 
         # File path cannot contains '\0' (NUL) because all filesystem I know
@@ -38,6 +39,10 @@ module Amber
         end
 
         call_next_with_file_path(context, request_path, file_path)
+      end
+
+      private def get_current_scope(context)
+        context.request.matched_route.payload.try { |r| r.scope.to_s } || ""
       end
 
       private def dir_path?(path)
