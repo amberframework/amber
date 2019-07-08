@@ -10,3 +10,6 @@ lib/
 shard.lock
 package-lock.json
 node_modules
+lib
+.dir-locals.el
+*~
