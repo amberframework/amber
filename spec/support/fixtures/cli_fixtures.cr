@@ -62,10 +62,10 @@ module CLIFixtures
       belongs_to :user
 
       column id : Int64, primary: true
-      column title : String
-      column body : String
-      column published : Bool
-      column likes : Int32
+      column title : String?
+      column body : String?
+      column published : Bool?
+      column likes : Int32?
       timestamps
     end
 
