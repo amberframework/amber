@@ -19,8 +19,8 @@ dependencies:
     version: ~> 0.3.0
 
   cli:
-    github: mosop/cli
-    version: ~> 0.7.0
+    github: drujensen/cli
+    version: ~> 0.8.0
 
   compiled_license:
     github: elorest/compiled_license
