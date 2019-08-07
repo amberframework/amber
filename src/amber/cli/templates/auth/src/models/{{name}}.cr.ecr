@@ -7,7 +7,7 @@ class <%= class_name %> < Granite::Base
 
   column id : Int64, primary: true
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
-  column <%= field.name %> : <%= field.cr_type %>
+  column <%= field.name %> : <%= field.cr_type %>?
 <% end -%>
 <% if config.database != "sqlite" -%>
   timestamps
