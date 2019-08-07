@@ -22,7 +22,7 @@ module Amber::CLI
       [camel_case, snake_case].each do |arg|
         MainCommand.run ["generate", "model", "-y", arg]
         filename = snake_case
-        granite_table_name = "table_name #{snake_case}s"
+        granite_table_name = "table #{snake_case}s"
         src_filepath = "./src/models/#{filename}.cr"
         spec_filepath = "./spec/models/#{filename}_spec.cr"
         File.exists?(src_filepath).should be_true
