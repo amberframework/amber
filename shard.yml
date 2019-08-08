@@ -19,8 +19,8 @@ dependencies:
     version: ~> 0.3.0
 
   cli:
-    github: mosop/cli
-    version: ~> 0.7.0
+    github: drujensen/cli
+    version: ~> 0.8.0
 
   compiled_license:
     github: elorest/compiled_license
@@ -32,7 +32,7 @@ dependencies:
 
   liquid:
     github: TechMagister/liquid.cr
-    version: ~> 0.3.0
+    #version: ~> 0.3.0
 
   micrate:
     github: amberframework/micrate
@@ -40,15 +40,15 @@ dependencies:
 
   pg:
     github: will/crystal-pg
-    version: ~> 0.16.1
+    version: ~> 0.18.0
 
   mysql:
     github: crystal-lang/crystal-mysql
-    version: ~> 0.6.0
+    version: ~> 0.8.0
 
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-    version: ~> 0.12.0
+    version: ~> 0.13.0
 
   redis:
     github: stefanwille/crystal-redis
@@ -68,7 +68,7 @@ dependencies:
 
   teeplate:
     github: mosop/teeplate
-    version: ~> 0.7.0
+    version: ~> 0.8.0
 
   exception_page:
     github: crystal-loot/exception_page

@@ -80,6 +80,12 @@ module Amber::Controller
       filters[filter.precedence] << filter
     end
 
+    def each(&block : {Symbol, Array(Filter)} -> _)
+      filters.each do |key, filter|
+        yield({key, filter})
+      end
+    end
+
     def run(precedence : Symbol, action : Symbol, except_action : Symbol | Nil = nil)
       filters[precedence].each do |filter|
         next if except_filter_and_has_action?(filter, except_action)

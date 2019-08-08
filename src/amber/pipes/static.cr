@@ -11,7 +11,7 @@ module Amber
         return allow_get_or_head(context) unless method_get_or_head?(context.request.method)
 
         original_path = context.request.path.not_nil!
-        request_path = URI.unescape(original_path)
+        request_path = URI.decode(original_path)
 
         # File path cannot contains '\0' (NUL) because all filesystem I know
         # don't accept '\0' character as file name.

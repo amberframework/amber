@@ -23,7 +23,7 @@ dependencies:
 
   granite:
     github: amberframework/granite
-    version: ~> 0.16.0
+    version: ~> 0.17.0
 
   quartz_mailer:
     github: amberframework/quartz-mailer
@@ -36,22 +36,22 @@ dependencies:
 <% case @database when "pg" -%>
   pg:
     github: will/crystal-pg
-    version: ~> 0.16.1
+    version: ~> 0.18.0
 <% when "mysql" -%>
   mysql:
     github: crystal-lang/crystal-mysql
-    version: ~> 0.6.0
+    version: ~> 0.8.0
 <% when "sqlite" -%>
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-    version: ~> 0.12.0
+    version: ~> 0.13.0
 <% end -%>
 
   citrine-i18n:
     github: amberframework/citrine-i18n
-    version: 0.3.2
+    version: 0.4.0
 
 development_dependencies:
   garnet_spec:
     github: amberframework/garnet-spec
-    version: ~> 0.2.1
+    version: 0.2.1
