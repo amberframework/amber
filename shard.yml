@@ -1,11 +1,11 @@
 name: amber
 
-version: 0.27.0
+version: 0.30.0
 
 authors:
   - Amber Team and Contributors <amberframework.org>
 
-crystal: 0.28.0
+crystal: 0.30.1
 
 license: MIT
 
@@ -19,8 +19,8 @@ dependencies:
     version: ~> 0.3.0
 
   cli:
-    github: mosop/cli
-    version: ~> 0.7.0
+    github: drujensen/cli
+    version: ~> 0.8.0
 
   compiled_license:
     github: elorest/compiled_license
@@ -32,23 +32,27 @@ dependencies:
 
   liquid:
     github: TechMagister/liquid.cr
-    version: ~> 0.3.0
+    #version: ~> 0.3.0
 
   micrate:
     github: amberframework/micrate
-    version: ~> 0.3.0
-
-  mysql:
-    github: crystal-lang/crystal-mysql
-    version: ~> 0.5.0
+    version: ~> 0.3.3
 
   pg:
     github: will/crystal-pg
-    version: ~> 0.15.0
+    version: ~> 0.18.0
+
+  mysql:
+    github: crystal-lang/crystal-mysql
+    version: ~> 0.8.0
+
+  sqlite3:
+    github: crystal-lang/crystal-sqlite3
+    version: ~> 0.13.0
 
   redis:
     github: stefanwille/crystal-redis
-    version: ~> 2.0.0
+    version: ~> 2.2.0
 
   shell-table:
     github: luckyframework/shell-table.cr
@@ -58,17 +62,13 @@ dependencies:
     github: jeromegn/slang
     version: ~> 1.7.1
 
-  sqlite3:
-    github: crystal-lang/crystal-sqlite3
-    version: ~> 0.11.0
-
   inflector:
     github: phoffer/inflector.cr
     version: ~> 0.1.8
 
   teeplate:
     github: mosop/teeplate
-    version: ~> 0.7.0
+    version: ~> 0.8.0
 
   exception_page:
     github: crystal-loot/exception_page
@@ -76,4 +76,4 @@ dependencies:
 development_dependencies:
   ameba:
     github: veelenga/ameba
-    version: ~> 0.8.0
+    version: ~> 0.10.0

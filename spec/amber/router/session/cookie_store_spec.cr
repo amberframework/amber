@@ -1,4 +1,4 @@
-require "../../../../spec_helper"
+require "../../../spec_helper"
 
 module Amber::Router::Session
   COOKIE_STORE = Amber::Router::Cookies::Store.new

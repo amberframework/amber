@@ -18,26 +18,20 @@ module Amber::CLI
       dirs(TESTING_APP).sort.should eq dirs(APP_TEMPLATE_PATH).sort
     end
 
-    context "-m granite (Granite ORM)" do
-      cleanup
-      scaffold_app(TESTING_APP, "-m", "granite")
-
-      it "follows naming conventions for all files and class names" do
-        [camel_case, snake_case].each do |arg|
-          MainCommand.run ["generate", "model", arg]
-          filename = snake_case
-          granite_table_name = "table_name #{snake_case}s"
-          src_filepath = "./src/models/#{filename}.cr"
-          spec_filepath = "./spec/models/#{filename}_spec.cr"
-
-          File.exists?(src_filepath).should be_true
-          File.exists?(spec_filepath).should be_true
-          File.read(src_filepath).should contain class_definition_prefix
-          File.read(src_filepath).should contain granite_table_name
-          File.read(spec_filepath).should contain spec_definition_prefix
-          File.delete(src_filepath)
-          File.delete(spec_filepath)
-        end
+    it "follows naming conventions for all files and class names" do
+      [camel_case, snake_case].each do |arg|
+        MainCommand.run ["generate", "model", "-y", arg]
+        filename = snake_case
+        granite_table_name = "table #{snake_case}s"
+        src_filepath = "./src/models/#{filename}.cr"
+        spec_filepath = "./spec/models/#{filename}_spec.cr"
+        File.exists?(src_filepath).should be_true
+        File.exists?(spec_filepath).should be_true
+        File.read(src_filepath).should contain class_definition_prefix
+        File.read(src_filepath).should contain granite_table_name
+        File.read(spec_filepath).should contain spec_definition_prefix
+        File.delete(src_filepath)
+        File.delete(spec_filepath)
       end
     end
 
@@ -49,31 +43,13 @@ module Amber::CLI
         dirs(TESTING_APP).sort.should eq dirs(APP_TEMPLATE_PATH).sort
       end
     end
-
-    context "-m crecto (Crecto Repo)" do
-      cleanup
-      scaffold_app(TESTING_APP, "-m", "crecto")
-
-      it "follows naming conventions for all files and class names" do
-        [camel_case, snake_case].each do |arg|
-          MainCommand.run ["generate", "model", arg]
-          filename = snake_case
-          crecto_table_name = %(schema "#{snake_case}s")
-          src_filepath = "./src/models/#{filename}.cr"
-
-          File.exists?(src_filepath).should be_true
-          File.read(src_filepath).should contain class_definition_prefix
-          File.read(src_filepath).should contain crecto_table_name
-          File.delete(src_filepath)
-        end
-      end
-    end
   end
 
   context "Database settings" do
     %w(pg mysql sqlite).each do |db|
       cleanup
-      MainCommand.run ["new", TESTING_APP, "-d", db]
+      MainCommand.run ["new", TESTING_APP, "-y", "--no-deps", "-d", db]
+      prepare_yaml(TESTING_APP)
 
       describe "#{db}" do
         %w(development test).each do |env|
@@ -95,13 +71,13 @@ module Amber::CLI
       describe "template" do
         it "sets ECR templates" do
           cleanup
-          MainCommand.run ["new", TESTING_APP, "-t", "ecr"]
+          MainCommand.run ["new", TESTING_APP, "-y", "--no-deps", "-t", "ecr"]
           amber_yml["language"].should eq "ecr"
         end
 
         it "it defaults to Slang templates" do
           cleanup
-          MainCommand.run ["new", TESTING_APP, "-t", "slang"]
+          MainCommand.run ["new", TESTING_APP, "-y", "--no-deps", "-t", "slang"]
           amber_yml["language"].should eq "slang"
         end
       end

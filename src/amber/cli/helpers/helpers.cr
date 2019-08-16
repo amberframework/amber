@@ -6,6 +6,7 @@ module Amber::CLI::Helpers
     #{route}
     ROUTES
     File.write("./config/routes.cr", routes.gsub("routes :#{pipeline.to_s} do", replacement))
+    system("crystal tool format ./config/routes.cr")
   end
 
   def add_plugs(pipeline, plug)
@@ -20,6 +21,7 @@ module Amber::CLI::Helpers
       end
     PLUGS
     File.write("./config/routes.cr", routes.gsub(pipes[0], replacement))
+    system("crystal tool format ./config/routes.cr")
   end
 
   def add_dependencies(dependencies)

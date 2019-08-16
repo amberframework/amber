@@ -33,7 +33,7 @@ module Amber::Recipes::Scaffold
       end
 
       add_routes :web, <<-ROUTE
-        resources "/#{name_plural}", #{class_name}Controller
+        resources "#{name_plural}", #{class_name}Controller
       ROUTE
     end
 
@@ -71,7 +71,7 @@ module Amber::Recipes::Scaffold
       when "bool", "boolean"
         "true"
       when "time", "timestamp"
-        Time.now.to_s
+        Time.utc.to_s
       when "ref", "reference", "references"
         rand(100).to_s
       else

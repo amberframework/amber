@@ -134,16 +134,7 @@ module Sentry
           end
 
           if ok_to_run
-            process = Amber::CLI::Helpers.run(run_command_run, wait: false, shell: false)
-            if process.is_a? Process
-              @processes["run"] ||= Array(Process).new
-              @processes["run"] << process
-            elsif process.is_a? Exception
-              log :run, "Could not run (#{process.message}), exiting...", :red
-              log :run, "Please check your watch config and try again.", :red
-              exit 1
-            end
-
+            start_process(run_command_run)
             @app_running = true
           end
         else
@@ -152,6 +143,22 @@ module Sentry
         end
       end
 
+      run_commands(skip_build, task_to_start)
+    end
+
+    private def start_process(run_command_run)
+      process = Amber::CLI::Helpers.run(run_command_run, wait: false, shell: false)
+      if process.is_a? Process
+        @processes["run"] ||= Array(Process).new
+        @processes["run"] << process
+      elsif process.is_a? Exception
+        log :run, "Could not run (#{process.message}), exiting...", :red
+        log :run, "Please check your watch config and try again.", :red
+        exit 1
+      end
+    end
+
+    private def run_commands(skip_build, task_to_start)
       @run_commands.each do |task, run_command|
         next if task == "run" # already handled
         next unless task_to_start == :all || task_to_start.to_s == task

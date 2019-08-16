@@ -1,9 +1,9 @@
-require "../../../spec_helper"
+require "../../spec_helper"
 
 module Amber
   describe Route do
     handler = ->(_context : HTTP::Server::Context) {}
-    subject = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, "", "FakeController")
+    subject = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, Router::Scope.new, "FakeController")
 
     it "Initializes correctly with Descendant controller" do
       request = HTTP::Request.new("GET", "/?test=test")
@@ -19,6 +19,15 @@ module Amber
         params = {"id" => "123", "name" => "John"}
         empty_hash = {} of String => String
         subject.substitute_keys_in_path(params).should eq({"/fake/action/123/John", empty_hash})
+      end
+    end
+
+    describe "#to_json" do
+      it "includes constraints key" do
+        route = Route.new("GET", "/", handler, constraints: {"id" => /\d/, "slug" => /\w+/})
+        obj = JSON.parse(route.to_json)
+        obj["constraints"]["id"].should be_truthy
+        obj["constraints"]["slug"].should be_truthy
       end
     end
 
@@ -75,7 +84,6 @@ class FakeController < Amber::Controller::Base
 
   def halt_action
     raise "Should not reach this action"
-    ""
   end
 end
 

@@ -20,7 +20,7 @@ module Amber::CLI
 
     describe "controller" do
       options = %w(add:post list:get remove:delete)
-      MainCommand.run %w(generate controller animal) | options
+      MainCommand.run %w(generate controller -y animal) | options
       route_file = File.read("./config/routes.cr")
 
       it "generates controller with correct verbs and actions" do
@@ -37,7 +37,7 @@ module Amber::CLI
 
       it "follows naming conventions for all files and class names" do
         [camel_case, snake_case].each do |arg|
-          MainCommand.run ["generate", "controller", arg]
+          MainCommand.run ["generate", "controller", "-y", arg]
           filename = snake_case
           src_filepath = "./src/controllers/#{filename}_controller.cr"
           spec_filepath = "./spec/controllers/#{filename}_controller_spec.cr"
@@ -54,7 +54,7 @@ module Amber::CLI
 
     describe "model" do
       MainCommand.run %w(
-        generate model Post title:string body:text published:bool likes:int user:references
+        generate model -y Post title:string body:text published:bool likes:int user:references
       )
 
       it "creates Post migration file" do
@@ -76,7 +76,7 @@ module Amber::CLI
     describe "scaffold" do
       it "follows naming conventions for all files and class names" do
         [camel_case, snake_case].each do |arg|
-          MainCommand.run ["generate", "scaffold", arg, "name:string"]
+          MainCommand.run ["generate", "scaffold", "-y", arg, "name:string"]
 
           File.exists?("./spec/models/#{snake_case}_spec.cr").should be_true
           File.exists?("./src/models/#{snake_case}.cr").should be_true
@@ -105,7 +105,7 @@ module Amber::CLI
     describe "migration" do
       it "follows naming conventions for all files" do
         [camel_case, snake_case].each do |arg|
-          MainCommand.run ["generate", "migration", arg]
+          MainCommand.run ["generate", "migration", "-y", arg]
 
           migration_filename = Dir.entries("./db/migrations").sort.last
           migration_filename.should contain snake_case
@@ -117,7 +117,7 @@ module Amber::CLI
     describe "mailer" do
       it "follows naming conventions for all files and class names" do
         [camel_case, snake_case].each do |arg|
-          MainCommand.run ["generate", "mailer", arg]
+          MainCommand.run ["generate", "mailer", "-y", arg]
           filename = snake_case
           src_filepath = "./src/mailers/#{filename}_mailer.cr"
 
@@ -133,7 +133,7 @@ module Amber::CLI
 
       it "follows naming conventions for all files and class names" do
         [camel_case, snake_case].each do |arg|
-          MainCommand.run ["generate", "socket", arg]
+          MainCommand.run ["generate", "socket", "-y", arg]
           filename = snake_case
           src_filepath = "./src/sockets/#{filename}_socket.cr"
 
@@ -147,7 +147,7 @@ module Amber::CLI
     describe "channel" do
       it "follows naming conventions for all files and class names" do
         [camel_case, snake_case].each do |arg|
-          MainCommand.run ["generate", "channel", arg]
+          MainCommand.run ["generate", "channel", "-y", arg]
           filename = snake_case
           src_filepath = "./src/channels/#{filename}_channel.cr"
 
@@ -167,7 +167,7 @@ module Amber::CLI
 
       it "follows naming conventions for all files and class names" do
         [camel_case, snake_case].each do |arg|
-          MainCommand.run ["generate", "auth", arg]
+          MainCommand.run ["generate", "auth", "-y", arg]
 
           File.exists?("./db/seeds.cr").should be_true
           File.exists?("./spec/models/admin_user_spec.cr").should be_true

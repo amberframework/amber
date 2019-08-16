@@ -12,7 +12,7 @@ module Amber::CLI
       @actions = parse_actions(params)
     end
 
-    def pre_render(directory)
+    def pre_render(directory, **args)
       add_routes
       add_views
     end

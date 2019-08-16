@@ -42,12 +42,19 @@ module Amber::CLI
 
       def run
         CLI.toggle_colors(options.no_color?)
+        connect_to_database if args.commands.empty?
 
-        if args.commands.empty?
-          connect_to_database
-        end
+        process_commands(args.commands)
+      rescue e : Micrate::UnorderedMigrationsException
+        exit! Micrate::Cli.report_unordered_migrations(e.versions), error: true
+      rescue e : DB::ConnectionRefused
+        exit! "Connection unsuccessful: #{Micrate::DB.connection_url.colorize(:light_blue)}", error: true
+      rescue e : Exception
+        exit! e.message, error: true
+      end
 
-        args.commands.each do |command|
+      private def process_commands(commands)
+        commands.each do |command|
           Micrate::DB.connection_url = database_url
           case command
           when "drop"
@@ -58,11 +65,7 @@ module Amber::CLI
             Helpers.run("crystal db/seeds.cr", wait: true, shell: true)
             Micrate.logger.info "Seeded database"
           when "migrate"
-            begin
-              Micrate::Cli.run_up
-            rescue e : IndexError
-              exit! "No migrations to run in #{MIGRATIONS_DIR}."
-            end
+            migrate
           when "rollback"
             Micrate::Cli.run_down
           when "redo"
@@ -77,12 +80,12 @@ module Amber::CLI
             exit! help: true, error: false
           end
         end
-      rescue e : Micrate::UnorderedMigrationsException
-        exit! Micrate::Cli.report_unordered_migrations(e.versions), error: true
-      rescue e : DB::ConnectionRefused
-        exit! "Connection unsuccessful: #{Micrate::DB.connection_url.colorize(:light_blue)}", error: true
-      rescue e : Exception
-        exit! e.message, error: true
+      end
+
+      private def migrate
+        Micrate::Cli.run_up
+      rescue e : IndexError
+        exit! "No migrations to run in #{MIGRATIONS_DIR}."
       end
 
       private def drop_database
@@ -117,7 +120,7 @@ module Amber::CLI
         uri = URI.parse(url)
         if path = uri.path
           Micrate::DB.connection_url = url.gsub(path, "/#{uri.scheme}")
-          return path.gsub("/", "")
+          path.gsub("/", "")
         else
           error "Could not determine database name"
         end

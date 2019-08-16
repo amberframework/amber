@@ -1,4 +1,4 @@
-require "../../spec_helper"
+require "../spec_helper"
 
 struct UserSocket < Amber::WebSockets::ClientSocket; end
 

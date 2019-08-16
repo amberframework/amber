@@ -3,27 +3,18 @@ require "./generator"
 module Amber::CLI
   class Api < Generator
     command :api
-    property migration : Generator
     property model : Generator
     property controller : Generator
 
     def initialize(name, fields)
       super(name, fields)
-      if config.model == "crecto"
-        @migration = CrectoMigration.new(name, fields)
-        @model = CrectoModel.new(name, fields)
-        @controller = ApiCrectoController.new(name, fields)
-      else
-        @migration = GraniteMigration.new(name, fields)
-        @model = GraniteModel.new(name, fields)
-        @controller = ApiGraniteController.new(name, fields)
-      end
+      @model = Model.new(name, fields)
+      @controller = ApiController.new(name, fields)
     end
 
-    def render(directory)
-      migration.render(directory)
-      model.render(directory)
-      controller.render(directory)
+    def render(directory, **args)
+      model.render(directory, **args)
+      controller.render(directory, **args)
     end
   end
 end

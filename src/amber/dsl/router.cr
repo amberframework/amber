@@ -5,10 +5,10 @@ module Amber::DSL
     end
   end
 
-  record Router, router : Amber::Router::Router, valve : Symbol, scope : String do
+  record Router, router : Amber::Router::Router, valve : Symbol, scope : Amber::Router::Scope do
     RESOURCES = [:get, :post, :put, :patch, :delete, :options, :head, :trace, :connect]
 
-    macro route(verb, resource, controller, action)
+    macro route(verb, resource, controller, action, constraints = {} of String => Regex)
       %handler = ->(context : HTTP::Server::Context){
         controller = {{controller.id}}.new(context)
         controller.run_before_filter({{action}}) unless context.content
@@ -19,10 +19,16 @@ module Amber::DSL
       }
       %verb = {{verb.upcase.id.stringify}}
       %route = Amber::Route.new(
-        %verb, {{resource}}, %handler, {{action}}, valve, scope, "{{controller.id}}"
+        %verb, {{resource}}, %handler, {{action}}, valve, scope, "{{controller.id}}", {{constraints}}
       )
 
       router.add(%route)
+    end
+
+    macro namespace(scoped_namespace)
+      scope.push({{scoped_namespace}})
+      {{yield}}
+      scope.pop
     end
 
     {% for verb in RESOURCES %}
@@ -31,14 +37,13 @@ module Amber::DSL
         {% if verb == :get %}
         route :head, \{{*args}}
         {% end %}
-        route {{verb}}, \{{*args}}
         {% if ![:trace, :connect, :options, :head].includes? verb %}
         route :options, \{{*args}}
         {% end %}
       end
     {% end %}
 
-    macro resources(resource, controller, only = nil, except = nil)
+    macro resources(resource, controller, only = nil, except = nil, constraints = {} of String => Regex)
       {% actions = [:index, :new, :create, :show, :edit, :update, :destroy] %}
 
       {% if only %}
@@ -48,26 +53,26 @@ module Amber::DSL
       {% end %}
 
       {% for action in actions %}
-        define_action({{resource}}, {{controller}}, {{action}})
+        define_action({{resource}}, {{controller}}, {{action}}, {{constraints}})
       {% end %}
     end
 
-    private macro define_action(path, controller, action)
+    private macro define_action(path, controller, action, constraints = {} of String => Regex)
       {% if action == :index %}
-        get "{{path.id}}", {{controller}}, :index
+        get "/{{path.id}}", {{controller}}, :index, {{constraints}}
       {% elsif action == :show %}
-        get "{{path.id}}/:id", {{controller}}, :show
+        get "/{{path.id}}/:id", {{controller}}, :show, {{constraints}}
       {% elsif action == :new %}
-        get "{{path.id}}/new", {{controller}}, :new
+        get "/{{path.id}}/new", {{controller}}, :new, {{constraints}}
       {% elsif action == :edit %}
-        get "{{path.id}}/:id/edit", {{controller}}, :edit
+        get "/{{path.id}}/:id/edit", {{controller}}, :edit, {{constraints}}
       {% elsif action == :create %}
-        post "{{path.id}}", {{controller}}, :create
+        post "/{{path.id}}", {{controller}}, :create, {{constraints}}
       {% elsif action == :update %}
-        put "{{path.id}}/:id", {{controller}}, :update
-        patch "{{path.id}}/:id", {{controller}}, :update
+        put "/{{path.id}}/:id", {{controller}}, :update, {{constraints}}
+        patch "/{{path.id}}/:id", {{controller}}, :update, {{constraints}}
       {% elsif action == :destroy %}
-        delete "{{path.id}}/:id", {{controller}}, :destroy
+        delete "/{{path.id}}/:id", {{controller}}, :destroy, {{constraints}}
       {% else %}
         {% raise "Invalid route action '#{action}'" %}
       {% end %}

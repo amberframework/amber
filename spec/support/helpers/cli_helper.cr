@@ -91,9 +91,11 @@ module CLIHelper
   def prepare_yaml(path)
     if File.exists?("#{path}/shard.yml")
       shard = File.read("#{path}/shard.yml")
-      shard = shard.gsub("github: amberframework/amber\n", "path: ../../\n")
+      shard = shard.gsub(/github\:\samberframework\/amber\n.*(?=\n)/, "path: ../../../amber")
       File.write("#{path}/shard.yml", shard)
     end
+
+    system("shards install")
   end
 
   def prepare_db_yml(path = ENV_CONFIG_PATH)
@@ -103,13 +105,13 @@ module CLIHelper
   end
 
   def recipe_app(app_name, *options)
-    Amber::CLI::MainCommand.run ["new", app_name] | options.to_a
+    Amber::CLI::MainCommand.run ["new", app_name, "-y"] | options.to_a
     Dir.cd(app_name)
     prepare_yaml(Dir.current)
   end
 
   def scaffold_app(app_name, *options)
-    Amber::CLI::MainCommand.run ["new", app_name] | options.to_a
+    Amber::CLI::MainCommand.run ["new", app_name, "-y", "--no-deps"] | options.to_a
     Dir.cd(app_name)
     prepare_yaml(Dir.current)
   end

@@ -52,7 +52,7 @@ module Amber
     end
 
     def start
-      time = Time.now
+      time = Time.local
       logger.info "#{version.colorize(:light_cyan)} serving application \"#{settings.name.capitalize}\" at #{host_url.colorize(:light_cyan).mode(:underline)}"
       handler.prepare_pipelines
       server = HTTP::Server.new(handler)
@@ -73,7 +73,7 @@ module Amber
       loop do
         begin
           logger.info "Server started in #{Amber.env.colorize(:yellow)}."
-          logger.info "Startup Time #{Time.now - time}".colorize(:white)
+          logger.info "Startup Time #{Time.local - time}".colorize(:white)
           server.listen
           break
         rescue e : Errno
