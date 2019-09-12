@@ -2,7 +2,7 @@ Amber::Server.configure do
   pipeline :web do
     # Plug is the method to use connect a pipe (middleware)
     # A plug accepts an instance of HTTP::Handler
-    plug Amber::Pipe::PoweredByAmber.new
+    # plug Amber::Pipe::PoweredByAmber.new
     # plug Amber::Pipe::ClientIp.new(["X-Forwarded-For"])
     plug Citrine::I18n::Handler.new
     plug Amber::Pipe::Error.new
