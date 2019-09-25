@@ -35,11 +35,8 @@ dependencies:
     #version: ~> 0.3.0
 
   micrate:
-    # TODO wait for https://github.com/amberframework/micrate/pull/40
-    # github: amberframework/micrate
-    # version: ~> 0.3.3
-    github: bcardiff/micrate
-    branch: crystal/0.31.0
+    github: amberframework/micrate
+    version: ~> 0.3.4
 
   pg:
     github: will/crystal-pg
