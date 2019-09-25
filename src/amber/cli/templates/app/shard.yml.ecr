@@ -22,22 +22,16 @@ dependencies:
     #version: <%= Amber::VERSION %>
 
   granite:
-    github: bcardiff/granite
-    branch: crystal/0.31.0
-    # TODO wait for https://github.com/amberframework/granite/pull/363
-    # github: amberframework/granite
-    # version: ~> 0.17.0
+    github: amberframework/granite
+    version: ~> 0.17.3
 
   quartz_mailer:
     github: amberframework/quartz-mailer
     version: ~> 0.5.3
 
   jasper_helpers:
-    github: bcardiff/jasper-helpers
-    branch: use-markd
-    # TODO wait for https://github.com/amberframework/jasper-helpers/pull/37
-    # github: amberframework/jasper-helpers
-    # version: ~> 0.2.4
+    github: amberframework/jasper-helpers
+    version: ~> 0.2.5
 
 <% case @database when "pg" -%>
   pg:
