@@ -51,7 +51,7 @@ module Amber
 
       def forbidden(context)
         context.response.headers["Content-Type"] = "text/plain"
-        context.response.respond_with_error FORBIDDEN, 403
+        context.response.respond_with_status 403
       end
 
       private def put_expose_header(response)

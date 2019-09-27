@@ -46,7 +46,7 @@ module Amber::Router
     it "sets the cookie with expiration" do
       cookies = new_cookie_store
 
-      expiry_time = Time.new(2017, 6, 7, 9)
+      expiry_time = Time.local(2017, 6, 7, 9)
 
       cookies.set "user_name", "david", expires: expiry_time
 
@@ -91,7 +91,7 @@ module Amber::Router
     it "sets multiple cookies" do
       cookies = new_cookie_store
 
-      expiry_time = Time.new(2017, 6, 7, 9)
+      expiry_time = Time.local(2017, 6, 7, 9)
       cookies.set "user_name", "david", expires: expiry_time
       cookies.set "login", "XJ-122"
 
