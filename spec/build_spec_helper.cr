@@ -11,6 +11,7 @@ module Amber::CLI
 
     cleanup
     scaffold_app(TESTING_APP, *options)
+    system("shards install")
 
     options = ["user:reference", "name:string", "body:text", "age:integer", "published:bool"]
     temp_options = options - ["user:reference", "age:integer"]
