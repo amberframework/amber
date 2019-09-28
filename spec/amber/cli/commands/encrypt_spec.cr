@@ -21,7 +21,5 @@ module Amber::CLI
     it "creates a 44 characters secret key in .encryption_key" do
       File.read(".encryption_key").size.should eq 44
     end
-
-    cleanup
   end
 end

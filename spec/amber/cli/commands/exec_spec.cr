@@ -51,8 +51,6 @@ module Amber::CLI
         logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
         File.read(logs.last?.to_s).should eq "1337\n"
       end
-
-      cleanup
     end
 
     context "outside of project" do
@@ -68,7 +66,6 @@ module Amber::CLI
       #   logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
       #   File.read(logs.last?.to_s).should contain "undefined constant Amber"
       # end
-      cleanup
     end
   end
 end

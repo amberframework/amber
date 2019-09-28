@@ -195,6 +195,5 @@ module Amber::CLI
         end
       end
     end
-    cleanup
   end
 end
