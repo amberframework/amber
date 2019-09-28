@@ -14,16 +14,17 @@ module Amber::CLI
         it "has connection settings in config/environments/env.yml" do
           env_yml = prepare_test_app
           env_yml["database_url"].should eq expected_db_url("sqlite3", env)
+          cleanup
         end
 
         it "does not create the database when db create" do
           env_yml = prepare_test_app
           db_filename = env_yml["database_url"].to_s.gsub("sqlite3:", "")
           File.exists?(db_filename).should be_false
+          cleanup
         end
 
-        it "does create the database when db migrate" do
-          cleanup
+        it "creates the database when db migrate" do
           scaffold_app("#{TESTING_APP}", "-d", "sqlite")
           Amber::CLI.env = "development"
           Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)
@@ -33,6 +34,7 @@ module Amber::CLI
           db_filename = env_yml["database_url"].to_s.gsub("sqlite3:", "")
           File.exists?(db_filename).should be_true
           File.info(db_filename).size.should_not eq 0
+          cleanup
         end
 
         it "deletes the database when db drop" do
@@ -42,6 +44,7 @@ module Amber::CLI
           MainCommand.run ["db", "migrate"]
           MainCommand.run ["db", "drop"]
           File.exists?(db_filename).should be_false
+          cleanup
         end
       end
     end
@@ -52,6 +55,7 @@ module Amber::CLI
           scaffold_app("#{TESTING_APP}", "-d", "pg")
           env_yml = environment_yml(ENV["AMBER_ENV"], "#{Dir.current}/config/environments/")
           env_yml["database_url"].should eq expected_db_url("pg", env)
+          cleanup
         end
       end
     end
