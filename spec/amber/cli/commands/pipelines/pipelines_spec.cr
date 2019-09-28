@@ -13,7 +13,6 @@ module Amber::CLI
     ENV["CRYSTAL_CLI_ENV"] = "test"
 
     context "in an `amber new` with default options" do
-      cleanup
       scaffold_app(TESTING_APP)
       output = ""
 

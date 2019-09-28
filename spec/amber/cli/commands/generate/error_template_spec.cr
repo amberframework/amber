@@ -7,7 +7,6 @@ module Amber::CLI
   describe MainCommand::Generate do
     describe "amber generate error" do
       context "in an `amber new` app with default options" do
-        cleanup
         scaffold_app(TESTING_APP)
         MainCommand.run %w(generate error -y error)
 

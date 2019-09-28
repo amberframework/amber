@@ -9,7 +9,6 @@ module Amber::CLI
   def generate_app(*options)
     ENV["AMBER_ENV"] = "test"
 
-    cleanup
     scaffold_app(TESTING_APP, *options)
 
     options = ["user:reference", "name:string", "body:text", "age:integer", "published:bool"]

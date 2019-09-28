@@ -6,7 +6,6 @@ include CLIHelper
 module Amber::CLI
   describe "amber new #{TESTING_APP}" do
     ENV["AMBER_ENV"] = "test"
-    cleanup
 
     scaffold_app(TESTING_APP)
     camel_case = "PostComment"
@@ -36,7 +35,6 @@ module Amber::CLI
     end
 
     context "-r recipe (damianham/default)" do
-      cleanup
       scaffold_app(TESTING_APP, "-r", "damianham/default")
 
       it "generates amber directory structure" do
@@ -47,7 +45,6 @@ module Amber::CLI
 
   context "Database settings" do
     %w(pg mysql sqlite).each do |db|
-      cleanup
       MainCommand.run ["new", TESTING_APP, "-y", "--no-deps", "-d", db]
       prepare_yaml(TESTING_APP)
 
@@ -70,13 +67,11 @@ module Amber::CLI
 
       describe "template" do
         it "sets ECR templates" do
-          cleanup
           MainCommand.run ["new", TESTING_APP, "-y", "--no-deps", "-t", "ecr"]
           amber_yml["language"].should eq "ecr"
         end
 
         it "it defaults to Slang templates" do
-          cleanup
           MainCommand.run ["new", TESTING_APP, "-y", "--no-deps", "-t", "slang"]
           amber_yml["language"].should eq "slang"
         end

@@ -23,8 +23,6 @@ module Amber::CLI
     it "executes specs" do
       system("crystal spec").should be_true
     end
-  ensure
-    cleanup
   end
 
   describe "building a generated app using granite model and ecr template" do
@@ -49,7 +47,5 @@ module Amber::CLI
     it "executes specs" do
       system("crystal spec").should be_true
     end
-  ensure
-    cleanup
   end
 end

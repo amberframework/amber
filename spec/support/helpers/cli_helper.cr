@@ -1,5 +1,6 @@
 require "file_utils"
 require "json"
+require "uuid"
 
 class RouteJSON
   JSON.mapping({
@@ -26,7 +27,6 @@ module CLIHelper
   end
 
   def prepare_test_app
-    cleanup
     scaffold_app("#{TESTING_APP}", "-d", "sqlite")
     environment_yml(ENV["AMBER_ENV"], "#{Dir.current}/config/environments/")
   end
@@ -109,9 +109,9 @@ module CLIHelper
   end
 
   def scaffold_app(app_name, *options)
-    Amber::CLI::MainCommand.run ["new", app_name, "-y", "--no-deps"].concat(options.to_a)
-    Dir.cd(app_name)
-    prepare_yaml(Dir.current)
+    new_name = "#{app_name}_#{UUID.random}"
+    Amber::CLI::MainCommand.run ["new", new_name, "-y", "--no-deps"].concat(options.to_a)
+    Dir.cd(new_name)
   end
 
   def build_route(controller, action, method)

@@ -23,7 +23,6 @@ module Amber::CLI
         end
 
         it "does create the database when db migrate" do
-          cleanup
           scaffold_app("#{TESTING_APP}", "-d", "sqlite")
           Amber::CLI.env = "development"
           Amber::CLI.settings.logger = Amber::Environment::Logger.new(nil)

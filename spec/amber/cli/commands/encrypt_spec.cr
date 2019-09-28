@@ -6,7 +6,6 @@ include CLIHelper
 
 module Amber::CLI
   describe "amber encrypt" do
-    cleanup
     scaffold_app(TESTING_APP)
     MainCommand.run ["encrypt", "test"]
 

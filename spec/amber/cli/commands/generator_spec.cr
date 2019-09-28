@@ -15,7 +15,6 @@ module Amber::CLI
     class_definition_prefix = "class #{camel_case}"
     spec_definition_prefix = "describe #{camel_case}"
 
-    cleanup
     scaffold_app(TESTING_APP)
 
     describe "controller" do
@@ -154,44 +153,6 @@ module Amber::CLI
           File.exists?(src_filepath).should be_true
           File.read(src_filepath).should contain class_definition_prefix
           File.delete(src_filepath)
-        end
-      end
-    end
-
-    describe "auth" do
-      camel_case = "AdminUser"
-      snake_case = "admin_user"
-      class_definition_prefix = "class #{camel_case}"
-      spec_definition_prefix = "describe #{camel_case}"
-      migration_definition_prefix = "CREATE TABLE #{snake_case}"
-
-      it "follows naming conventions for all files and class names" do
-        [camel_case, snake_case].each do |arg|
-          MainCommand.run ["generate", "auth", "-y", arg]
-
-          File.exists?("./db/seeds.cr").should be_true
-          File.exists?("./spec/models/admin_user_spec.cr").should be_true
-          File.exists?("./src/controllers/registration_controller.cr").should be_true
-          File.exists?("./src/controllers/session_controller.cr").should be_true
-          File.exists?("./src/pipes/authenticate.cr").should be_true
-          File.exists?("./src/models/admin_user.cr").should be_true
-          File.exists?("./src/views/registration/new.slang").should be_true
-          File.exists?("./src/views/session/new.slang").should be_true
-
-          migration_filename = Dir["./db/migrations/*_#{snake_case}.sql"].first
-          File.read("#{migration_filename}").should contain migration_definition_prefix
-          File.read("./db/seeds.cr").should contain camel_case
-          File.read("./spec/models/admin_user_spec.cr").should contain spec_definition_prefix
-          File.read("./src/controllers/registration_controller.cr").should contain camel_case
-          File.read("./src/controllers/registration_controller.cr").should contain snake_case
-          File.read("./src/controllers/session_controller.cr").should contain camel_case
-          File.read("./src/controllers/session_controller.cr").should contain snake_case
-          File.read("./src/pipes/authenticate.cr").should contain camel_case
-          File.read("./src/pipes/authenticate.cr").should contain snake_case
-          File.read("./src/models/admin_user.cr").should contain class_definition_prefix
-          File.read("./src/models/admin_user.cr").should contain snake_case
-          File.read("./src/views/registration/new.slang").should contain snake_case
-          File.read("./src/views/session/new.slang").should contain snake_case
         end
       end
     end

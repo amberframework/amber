@@ -6,7 +6,6 @@ include CLIHelper
 module Amber::CLI
   describe "amber exec" do
     context "within project" do
-      cleanup
       scaffold_app(TESTING_APP)
       `shards`
 
