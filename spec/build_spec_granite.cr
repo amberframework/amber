@@ -2,7 +2,7 @@ require "./build_spec_helper"
 
 module Amber::CLI
   describe "building a generated app using granite model and slang template" do
-    generate_app("new", "--no-deps", "-t", "slang")
+    generate_app("new", "-t", "slang")
 
     it "check formatting" do
       system("crystal tool format --check").should be_true
@@ -26,7 +26,7 @@ module Amber::CLI
   end
 
   describe "building a generated app using granite model and ecr template" do
-    generate_app("new", "--no-deps", "-t", "ecr")
+    generate_app("new", "-t", "ecr")
 
     it "check formatting" do
       system("crystal tool format --check").should be_true
