@@ -6,7 +6,7 @@ include RouterHelper
 module Amber
   module Pipe
     TEST_PUBLIC_PATH = "spec/support/sample/public"
-    describe Static do
+    pending Static do
       it "renders html" do
         request = HTTP::Request.new("GET", "/index.html")
         static = Static.new PUBLIC_PATH

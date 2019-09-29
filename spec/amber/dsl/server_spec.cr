@@ -2,7 +2,7 @@ require "../../spec_helper"
 
 module Amber
   module DSL
-    describe Server do
+    pending Server do
       describe "pipeline" do
         context "generating a single ':custom' pipeline" do
           server = Amber::Server.instance

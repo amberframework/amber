@@ -1,7 +1,7 @@
 require "../../spec_helper"
 
 module Amber::Pipe
-  describe CORS do
+  pending CORS do
     it "supports simple CORS requests" do
       context = cors_context("GET", "Origin": "http://localhost:3000")
       CORS.new.call(context)

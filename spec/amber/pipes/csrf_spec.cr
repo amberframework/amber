@@ -2,7 +2,7 @@ require "../../spec_helper"
 
 module Amber
   module Pipe
-    describe CSRF do
+    pending CSRF do
       Dir.cd CURRENT_DIR
       Amber.env = :test
 

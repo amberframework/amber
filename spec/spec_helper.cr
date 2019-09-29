@@ -7,7 +7,7 @@ PUBLIC_PATH       = TEST_PATH + "/public"
 VIEWS_PATH        = TEST_PATH + "/views"
 TEST_APP_NAME     = "test_app"
 TESTING_APP       = "./tmp/#{TEST_APP_NAME}"
-APP_TEMPLATE_PATH = "./src/amber/cli/templates/app"
+APP_TEMPLATE_PATH = "../../src/amber/cli/templates/app"
 CURRENT_DIR       = Dir.current
 
 Amber.path = "./spec/support/config"
