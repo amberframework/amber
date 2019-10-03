@@ -6,7 +6,8 @@ include RouterHelper
 module Amber
   module Pipe
     TEST_PUBLIC_PATH = "spec/support/sample/public"
-    pending Static do
+
+    describe Static do
       it "renders html" do
         request = HTTP::Request.new("GET", "/index.html")
         static = Static.new PUBLIC_PATH
@@ -22,7 +23,7 @@ module Amber
 
         response = create_request_and_return_io(static, request)
 
-        response.body.should eq "Not Found\n"
+        response.body.should eq "404 Not Found\n"
       end
 
       it "delivers index.html if path ends with /" do
