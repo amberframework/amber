@@ -60,16 +60,16 @@ module Amber::Recipes
     end
 
     context "using a github shard" do
+      Spec.before_each do
+        Dir.mkdir_p("./myapp")
+        RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
+      end
+
+      Spec.after_each do
+        FileUtils.rm_rf("./myapp")
+      end
+
       describe "RecipeFetcher" do
-        Spec.before_each do
-          Dir.mkdir_p("./myapp")
-          RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
-        end
-
-        Spec.after_each do
-          FileUtils.rm_rf("./myapp")
-        end
-
         it "should use a shard controller folder" do
           Dir.cd("./myapp") do
             template = RecipeFetcher.new("controller", "damianham/amber_granite").fetch
