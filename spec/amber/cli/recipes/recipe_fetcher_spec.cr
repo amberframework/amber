@@ -1,7 +1,7 @@
 require "../../../spec_helper"
 
 module Amber::Recipes
-  pending RecipeFetcher do
+  describe RecipeFetcher do
     context "using a local folder" do
       Spec.before_each do
         Dir.mkdir_p("./mydefault/app")
@@ -61,8 +61,14 @@ module Amber::Recipes
 
     context "using a github shard" do
       describe "RecipeFetcher" do
-        Dir.mkdir_p("./myapp")
-        RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
+        Spec.before_each do
+          Dir.mkdir_p("./myapp")
+          RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
+        end
+
+        Spec.after_each do
+          FileUtils.rm_rf("./myapp")
+        end
 
         it "should use a shard controller folder" do
           Dir.cd("./myapp") do
@@ -87,8 +93,6 @@ module Amber::Recipes
             template.should match(/.+\.recipes\/lib\/amber_granite\/scaffold$/)
           end
         end
-
-        FileUtils.rm_rf("./myapp")
       end
     end
   end
