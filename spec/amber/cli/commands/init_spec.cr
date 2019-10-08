@@ -5,7 +5,7 @@ include CLIHelper
 
 module Amber::CLI
   describe Amber::CLI::MainCommand::New do
-    Spec.after_each do 
+    Spec.after_each do
       cleanup
     end
 
@@ -78,7 +78,6 @@ module Amber::CLI
 
     describe "View templates" do
       it "sets ECR templates" do
-        adjusted_path =  "../." + TESTING_APP
         scaffold_app(TESTING_APP, "-t", "ecr")
         Dir.cd("../../")
         amber_yml["language"].should eq "ecr"
