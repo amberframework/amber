@@ -19,13 +19,10 @@ module CLIHelper
   ENVIRONMENTS        = %w(development test)
 
   def cleanup
-    # puts "clean begin"
-          # puts Dir.current
     Dir.cd CURRENT_DIR
     if Dir.exists?(TESTING_APP)
       FileUtils.rm_rf(TESTING_APP)
     end
-          # puts Dir.current
   end
 
   def prepare_test_app
@@ -115,7 +112,6 @@ module CLIHelper
     Amber::CLI::MainCommand.run ["new", app_name, "-y", "--no-deps"] | options.to_a
     Dir.cd(app_name)
     prepare_yaml(Dir.current)
-    # Dir.cd("..")
   end
 
   def build_route(controller, action, method)
