@@ -62,7 +62,6 @@ module Amber::Recipes
     context "using a github shard" do
       Spec.before_each do
         Dir.mkdir_p("./myapp")
-        RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
       end
 
       Spec.after_each do
@@ -71,6 +70,7 @@ module Amber::Recipes
 
       describe "RecipeFetcher" do
         it "should use a shard controller folder" do
+          RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
           Dir.cd("./myapp") do
             template = RecipeFetcher.new("controller", "damianham/amber_granite").fetch
             template.should_not be nil
@@ -79,6 +79,7 @@ module Amber::Recipes
         end
 
         it "should use a shard model folder" do
+          RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
           Dir.cd("./myapp") do
             template = RecipeFetcher.new("model", "damianham/amber_granite").fetch
             template.should_not be nil
@@ -87,6 +88,7 @@ module Amber::Recipes
         end
 
         it "should use a shard scaffold folder" do
+          RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
           Dir.cd("./myapp") do
             template = RecipeFetcher.new("scaffold", "damianham/amber_granite").fetch
             template.should_not be nil
