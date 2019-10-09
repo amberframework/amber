@@ -4,6 +4,10 @@ require "../../../support/helpers/cli_helper"
 include CLIHelper
 
 module Amber::CLI
+  def self.set_dir
+    Dir.cd CURRENT_DIR
+  end
+
   describe Amber::CLI::MainCommand::New do
     Spec.after_each do
       cleanup
@@ -19,7 +23,7 @@ module Amber::CLI
       spec_definition_prefix = "describe #{camel_case}"
 
       # "generates amber directory structure" do
-
+      dirs("../." + TESTING_APP).sort.should eq dirs(APP_TEMPLATE_PATH).sort
       # "follows naming conventions for all files and class names" do
       [camel_case, snake_case].each do |arg|
         MainCommand.run ["generate", "model", "-y", arg]
@@ -58,7 +62,7 @@ module Amber::CLI
       %w(pg mysql sqlite).each do |db|
         it "generates #{db} correctly" do
           scaffold_app(TESTING_APP, "-d", db)
-          Dir.cd("../../")
+          set_dir
           %w(development test).each do |env|
             db_key = db == "sqlite" ? "sqlite3" : db
             db_url = environment_yml(env)["database_url"].as_s
@@ -76,14 +80,15 @@ module Amber::CLI
     describe "View templates" do
       it "sets ECR templates" do
         scaffold_app(TESTING_APP, "-t", "ecr")
-        Dir.cd("../../")
+        set_dir
         amber_yml["language"].should eq "ecr"
         cleanup
       end
 
       it "it defaults to Slang templates" do
         scaffold_app(TESTING_APP, "-t", "slang")
-        Dir.cd("../../")
+        set_dir
+
         amber_yml["language"].should eq "slang"
         cleanup
       end
