@@ -4,7 +4,15 @@ require "../../../support/helpers/cli_helper"
 include CLIHelper
 
 module Amber::CLI
-  pending Amber::CLI::MainCommand::New do
+  def self.set_dir
+    Dir.cd CURRENT_DIR
+  end
+
+  describe Amber::CLI::MainCommand::New do
+    Spec.after_each do
+      cleanup
+    end
+
     it "amber new #{TESTING_APP}" do
       ENV["AMBER_ENV"] = "test"
 
@@ -15,8 +23,7 @@ module Amber::CLI
       spec_definition_prefix = "describe #{camel_case}"
 
       # "generates amber directory structure" do
-      dirs(TESTING_APP).sort.should eq dirs(APP_TEMPLATE_PATH).sort
-
+      dirs("../." + TESTING_APP).sort.should eq dirs(APP_TEMPLATE_PATH).sort
       # "follows naming conventions for all files and class names" do
       [camel_case, snake_case].each do |arg|
         MainCommand.run ["generate", "model", "-y", arg]
@@ -35,19 +42,27 @@ module Amber::CLI
       cleanup
     end
 
-    context "-r recipe (damianham/default)" do
-      it "generates amber directory structure" do
-        scaffold_app(TESTING_APP, "-r", "damianham/default")
+    # This test fails because:
+    # [04:03:28 Generate   | (INFO) Rendering App test_app in ./test_app from damianham/default
+    # 04:03:29 Generate   | (ERROR) Could not find the recipe damianham/default : 404 Not Found
+    # 04:03:29 Generate   | (INFO) Installing Dependencies
+    # Missing shard.yml. Please run 'shards init'
+    # Environment file not found for ./config/environments/production
 
-        dirs(TESTING_APP).sort.should eq dirs(APP_TEMPLATE_PATH).sort
-        cleanup
-      end
-    end
+    # context "-r recipe (damianham/default)" do
+    #   it "generates amber directory structure" do
+    #     puts Dir.current
+    #     scaffold_app(TESTING_APP, "-r", "damianham/default")
+    #     dirs("../../"+TESTING_APP).sort.should eq dirs(APP_TEMPLATE_PATH).sort
+    #     cleanup
+    #   end
+    # end
 
     describe "Database settings" do
       %w(pg mysql sqlite).each do |db|
         it "generates #{db} correctly" do
           scaffold_app(TESTING_APP, "-d", db)
+          set_dir
           %w(development test).each do |env|
             db_key = db == "sqlite" ? "sqlite3" : db
             db_url = environment_yml(env)["database_url"].as_s
@@ -58,7 +73,6 @@ module Amber::CLI
             # "has correct database connection string"
             db_url.should eq expected_db_url(db_key, env)
           end
-          cleanup
         end
       end
     end
@@ -66,12 +80,15 @@ module Amber::CLI
     describe "View templates" do
       it "sets ECR templates" do
         scaffold_app(TESTING_APP, "-t", "ecr")
+        set_dir
         amber_yml["language"].should eq "ecr"
         cleanup
       end
 
       it "it defaults to Slang templates" do
         scaffold_app(TESTING_APP, "-t", "slang")
+        set_dir
+
         amber_yml["language"].should eq "slang"
         cleanup
       end
