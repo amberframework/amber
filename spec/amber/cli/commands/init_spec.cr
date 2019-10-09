@@ -20,7 +20,6 @@ module Amber::CLI
 
       # "generates amber directory structure" do
 
-
       # "follows naming conventions for all files and class names" do
       [camel_case, snake_case].each do |arg|
         MainCommand.run ["generate", "model", "-y", arg]
@@ -70,8 +69,6 @@ module Amber::CLI
             # "has correct database connection string"
             db_url.should eq expected_db_url(db_key, env)
           end
-
-
         end
       end
     end

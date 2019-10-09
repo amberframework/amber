@@ -73,7 +73,7 @@ module RouterHelper
   end
 
   def cors_add_next(cors)
-    cors.next = ->(_context: HTTP::Server::Context){return "test"}
+    cors.next = ->(_context : HTTP::Server::Context) { "test" }
     cors
   end
 end
