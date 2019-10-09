@@ -18,7 +18,6 @@ env:
 
 script:
   - bin/ameba
-  - crystal -v
   - crystal tool format --check
   - crystal spec $TEST_SUITE
 

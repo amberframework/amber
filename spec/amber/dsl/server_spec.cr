@@ -124,7 +124,7 @@ module Amber
 
             expected = [Pipe::Logger, Pipe::Error]
             plugs = server.handler.pipeline[:custom]?
-              plugs.should_not be nil
+            plugs.should_not be nil
             (plugs.map(&.class).should eq expected) if plugs
           end
         end
@@ -135,7 +135,7 @@ module Amber
 
             expected = [Pipe::Logger, Pipe::Error, Pipe::CSRF]
             plugs = server.handler.pipeline[:custom]?
-              plugs.should_not be nil
+            plugs.should_not be nil
             (plugs.map(&.class).should eq expected) if plugs
           end
         end
@@ -155,7 +155,7 @@ module Amber
             expected = [Pipe::Logger, Pipe::Error]
             [:api, :web].each do |name|
               plugs = server.handler.pipeline[name]?
-                plugs.should_not be nil
+              plugs.should_not be nil
               (plugs.map(&.class).should eq expected) if plugs
             end
           end
@@ -166,7 +166,7 @@ module Amber
             server = pipeline_multi_and_single
 
             plugs = server.handler.pipeline[:api]?
-              plugs.should_not be nil
+            plugs.should_not be nil
             (plugs.first?.should be_a Pipe::CORS) if plugs
           end
 
@@ -174,7 +174,7 @@ module Amber
             server = pipeline_multi_and_single
 
             plugs = server.handler.pipeline[:web]?
-              plugs.should_not be nil
+            plugs.should_not be nil
             (plugs.last?.should be_a Pipe::CSRF) if plugs
           end
 
@@ -183,7 +183,7 @@ module Amber
 
             expected = [Pipe::CORS, Pipe::Logger, Pipe::Error]
             plugs = server.handler.pipeline[:api]?
-              plugs.should_not be nil
+            plugs.should_not be nil
             (plugs.map(&.class).should eq expected) if plugs
           end
 
@@ -192,7 +192,7 @@ module Amber
 
             expected = [Pipe::Logger, Pipe::Error, Pipe::CSRF]
             plugs = server.handler.pipeline[:web]?
-              plugs.should_not be nil
+            plugs.should_not be nil
             (plugs.map(&.class).should eq expected) if plugs
           end
         end
