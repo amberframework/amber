@@ -94,8 +94,6 @@ module CLIHelper
       shard = shard.gsub(/github\:\samberframework\/amber\n.*(?=\n)/, "path: ../../../amber")
       File.write("#{path}/shard.yml", shard)
     end
-
-    system("shards install")
   end
 
   def prepare_db_yml(path = ENV_CONFIG_PATH)

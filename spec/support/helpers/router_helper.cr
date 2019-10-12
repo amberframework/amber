@@ -71,4 +71,9 @@ module RouterHelper
     origins = Amber::Pipe::CORS::OriginType.new
     origins << domain
   end
+
+  def cors_add_next(cors)
+    cors.next = ->(_context : HTTP::Server::Context) { "test" }
+    cors
+  end
 end
