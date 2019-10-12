@@ -13,7 +13,7 @@ Amber::Server.configure do
   end
 
   pipeline :api do
-    plug Amber::Pipe::PoweredByAmber.new
+    # plug Amber::Pipe::PoweredByAmber.new
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Logger.new
     plug Amber::Pipe::Session.new
@@ -22,7 +22,7 @@ Amber::Server.configure do
 
   # All static content will run these transformations
   pipeline :static do
-    plug Amber::Pipe::PoweredByAmber.new
+    # plug Amber::Pipe::PoweredByAmber.new
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Static.new("./public")
   end
