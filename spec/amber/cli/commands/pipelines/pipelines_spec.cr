@@ -18,7 +18,6 @@ module Amber::CLI
       pipeline_names = %w(web static)
 
       web_default_plugs = %w(
-        Amber::Pipe::PoweredByAmber
         Citrine::I18n::Handler
         Amber::Pipe::Error
         Amber::Pipe::Logger
@@ -28,7 +27,6 @@ module Amber::CLI
       )
 
       static_default_plugs = %w(
-        Amber::Pipe::PoweredByAmber
         Amber::Pipe::Error
         Amber::Pipe::Static
       )
