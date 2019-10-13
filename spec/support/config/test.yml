@@ -16,7 +16,6 @@ host: 0.0.0.0
 name: test_settings
 port: 3000
 port_reuse: true
-process_count: 1
 redis_url: "redis://localhost:6379"
 secret_key_base: ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4
 

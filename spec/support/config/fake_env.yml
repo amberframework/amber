@@ -16,7 +16,6 @@ host: 0.0.0.0
 name: fake_settings
 port: 4000
 port_reuse: true
-process_count: 16
 redis_url: "redis://localhost:6379"
 secret_key_base: ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4
 # ssl_key_file:

@@ -14,7 +14,7 @@ module Amber
     end
 
     def self.start
-      instance.run
+      instance.start
     end
 
     # Configure should probably be deprecated in favor of settings.
@@ -39,16 +39,6 @@ module Amber
 
     def project_name
       @project_name ||= settings.name.gsub(/\W/, "_").downcase
-    end
-
-    def run
-      thread_count = settings.process_count
-      if Cluster.master? && thread_count > 1
-        thread_count.times { Cluster.fork }
-        sleep
-      else
-        start
-      end
     end
 
     def start

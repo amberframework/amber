@@ -16,7 +16,6 @@ module Amber::Environment
       settings.name.should eq "test_settings"
       settings.port.should eq 3000
       settings.port_reuse.should eq true
-      settings.process_count.should eq 1
       settings.redis_url.should eq "redis://localhost:6379"
       settings.secret_key_base.should_not be_nil
       settings.secrets.should eq({"description" => "Store your test secrets credentials and settings here."})
