@@ -6,7 +6,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_DB=test_app_development
   redis:
-    image: redis:3.2-alpine
+    image: redis:5.0-alpine
     command: redis-server
   spec:
     build: .

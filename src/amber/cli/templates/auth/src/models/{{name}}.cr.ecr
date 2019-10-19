@@ -44,7 +44,7 @@ class <%= class_name %> < Granite::Base
   end
 
   def authenticate(password : String)
-    (bcrypt_pass = self.password) ? bcrypt_pass == password : false
+    (bcrypt_pass = self.password) ? bcrypt_pass.verify(password) : false
   end
 
   private getter new_password : String?

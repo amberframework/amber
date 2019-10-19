@@ -10,7 +10,6 @@ module Amber::Recipes
     @database : String
     @database_name_base : String
     @language : String
-    @model : String
     @db_url : String
     @wait_for : String
     @author : String
@@ -19,7 +18,7 @@ module Amber::Recipes
     @template : String | Nil
     @recipe : String
 
-    def initialize(@name, @database = "pg", @language = "slang", @model = "granite", @recipe = "base")
+    def initialize(@name, @database = "pg", @language = "slang", @recipe = "base")
       @db_url = ""
       @wait_for = ""
       @database_name_base = generate_database_name_base
@@ -42,7 +41,7 @@ module Amber::Recipes
       ctx.set "database", @database
       ctx.set "database_name_base", @database_name_base
       ctx.set "language", @language
-      ctx.set "model", @model
+      ctx.set "model", "granite"
       ctx.set "db_url", @db_url
       ctx.set "wait_for", @wait_for
       ctx.set "author", @author

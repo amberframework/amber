@@ -1,4 +1,4 @@
-FROM crystallang/crystal:0.30.0
+FROM crystallang/crystal:0.31.1
 
 # Install Dependencies
 ARG DEBIAN_FRONTEND=noninteractive

@@ -4,19 +4,19 @@ module Amber::Pipe
   describe CORS do
     it "supports simple CORS requests" do
       context = cors_context("GET", "Origin": "http://localhost:3000")
-      CORS.new.call(context)
+      cors_add_next(CORS.new).call(context)
       assert_cors_success(context)
     end
 
     it "does not return CORS headers if Origin header not present" do
       context = cors_context("GET")
-      CORS.new.call(context)
+      cors_add_next(CORS.new).call(context)
       assert_cors_failure context
     end
 
     it "supports OPTIONS request" do
       context = cors_context("OPTIONS", "Origin": "example.com")
-      CORS.new.call(context)
+      cors_add_next(CORS.new).call(context)
       assert_cors_success context
     end
 
@@ -24,39 +24,39 @@ module Amber::Pipe
       context = cors_context("GET", "Origin": "http://192.168.0.1:3000")
       origins = CORS::OriginType.new
       origins << %r(192\.168\.0\.1)
-      CORS.new(origins: origins).call(context)
+      cors_add_next(CORS.new(origins: origins)).call(context)
       assert_cors_success(context)
     end
 
     it "does not return CORS headers if origins is empty" do
       context = cors_context("GET", "Origin": "http://localhost:3000")
-      CORS.new(origins: CORS::OriginType.new).call(context)
+      cors_add_next(CORS.new(origins: CORS::OriginType.new)).call(context)
       assert_cors_failure context
     end
 
     it "supports alternative X-Origin header" do
       context = cors_context("GET", "X-Origin": "http://localhost:3000")
-      CORS.new.call(context)
+      cors_add_next(CORS.new).call(context)
       assert_cors_success(context)
     end
 
     it "supports expose header configuration" do
       expose_header = %w(X-Expose)
       context = cors_context("GET", "X-Origin": "http://localhost:3000")
-      CORS.new(expose_headers: expose_header).call(context)
+      cors_add_next(CORS.new(expose_headers: expose_header)).call(context)
       context.response.headers[Amber::Pipe::Headers::ALLOW_EXPOSE].should eq expose_header.join(",")
     end
 
     it "supports expose multiple header configuration" do
       expose_header = %w(X-Example X-Another)
       context = cors_context("GET", "X-Origin": "http://localhost:3000")
-      CORS.new(expose_headers: expose_header).call(context)
+      cors_add_next(CORS.new(expose_headers: expose_header)).call(context)
       context.response.headers[Amber::Pipe::Headers::ALLOW_EXPOSE].should eq expose_header.join(",")
     end
 
     it "adds vary header when origin is other than (*)" do
       context = cors_context("GET", "Origin": "example.com")
-      CORS.new(origins: origins).call(context)
+      cors_add_next(CORS.new(origins: origins)).call(context)
       context.response.headers[Amber::Pipe::Headers::VARY].should eq "Origin"
     end
 
@@ -64,19 +64,19 @@ module Amber::Pipe
       origins = CORS::OriginType.new
       origins << "*"
       context = cors_context("GET", "Origin": "*")
-      CORS.new(origins: origins).call(context)
+      cors_add_next(CORS.new(origins: origins)).call(context)
       context.response.headers[Amber::Pipe::Headers::VARY]?.should be_nil
     end
 
     it "adds Vary header based on :vary option" do
       context = cors_context("GET", "Origin": "example.com")
-      CORS.new(origins: origins, vary: "Other").call(context)
+      cors_add_next(CORS.new(origins: origins, vary: "Other")).call(context)
       context.response.headers[Amber::Pipe::Headers::VARY].should eq "Origin,Other"
     end
 
     it "sets allow credential headers if credential settings is true" do
       context = cors_context("GET", "Origin": "example.com")
-      CORS.new(credentials: true, origins: origins, vary: "Other").call(context)
+      cors_add_next(CORS.new(credentials: true, origins: origins, vary: "Other")).call(context)
       context.response.headers[Amber::Pipe::Headers::ALLOW_CREDENTIALS].should eq "true"
     end
 
@@ -89,7 +89,7 @@ module Amber::Pipe
             "Access-Control-Request-Method": "PUT",
             "Access-Control-Request-Headers": "CoNtEnT-TyPe"
           )
-          CORS.new(origins: origins).call(context)
+          cors_add_next(CORS.new(origins: origins)).call(context)
 
           context.response.status_code = 200
           context.response.headers["Content-Length"].should eq "0"
@@ -102,7 +102,7 @@ module Amber::Pipe
             "Access-Control-Request-Method": "PUT",
             "Access-Control-Request-Headers": "CoNtEnT-TyPe"
           )
-          CORS.new(origins: origins).call(context)
+          cors_add_next(CORS.new(origins: origins)).call(context)
 
           context.response.status_code = 200
           context.response.headers["Access-Control-Allow-Methods"].should eq "PUT"
@@ -112,7 +112,7 @@ module Amber::Pipe
 
         context "after a previous valid preflight from another Origin" do
           it "should set the correct headers" do
-            cors = CORS.new(origins: origins)
+            cors = cors_add_next(CORS.new(origins: origins))
 
             previous_context = cors_context(
               "OPTIONS",
@@ -146,7 +146,7 @@ module Amber::Pipe
             "Access-Control-Request-Method": "unsupported method",
             "Access-Control-Request-Headers": "CoNtEnT-TyPe"
           )
-          CORS.new(origins: origins).call(context)
+          cors_add_next(CORS.new(origins: origins)).call(context)
 
           context.response.status_code.should eq 403
         end
@@ -157,7 +157,7 @@ module Amber::Pipe
             "Origin": "example.com",
             "Access-Control-Request-Method": "PUT",
           )
-          CORS.new(origins: origins).call(context)
+          cors_add_next(CORS.new(origins: origins)).call(context)
 
           context.response.status_code.should eq 403
         end

@@ -22,7 +22,7 @@ module Amber
 
         response = create_request_and_return_io(static, request)
 
-        response.body.should eq "Not Found\n"
+        response.body.should eq "404 Not Found\n"
       end
 
       it "delivers index.html if path ends with /" do

@@ -15,16 +15,16 @@ Following these guidelines helps to communicate that you respect the time of the
 
 [How Can I Contribute?](#how-can-i-contribute)
 
-  * [Reporting Bugs](#reporting-bugs)
-  * [Suggesting Enhancements](#suggesting-enhancements)
+  * [How to report a bug](#how-to-report-a-bug)
+  * [How to suggest a feature or enhancement](#how-to-suggest-a-feature-or-enhancement)
   * [Your First Contribution](#your-first-contribution)
   * [Pull Requests](#pull-requests)
 
 [Style Guides](#style-guides)
 
-  * [Coding Style Guides](#coding-style-guidelines)
+  * [Coding Style Guides](#coding-style-guides)
   * [Documenting code](#documenting-code)
-  * [Spec Style Guides](#spec-style-guides)
+  * [Spec Guides](#spec-guides)
 
 ## What should I know before I get started?
 ### Ground Rules
@@ -108,15 +108,17 @@ Both issue lists are sorted by total number of comments. While not perfect, numb
 * Build `amber.min.js` executing `npm install && npm run build` if `amber.js` has been changed
 * Specs Styleguide
 
-## Coding Style Guides
+## Style Guides
+
+### Coding Style Guides
 
 * [Style Guide](https://crystal-lang.org/docs/conventions/coding_style.html)
 
-## Documenting code
+### Documenting code
 
 * [Documenting Code](https://crystal-lang.org/docs/conventions/documenting_code.html)
 
-## Spec Guides
+### Spec Guides
 
 * Include thoughtfully-worded, well-structured Crystal specs in the `./spec` folder.
 * Treat `describe` as a noun or situation.

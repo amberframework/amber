@@ -25,7 +25,7 @@ class <%= class_name %>Controller < ApplicationController
   def create
     <%= @name %> = <%= class_name %>.new <%= @name %>_params.validate!
     if <%= @name %>.save
-      redirect_to action: :index, flash: {"success" => "Created <%= @name %> successfully."}
+      redirect_to action: :index, flash: {"success" => "<%= @name.capitalize %> has been created."}
     else
       flash[:danger] = "Could not create <%= class_name %>!"
       render "new.<%= config.language %>"
@@ -35,7 +35,7 @@ class <%= class_name %>Controller < ApplicationController
   def update
     <%= @name %>.set_attributes <%= @name %>_params.validate!
     if <%= @name %>.save
-      redirect_to action: :index, flash: {"success" => "Updated <%= @name %> successfully."}
+      redirect_to action: :index, flash: {"success" => "<%= @name.capitalize %> has been updated."}
     else
       flash[:danger] = "Could not update <%= class_name %>!"
       render "edit.<%= config.language %>"
@@ -44,7 +44,7 @@ class <%= class_name %>Controller < ApplicationController
 
   def destroy
     <%= @name %>.destroy
-    redirect_to action: :index, flash: {"success" => "Deleted <%= @name %> successfully."}
+    redirect_to action: :index, flash: {"success" => "<%= @name.capitalize %> has been deleted."}
   end
 
   private def <%= @name %>_params
