@@ -255,9 +255,9 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 if (!Date.prototype.toGranite) {
-  (() => {
+  (function() {
 
-    let pad = (number) => {
+    function pad(number) {
       if (number < 10) {
         return '0' + number;
       }
@@ -272,5 +272,6 @@ if (!Date.prototype.toGranite) {
         ':' + pad(this.getUTCMinutes()) +
         ':' + pad(this.getUTCSeconds())  ;
     };
-  });
+
+  }());
 }
