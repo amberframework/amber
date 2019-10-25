@@ -272,5 +272,5 @@ if (!Date.prototype.toGranite) {
         ':' + pad(this.getUTCMinutes()) +
         ':' + pad(this.getUTCSeconds())  ;
     };
-  };
+  });
 }
