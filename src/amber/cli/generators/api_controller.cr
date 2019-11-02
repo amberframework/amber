@@ -12,8 +12,8 @@ module Amber::CLI
     end
 
     private def add_routes
-      add_routes :api, <<-ROUTE
-        resources "/api/#{name_plural}", #{class_name}Controller, except: [:new, :edit]
+      add_api_routes <<-ROUTE
+        resources "/v1/#{name_plural}", API::#{class_name}Controller, except: [:new, :edit]
       ROUTE
     end
   end

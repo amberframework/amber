@@ -12,7 +12,7 @@ module Amber::CLI
     end
 
     private def add_routes
-      add_routes :web, <<-ROUTE
+      add_routes <<-ROUTE
         resources "#{name_plural}", #{class_name}Controller
       ROUTE
     end

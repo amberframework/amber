@@ -25,7 +25,7 @@ def <%= create_model_method %>
   model
 end
 
-class <%= class_name %>ControllerTest < GarnetSpec::Controller::Test
+class API::<%= class_name %>ControllerTest < GarnetSpec::Controller::Test
   getter handler : Amber::Pipe::Pipeline
 
   def initialize
@@ -38,8 +38,8 @@ class <%= class_name %>ControllerTest < GarnetSpec::Controller::Test
   end
 end
 
-describe <%= class_name %>ControllerTest do
-  subject = <%= class_name %>ControllerTest.new
+describe API::<%= class_name %>ControllerTest do
+  subject = API::<%= class_name %>ControllerTest.new
 
   it "renders <%= @name %> index json" do
     <%= class_name %>.clear

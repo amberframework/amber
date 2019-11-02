@@ -21,7 +21,7 @@ module Amber::CLI
     end
 
     private def add_routes
-      add_routes :web, <<-ROUTES
+      add_routes <<-ROUTES
         get "/profile", #{class_name}Controller, :show
           get "/profile/edit", #{class_name}Controller, :edit
           patch "/profile", #{class_name}Controller, :update

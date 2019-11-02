@@ -31,7 +31,7 @@ Amber::Server.configure do
     get "/", HomeController, :index
   end
 
-  routes :api do
+  routes :api, "/api" do
   end
 
   routes :static do
