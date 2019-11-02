@@ -1,7 +1,7 @@
 module Amber::CLI::Helpers
   def add_routes(pipeline, route)
     routes = File.read("./config/routes.cr")
-    if pipeline.to_s == ":web"
+    if pipeline == :web
       replacement = <<-ROUTES
       routes :web do
       #{route}
