@@ -1,21 +1,19 @@
 module Amber::CLI::Helpers
-  def add_routes(route)
+  def add_routes(pipeline, route)
     routes = File.read("./config/routes.cr")
-    replacement = <<-ROUTES
-    routes :web do
-    #{route}
-    ROUTES
-    File.write("./config/routes.cr", routes.gsub("routes :web do", replacement))
-    system("crystal tool format ./config/routes.cr")
-  end
-
-  def add_api_routes(route)
-    routes = File.read("./config/routes.cr")
-    replacement = <<-ROUTES
-    routes :api, "/api" do
-    #{route}
-    ROUTES
-    File.write("./config/routes.cr", routes.gsub("routes :api, \"/api\" do", replacement))
+    if pipeline.to_s == ":web"
+      replacement = <<-ROUTES
+      routes :web do
+      #{route}
+      ROUTES
+      File.write("./config/routes.cr", routes.gsub("routes :web do", replacement))
+    else
+      replacement = <<-ROUTES
+      routes :api, "/api" do
+      #{route}
+      ROUTES
+      File.write("./config/routes.cr", routes.gsub("routes :api, \"/api\" do", replacement))
+    end
     system("crystal tool format ./config/routes.cr")
   end
 

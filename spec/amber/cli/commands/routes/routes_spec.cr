@@ -71,7 +71,7 @@ module Amber::CLI
       it "outputs the websocket route" do
         output = ""
         scaffold_app(TESTING_APP)
-        add_routes %(websocket "/electric", ElectricSocket)
+        add_routes :web, %(websocket "/electric", ElectricSocket)
         MainCommand.run %w(routes) { |cmd| output = cmd.out.gets_to_end }
         output_lines = route_table_rows(output)
 
