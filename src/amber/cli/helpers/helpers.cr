@@ -5,7 +5,7 @@ module Amber::CLI::Helpers
     routes :#{pipeline.to_s}\\1 do
       #{route}
     ROUTES
-    File.write("./config/routes.cr", routes.gsub(/routes :#{pipeline.to_s}(.*) do/, replacement, backreferences = true))
+    File.write("./config/routes.cr", routes.gsub(/routes :#{pipeline.to_s}(.*) do/, replacement))
     system("crystal tool format ./config/routes.cr")
   end
 
