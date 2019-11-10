@@ -2,10 +2,10 @@ module Amber::CLI::Helpers
   def add_routes(pipeline, route)
     routes = File.read("./config/routes.cr")
     replacement = <<-ROUTES
-    routes :#{pipeline.to_s} do
-    #{route}
+    routes :#{pipeline.to_s}\\1 do
+      #{route}
     ROUTES
-    File.write("./config/routes.cr", routes.gsub("routes :#{pipeline.to_s} do", replacement))
+    File.write("./config/routes.cr", routes.gsub(/routes :#{pipeline.to_s}(.*) do/, replacement))
     system("crystal tool format ./config/routes.cr")
   end
 
