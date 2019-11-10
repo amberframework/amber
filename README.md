@@ -59,7 +59,7 @@ sudo make install
 If you're using ArchLinux or similar distro try:
 
 ```
-yaourt -S amber
+yay -S amber
 ```
 
 #### Common
