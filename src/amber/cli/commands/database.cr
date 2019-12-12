@@ -29,7 +29,7 @@ module Amber::CLI
 
         Commands:
           drop      drops the database
-          create    dreates the database
+          create    creates the database
           migrate   migrate the database to the most recent version available
           rollback  roll back the database version by 1
           redo      re-run the latest database migration
