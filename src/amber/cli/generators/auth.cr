@@ -84,7 +84,7 @@ module Amber::CLI
 
         def current_#{@name}
           context.current_#{@name}
-        end\n
+        end
       AUTH
     end
 
