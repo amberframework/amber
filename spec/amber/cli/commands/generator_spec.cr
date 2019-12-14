@@ -173,26 +173,23 @@ module Amber::CLI
 
         File.exists?("./db/seeds.cr").should be_true
         File.exists?("./spec/models/admin_user_spec.cr").should be_true
-        File.exists?("./src/controllers/registration_controller.cr").should be_true
         File.exists?("./src/controllers/session_controller.cr").should be_true
         File.exists?("./src/pipes/authenticate.cr").should be_true
         File.exists?("./src/models/admin_user.cr").should be_true
-        File.exists?("./src/views/registration/new.slang").should be_true
+        File.exists?("./src/views/admin_user/new.slang").should be_true
         File.exists?("./src/views/session/new.slang").should be_true
 
         migration_filename = Dir["./db/migrations/*_#{snake_case}.sql"].first
         File.read("#{migration_filename}").should contain migration_definition_prefix
         File.read("./db/seeds.cr").should contain camel_case
         File.read("./spec/models/admin_user_spec.cr").should contain spec_definition_prefix
-        File.read("./src/controllers/registration_controller.cr").should contain camel_case
-        File.read("./src/controllers/registration_controller.cr").should contain snake_case
         File.read("./src/controllers/session_controller.cr").should contain camel_case
         File.read("./src/controllers/session_controller.cr").should contain snake_case
         File.read("./src/pipes/authenticate.cr").should contain camel_case
         File.read("./src/pipes/authenticate.cr").should contain snake_case
         File.read("./src/models/admin_user.cr").should contain class_definition_prefix
         File.read("./src/models/admin_user.cr").should contain snake_case
-        File.read("./src/views/registration/new.slang").should contain snake_case
+        File.read("./src/views/admin_user/new.slang").should contain snake_case
         File.read("./src/views/session/new.slang").should contain snake_case
       end
       cleanup
