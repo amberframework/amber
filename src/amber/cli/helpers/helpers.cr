@@ -14,13 +14,30 @@ module Amber::CLI::Helpers
     return if routes.includes? plug
 
     pipes = routes.match(/pipeline :#{pipeline.to_s} do(.+?)end/m)
-    return unless pipes
+    if pipes
+      replacement = <<-PLUGS
+      pipeline :#{pipeline.to_s} do#{pipes[1]}#{plug}
+        end
+      PLUGS
+      File.write("./config/routes.cr", routes.gsub(pipes[0], replacement))
+    else
+      web_pipes = routes.match(/pipeline :web do(.+?)end/m)
+      if web_pipes
+        replacement = <<-PLUGS
+        pipeline :web do#{web_pipes[1]}
+        end
 
-    replacement = <<-PLUGS
-    pipeline :#{pipeline.to_s} do#{pipes[1]}#{plug}
+        pipeline :#{pipeline.to_s} do
+          #{plug}
+        end
+
+        routes :#{pipeline.to_s} do
+        end
+        PLUGS
+        File.write("./config/routes.cr", routes.gsub(web_pipes[0], replacement))
       end
-    PLUGS
-    File.write("./config/routes.cr", routes.gsub(pipes[0], replacement))
+    end
+
     system("crystal tool format ./config/routes.cr")
   end
 
