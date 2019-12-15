@@ -1,0 +1,46 @@
+<nav aria-label="Pagination">
+    <ul class="pagination pagination-circle pg-blue">
+        <% unless page_number == 0 %>
+            <li class="page-item"><a href="?page_number=0" class="page-link">First</a></li>
+            <li class="page-item"><a href="?page_number=<%= page_number - 1 %>" class="page-link">
+                <span aria-hidden="true">&laquo;</span>
+                <span class="sr-only">Previous</span>
+            </a></li>
+        <% end %>
+
+        <% unless page_count > 10 %>
+        <% page_count.times do |i| %>
+            <%
+            if i == page_number
+              active = "active"
+            else
+              active = ""
+            end
+            %>
+            <li class="page-item <%= active %>"><a href="?page_number=<%= i %>" class="page-link"><%= i %></a></li>
+        <% end %>
+        <% else %>
+            <% n = page_number - 5 %>
+             <% 10.times do |i| %>
+                <%
+                if (n + i) == page_number
+                    active = "active"
+                else
+                    active = ""
+                end
+                %>
+                <% if ((i + n) <= (page_count - 1)) && (i + n) >= 0 %>
+                    <li class="page-item <%= active %>"><a href="?page_number=<%= (n + i) %>" class="page-link"><%= (n + i) %></a></li>
+                <% end %>
+            <% end %>
+        <% end %>
+
+        <% unless page_number == (page_count - 1)  %>
+        <li class="page-item"><a href="?page_number=<%= page_number + 1 %>" class="page-link">
+            <span aria-hidden="true">&raquo;</span>
+            <span class="sr-only">Next</span>
+        </a></li>
+        <li class="page-item"><a href="?page_number=<%= page_count -1 %>" class="page-link">Last</a></li>
+        <% end %>
+    </ul>
+</nav>
