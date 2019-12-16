@@ -1,11 +1,11 @@
 module Amber::CLI::Helpers
   def add_routes(pipeline, route)
     routes_file = File.read("./config/routes.cr")
-    routes = routes_file.match(/routes :#{pipeline.to_s} do(.+?)end/m)
+    routes = routes_file.match(/routes :#{pipeline.to_s}(.*) do(.+?)end/m)
     if routes
       replacement = <<-ROUTES
-        routes :#{pipeline.to_s} do
-          #{routes[1]}
+        routes :#{pipeline.to_s}#{routes[1]} do
+          #{routes[2]}
           #{route}
         end
       ROUTES
