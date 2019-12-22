@@ -1,6 +1,11 @@
 <%
-   page_number = 0 unless page_number
-   page_count = 0 unless page_count
+   unless page_number
+     page_number = 0
+   end
+   
+   unless page_count
+     page_count = 0
+   end
 %>
 <nav aria-label="Pagination">
     <ul class="pagination pagination-circle pg-blue">
