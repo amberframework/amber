@@ -5,10 +5,7 @@ h1 Sign Up
     ul.errors
     - <%= @name %>.errors.each do |error|
       li = error.to_s
-- if @validation_errors
-  - @validation_errors.not_nil!.each do |error|
-      li = error.message
-
+      
 form action="/registration" method="post"
   == csrf_tag
   .form-group

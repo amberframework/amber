@@ -1,26 +1,62 @@
 module Amber::CLI::Helpers
   def add_routes(pipeline, route)
-    routes = File.read("./config/routes.cr")
-    replacement = <<-ROUTES
-    routes :#{pipeline.to_s}\\1 do
-      #{route}
-    ROUTES
-    File.write("./config/routes.cr", routes.gsub(/routes :#{pipeline.to_s}(.*) do/, replacement))
+    routes_file = File.read("./config/routes.cr")
+    routes = routes_file.match(/routes :#{pipeline.to_s}(.*?) do(.+?)end/m)
+    if routes
+      replacement = <<-ROUTES
+        routes :#{pipeline.to_s}#{routes[1]} do
+          #{routes[2]}
+          #{route}
+        end
+      ROUTES
+      File.write("./config/routes.cr", routes_file.gsub(routes[0], replacement))
+    else
+      web_routes = routes_file.match(/routes :web(.*?) do(.+?)end/m)
+      if web_routes
+        replacement = <<-PLUGS
+        routes :web#{web_routes[1]} do
+          #{web_routes[2]}
+        end
+
+        routes :#{pipeline.to_s} do
+          #{route}
+        end
+        PLUGS
+        File.write("./config/routes.cr", routes_file.gsub(web_routes[0], replacement))
+      end
+    end
     system("crystal tool format ./config/routes.cr")
   end
 
   def add_plugs(pipeline, plug)
-    routes = File.read("./config/routes.cr")
-    return if routes.includes? plug
+    routes_file = File.read("./config/routes.cr")
+    return if routes_file.includes? plug
 
-    pipes = routes.match(/pipeline :#{pipeline.to_s} do(.+?)end/m)
-    return unless pipes
-
-    replacement = <<-PLUGS
-    pipeline :#{pipeline.to_s} do#{pipes[1]}#{plug}
+    pipes = routes_file.match(/pipeline :#{pipeline.to_s}(.*?) do(.+?)end/m)
+    if pipes
+      replacement = <<-PLUGS
+      pipeline :#{pipeline.to_s}#{pipes[1]} do
+        #{pipes[2]}
+        #{plug}
       end
-    PLUGS
-    File.write("./config/routes.cr", routes.gsub(pipes[0], replacement))
+      PLUGS
+      File.write("./config/routes.cr", routes_file.gsub(pipes[0], replacement))
+    else
+      web_pipes = routes_file.match(/pipeline :web(.*?) do(.+?)end/m)
+      if web_pipes
+        replacement = <<-PLUGS
+        pipeline :web#{web_pipes[1]} do
+          #{web_pipes[2]}
+        end
+
+        pipeline :#{pipeline.to_s} do
+          #{plug}
+        end
+        PLUGS
+        File.write("./config/routes.cr", routes_file.gsub(web_pipes[0], replacement))
+      end
+    end
+
     system("crystal tool format ./config/routes.cr")
   end
 

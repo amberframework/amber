@@ -1,40 +1,56 @@
 class <%= class_name %>Controller < ApplicationController
+  getter <%= @name %> = <%= class_name %>.new
+
   before_action do
-    all { redirect_signed_out_<%= @name %> }
+    only [:show, :edit, :update, :destroy] { set_<%= @name %> }
   end
 
   def show
-    render("show.<%= config.language %>") if (<%= @name %> = current_<%= @name %>)
+    render("show.<%= config.language %>")
+  end
+
+  def new
+    render "new.<%= config.language %>"
   end
 
   def edit
-    render("edit.<%= config.language %>") if (<%= @name %> = current_<%= @name %>)
+    render("edit.<%= config.language %>")
   end
 
-  def update
-    <%= @name %> = current_<%= @name %>
-    if update(<%= @name %>)
-      flash[:success] = "Updated Profile successfully."
-      redirect_to "/profile"
-    elsif <%= @name %>
-      flash[:danger] = "Could not update Profile!"
-      render("edit.<%= config.language %>")
+  def create
+    <%= @name %> = <%= class_name %>.new <%= @name %>_params.validate!
+    if <%= @name %>.save
+      session[:<%= @name %>_id] = <%= @name %>.id
+      redirect_to "/", flash: {"success" => "Created <%= class_name %> successfully."}
     else
-      flash[:info] = "Must be logged in"
-      redirect_to "/signin"
+      flash[:danger] = "Could not create <%= class_name %>!"
+      render "new.<%= config.language %>"
     end
   end
 
-  private def update(<%= @name %>)
-    return false unless <%= @name %> && <%= @name %>_params.valid?
-    <%= @name %>.set_attributes(<%= @name %>_params.to_h)
-    <%= @name %>.valid? && <%= @name %>.save
+  def update
+    <%= @name %>.set_attributes <%= @name %>_params.validate!
+    if <%= @name %>.save
+      redirect_to "/", flash: {"success" => "<%= class_name %> has been updated."}
+    else
+      flash[:danger] = "Could not update <%= class_name %>!"
+      render "edit.<%= config.language %>"
+    end
+  end
+
+  def destroy
+    <%= @name %>.destroy
+    redirect_to "/", flash: {"success" => "<%= class_name %> has been deleted."}
   end
 
   private def <%= @name %>_params
     params.validation do
-      required(:email)
-      optional(:password)
+      required :email
+      optional :password
     end
+  end
+
+  private def set_<%= @name %>
+    @<%= @name %> = current_<%= @name %>.not_nil!
   end
 end
