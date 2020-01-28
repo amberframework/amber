@@ -140,6 +140,22 @@ module Amber::Router::Session
       end
     end
 
+    describe "#to_h" do
+      it "returns an hash of available keys/values" do
+        cookies = new_cookie_store
+        cookie_store = RedisStore.new(REDIS_STORE, cookies, "ses", EXPIRES)
+
+        cookie_store["a"] = "a"
+        cookie_store["b"] = "b"
+        cookie_store["c"] = "c"
+
+        cookie_store.delete("ses")
+
+        cookie_store.to_h.keys.should eq %w(a b c)
+        cookie_store.to_h["c"].should eq "c"
+      end
+    end
+
     describe "#update" do
       it "updates all keys by hash" do
         cookies = new_cookie_store
