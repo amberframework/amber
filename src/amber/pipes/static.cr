@@ -25,7 +25,7 @@ module Amber
         expanded_path += "/" if is_dir_path && !dir_path?(expanded_path)
         is_dir_path = dir_path? expanded_path
         file_path = File.join(@public_dir, expanded_path)
-        root_file = @public_dir + expanded_path + "index.html"
+        root_file = File.join(@public_dir, expanded_path, "index.html")
 
         if is_dir_path && File.exists? root_file
           return if etag(context, root_file)
