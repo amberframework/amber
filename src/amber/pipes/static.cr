@@ -125,7 +125,7 @@ module Amber
         return
       end
 
-      private def add_cashe_header(env : HTTP::Server::Context)
+      private def add_cache_header(env : HTTP::Server::Context)
         env.response.headers["Cache-Control"] = "private, max-age=3600"
       end
 
