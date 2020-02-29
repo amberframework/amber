@@ -12,7 +12,7 @@ module Amber::Router
 
     def initialize(upload)
       @filename = upload.filename
-      @file = ::File.tempfile(filename)
+      @file = ::File.tempfile(::File.basename(filename.to_s))
       ::File.open(@file.path, "w") do |f|
         ::IO.copy(upload.body, f)
       end
