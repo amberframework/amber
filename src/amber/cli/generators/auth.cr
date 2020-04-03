@@ -14,29 +14,48 @@ module Amber::CLI
     end
 
     def pre_render(directory, **args)
-      add_routes
       add_plugs
+      inherit_plug :web, :auth
+      add_routes
       add_dependencies
       inject_application_controller_methods
     end
 
     private def add_routes
       add_routes :web, <<-ROUTES
-        get "/profile", #{class_name}Controller, :show
-          get "/profile/edit", #{class_name}Controller, :edit
-          patch "/profile", #{class_name}Controller, :update
           get "/signin", SessionController, :new
           post "/session", SessionController, :create
+          get "/signup", #{class_name}Controller, :new
+          post "/registration", #{class_name}Controller, :create
+      ROUTES
+
+      add_routes :auth, <<-ROUTES
+          get "/profile", #{class_name}Controller, :show
+          get "/profile/edit", #{class_name}Controller, :edit
+          patch "/profile", #{class_name}Controller, :update
           get "/signout", SessionController, :delete
-          get "/signup", RegistrationController, :new
-          post "/registration", RegistrationController, :create
       ROUTES
     end
 
     private def add_plugs
       add_plugs :web, <<-PLUGS
+        plug Current#{class_name}.new
+      PLUGS
+      add_plugs :auth, <<-PLUGS
         plug Authenticate.new
       PLUGS
+    end
+
+    private def inherit_plug(base, target)
+      routes = File.read("./config/routes.cr")
+      pipes = routes.match(/pipeline :#{base.to_s} do(.+?)end/m)
+      return unless pipes
+
+      replacement = <<-PLUGS
+        pipeline :#{base.to_s}, :#{target.to_s} do#{pipes[1]}
+        end
+      PLUGS
+      File.write("./config/routes.cr", routes.gsub(pipes[0], replacement))
     end
 
     private def add_dependencies
@@ -55,14 +74,6 @@ module Amber::CLI
         append_text += current_method_definition
       end
 
-      unless controller.includes? "def signed_in?"
-        append_text += signed_in_method_definition
-      end
-
-      unless controller.includes? "def redirect_signed_out_#{@name}"
-        append_text += redirect_signed_out_method_definition
-      end
-
       append_text = "#{append_text}\nend\n"
       controller = controller.gsub(/end\s*\Z/, append_text)
       File.write(filename, controller)
@@ -73,27 +84,6 @@ module Amber::CLI
 
         def current_#{@name}
           context.current_#{@name}
-        end\n
-      AUTH
-    end
-
-    private def signed_in_method_definition
-      <<-AUTH
-
-        def signed_in?
-          current_#{@name} ? true : false
-        end\n
-      AUTH
-    end
-
-    private def redirect_signed_out_method_definition
-      <<-AUTH
-
-        private def redirect_signed_out_#{@name}
-          unless signed_in?
-            flash[:info] = "Must be logged in"
-            redirect_to "/signin"
-          end
         end
       AUTH
     end

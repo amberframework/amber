@@ -9,13 +9,6 @@
     </ul>
   <%="<"%>%- end %>
 <%="<"%>%- end %>
-<%="<"%>%- if @validation_errors %>
-  <ul class="errors">
-   <%="<"%>%-  @validation_errors.not_nil!.each do |error| %>
-      <li><%="<"%>%= error.message %></li>
-   <%="<"%>%- end %>
-  </ul>
-<%="<"%>%- end %>
 
 <form action="/registration" method="post">
   <%="<"%>%= csrf_tag %>
