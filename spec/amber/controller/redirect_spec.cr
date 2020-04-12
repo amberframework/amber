@@ -49,10 +49,12 @@ module Amber::Controller::Helpers
     end
 
     describe ".from_controller_action" do
-      Amber::Server.router.draw :web do
-        get "/redirect/:id", RedirectController, :show
-        get "/redirect/:id/edit", RedirectController, :edit
-        get "/redirect", RedirectController, :index
+      Spec.before_suite do
+        Amber::Server.router.draw :web do
+          get "/redirect/:id", RedirectController, :show
+          get "/redirect/:id/edit", RedirectController, :edit
+          get "/redirect", RedirectController, :index
+        end
       end
 
       it "raises an error for invalid controller/action" do
