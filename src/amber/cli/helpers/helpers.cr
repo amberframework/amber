@@ -80,7 +80,7 @@ module Amber::CLI::Helpers
     else
       Process.new(command, shell: shell, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
     end
-  rescue ex : Errno
+  rescue ex : IO::Error
     # typically means we could not find the executable
     ex
   end

@@ -76,15 +76,10 @@ module Amber
           logger.info "Startup Time #{Time.local - time}".colorize(:white)
           server.listen
           break
-        rescue e : Errno
-          if e.errno == Errno::EMFILE
-            logger.error e.message
-            logger.info "Restarting server..."
-            sleep 1
-          else
-            logger.error e.message
-            break
-          end
+        rescue e : IO::Error
+          logger.error e.message
+          logger.info "Restarting server..."
+          sleep 1
         end
       end
     end
