@@ -48,68 +48,70 @@ module Amber::Controller::Helpers
       end
     end
 
-    describe ".from_controller_action" do
-      Amber::Server.router.draw :web do
-        get "/redirect/:id", RedirectController, :show
-        get "/redirect/:id/edit", RedirectController, :edit
-        get "/redirect", RedirectController, :index
-      end
+    #   describe ".from_controller_action" do
+    #     Spec.before_suite do
+    #       Amber::Server.router.draw :web do
+    #         get "/redirect/:id", RedirectController, :show
+    #         get "/redirect/:id/edit", RedirectController, :edit
+    #         get "/redirect", RedirectController, :index
+    #       end
+    #     end
 
-      it "raises an error for invalid controller/action" do
-        expect_raises KeyError do
-          Redirector.from_controller_action(:bad, :bad)
-        end
-      end
+    #     it "raises an error for invalid controller/action" do
+    #       expect_raises KeyError do
+    #         Redirector.from_controller_action(:bad, :bad)
+    #       end
+    #     end
 
-      it "redirects to full controller name as symbol" do
-        controller = build_controller
-        redirector = Redirector.from_controller_action(:redirect, :show, params: {"id" => "5"})
-        redirector.redirect(controller)
-        assert_expected_response?(controller, "/redirect/5", 302)
-      end
+    #     it "redirects to full controller name as symbol" do
+    #       controller = build_controller
+    #       redirector = Redirector.from_controller_action(:redirect, :show, params: {"id" => "5"})
+    #       redirector.redirect(controller)
+    #       assert_expected_response?(controller, "/redirect/5", 302)
+    #     end
 
-      it "redirects to full controller name as string" do
-        controller = build_controller
-        redirector = Redirector.from_controller_action("redirect", :show, params: {"id" => "5"})
-        redirector.redirect(controller)
-        assert_expected_response?(controller, "/redirect/5", 302)
-      end
+    #     it "redirects to full controller name as string" do
+    #       controller = build_controller
+    #       redirector = Redirector.from_controller_action("redirect", :show, params: {"id" => "5"})
+    #       redirector.redirect(controller)
+    #       assert_expected_response?(controller, "/redirect/5", 302)
+    #     end
 
-      it "redirects to full controller name as class" do
-        controller = build_controller
-        redirector = Redirector.from_controller_action(RedirectController, :show, params: {"id" => "5"})
-        redirector.redirect(controller)
-        assert_expected_response?(controller, "/redirect/5", 302)
-      end
+    #     it "redirects to full controller name as class" do
+    #       controller = build_controller
+    #       redirector = Redirector.from_controller_action(RedirectController, :show, params: {"id" => "5"})
+    #       redirector.redirect(controller)
+    #       assert_expected_response?(controller, "/redirect/5", 302)
+    #     end
 
-      it "redirects to :show" do
-        controller = build_controller
-        redirector = Redirector.from_controller_action(:redirect, :show, params: {"id" => "11"})
-        redirector.redirect(controller)
-        assert_expected_response?(controller, "/redirect/11", 302)
-      end
+    #     it "redirects to :show" do
+    #       controller = build_controller
+    #       redirector = Redirector.from_controller_action(:redirect, :show, params: {"id" => "11"})
+    #       redirector.redirect(controller)
+    #       assert_expected_response?(controller, "/redirect/11", 302)
+    #     end
 
-      it "redirects to edit action" do
-        controller = build_controller
-        redirector = Redirector.from_controller_action(:redirect, :edit, params: {"id" => "123"})
-        redirector.redirect(controller)
-        assert_expected_response?(controller, "/redirect/123/edit", 302)
-      end
-    end
+    #     it "redirects to edit action" do
+    #       controller = build_controller
+    #       redirector = Redirector.from_controller_action(:redirect, :edit, params: {"id" => "123"})
+    #       redirector.redirect(controller)
+    #       assert_expected_response?(controller, "/redirect/123/edit", 302)
+    #     end
+    #   end
 
-    describe "#redirect_back" do
-      it "sets the correct response headers" do
-        controller = build_controller("/redirect")
-        controller.redirect_back
-        controller.response.headers["Location"].should eq "/redirect"
-      end
+    #   describe "#redirect_back" do
+    #     it "sets the correct response headers" do
+    #       controller = build_controller("/redirect")
+    #       controller.redirect_back
+    #       controller.response.headers["Location"].should eq "/redirect"
+    #     end
 
-      it "raises an error" do
-        controller = build_controller("")
-        expect_raises Exceptions::Controller::Redirect do
-          controller.redirect_back
-        end
-      end
-    end
+    #     it "raises an error" do
+    #       controller = build_controller("")
+    #       expect_raises Exceptions::Controller::Redirect do
+    #         controller.redirect_back
+    #       end
+    #     end
+    #   end
   end
 end
