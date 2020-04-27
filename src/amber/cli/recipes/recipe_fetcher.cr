@@ -5,9 +5,12 @@ require "http/client"
   require "zip"
 {% end %}
 
+require "../helpers/repo_fetcher"
+
 module Amber::Recipes
   class RecipeFetcher
     Log = ::Log.for(self)
+    include Amber::Helpers::RepoFetcher
 
     getter kind : String # one of the supported kinds [app, model, controller, scaffold]
     getter name : String
@@ -32,32 +35,22 @@ module Amber::Recipes
           return Dir.exists?(path) ? path : nil
         end
 
-        if @kind == "app" && try_github
-          fetch_github shard_name
+        if @kind == "app" && try_github(@name)
+          fetch_repo_shard(@name, "#{app_dir}/.recipes")
           path = "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
           return path if Dir.exists?(path)
         end
       end
 
       @template_path = "#{recipes_folder}/zip/#{@name}"
-      fetch_template(recipes_folder, @name)
-    end
-
-    def fetch_template(template_path, name)
-      path = "#{template_path}/#{@kind}"
-      return path if Dir.exists?(path)
-
-      if name && name.downcase.starts_with?("http") && name.downcase.ends_with?(".zip")
-        return fetch_zip name
-      end
-
-      fetch_url
+      fetch_template(recipes_folder, @name, @kind)
     end
 
     def recipes
       @kind == "app" ? "#{app_dir}/.recipes" : "./.recipes"
     end
 
+<<<<<<< HEAD
     def try_github
       url = "https://raw.githubusercontent.com/#{@name}/master/shard.yml"
 
@@ -87,10 +80,13 @@ module Amber::Recipes
       Amber::CLI::Helpers.run("cd #{app_dir}/.recipes && shards update")
     end
 
+=======
+>>>>>>> Changes to support installing plugins
     def recipe_source
       CLI.config.recipe_source || "https://github.com/amberframework/recipes/releases/download/dist/"
     end
 
+<<<<<<< HEAD
     def fetch_zip(url : String)
       # download the recipe zip file from the github repository
       HTTP::Client.get(url) do |response|
@@ -148,5 +144,13 @@ module Amber::Recipes
     def fetch_url
       fetch_zip "#{recipe_source}/#{@name}.zip"
     end
+=======
+    def fetch_url(name, directory, kind)
+      template = fetch_zip "#{recipe_source}/#{name}.zip",  directory, kind
+      CLI.logger.error "Cannot generate #{kind} from #{name} recipe", "Generate", :light_red unless template
+      template
+    end
+
+>>>>>>> Changes to support installing plugins
   end
 end
