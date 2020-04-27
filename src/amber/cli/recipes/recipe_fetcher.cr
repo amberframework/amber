@@ -1,8 +1,9 @@
-require "http/client"
-require "zip"
+require "../helpers/repo_fetcher"
 
 module Amber::Recipes
   class RecipeFetcher
+    include Amber::Helpers::RepoFetcher
+
     getter kind : String # one of the supported kinds [app, model, controller, scaffold]
     getter name : String
     getter directory : String
@@ -26,108 +27,30 @@ module Amber::Recipes
           return Dir.exists?(path) ? path : nil
         end
 
-        if @kind == "app" && try_github
-          fetch_github shard_name
+        if @kind == "app" && try_github(@name)
+          fetch_repo_shard(@name, "#{app_dir}/.recipes")
           path = "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
           return path if Dir.exists?(path)
         end
       end
 
       @template_path = "#{recipes_folder}/zip/#{@name}"
-      fetch_template(recipes_folder, @name)
-    end
-
-    def fetch_template(template_path, name)
-      path = "#{template_path}/#{@kind}"
-      return path if Dir.exists?(path)
-
-      if name && name.downcase.starts_with?("http") && name.downcase.ends_with?(".zip")
-        return fetch_zip name
-      end
-
-      fetch_url
+      fetch_template(recipes_folder, @name, @kind)
     end
 
     def recipes
       @kind == "app" ? "#{app_dir}/.recipes" : "./.recipes"
     end
 
-    def try_github
-      url = "https://raw.githubusercontent.com/#{@name}/master/shard.yml"
-
-      HTTP::Client.get(url) do |response|
-        if response.status_code == 200
-          return true
-        end
-      end
-      false
-    end
-
-    def create_recipe_shard(shard_name)
-      dirname = "#{app_dir}/.recipes"
-      Dir.mkdir_p(dirname)
-      filename = "#{dirname}/shard.yml"
-
-      yaml = {name: "recipe", version: "0.1.0", dependencies: {shard_name => {github: @name, branch: "master"}}}
-
-      CLI.logger.info "Create Recipe shard #{filename}", "Generate", :light_cyan
-      File.open(filename, "w") { |f| yaml.to_yaml(f) }
-    end
-
-    def fetch_github(shard_name)
-      create_recipe_shard shard_name
-
-      CLI.logger.info "Installing Recipe", "Generate", :light_cyan
-      Amber::CLI::Helpers.run("cd #{app_dir}/.recipes && shards update")
-    end
-
     def recipe_source
       CLI.config.recipe_source || "https://github.com/amberframework/recipes/releases/download/dist/"
     end
 
-    def fetch_zip(url : String)
-      # download the recipe zip file from the github repository
-      HTTP::Client.get(url) do |response|
-        if response.status_code == 302
-          # download the recipe zip frile from redirected url
-          if redirection_url = response.headers["Location"]?
-            HTTP::Client.get(redirection_url) do |redirected_response|
-              save_zip(redirected_response)
-            end
-          end
-        elsif response.status_code != 200
-          CLI.logger.error "Could not find the recipe #{@name} : #{response.status_code} #{response.status_message}", "Generate", :light_red
-          return nil
-        end
-
-        save_zip(response)
-      end
+    def fetch_url(name, directory, kind)
+      template = fetch_zip "#{recipe_source}/#{name}.zip",  directory, kind
+      CLI.logger.error "Cannot generate #{kind} from #{name} recipe", "Generate", :light_red unless template
+      template
     end
 
-    def save_zip(response : HTTP::Client::Response)
-      Dir.mkdir_p(@template_path)
-
-      Zip::Reader.open(response.body_io) do |zip|
-        zip.each_entry do |entry|
-          path = "#{@template_path}/#{entry.filename}"
-          if entry.dir?
-            Dir.mkdir_p(path)
-          else
-            File.write(path, entry.io.gets_to_end)
-          end
-        end
-      end
-
-      if Dir.exists?("#{@template_path}/#{@kind}")
-        return "#{@template_path}/#{@kind}"
-      end
-
-      CLI.logger.error "Cannot generate #{@kind} from #{@name} recipe", "Generate", :light_red
-      nil
-    end
-
-    def fetch_url
-      fetch_zip "#{recipe_source}/#{@name}.zip"
-    end
   end
 end
