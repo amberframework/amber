@@ -106,6 +106,7 @@ module Amber
         env.response.content_type = mime_type
         env.response.headers["Accept-Ranges"] = "bytes"
         env.response.headers["X-Content-Type-Options"] = "nosniff"
+        add_cache_header(env)
         minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
         request_headers = env.request.headers
         filesize = File.size(file_path)
@@ -122,6 +123,10 @@ module Amber
           end
         end
         return
+      end
+
+      private def add_cache_header(env : HTTP::Server::Context)
+        env.response.headers["Cache-Control"] = "private, max-age=3600"
       end
 
       private def next_multipart?(env)

@@ -110,11 +110,12 @@ module Amber
         chan = Channel(String).new
         http_server, ws = create_socket_server
         client_socket = Amber::WebSockets::ClientSockets.client_sockets.values.first
-        ws.on_close &->(_msg : String) { chan.send("closed") }
-        ws.close
+        ws.on_close &->(_code : HTTP::WebSocket::CloseCode, _msg : String) { chan.send("closed") }
+        ws.close(HTTP::WebSocket::CloseCode::NormalClosure, "close")
 
         chan.receive
-        client_socket.as(UserSocket).test_field[0].should eq "on close #{client_socket.id}"
+        user_socket = client_socket.as(UserSocket)
+        user_socket.test_field.size > 0 && user_socket.test_field.last.should eq "on close #{client_socket.id}"
         client_socket.disconnect!
         http_server.close
       end

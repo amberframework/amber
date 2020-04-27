@@ -1,6 +1,6 @@
 name: amber
 
-version: 0.33.0
+version: 0.34.0
 
 authors:
   - Amber Team and Contributors <amberframework.org>
@@ -36,23 +36,23 @@ dependencies:
 
   micrate:
     github: amberframework/micrate
-    version: ~> 0.6.0
+    version: ~> 0.7.0
 
   pg:
     github: will/crystal-pg
-    version: ~> 0.20.0
+    version: ~> 0.21.0
 
   mysql:
     github: crystal-lang/crystal-mysql
-    version: ~> 0.10.0
+    version: ~> 0.11.0
 
   sqlite3:
     github: crystal-lang/crystal-sqlite3
-    version: ~> 0.15.0
+    version: ~> 0.16.0
 
   redis:
     github: stefanwille/crystal-redis
-    version: ~> 2.5.0
+    version: ~> 2.6.0
 
   shell-table:
     github: luckyframework/shell-table.cr
@@ -68,7 +68,7 @@ dependencies:
 
   teeplate:
     github: mosop/teeplate
-    version: ~> 0.8.0
+    version: ~> 0.9.0
 
   exception_page:
     github: crystal-loot/exception_page

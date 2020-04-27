@@ -1,13 +1,15 @@
 const webpack = require('webpack');
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 let config = {
   entry: {
     main: path.resolve(__dirname, 'entry.js')
   },
   output: {
-    filename: '[name].bundle.js',
+    filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, '../../public/dist'),
     publicPath: '/dist'
   },
@@ -55,8 +57,12 @@ let config = {
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: '[name].bundle.css'
-    })
+      filename: '[name].[contenthash].css'
+    }),
+    new CleanWebpackPlugin(),
+    new HtmlWebpackPlugin({
+      title: 'Caching',
+    }),
   ],
   // For more info about webpack logs see: https://webpack.js.org/configuration/stats/
   stats: 'errors-only'
