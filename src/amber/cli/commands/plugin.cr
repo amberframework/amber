@@ -8,7 +8,7 @@ module Amber::CLI
 
     class Plugin < Command
       class Options
-        arg "action", desc: "add/remove/migrate/rollback sub command", required: true
+        arg "action", desc: "add sub command", required: true
         arg "name", desc: "name/path/github_repo of plugin", required: true
         help
       end
@@ -19,8 +19,8 @@ module Amber::CLI
       end
 
       def run
-        if args.action == "remove"
-          CLI.logger.info "Sorry, the remove action is not implemented yet.", "Error", :red
+        if args.action != "add"
+          CLI.logger.info "Invalid plugin action, only 'add' is allowed.", "Error", :red
           exit! help: true, error: true
         end
 

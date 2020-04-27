@@ -12,6 +12,11 @@ require "./settings"
 require "./i18n"
 require "./database"
 require "./initializers/**"
+require "amber_render_module"
+
+require "../src/plugins/initializers/**"
+require "../plugins/plugins"
+require "../src/plugins/hooks/**"
 
 # Start Generator Dependencies: Don't modify.
 # End Generator Dependencies
