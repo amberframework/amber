@@ -21,6 +21,51 @@ module Amber::Plugins
 
       ctx.set "name", name
       ctx.set "language", language
+      ctx.set "timestamp", timestamp
+    end
+
+  end
+end
+
+
+class Teeplate::RenderingEntry
+  def appends?
+    @data.path.includes?("+")
+  end
+
+  def forces?
+    appends? || @data.forces? || @renderer.forces?
+  end
+
+  def local_path
+    @local_path ||= if appends?
+                      @data.path.gsub("+", "")
+                    else
+                      @data.path
+                    end
+  end
+
+  def list(s, color)
+    Amber::CLI.logger.info s.colorize.fore(color).to_s + local_path, "Generate", :light_cyan
+  end
+end
+
+module Teeplate
+  abstract class FileTree
+  
+    # Renders all collected file entries.
+    #
+    # For more information about the arguments, see `Renderer`.
+    def render(out_dir, force : Bool = false, interactive : Bool = false, interact : Bool = false, list : Bool = false, color : Bool = false, per_entry : Bool = false, quit : Bool = true)
+      renderer = Renderer.new(out_dir, force: force, interact: interactive || interact, list: list, color: color, per_entry: per_entry, quit: quit)
+      renderer << filter(file_entries)
+      renderer.render
+      renderer
+    end
+
+    # Override to filter files rendered
+    def filter(entries)
+      entries
     end
 
   end
