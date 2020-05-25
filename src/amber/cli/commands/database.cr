@@ -5,9 +5,6 @@ require "sqlite3"
 
 module Amber::CLI
   CLI.logger.progname = "Database"
-  Micrate.logger = settings.logger
-  Micrate.logger.progname = "Database"
-  Micrate.logger.level = Logger::DEBUG
 
   class MainCommand < ::Cli::Supercommand
     command "db", aliased: "database"
@@ -58,12 +55,12 @@ module Amber::CLI
           Micrate::DB.connection_url = database_url
           case command
           when "drop"
-            Micrate.logger.info drop_database
+            Micrate.logger.info { drop_database }
           when "create"
-            Micrate.logger.info create_database
+            Micrate.logger.info { create_database }
           when "seed"
             Helpers.run("crystal db/seeds.cr", wait: true, shell: true)
-            Micrate.logger.info "Seeded database"
+            Micrate.logger.info { "Seeded database" }
           when "migrate"
             migrate
           when "rollback"

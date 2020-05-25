@@ -3,12 +3,12 @@ module Amber::Environment
     alias OptionsType = Hash(String, String | Bool | Array(String))
 
     SEVERITY_MAP = {
-      "debug":   Logger::DEBUG,
-      "info":    Logger::INFO,
-      "warn":    Logger::WARN,
-      "error":   Logger::ERROR,
-      "fatal":   Logger::FATAL,
-      "unknown": Logger::UNKNOWN,
+      "debug":   Log::Severity::Debug,
+      "verbose": Log::Severity::Verbose,
+      "info":    Log::Severity::Info,
+      "warn":    Log::Severity::Warning,
+      "error":   Log::Severity::Error,
+      "fatal":   Log::Severity::Fatal,
     }
 
     COLOR_MAP = {
@@ -57,7 +57,7 @@ module Amber::Environment
       @context = logging["context"].as(Array(String))
     end
 
-    def severity : Logger::Severity
+    def severity : Log::Severity
       SEVERITY_MAP[@severity]
     end
 

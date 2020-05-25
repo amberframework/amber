@@ -77,6 +77,7 @@ module Amber::CLI
           case line
           when .starts_with?("pipeline") then set_pipe(line)
           when .starts_with?("plug")     then set_plug(line)
+          else
           end
         end
       end

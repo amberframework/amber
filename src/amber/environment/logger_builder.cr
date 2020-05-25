@@ -12,14 +12,6 @@ module Amber::Environment
       @logger.level = logging.severity
       @logger.progname = "Server"
       @logger.color = logging.color
-      @logger.formatter = Logger::Formatter.new do |severity, datetime, progname, message, io|
-        io << datetime.to_s("%I:%M:%S")
-        io << " "
-        io << progname
-        io << " (#{severity})" if severity > Logger::DEBUG
-        io << " "
-        io << message
-      end
     end
   end
 end

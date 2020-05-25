@@ -10,10 +10,10 @@ module Amber::Environment
           logger.debug "debug:skip"
           logger.info "info:show"
 
-          logger.level = Logger::DEBUG
+          logger.level = Log::Severity::Debug
           logger.debug "debug:show"
 
-          logger.level = Logger::WARN
+          logger.level = Log::Severity::Warning
           logger.debug "debug:skip:again"
           logger.info "info:skip"
           logger.error "error:show"
