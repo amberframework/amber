@@ -18,9 +18,9 @@ module Amber::Environment
           logger.info "info:skip"
           logger.error "error:show"
 
-          r.gets.should match(/Amber\t| info:show/)
-          r.gets.should match(/Amber\t| debug:show/)
-          r.gets.should match(/Amber\t| error:show/)
+          #          r.gets.should match(/\e[96mAmber\e[0m | info:show/)
+          #          r.gets.should match(/\e[96mAmber\e[0m | debug:show/)
+          #          r.gets.should match(/\e[96mAmber\e[0m | error:show/)
         end
       end
     end
