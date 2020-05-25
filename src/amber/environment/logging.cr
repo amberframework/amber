@@ -6,7 +6,7 @@ module Amber::Environment
       "debug":   Log::Severity::Debug,
       "verbose": Log::Severity::Verbose,
       "info":    Log::Severity::Info,
-      "warn":    Log::Severity::Warning,
+      "warning": Log::Severity::Warning,
       "error":   Log::Severity::Error,
       "fatal":   Log::Severity::Fatal,
     }
