@@ -6,9 +6,6 @@ services:
   - postgresql
   - redis-server
 
-addons:
-  postgresql: "10.1"
-
 cache:
   directories:
     - bin
