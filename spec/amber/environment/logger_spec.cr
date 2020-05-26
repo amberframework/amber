@@ -5,6 +5,8 @@ module Amber::Environment
     describe "#log" do
       it "logs messages with progname" do
         IO.pipe do |r, w|
+          Colorize.enabled = false
+
           logger = Logger.new(w)
           logger.progname = "Amber"
           logger.debug "debug:skip"
@@ -18,9 +20,9 @@ module Amber::Environment
           logger.info "info:skip"
           logger.error "error:show"
 
-          #          r.gets.should match(/\e[96mAmber\e[0m | info:show/)
-          #          r.gets.should match(/\e[96mAmber\e[0m | debug:show/)
-          #          r.gets.should match(/\e[96mAmber\e[0m | error:show/)
+          r.gets.should match(/Amber | info:show/)
+          r.gets.should match(/Amber | debug:show/)
+          r.gets.should match(/Amber | error:show/)
         end
       end
     end
