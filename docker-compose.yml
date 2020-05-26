@@ -1,10 +1,10 @@
 version: '2'
 services:
   db:
-    image: postgres:10.2
+    image: postgres:10.1
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=test_app_development
+      POSTGRES_USER: postgres
+      POSTGRES_DB: test_app_development
   redis:
     image: redis:5.0-alpine
     command: redis-server
