@@ -17,7 +17,7 @@ env:
   - TEST_SUITE=./spec/amber
 
 before-install:
-  - sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'password';"
+  - psql -U postgres -c "ALTER USER postgres WITH PASSWORD 'password';"
 
 script:
   - bin/ameba
