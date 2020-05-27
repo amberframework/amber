@@ -52,6 +52,7 @@ module Amber::CLI
         /x
 
       FAILED_TO_PARSE_ERROR = "Could not parse pipeline/plugs in #{ROUTES_PATH}"
+      UNRECOGNIZED_OPTION   = "Unrecognized option"
 
       command_name "pipelines"
 
@@ -78,6 +79,7 @@ module Amber::CLI
           when .starts_with?("pipeline") then set_pipe(line)
           when .starts_with?("plug")     then set_plug(line)
           else
+            raise BadRoutesException.new(UNRECOGNIZED_OPTION)
           end
         end
       end
