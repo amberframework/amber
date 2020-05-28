@@ -27,8 +27,8 @@ module CLIHelper
 
   def prepare_test_app
     cleanup
-    scaffold_app("#{TESTING_APP}", "-d", "sqlite")
-    environment_yml(ENV["AMBER_ENV"], "#{Dir.current}/config/environments/")
+    scaffold_app(TESTING_APP, "-d", "sqlite")
+    environment_yml(CURRENT_ENVIRONMENT, "#{Dir.current}/config/environments/")
   end
 
   def dirs(for app)

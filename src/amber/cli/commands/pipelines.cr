@@ -79,7 +79,7 @@ module Amber::CLI
           when .starts_with?("pipeline") then set_pipe(line)
           when .starts_with?("plug")     then set_plug(line)
           else
-            raise BadRoutesException.new(UNRECOGNIZED_OPTION)
+            # skip line
           end
         end
       end
