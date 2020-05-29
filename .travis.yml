@@ -16,6 +16,9 @@ env:
   - TEST_SUITE=./spec/build_spec_granite.cr
   - TEST_SUITE=./spec/amber
 
+before-install:
+  - psql -U postgres -c "ALTER USER postgres WITH PASSWORD 'password';"
+
 script:
   - bin/ameba
   - crystal tool format --check

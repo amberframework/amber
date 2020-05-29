@@ -40,7 +40,7 @@ describe Amber do
           server.name = "Hello World App"
           server.port = 8080
           server.logger = Amber::Environment::Logger.new(STDOUT)
-          server.logger.level = ::Logger::INFO
+          server.logger.level = ::Log::Severity::Info
           server.logging.colorize = false
           server.logging.context = %w(request headers cookies session params)
           server.logging.filter = %w(password confirm_password)

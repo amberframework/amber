@@ -3,8 +3,9 @@ services:
   db:
     image: postgres:10.2
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=test_app_development
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: test_app
   redis:
     image: redis:5.0-alpine
     command: redis-server
@@ -12,6 +13,7 @@ services:
     build: .
     working_dir: /opt/amber
     environment:
+      DATABASE_URL: 'postgres://postgres:password@db:5432/test_app'
       REDIS_URL: 'redis://redis:6379'
       AMBER_ENV: test
       CI: "true"

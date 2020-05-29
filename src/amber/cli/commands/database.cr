@@ -5,9 +5,6 @@ require "sqlite3"
 
 module Amber::CLI
   CLI.logger.progname = "Database"
-  Micrate.logger = settings.logger
-  Micrate.logger.progname = "Database"
-  Micrate.logger.level = Logger::DEBUG
 
   class MainCommand < ::Cli::Supercommand
     command "db", aliased: "database"
@@ -58,12 +55,12 @@ module Amber::CLI
           Micrate::DB.connection_url = database_url
           case command
           when "drop"
-            Micrate.logger.info drop_database
+            drop_database
           when "create"
-            Micrate.logger.info create_database
+            create_database
           when "seed"
             Helpers.run("crystal db/seeds.cr", wait: true, shell: true)
-            Micrate.logger.info "Seeded database"
+            CLI.logger.info "Seeded database"
           when "migrate"
             migrate
           when "rollback"
@@ -93,26 +90,26 @@ module Amber::CLI
         if url.starts_with? "sqlite3:"
           path = url.gsub("sqlite3:", "")
           File.delete(path)
-          "Deleted file #{path}"
+          CLI.logger.info "Deleted file #{path}"
         else
           name = set_database_to_schema url
           Micrate::DB.connect do |db|
             db.exec "DROP DATABASE IF EXISTS #{name};"
           end
-          "Dropped database #{name}"
+          CLI.logger.info "Dropped database #{name}"
         end
       end
 
       private def create_database
         url = Micrate::DB.connection_url.to_s
         if url.starts_with? "sqlite3:"
-          CREATE_SQLITE_MESSAGE
+          CLI.logger.info CREATE_SQLITE_MESSAGE
         else
           name = set_database_to_schema url
           Micrate::DB.connect do |db|
             db.exec "CREATE DATABASE #{name};"
           end
-          "Created database #{name}"
+          CLI.logger.info "Created database #{name}"
         end
       end
 

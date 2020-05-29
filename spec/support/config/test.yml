@@ -1,5 +1,5 @@
 logging:
-  severity: "warn"
+  severity: "warning"
   colorize: true
   filter:
     - password

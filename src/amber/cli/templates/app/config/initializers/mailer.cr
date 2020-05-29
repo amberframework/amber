@@ -10,9 +10,6 @@ Quartz.config do |c|
 
   c.use_tls = !c.password.blank?
   c.use_authentication = !c.password.blank?
-
-  c.logger = Amber.settings.logger.dup
-  c.logger.progname = "Email"
 end
 
 require "../../src/mailers/application_mailer"
