@@ -236,11 +236,11 @@ document.addEventListener("DOMContentLoaded", () => {
   for (let i = 0; i < elements.length; i++) {
     elements[i].addEventListener("click", (e) => {
       e.preventDefault();
-      let message = e.target.getAttribute("data-confirm") || "Are you sure?";
+      let message = elements[i].getAttribute("data-confirm") || "Are you sure?";
       if (confirm(message)) {
         let form = document.createElement("form");
         let input = document.createElement("input");
-        form.setAttribute("action", e.target.getAttribute("href"));
+        form.setAttribute("action", elements[i].getAttribute("href"));
         form.setAttribute("method", "POST");
         input.setAttribute("type", "hidden");
         input.setAttribute("name", "_method");
