@@ -14,7 +14,7 @@ module Amber::CLI
     @author : String
     @email : String
     @github_name : String
-    @layout: String | Bool
+    @layout : String | Bool
     @minimal : Bool
 
     def initialize(@name, @database = "pg", @language = "slang", @minimal = false)

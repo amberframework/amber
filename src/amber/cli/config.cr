@@ -55,8 +55,8 @@ module Amber::CLI
             "./config/**/*.cr",
             "./src/**/*.cr",
             "./src/views/**/*.slang",
-          ]
-        }
+          ],
+        },
       }
       add_npm_watch_options(options)
     end
@@ -64,12 +64,12 @@ module Amber::CLI
     def add_npm_watch_options(options)
       return options if @minimal
       options["npm"] = Hash{
-	"build_commands" => [
-	  "npm install --loglevel=error",
-	],
-	"run_commands" => [
-	  "npm run watch",
-	]
+        "build_commands" => [
+          "npm install --loglevel=error",
+        ],
+        "run_commands" => [
+          "npm run watch",
+        ],
       }
       options
     end

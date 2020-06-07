@@ -53,7 +53,7 @@ module Amber::CLI
 
       # "generates amber directory structure" do
       minimal_folders = dirs(APP_TEMPLATE_PATH) - ["src/assets/javascripts", "src/assets/stylesheets", "config/webpack",
-						   "public/js", "src/views/home"]
+                                                   "public/js", "src/views/home"]
       dirs("../." + TESTING_APP).sort.should eq minimal_folders.sort
       # "follows naming conventions for all files and class names" do
       [camel_case, snake_case].each do |arg|
