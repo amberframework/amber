@@ -14,18 +14,16 @@ module Amber::CLI
     @author : String
     @email : String
     @github_name : String
-    @layout : String | Bool
     @minimal : Bool
 
     def initialize(@name, @database = "pg", @language = "slang", @minimal = false)
       @db_url = ""
-      @model = "granite"
       @wait_for = ""
+      @model = "granite"
       @database_name = generate_database_name
       @author = fetch_author
       @email = fetch_email
       @github_name = fetch_github_name
-      @layout = @minimal ? false : "application.#{@language}"
     end
 
     def filter(entries)
