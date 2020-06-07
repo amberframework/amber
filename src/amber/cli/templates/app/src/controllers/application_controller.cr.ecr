@@ -3,8 +3,8 @@ require "jasper_helpers"
 class ApplicationController < Amber::Controller::Base
   include JasperHelpers
   <%- if @minimal -%>
-    LAYOUT = false
+  LAYOUT = false
   <%- else -%>
-    LAYOUT = "application.<%= @language %>"
+  LAYOUT = "application.<%= @language %>"
   <%- end -%>
 end
