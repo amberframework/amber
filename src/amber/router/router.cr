@@ -35,6 +35,7 @@ module Amber
       end
 
       def add(route : Route)
+        puts route.inspect
         build_node(route.verb, route.resource)
         @routes.add(route.trail, route, route.constraints)
         @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route
