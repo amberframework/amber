@@ -57,6 +57,7 @@ module Amber
       end
 
       def match_by_controller_action(controller, action)
+        puts @routes_hash.inspect
         @routes_hash["#{controller}##{action}"]
       end
 
