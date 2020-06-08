@@ -1,9 +1,9 @@
 module ControllerHelper
-  def build_controller(referer = "")
+  def build_controller(referer = "", controller = HelloController)
     request = HTTP::Request.new("GET", "/")
     request.headers.add("Referer", referer)
     context = create_context(request)
-    HelloController.new(context)
+    controller.new(context)
   end
 
   def assert_expected_response?(controller, location, status_code)
