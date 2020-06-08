@@ -33,7 +33,8 @@ module Amber::CLI
 
     def filter_for_minimal(entries)
       return entries unless @minimal
-      filtered = entries.reject { |entry| entry.path.includes?(".js") || entry.path.includes?(".scss") || entry.path.includes?("package.json") || entry.path.includes?("home_controller") }
+      filtered = entries.reject { |entry| entry.path.includes?(".js") || entry.path.includes?(".scss") || entry.path.includes?("package.json") ||
+        entry.path.includes?("config/webpack") || entry.path.includes?("home_controller") }
       filtered.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("mailer") }
     end
 
