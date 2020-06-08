@@ -69,35 +69,35 @@ module Amber::Controller::Helpers
           get "/redirect/:id/edit", RedirectController, :edit
           get "/redirect", RedirectController, :index
         end
-        controller = build_controller("", RedirectController)
+        controller = build_controller
         redirector = Redirector.from_controller_action(:redirect, :show, params: {"id" => "5"})
         redirector.redirect(controller)
         assert_expected_response?(controller, "/redirect/5", 302)
       end
 
       it "redirects to full controller name as string" do
-        controller = build_controller("", RedirectController)
+        controller = build_controller
         redirector = Redirector.from_controller_action("redirect", :show, params: {"id" => "5"})
         redirector.redirect(controller)
         assert_expected_response?(controller, "/redirect/5", 302)
       end
 
       it "redirects to full controller name as class" do
-        controller = build_controller("", RedirectController)
+        controller = build_controller
         redirector = Redirector.from_controller_action(RedirectController, :show, params: {"id" => "5"})
         redirector.redirect(controller)
         assert_expected_response?(controller, "/redirect/5", 302)
       end
 
       it "redirects to :show" do
-        controller = build_controller("", RedirectController)
+        controller = build_controller
         redirector = Redirector.from_controller_action(:redirect, :show, params: {"id" => "11"})
         redirector.redirect(controller)
         assert_expected_response?(controller, "/redirect/11", 302)
       end
 
       it "redirects to edit action" do
-        controller = build_controller("", RedirectController)
+        controller = build_controller
         redirector = Redirector.from_controller_action(:redirect, :edit, params: {"id" => "123"})
         redirector.redirect(controller)
         assert_expected_response?(controller, "/redirect/123/edit", 302)
