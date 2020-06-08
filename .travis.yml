@@ -1,8 +1,6 @@
 dist: xenial
 sudo: required
 language: crystal
-crystal:
-  - nightly
 
 services:
   - postgresql
