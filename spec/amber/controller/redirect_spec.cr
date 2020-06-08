@@ -64,11 +64,6 @@ module Amber::Controller::Helpers
       end
 
       it "redirects to full controller name as symbol" do
-        Amber::Server.router.draw :web do
-          get "/redirect/:id", RedirectController, :show
-          get "/redirect/:id/edit", RedirectController, :edit
-          get "/redirect", RedirectController, :index
-        end
         controller = build_controller
         redirector = Redirector.from_controller_action(:redirect, :show, params: {"id" => "5"})
         redirector.redirect(controller)
