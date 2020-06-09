@@ -21,6 +21,16 @@ module Amber::Environment
       "white":         :white,
     }
 
+    SEVERITY_MAP = {
+      "debug":   :debug,
+      "verbose": :verbose,
+      "info":    :info,
+      "warn":    :warning,
+      "warning": :warning,
+      "error":   :error,
+      "fatal":   :fatal,
+    }
+
     DEFAULTS = {
       "colorize" => true,
       "color"    => "light_cyan",
@@ -28,10 +38,10 @@ module Amber::Environment
       "skip"     => [] of String,
     }
 
-    setter color : String
+    setter color : String,
+      severity : String
 
-    property severity : String,
-      colorize : Bool,
+    property colorize : Bool,
       skip : Array(String),
       filter : Array(String)
 
@@ -46,6 +56,10 @@ module Amber::Environment
 
     def color : Symbol
       COLOR_MAP[@color]
+    end
+
+    def severity : Symbol
+      SEVERITY_MAP[@severity]
     end
   end
 end
