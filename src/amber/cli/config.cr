@@ -4,7 +4,7 @@ module Amber::CLI
       begin
         Config.from_yaml File.read(AMBER_YML)
       rescue ex : YAML::ParseException
-        logger.error "Couldn't parse #{AMBER_YML} file", "Watcher", :red
+        Log.error(exception: ex) { "Couldn't parse #{AMBER_YML} file" }
         exit 1
       end
     else

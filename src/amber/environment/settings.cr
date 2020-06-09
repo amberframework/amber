@@ -1,5 +1,4 @@
 require "yaml"
-require "./logger"
 
 module Amber::Environment
   class Settings
@@ -37,8 +36,8 @@ module Amber::Environment
       secrets : Hash(String, String),
       ssl_key_file : String,
       ssl_cert_file : String,
-      logging : Logging::OptionsType,
-      logger : Logger?
+      logging : Logging::OptionsType
+
     property? auto_reload : Bool
 
     @smtp_settings : SMTPSettings?
@@ -95,10 +94,6 @@ module Amber::Environment
 
     def logging
       @_logging ||= Logging.new(@logging)
-    end
-
-    def logger
-      @logger ||= LoggerBuilder.logger(STDOUT, logging)
     end
   end
 end

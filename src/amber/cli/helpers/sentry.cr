@@ -79,8 +79,7 @@ module Sentry
         build_commands: build_commands,
         run_commands: run_commands,
         includes: includes,
-        excludes: excludes,
-        logger: Amber::CLI.logger
+        excludes: excludes
       )
 
       process_runner.run
