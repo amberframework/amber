@@ -19,8 +19,8 @@ dependencies:
     version: ~> 0.3.0
 
   cli:
-    github: drujensen/cli
-    version: ~> 0.8.0
+    github: amberframework/cli
+    version: ~> 0.9.0
 
   compiled_license:
     github: elorest/compiled_license
@@ -68,7 +68,7 @@ dependencies:
 
   teeplate:
     github: mosop/teeplate
-    version: ~> 0.9.0
+    version: ~> 0.10.0
 
   exception_page:
     github: crystal-loot/exception_page
