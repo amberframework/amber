@@ -1,5 +1,7 @@
 module Amber::Controller::Helpers
   module Responders
+    Log = ::Log.for(self)
+
     alias ProcType = Proc(String) | Proc(Int32)
 
     class Content
@@ -73,7 +75,7 @@ module Amber::Controller::Helpers
       if context.response.status_code == 200
         context.response.status_code = status_code
       else
-        Amber.logger.error "Setting response status_code would overwrite previous value"
+        Log.error { "Setting response status_code would overwrite previous value" }
       end
       context.response.content_type = content_type
       context.content = body

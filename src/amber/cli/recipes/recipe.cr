@@ -16,6 +16,7 @@ require "./scaffold/view"
 
 module Amber::Recipes
   class Recipe
+    Log = ::Log.for(self)
     getter name : String
     getter directory : String
     getter recipe : String
@@ -86,11 +87,11 @@ module Amber::Recipes
     end
 
     def info(msg)
-      CLI.logger.info msg, "Generate", :light_cyan
+      Log.info { msg.colorize(:light_cyan) }
     end
 
     def error(msg)
-      CLI.logger.error msg, "Generate", :light_red
+      Log.error { msg.colorize(:light_red) }
     end
   end
 end
@@ -113,7 +114,7 @@ class Teeplate::RenderingEntry
   end
 
   def list(s, color)
-    Amber::CLI.logger.info s.colorize.fore(color).to_s + local_path, "Generate", :light_cyan
+    Log.info { s.colorize.fore(color).to_s + local_path }
   end
 end
 

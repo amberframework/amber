@@ -6,12 +6,6 @@ logging:
   filter:
     - password
     - confirm_password
-  context:
-    - request
-    - session
-    - headers
-    - cookies
-    - params
 
 host: 0.0.0.0
 name: test_settings

@@ -2,9 +2,10 @@ module Amber
   module WebSockets
     module Server
       extend self
+      Log = ::Log.for(self)
 
       def create_endpoint(path, app_socket)
-        Amber.logger.info "Socket listening at #{path}"
+        Log.info { "Socket listening at #{path}" }
         Handler.new(path) do |socket, context|
           instance = app_socket.new(socket, context)
           socket.close && next unless instance.authorized?

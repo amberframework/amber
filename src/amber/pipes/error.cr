@@ -4,6 +4,8 @@ module Amber
     # on the `Accepts` header as JSON or HTML. It also catches any runtime
     # Exceptions and returns a backtrace in text/html format.
     class Error < Base
+      Log = ::Log.for("error")
+
       def call(context : HTTP::Server::Context)
         raise Amber::Exceptions::RouteNotFound.new(context.request) unless context.valid_route?
         call_next(context)
@@ -11,21 +13,17 @@ module Amber
         context.response.status_code = 403
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.forbidden)
-        Amber.logger.warn ex.message, "Error: 403", :yellow
+        Log.warn(exception: ex) { "Error: 403".colorize(:yellow) }
       rescue ex : Amber::Exceptions::RouteNotFound
         context.response.status_code = 404
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.not_found)
-        Amber.logger.warn ex.message, "Error: 404", :yellow
+        Log.warn(exception: ex) { "Error: 404".colorize(:yellow) }
       rescue ex : Exception
         context.response.status_code = 500
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.internal_server_error)
-        if ex.backtrace && ex.class.name
-          Amber.logger.error "#{ex.class.name} #{ex.message} #{ex.backtrace.join('\n')}", "Error: 500", :red
-        else
-          Amber.logger.error ex.message, "Error: 500", :red
-        end
+        Log.error(exception: ex) { "Error: 500".colorize(:red) }
       end
     end
   end

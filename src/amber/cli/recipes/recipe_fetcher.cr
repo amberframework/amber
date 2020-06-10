@@ -3,6 +3,8 @@ require "zip"
 
 module Amber::Recipes
   class RecipeFetcher
+    Log = ::Log.for(self)
+
     getter kind : String # one of the supported kinds [app, model, controller, scaffold]
     getter name : String
     getter directory : String
@@ -70,14 +72,14 @@ module Amber::Recipes
 
       yaml = {name: "recipe", version: "0.1.0", dependencies: {shard_name => {github: @name, branch: "master"}}}
 
-      CLI.logger.info "Create Recipe shard #{filename}", "Generate", :light_cyan
+      Log.info { "Create Recipe shard #{filename}".colorize(:light_cyan) }
       File.open(filename, "w") { |f| yaml.to_yaml(f) }
     end
 
     def fetch_github(shard_name)
       create_recipe_shard shard_name
 
-      CLI.logger.info "Installing Recipe", "Generate", :light_cyan
+      Log.info { "Installing Recipe".colorize(:light_cyan) }
       Amber::CLI::Helpers.run("cd #{app_dir}/.recipes && shards update")
     end
 
@@ -96,7 +98,7 @@ module Amber::Recipes
             end
           end
         elsif response.status_code != 200
-          CLI.logger.error "Could not find the recipe #{@name} : #{response.status_code} #{response.status_message}", "Generate", :light_red
+          Log.error { "Could not find the recipe #{@name} : #{response.status_code} #{response.status_message}".colorize(:light_red) }
           return nil
         end
 
@@ -122,7 +124,7 @@ module Amber::Recipes
         return "#{@template_path}/#{@kind}"
       end
 
-      CLI.logger.error "Cannot generate #{@kind} from #{@name} recipe", "Generate", :light_red
+      Log.error { "Cannot generate #{@kind} from #{@name} recipe".colorize(:light_red) }
       nil
     end
 

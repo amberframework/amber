@@ -2,9 +2,10 @@ require "./helpers"
 
 module Sentry
   class ProcessRunner
+    Log = ::Log.for("watch")
+
     property processes = Hash(String, Array(Process)).new
     property process_name : String
-    @logger : Amber::Environment::Logger
     FILE_TIMESTAMPS = Hash(String, Int64).new
 
     def initialize(
@@ -12,8 +13,7 @@ module Sentry
       @build_commands = Hash(String, String).new,  # { "task1" => [ ... ], "task2" => [ ... ] }
       @run_commands = Hash(String, String).new,    # { "task1" => [ ... ], "task2" => [ ... ] }
       @includes = Hash(String, Array(String)).new, # { "task1" => [ ... ], "task2" => [ ... ] }
-      @excludes = Hash(String, Array(String)).new, # { "task1" => [ ... ], "task2" => [ ... ] }
-      @logger = Amber::CLI.logger
+      @excludes = Hash(String, Array(String)).new  # { "task1" => [ ... ], "task2" => [ ... ] }
     )
       @app_running = false
     end
@@ -194,7 +194,7 @@ module Sentry
     end
 
     private def log(task, msg, color = :light_gray)
-      @logger.info msg, "Watch #{task}", color
+      Log.for(task.to_s).info { msg.colorize(color) }
     end
   end
 end

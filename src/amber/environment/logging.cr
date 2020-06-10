@@ -22,19 +22,16 @@ module Amber::Environment
     }
 
     DEFAULTS = {
-      "severity" => "debug",
       "colorize" => true,
       "color"    => "light_cyan",
       "filter"   => ["password", "confirm_password"],
       "skip"     => [] of String,
-      "context"  => ["request", "headers", "cookies", "session", "params"],
     }
 
-    setter severity : String,
-      color : String
+    setter color : String,
+      severity : (String | Symbol)
 
     property colorize : Bool,
-      context : Array(String),
       skip : Array(String),
       filter : Array(String)
 
@@ -45,15 +42,14 @@ module Amber::Environment
       @severity = logging["severity"].as(String)
       @filter = logging["filter"].as(Array(String))
       @skip = logging["skip"].as(Array(String))
-      @context = logging["context"].as(Array(String))
-    end
-
-    def severity : Log::Severity
-      Log::Severity.parse @severity
     end
 
     def color : Symbol
       COLOR_MAP[@color]
+    end
+
+    def severity : Log::Severity
+      Log::Severity.parse @severity.to_s
     end
   end
 end
