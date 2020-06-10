@@ -1,4 +1,5 @@
 require "yaml"
+require "yaml_mapping"
 require "./logger"
 
 module Amber::Environment
