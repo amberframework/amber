@@ -1,5 +1,6 @@
 require "file_utils"
 require "json"
+require "json_mapping"
 
 class RouteJSON
   JSON.mapping({
