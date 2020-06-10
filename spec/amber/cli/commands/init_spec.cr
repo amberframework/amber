@@ -42,6 +42,37 @@ module Amber::CLI
       cleanup
     end
 
+    it "amber new #{TESTING_APP} --minimal" do
+      ENV["AMBER_ENV"] = "test"
+
+      scaffold_app(TESTING_APP, "--minimal")
+      camel_case = "PostComment"
+      snake_case = "post_comment"
+      class_definition_prefix = "class #{camel_case}"
+      spec_definition_prefix = "describe #{camel_case}"
+
+      # "generates amber directory structure" do
+      minimal_folders = dirs(APP_TEMPLATE_PATH) - ["src/assets/javascripts", "src/assets/stylesheets", "config/webpack",
+                                                   "public/js", "src/views/home"]
+      dirs("../." + TESTING_APP).sort.should eq minimal_folders.sort
+      # "follows naming conventions for all files and class names" do
+      [camel_case, snake_case].each do |arg|
+        MainCommand.run ["generate", "model", "-y", arg]
+        filename = snake_case
+        granite_table_name = "table #{snake_case}s"
+        src_filepath = "./src/models/#{filename}.cr"
+        spec_filepath = "./spec/models/#{filename}_spec.cr"
+        File.exists?(src_filepath).should be_true
+        File.exists?(spec_filepath).should be_true
+        File.read(src_filepath).should contain class_definition_prefix
+        File.read(src_filepath).should contain granite_table_name
+        File.read(spec_filepath).should contain spec_definition_prefix
+        File.delete(src_filepath)
+        File.delete(spec_filepath)
+      end
+      cleanup
+    end
+
     # This test fails because:
     # [04:03:28 Generate   | (INFO) Rendering App test_app in ./test_app from damianham/default
     # 04:03:29 Generate   | (ERROR) Could not find the recipe damianham/default : 404 Not Found

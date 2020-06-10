@@ -1,9 +1,11 @@
 abstract class Command < Cli::Command
+  Log = ::Log.for(self)
+
   def info(msg)
-    Amber::CLI.logger.info msg, Class.name, :light_cyan
+    Log.info { msg.colorize(:light_cyan) }
   end
 
   def error(msg)
-    Amber::CLI.logger.error msg, Class.name, :red
+    Log.error { msg.colorize(:light_red) }
   end
 end

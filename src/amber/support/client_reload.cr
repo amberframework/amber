@@ -1,6 +1,8 @@
 module Amber::Support
   # Allow clients browser reloading using WebSockets and file watchers.
   struct ClientReload
+    Log = ::Log.for(self)
+
     FILE_TIMESTAMPS = {} of String => String
     WEBSOCKET_PATH  = "client-reload"
     SESSIONS        = [] of HTTP::WebSocket
@@ -66,7 +68,7 @@ module Amber::Support
     end
 
     def log(message)
-      Amber.logger.info(message, "Watcher", :light_gray)
+      Log.info { message.colorize(:light_gray) }
     end
   end
 end

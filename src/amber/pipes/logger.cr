@@ -1,13 +1,10 @@
 module Amber
   module Pipe
     class Logger < Base
-      alias Params = Array(String)
       Colorize.enabled = Amber.settings.logging.colorize
-      FILTERED_TEXT = "FILTERED".colorize(:white).mode(:underline)
 
-      def initialize(@filter : Params = log_config.filter,
-                     @skip : Params = log_config.skip,
-                     @context : Params = log_config.context)
+      def initialize(@filter : Array(String) = log_config.filter,
+                     @skip : Array(String) = log_config.skip)
       end
 
       def call(context : HTTP::Server::Context)
@@ -15,11 +12,11 @@ module Amber
         call_next(context)
         status = context.response.status_code
         elapsed = elapsed_text(Time.utc - time)
-        request(context, time, elapsed, status, :magenta) if @context.includes? "request"
-        log_other(context.request.headers, "Headers") if @context.includes? "headers"
-        log_other(context.request.cookies, "Cookies", :light_blue) if @context.includes? "cookies"
-        log_other(context.params, "Params", :light_blue) if @context.includes? "params"
-        log_other(context.session, "Session", :light_yellow) if @context.includes? "session"
+        request(context, time, elapsed, status, :magenta)
+        log_other(context.request.headers, "headers")
+        log_other(context.request.cookies, "cookies", :light_blue)
+        log_other(context.params, "params", :light_blue)
+        log_other(context.session, "session", :light_yellow)
         context
       end
 
@@ -28,17 +25,17 @@ module Amber
           str << "Status: #{http_status(status)} Method: #{method(context)}"
           str << " Pipeline: #{context.valve.colorize(color)} Format: #{context.format.colorize(color)}"
         end
-        log "Started #{time.colorize(color)}", "Request", color
+        log "Started #{time.colorize(color)}", "request", color
         log msg, "Request", color
-        log "Requested Url: #{context.requested_url.colorize(color)}", "Request", color
-        log "Time Elapsed: #{elapsed.colorize(color)}", "Request", color
+        log "Requested Url: #{context.requested_url.colorize(color)}", "request", color
+        log "Time Elapsed: #{elapsed.colorize(color)}", "request", color
       end
 
       private def log_other(other, name, color = :light_cyan)
         other.to_h.each do |key, val|
           next if @skip.includes? key
           if @filter.includes? key.to_s
-            log "#{key}: #{FILTERED_TEXT}", name, color
+            log "#{key}: #{"FILTERED".colorize(:white).mode(:underline)}", name, color
           else
             log "#{key}: #{val.colorize(color)}", name, color
           end
@@ -67,7 +64,7 @@ module Amber
       end
 
       private def log(msg, prog, color = :white)
-        Amber.logger.debug msg, prog, color
+        Log.for(prog).debug { "#{prog.colorize(color)} | #{msg}" }
       end
 
       private def log_config

@@ -1,17 +1,11 @@
 secret_key_base: ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4
 logging:
-  severity: "warn"
+  severity: "warning"
   colorize: true
   color: red
   filter:
     - password
     - confirm_password
-  context:
-    - request
-    - session
-    - headers
-    - cookies
-    - params
 
 host: 0.0.0.0
 name: test_settings

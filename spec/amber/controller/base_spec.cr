@@ -41,10 +41,6 @@ module Amber::Controller
       it "has a session id" do
         controller.session.id.not_nil!.size.should eq 36
       end
-
-      it "has logger" do
-        controller.logger.class.should eq Amber::Environment::Logger
-      end
     end
   end
 end
