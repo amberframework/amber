@@ -36,12 +36,12 @@ Log.builder.bind "*", Amber.settings.logging.severity, backend
 
 # Using more advanced options:
 # backend = Log::IOBackend.new
-# Log.builder.bind "*", :warning, backend
+# Log.builder.bind "*", :warn, backend
 # Log.builder.bind "request", :debug, backend
 # Log.builder.bind "headers", :debug, backend
 # Log.builder.bind "cookies", :debug, backend
 # Log.builder.bind "params", :debug, backend
 # Log.builder.bind "session", :debug, backend
-# Log.builder.bind "errors", :warning, backend
+# Log.builder.bind "errors", :warn, backend
 # Log.builder.bind "granite.*", :info, backend
 # Log.builder.bind "*", :error, ElasticSearchBackend.new("http://localhost:9200")
