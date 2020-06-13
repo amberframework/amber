@@ -1,5 +1,9 @@
 require "http/client"
-require "zip"
+{% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+  require "compress/zip"
+{% else %}
+  require "zip"
+{% end %}
 
 module Amber::Recipes
   class RecipeFetcher
@@ -109,16 +113,29 @@ module Amber::Recipes
     def save_zip(response : HTTP::Client::Response)
       Dir.mkdir_p(@template_path)
 
-      Zip::Reader.open(response.body_io) do |zip|
-        zip.each_entry do |entry|
-          path = "#{@template_path}/#{entry.filename}"
-          if entry.dir?
-            Dir.mkdir_p(path)
-          else
-            File.write(path, entry.io.gets_to_end)
+      {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+        Compress::Zip::Reader.open(response.body_io) do |zip|
+          zip.each_entry do |entry|
+            path = "#{@template_path}/#{entry.filename}"
+            if entry.dir?
+              Dir.mkdir_p(path)
+            else
+              File.write(path, entry.io.gets_to_end)
+            end
           end
         end
-      end
+      {% else %}
+        Zip::Reader.open(response.body_io) do |zip|
+          zip.each_entry do |entry|
+            path = "#{@template_path}/#{entry.filename}"
+            if entry.dir?
+              Dir.mkdir_p(path)
+            else
+              File.write(path, entry.io.gets_to_end)
+            end
+          end
+        end
+      {% end %}
 
       if Dir.exists?("#{@template_path}/#{@kind}")
         return "#{@template_path}/#{@kind}"

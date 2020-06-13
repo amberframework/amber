@@ -1,4 +1,5 @@
 require "yaml"
+require "yaml_mapping"
 
 module Amber::Environment
   class Settings

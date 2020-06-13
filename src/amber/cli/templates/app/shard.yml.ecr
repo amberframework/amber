@@ -36,11 +36,11 @@ dependencies:
 <% case @database when "pg" -%>
   pg:
     github: will/crystal-pg
-    version: ~> 0.21.0
+    version: ~> 0.21.1
 <% when "mysql" -%>
   mysql:
     github: crystal-lang/crystal-mysql
-    version: ~> 0.11.0
+    version: ~> 0.11.1
 <% when "sqlite" -%>
   sqlite3:
     github: crystal-lang/crystal-sqlite3
@@ -56,3 +56,6 @@ development_dependencies:
   garnet_spec:
     github: amberframework/garnet-spec
     version: 0.2.0
+  ameba:
+    github: veelenga/ameba
+    version: ~> 0.12.1

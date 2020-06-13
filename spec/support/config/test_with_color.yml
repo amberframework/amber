@@ -1,6 +1,6 @@
 secret_key_base: ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4
 logging:
-  severity: "warning"
+  severity: "warn"
   colorize: true
   color: red
   filter:
