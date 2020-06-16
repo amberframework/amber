@@ -22,6 +22,7 @@ module Amber::Environment
     }
 
     DEFAULTS = {
+      "severity" => "debug",
       "colorize" => true,
       "color"    => "light_cyan",
       "filter"   => ["password", "confirm_password"],
