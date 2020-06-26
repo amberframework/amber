@@ -20,7 +20,8 @@ before-install:
   - psql -U postgres -c "ALTER USER postgres WITH PASSWORD 'password';"
 
 script:
-  - bin/ameba
+  - docker run -v $PWD:/src -w /src crystallang/crystal:$(cat .crystal-version) shards install
+  - docker run -v $PWD:/src -w /src crystallang/crystal:$(cat .crystal-version) bin/ameba
   - docker run -v $PWD:/src -w /src crystallang/crystal:$(cat .crystal-version) crystal tool format --check
   - docker run -v $PWD:/src -w /src crystallang/crystal:$(cat .crystal-version) crystal spec $TEST_SUITE
 
