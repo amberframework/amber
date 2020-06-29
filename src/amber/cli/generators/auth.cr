@@ -48,11 +48,11 @@ module Amber::CLI
 
     private def inherit_plug(base, target)
       routes = File.read("./config/routes.cr")
-      pipes = routes.match(/pipeline :#{base.to_s} do(.+?)end/m)
+      pipes = routes.match(/pipeline :#{base} do(.+?)end/m)
       return unless pipes
 
       replacement = <<-PLUGS
-        pipeline :#{base.to_s}, :#{target.to_s} do#{pipes[1]}
+        pipeline :#{base}, :#{target} do#{pipes[1]}
         end
       PLUGS
       File.write("./config/routes.cr", routes.gsub(pipes[0], replacement))

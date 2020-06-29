@@ -17,6 +17,8 @@ module Amber
     # end
     # ```
     abstract struct ClientSocket
+      Log = ::Log.for(self)
+
       @@channels = [] of NamedTuple(path: String, channel: Channel)
 
       MAX_SOCKET_IDLE_TIME = 100.seconds
@@ -115,7 +117,7 @@ module Amber
 
       protected def on_message(message)
         if @socket.closed?
-          Amber.logger.error "Ignoring message sent to closed socket"
+          Log.error { "Ignoring message sent to closed socket" }
         else
           @subscription_manager.dispatch self, decode_message(message)
         end

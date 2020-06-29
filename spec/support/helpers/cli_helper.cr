@@ -1,5 +1,6 @@
 require "file_utils"
 require "json"
+require "json_mapping"
 
 class RouteJSON
   JSON.mapping({
@@ -27,8 +28,8 @@ module CLIHelper
 
   def prepare_test_app
     cleanup
-    scaffold_app("#{TESTING_APP}", "-d", "sqlite")
-    environment_yml(ENV["AMBER_ENV"], "#{Dir.current}/config/environments/")
+    scaffold_app(TESTING_APP, "-d", "sqlite")
+    environment_yml(CURRENT_ENVIRONMENT, "#{Dir.current}/config/environments/")
   end
 
   def dirs(for app)
@@ -39,7 +40,7 @@ module CLIHelper
   def expected_db_url(db_key, env)
     case db_key
     when "pg"
-      "postgres://postgres:@localhost:5432/#{TEST_APP_NAME}_#{env}"
+      "postgres://postgres:password@localhost:5432/#{TEST_APP_NAME}_#{env}"
     when "mysql"
       "#{db_key}://root@localhost:3306/#{TEST_APP_NAME}_#{env}"
     else

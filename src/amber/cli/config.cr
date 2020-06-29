@@ -1,10 +1,12 @@
+require "yaml_mapping"
+
 module Amber::CLI
   def self.config
     if File.exists? AMBER_YML
       begin
         Config.from_yaml File.read(AMBER_YML)
       rescue ex : YAML::ParseException
-        logger.error "Couldn't parse #{AMBER_YML} file", "Watcher", :red
+        Log.error(exception: ex) { "Couldn't parse #{AMBER_YML} file" }
         exit 1
       end
     else
@@ -25,6 +27,7 @@ module Amber::CLI
     property recipe : (String | Nil) = nil
     property recipe_source : (String | Nil) = nil
     property watch : WatchOptions
+    property minimal : Bool = false
 
     def initialize
       @watch = default_watch_options
@@ -41,8 +44,7 @@ module Amber::CLI
 
     def default_watch_options
       appname = self.class.get_name
-
-      WatchOptions{
+      options = WatchOptions{
         "run" => Hash{
           "build_commands" => [
             "mkdir -p bin",
@@ -57,15 +59,21 @@ module Amber::CLI
             "./src/views/**/*.slang",
           ],
         },
-        "npm" => Hash{
-          "build_commands" => [
-            "npm install --loglevel=error",
-          ],
-          "run_commands" => [
-            "npm run watch",
-          ],
-        },
       }
+      add_npm_watch_options(options)
+    end
+
+    def add_npm_watch_options(options)
+      return options if @minimal
+      options["npm"] = Hash{
+        "build_commands" => [
+          "npm install --loglevel=error",
+        ],
+        "run_commands" => [
+          "npm run watch",
+        ],
+      }
+      options
     end
 
     def self.get_name

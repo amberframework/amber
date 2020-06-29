@@ -1,5 +1,5 @@
 <% if @database == "pg"
-     @db_url = "postgres://admin:password@db:5432/#{database_name}_development"
+     @db_url = "postgres://postgres:password@db:5432/#{database_name}_development"
      @wait_for = "while ! nc -q 1 db 5432 </dev/null; do sleep 1; done && "
    elsif @database == "mysql"
      @db_url = "mysql://admin:password@db:3306/#{database_name}_development"
@@ -42,7 +42,7 @@ services:
   db:
     image: postgres
     environment:
-      POSTGRES_USER: admin
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: <%= "#{database_name}_development" %>
     volumes:

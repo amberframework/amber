@@ -20,15 +20,11 @@ Amber::Server.configure do |settings|
   # when logging information, display the time and/or to display the severity level.
   # Defaults to true.
   #
-  # Log Level defines the verbosity of the Amber logger. This option defaults to
-  # debug for all environments. The available log levels are: debug, info, warn,
-  # error, fatal, and unknown.
-  #
+  # settings.logging.severity = "info"
   # settings.logging.colorize = true
-  # settings.logging.severity = "debug"
+  # settings.logging.color = "white"
   # settings.logging.filter = %w(password confirm_password)
   # settings.logging.skip = %w()
-  # settings.logging.context = %w(request headers cookies session params)
   #
   #
   # Secret Key Base: is used for specifying a key which allows sessions
@@ -106,12 +102,5 @@ Amber::Server.configure do |settings|
   # when set to 0 means this is indefinitely and is expressed in seconds.
   #
   # settings.session = { "key" => "amber.session", "store" => "signed_cookie", "expires" => 0 }
-  #
-  #
-  # Logger: is the logger that Amber and other capable shards in the project will use
-  # instead of writing directly to STDOUT. Supply a custom logger to write to syslog, etc.
-  #
-  # settings.logger = Amber::Environment::Logger.new(File.open("<%= @name %>.log", "w"))
-  #
   #
 end

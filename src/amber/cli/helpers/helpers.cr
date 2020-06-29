@@ -1,10 +1,10 @@
 module Amber::CLI::Helpers
   def add_routes(pipeline, route)
     routes_file = File.read("./config/routes.cr")
-    routes = routes_file.match(/routes :#{pipeline.to_s}(.*?) do(.+?)end/m)
+    routes = routes_file.match(/routes :#{pipeline}(.*?) do(.+?)end/m)
     if routes
       replacement = <<-ROUTES
-        routes :#{pipeline.to_s}#{routes[1]} do
+        routes :#{pipeline}#{routes[1]} do
           #{routes[2]}
           #{route}
         end
@@ -18,7 +18,7 @@ module Amber::CLI::Helpers
           #{web_routes[2]}
         end
 
-        routes :#{pipeline.to_s} do
+        routes :#{pipeline} do
           #{route}
         end
         PLUGS
@@ -32,10 +32,10 @@ module Amber::CLI::Helpers
     routes_file = File.read("./config/routes.cr")
     return if routes_file.includes? plug
 
-    pipes = routes_file.match(/pipeline :#{pipeline.to_s}(.*?) do(.+?)end/m)
+    pipes = routes_file.match(/pipeline :#{pipeline}(.*?) do(.+?)end/m)
     if pipes
       replacement = <<-PLUGS
-      pipeline :#{pipeline.to_s}#{pipes[1]} do
+      pipeline :#{pipeline}#{pipes[1]} do
         #{pipes[2]}
         #{plug}
       end
@@ -49,7 +49,7 @@ module Amber::CLI::Helpers
           #{web_pipes[2]}
         end
 
-        pipeline :#{pipeline.to_s} do
+        pipeline :#{pipeline} do
           #{plug}
         end
         PLUGS

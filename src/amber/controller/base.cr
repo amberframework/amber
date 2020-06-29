@@ -16,8 +16,6 @@ module Amber::Controller
     protected getter context : HTTP::Server::Context
     protected getter params : Amber::Validators::Params
 
-    delegate :logger, to: Amber.settings
-
     delegate :client_ip,
       :cookies,
       :delete?,

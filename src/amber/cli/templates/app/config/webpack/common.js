@@ -9,7 +9,7 @@ let config = {
     main: path.resolve(__dirname, 'entry.js')
   },
   output: {
-    filename: '[name].[contenthash].js',
+    filename: '[name].bundle.js',
     path: path.resolve(__dirname, '../../public/dist'),
     publicPath: '/dist'
   },
@@ -57,7 +57,7 @@ let config = {
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: '[name].[contenthash].css'
+      filename: '[name].bundle.css'
     }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({

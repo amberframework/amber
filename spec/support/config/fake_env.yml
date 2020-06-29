@@ -4,12 +4,6 @@ logging:
   filter:
     - password
     - confirm_password
-  context:
-    - request
-    - session
-    - headers
-    - cookies
-    - params
 
 database_url: "mysql://root@localhost:3306/fake_settings_test"
 host: 0.0.0.0

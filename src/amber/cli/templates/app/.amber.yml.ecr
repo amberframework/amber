@@ -29,8 +29,10 @@ watch:
       - AMBER_ENV=test crystal spec
     include:
       - ./spec/**/*.cr
+<%- unless @minimal -%>
   npm:
     build_commands:
       - npm install --loglevel=error
     run_commands:
       - npm run watch
+<%- end -%>

@@ -13,6 +13,7 @@ module Amber::CLI
         bool "--no-color", desc: "Disable colored output", default: false
         bool ["-y", "--assume-yes"], desc: "Assume yes to disable interactive mode", default: false
         bool "--no-deps", desc: "Does not install dependencies, this avoids running shards update", default: false
+        bool "--minimal", desc: "Does not install npm dependencies", default: false
         help
       end
 

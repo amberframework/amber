@@ -1,5 +1,5 @@
 require "http"
-require "logger"
+require "log"
 require "json"
 require "colorize"
 require "random/secure"

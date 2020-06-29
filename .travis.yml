@@ -1,10 +1,10 @@
 dist: xenial
 sudo: required
-language: crystal
 
 services:
   - postgresql
   - redis-server
+  - docker
 
 cache:
   directories:
@@ -16,10 +16,14 @@ env:
   - TEST_SUITE=./spec/build_spec_granite.cr
   - TEST_SUITE=./spec/amber
 
+before-install:
+  - psql -U postgres -c "ALTER USER postgres WITH PASSWORD 'password';"
+
 script:
-  - bin/ameba
-  - crystal tool format --check
-  - crystal spec $TEST_SUITE
+  - docker build -t amber-test .
+  - docker run --rm amber-test /opt/amber/bin/ameba
+  - docker run --rm amber-test crystal tool format --check
+  - docker run --rm --network=host amber-test crystal spec $TEST_SUITE
 
 notifications:
   webhooks:

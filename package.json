@@ -1,6 +1,6 @@
 {
   "name": "amber",
-  "version": "0.8.1",
+  "version": "0.35.0",
   "description": "Front-end configuration for Amber Framework",
   "private": true,
   "author": "Amber",

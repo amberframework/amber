@@ -1,4 +1,9 @@
-require "zlib"
+{% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+  require "compress/gzip"
+  require "compress/deflate"
+{% else %}
+  require "zlib"
+{% end %}
 
 module Amber
   module Pipe
@@ -86,7 +91,7 @@ module Amber
       end
 
       private def etag(context, file_path)
-        etag = %{W/"#{File.info(file_path).modification_time.to_unix.to_s}"}
+        etag = %{W/"#{File.info(file_path).modification_time.to_unix}"}
         context.response.headers["ETag"] = etag
         return false if !context.request.headers["If-None-Match"]? || context.request.headers["If-None-Match"] != etag
         context.response.headers.delete "Content-Type"
@@ -139,16 +144,28 @@ module Amber
 
       private def gzip_encoding(env, file)
         env.response.headers["Content-Encoding"] = "gzip"
-        Gzip::Writer.open(env.response) do |deflate|
-          IO.copy(file, deflate)
-        end
+        {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+          Compress::Gzip::Writer.open(env.response) do |deflate|
+            IO.copy(file, deflate)
+          end
+        {% else %}
+          Gzip::Writer.open(env.response) do |deflate|
+            IO.copy(file, deflate)
+          end
+        {% end %}
       end
 
       private def deflate_endcoding(env, file)
         env.response.headers["Content-Encoding"] = "deflate"
-        Flate::Writer.open(env.response) do |deflate|
-          IO.copy(file, deflate)
-        end
+        {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+          Compress::Deflate::Writer.open(env.response) do |deflate|
+            IO.copy(file, deflate)
+          end
+        {% else %}
+          Flate::Writer.open(env.response) do |deflate|
+            IO.copy(file, deflate)
+          end
+        {% end %}
       end
 
       private def multipart(file, env)

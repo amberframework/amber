@@ -31,7 +31,7 @@ module Amber::CLI
         defaults values shown above in this help message.
 
         Usage:
-        amber new [app_name] -d [pg | mysql | sqlite] -t [slang | ecr] --no-deps
+        amber new [app_name] -d [pg | mysql | sqlite] -t [slang | ecr] --no-deps --minimal
       EOS
 
       footer <<-EOS

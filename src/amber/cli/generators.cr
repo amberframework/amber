@@ -7,6 +7,8 @@ require "./generators/**"
 
 module Amber::CLI
   class Generators
+    Log = ::Log.for("generate")
+
     getter name : String
     getter directory : String
     getter fields : Array(String)
@@ -231,7 +233,7 @@ module Amber::CLI
 
     def generate_app(options)
       info "Rendering App #{name} in #{directory}"
-      App.new(name, options.d, options.t).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
+      App.new(name, options.d, options.t, options.minimal?).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
       unless options.no_deps?
         info "Installing Dependencies"
         Helpers.run("cd #{directory} && shards update")
@@ -243,7 +245,7 @@ module Amber::CLI
         info "Generating #{gen_class}"
         gen_class.new(name, fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
       else
-        CLI.logger.error "Generator for #{command} not found", "Generate", :light_red
+        error "Generator for #{command} not found"
       end
     end
 
@@ -252,16 +254,18 @@ module Amber::CLI
     end
 
     def info(msg)
-      CLI.logger.info msg, "Generate", :light_cyan
+      Log.info { msg.colorize(:light_cyan) }
     end
 
     def error(msg)
-      CLI.logger.error msg, "Generate", :red
+      Log.error { msg.colorize(:light_red) }
     end
   end
 end
 
 class Teeplate::RenderingEntry
+  Log = ::Log.for("generate")
+
   def appends?
     @data.path.includes?("+")
   end
@@ -279,7 +283,7 @@ class Teeplate::RenderingEntry
   end
 
   def list(s, color)
-    Amber::CLI.logger.info s.colorize.fore(color).to_s + local_path, "Generate", :light_cyan
+    Log.info { s.colorize.fore(color).to_s + local_path }
   end
 end
 
