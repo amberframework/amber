@@ -50,8 +50,6 @@ module Amber::Recipes
       @kind == "app" ? "#{app_dir}/.recipes" : "./.recipes"
     end
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     def try_github
       url = "https://raw.githubusercontent.com/#{@name}/master/shard.yml"
 
@@ -81,16 +79,10 @@ module Amber::Recipes
       Amber::CLI::Helpers.run("cd #{app_dir}/.recipes && shards update")
     end
 
-=======
->>>>>>> Changes to support installing plugins
-=======
->>>>>>> 465100adb75bc2a34ae4b2ab33a832170b8b65cd
     def recipe_source
       CLI.config.recipe_source || "https://github.com/amberframework/recipes/releases/download/dist/"
     end
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     def fetch_zip(url : String)
       # download the recipe zip file from the github repository
       HTTP::Client.get(url) do |response|
@@ -145,24 +137,11 @@ module Amber::Recipes
       nil
     end
 
-    def fetch_url
-      fetch_zip "#{recipe_source}/#{@name}.zip"
-    end
-=======
     def fetch_url(name, directory, kind)
       template = fetch_zip "#{recipe_source}/#{name}.zip",  directory, kind
       CLI.logger.error "Cannot generate #{kind} from #{name} recipe", "Generate", :light_red unless template
       template
     end
 
->>>>>>> Changes to support installing plugins
-=======
-    def fetch_url(name, directory, kind)
-      template = fetch_zip "#{recipe_source}/#{name}.zip",  directory, kind
-      CLI.logger.error "Cannot generate #{kind} from #{name} recipe", "Generate", :light_red unless template
-      template
-    end
-
->>>>>>> 465100adb75bc2a34ae4b2ab33a832170b8b65cd
   end
 end
