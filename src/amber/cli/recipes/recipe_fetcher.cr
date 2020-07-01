@@ -42,23 +42,13 @@ module Amber::Recipes
         end
       end
 
-      @template_path = "#{recipes_folder}/zip/#{@name}"
-      fetch_template(recipes_folder, @name, @kind)
+      template = fetch_template(recipes_folder, @name, @kind)
+      Log.error { "Cannot generate #{kind} from #{name} recipe".colorize(:light_red) } unless template
+      template
     end
 
     def recipes
       @kind == "app" ? "#{app_dir}/.recipes" : "./.recipes"
-    end
-
-    def try_github
-      url = "https://raw.githubusercontent.com/#{@name}/master/shard.yml"
-
-      HTTP::Client.get(url) do |response|
-        if response.status_code == 200
-          return true
-        end
-      end
-      false
     end
 
     def create_recipe_shard(shard_name)
@@ -77,70 +67,6 @@ module Amber::Recipes
 
       Log.info { "Installing Recipe".colorize(:light_cyan) }
       Amber::CLI::Helpers.run("cd #{app_dir}/.recipes && shards update")
-    end
-
-    def recipe_source
-      CLI.config.recipe_source || "https://github.com/amberframework/recipes/releases/download/dist/"
-    end
-
-    def fetch_zip(url : String)
-      # download the recipe zip file from the github repository
-      HTTP::Client.get(url) do |response|
-        if response.status_code == 302
-          # download the recipe zip frile from redirected url
-          if redirection_url = response.headers["Location"]?
-            HTTP::Client.get(redirection_url) do |redirected_response|
-              save_zip(redirected_response)
-            end
-          end
-        elsif response.status_code != 200
-          Log.error { "Could not find the recipe #{@name} : #{response.status_code} #{response.status_message}".colorize(:light_red) }
-          return nil
-        end
-
-        save_zip(response)
-      end
-    end
-
-    def save_zip(response : HTTP::Client::Response)
-      Dir.mkdir_p(@template_path)
-
-      {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
-        Compress::Zip::Reader.open(response.body_io) do |zip|
-          zip.each_entry do |entry|
-            path = "#{@template_path}/#{entry.filename}"
-            if entry.dir?
-              Dir.mkdir_p(path)
-            else
-              File.write(path, entry.io.gets_to_end)
-            end
-          end
-        end
-      {% else %}
-        Zip::Reader.open(response.body_io) do |zip|
-          zip.each_entry do |entry|
-            path = "#{@template_path}/#{entry.filename}"
-            if entry.dir?
-              Dir.mkdir_p(path)
-            else
-              File.write(path, entry.io.gets_to_end)
-            end
-          end
-        end
-      {% end %}
-
-      if Dir.exists?("#{@template_path}/#{@kind}")
-        return "#{@template_path}/#{@kind}"
-      end
-
-      Log.error { "Cannot generate #{@kind} from #{@name} recipe".colorize(:light_red) }
-      nil
-    end
-
-    def fetch_url(name, directory, kind)
-      template = fetch_zip "#{recipe_source}/#{name}.zip",  directory, kind
-      CLI.logger.error "Cannot generate #{kind} from #{name} recipe", "Generate", :light_red unless template
-      template
     end
 
   end

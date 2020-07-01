@@ -12,6 +12,7 @@ require "./installer"
 module Amber::Plugins
 
   class Plugin
+    Log = ::Log.for(self)
     getter name : String
     getter directory : String
 
@@ -41,12 +42,12 @@ module Amber::Plugins
         PluginInstaller.new(name).render(directory, list: true, color: true)
 
       else
-        CLI.logger.error "Invalid plugin command", "Plugin", :light_red
+        Log.error {"Invalid plugin command".colorize(:light_red) }
       end
     end
 
     def log_message(msg)
-      CLI.logger.info msg, "Plugin", :light_cyan
+      Log.info { msg.colorize(:light_cyan) }
     end
   end
 

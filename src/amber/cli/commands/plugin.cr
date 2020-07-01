@@ -20,7 +20,7 @@ module Amber::CLI
 
       def run
         if args.action != "add"
-          CLI.logger.info "Invalid plugin action, only 'add' is allowed.", "Error", :red
+          error "Invalid plugin action, only 'add' is allowed."
           exit! help: true, error: true
         end
 
@@ -33,7 +33,7 @@ module Amber::CLI
 
       private def ensure_name_argument!
         unless args.name?
-          CLI.logger.info "Parsing Error: The NAME argument is required.", "Error", :red
+          error "Parsing Error: The NAME argument is required."
           exit! help: true, error: true
         end
       end

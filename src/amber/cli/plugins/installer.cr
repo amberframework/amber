@@ -45,9 +45,6 @@ class Teeplate::RenderingEntry
                     end
   end
 
-  def list(s, color)
-    Amber::CLI.logger.info s.colorize.fore(color).to_s + local_path, "Generate", :light_cyan
-  end
 end
 
 module Teeplate

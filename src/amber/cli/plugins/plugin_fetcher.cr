@@ -2,6 +2,7 @@ require "../helpers/repo_fetcher"
 
 module Amber::Plugins
   class PluginFetcher
+    Log = ::Log.for(self)
     include Amber::Helpers::RepoFetcher
 
     getter kind : String = "plugin"
@@ -32,8 +33,10 @@ module Amber::Plugins
           return path if Dir.exists?(path)
         end
       end
-
-      fetch_template(zip_folder, @name, @kind)
+      
+      template = fetch_template(zip_folder, @name, @kind)
+      Log.error {"Cannot generate plugin from #{name}".colorize(:light_red) } unless template
+      template
     end
 
     def shard_folder(shard_name)
@@ -44,14 +47,5 @@ module Amber::Plugins
       "./.plugins/zip/#{@name}"
     end
 
-    def repo_source
-      CLI.config.recipe_source || "https://github.com/amberplugin/plugins/releases/download/dist/"
-    end
-
-    def fetch_url(name, directory, kind)
-      template = fetch_zip "#{repo_source}/#{name}.zip",  directory, kind
-      CLI.logger.error "Cannot generate plugin from #{name}", "Generate", :light_red unless template
-      template
-    end
   end
 end

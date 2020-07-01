@@ -1,5 +1,9 @@
 require "http/client"
-require "zip"
+{% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+  require "compress/zip"
+{% else %}
+  require "zip"
+{% end %}
 
 module Amber::Helpers
   module RepoFetcher
@@ -27,13 +31,14 @@ module Amber::Helpers
       path = "#{destination}/#{kind}"
       return path if Dir.exists?(path)
 
+      # the only other option is that name is a URL to a zip file
       if name && name.downcase.starts_with?("http") && name.downcase.ends_with?(".zip")
         return fetch_zip name, destination, kind
       end
-
-      fetch_url name, destination, kind
+      
+      nil
     end
-
+    
     def try_github(name : String)
       url = "https://raw.githubusercontent.com/#{name}/master/shard.yml"
 
@@ -41,7 +46,9 @@ module Amber::Helpers
         if response.status_code == 200
           return true
         end
+        Log.error { "#{name} response #{url} #{response.status_code}".colorize(:light_red) }
       end
+
       false
     end
 
@@ -57,7 +64,7 @@ module Amber::Helpers
         begin
           shard = RepoShard.from_yaml File.read(filename)
         rescue ex : YAML::ParseException
-          CLI.logger.error "Couldn't parse #{filename} file", "Watcher", :red
+          Log.error { "Couldn't parse #{filename} file".colorize(:light_red) }
           exit 1
         end
       else
@@ -67,7 +74,7 @@ module Amber::Helpers
       shard.dependencies[shard_name] = {"github" => repo, "branch" => "master"}
       File.open(filename, "w") { |f| shard.to_yaml(f) }
 
-      CLI.logger.info "Installing shard", "Generate", :light_cyan
+      Log.info { "Installing shard".colorize(:light_cyan) }
       Amber::CLI::Helpers.run("cd #{destination} && shards update")
     end
 
@@ -75,43 +82,69 @@ module Amber::Helpers
       # download the recipe zip file from the github repository
       HTTP::Client.get(url) do |response|
         if response.status_code == 302
-          # download the recipe zip frile from redirected url
+          # download the recipe zip file from redirected url
           if redirection_url = response.headers["Location"]?
             HTTP::Client.get(redirection_url) do |redirected_response|
-              save_zip(redirected_response, destination, kind)
+              save_zip(redirected_response, destination, kind, url)
             end
           end
         elsif response.status_code != 200
-          CLI.logger.error "Could not download #{url} : #{response.status_code} #{response.status_message}", "Generate", :light_red
+          Log.error { "Could not download #{url} : #{response.status_code} #{response.status_message}".colorize(:light_red) }
           return nil
         end
 
-        save_zip(response, destination, kind)
+        save_zip(response, destination, kind, url)
       end
     end
 
-    def save_zip(response : HTTP::Client::Response, destination : String, kind : String)
+    def save_zip(response : HTTP::Client::Response, destination : String, kind : String, url : String)
       Dir.mkdir_p(destination)
 
-      Zip::Reader.open(response.body_io) do |zip|
-        zip.each_entry do |entry|
-          path = "#{destination}/#{entry.filename}"
-          if entry.dir?
-            Dir.mkdir_p(path)
-          else
-            File.write(path, entry.io.gets_to_end)
+      {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+        Compress::Zip::Reader.open(response.body_io) do |zip|
+          zip.each_entry do |entry|
+            path = "#{destination}/#{entry.filename}"
+            if entry.dir?
+              Dir.mkdir_p(path)
+            else
+              File.write(path, entry.io.gets_to_end)
+            end
           end
         end
-      end
+      {% else %}
+        Zip::Reader.open(response.body_io) do |zip|
+          zip.each_entry do |entry|
+            path = "#{destination}/#{entry.filename}"
+            if entry.dir?
+              Dir.mkdir_p(path)
+            else
+              File.write(path, entry.io.gets_to_end)
+            end
+          end
+        end
+      {% end %}
 
       if Dir.exists?("#{destination}/#{kind}")
         return "#{destination}/#{kind}"
       end
 
+      # try an entry in the destination folder and check the entry is included in
+      # the zip file url
+      Dir.entries(destination).each do |entry|
+        item = entry
+        # a github release zip file has a version appended in the folder name
+        # so take the first part as the entry name
+        if entry.includes? "-"
+          item = entry.split("-")[0]
+        end
+
+        if Dir.exists?("#{destination}/#{entry}/#{kind}") && url.includes? item
+          return "#{destination}/#{entry}/#{kind}"
+        end
+      end
+
       nil
     end
-
-    abstract def fetch_url(name, directory, kind)
 
   end
 end
