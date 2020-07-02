@@ -29,7 +29,7 @@ Amber::Server.configure do
 
   routes :web do
     <% unless @minimal%>
-      get "/", HomeController, :index
+    get "/", HomeController, :index
     <% end %>
   end
 
