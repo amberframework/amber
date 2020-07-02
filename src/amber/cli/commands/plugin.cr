@@ -8,8 +8,8 @@ module Amber::CLI
 
     class Plugin < Command
       class Options
-        arg "action", desc: "add sub command", required: true
-        arg "name", desc: "name/path/github_repo of plugin", required: true
+        arg "action", desc: "install or uninstall", required: true
+        arg "name", desc: "shard_name:folder of plugin", required: true
         help
       end
 
@@ -19,14 +19,11 @@ module Amber::CLI
       end
 
       def run
-        if args.action != "install"
-          error "Invalid plugin action, only 'install' is allowed."
-          exit! help: true, error: true
-        end
-
+        ensure_action_argument!
         ensure_name_argument!
-        if Amber::Plugin.can_generate?(args.name)
-          template = Amber::Plugin.new(args.name, ".")
+
+        if Amber::Plugins::Plugin.can_generate?(args.name)
+          template = Amber::Plugins::Plugin.new(args.name, ".")
           template.generate args.action
         end
       end
@@ -34,6 +31,18 @@ module Amber::CLI
       private def ensure_name_argument!
         unless args.name?
           error "Parsing Error: The NAME argument is required."
+          exit! help: true, error: true
+        end
+
+        if args.name.split(":").size != 2
+          error "Invalid plugin name."
+          exit! help: true, error: true
+        end
+      end
+
+      private def ensure_action_argument!
+        if args.action != "install"
+          error "Invalid plugin action, 'install' is the only supported action currently."
           exit! help: true, error: true
         end
       end

@@ -10,7 +10,7 @@ module Amber::Plugins
     property timestamp : String
 
     def initialize(@name)
-      @template = Plugins::Fetcher.new(name).fetch
+      @template = Fetcher.new(name).fetch
       @timestamp = Time.utc.to_s("%Y%m%d%H%M%S%L")
     end
 

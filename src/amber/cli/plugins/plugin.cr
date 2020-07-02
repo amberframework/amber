@@ -9,14 +9,14 @@ require "../recipes/file_entries"
 require "./fetcher"
 require "./installer"
 
-module Amber
+module Amber::Plugins
   class Plugin
     Log = ::Log.for(self)
     getter name : String
     getter directory : String
 
     def self.can_generate?(name : String)
-      template = Plugins::Fetcher.new(name).fetch
+      template = Fetcher.new(name).fetch
       !(template.nil?)
     end
 
@@ -33,7 +33,7 @@ module Amber
       case action
       when "install"
         log_message "Adding plugin #{name}"
-        Plugins::Installer.new(name).render(directory, list: true, color: true)
+        Installer.new(name).render(directory, list: true, color: true)
       else
         Log.error { "Invalid plugin command".colorize(:light_red) }
       end
