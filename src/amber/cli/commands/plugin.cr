@@ -37,7 +37,6 @@ module Amber::CLI
           exit! help: true, error: true
         end
       end
-
     end
   end
 end

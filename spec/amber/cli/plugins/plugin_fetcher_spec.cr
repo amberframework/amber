@@ -55,6 +55,5 @@ module Amber::Plugins
         end
       end
     end
-
   end
 end

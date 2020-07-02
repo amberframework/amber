@@ -7,9 +7,7 @@ require "http/client"
 
 module Amber::Helpers
   module RepoFetcher
-
     class RepoShard
-
       alias Dependencies = Hash(String, Hash(String, String))
 
       property name : String = "repo"
@@ -23,7 +21,7 @@ module Amber::Helpers
       YAML.mapping(
         name: {type: String, default: "repo"},
         version: {type: String, default: "0.1.0"},
-        dependencies: {type: Dependencies, default: Dependencies.new },
+        dependencies: {type: Dependencies, default: Dependencies.new},
       )
     end
 
@@ -53,7 +51,6 @@ module Amber::Helpers
     end
 
     def fetch_repo_shard(repo : String, destination : String)
-
       Dir.mkdir_p(destination)
       filename = "#{destination}/shard.yml"
 
@@ -145,6 +142,5 @@ module Amber::Helpers
 
       nil
     end
-
   end
 end

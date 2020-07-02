@@ -10,7 +10,6 @@ require "./plugin_fetcher"
 require "./installer"
 
 module Amber::Plugins
-
   class Plugin
     Log = ::Log.for(self)
     getter name : String
@@ -37,12 +36,10 @@ module Amber::Plugins
     def generate(action : String, options = nil)
       case action
       when "add"
-
         log_message "Adding plugin #{name}"
         PluginInstaller.new(name).render(directory, list: true, color: true)
-
       else
-        Log.error {"Invalid plugin command".colorize(:light_red) }
+        Log.error { "Invalid plugin command".colorize(:light_red) }
       end
     end
 
@@ -50,5 +47,4 @@ module Amber::Plugins
       Log.info { msg.colorize(:light_cyan) }
     end
   end
-
 end

@@ -1,5 +1,4 @@
 module Amber::Plugins
-
   class PluginInstaller < Teeplate::FileTree
     include Amber::CLI::Helpers
     include Amber::Recipes::FileEntries
@@ -23,10 +22,8 @@ module Amber::Plugins
       ctx.set "language", language
       ctx.set "timestamp", timestamp
     end
-
   end
 end
-
 
 class Teeplate::RenderingEntry
   def appends?
@@ -44,12 +41,10 @@ class Teeplate::RenderingEntry
                       @data.path
                     end
   end
-
 end
 
 module Teeplate
   abstract class FileTree
-
     # Renders all collected file entries.
     #
     # For more information about the arguments, see `Renderer`.
@@ -64,6 +59,5 @@ module Teeplate
     def filter(entries)
       entries
     end
-
   end
 end

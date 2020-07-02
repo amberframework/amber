@@ -2,7 +2,6 @@ require "../../../spec_helper"
 
 module Amber::Plugins
   describe Plugin do
-
     describe "#can_generate?" do
       Spec.before_each do
         Dir.mkdir_p(".plugins/lib/test/plugin")
