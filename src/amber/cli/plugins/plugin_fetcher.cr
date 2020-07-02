@@ -11,7 +11,7 @@ module Amber::Plugins
 
     def initialize(name : String)
       if name.index('/') == nil
-        @name = "amberplugin/#{name}"  # a plugin in github/amberplugin organisation 
+        @name = "amberplugin/#{name}"  # a plugin in github/amberplugin organisation
       else
         @name = name
       end
@@ -33,7 +33,7 @@ module Amber::Plugins
           return path if Dir.exists?(path)
         end
       end
-      
+
       template = fetch_template(zip_folder, @name, @kind)
       Log.error {"Cannot generate plugin from #{name}".colorize(:light_red) } unless template
       template

@@ -51,7 +51,7 @@ module Amber::Plugins
         it "should use a shard name" do
           template = PluginFetcher.new("authorize").fetch
           template.should_not be nil
-          template.should match(/.plugins\/lib\/authorize\/plugin$/)          
+          template.should match(/.plugins\/lib\/authorize\/plugin$/)
         end
       end
     end

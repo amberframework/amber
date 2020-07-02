@@ -37,7 +37,7 @@ module Amber::Plugins
     def generate(action : String, options = nil)
       case action
       when "add"
-     
+
         log_message "Adding plugin #{name}"
         PluginInstaller.new(name).render(directory, list: true, color: true)
 

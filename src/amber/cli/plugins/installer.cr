@@ -49,7 +49,7 @@ end
 
 module Teeplate
   abstract class FileTree
-  
+
     # Renders all collected file entries.
     #
     # For more information about the arguments, see `Renderer`.

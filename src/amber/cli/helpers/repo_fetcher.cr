@@ -35,10 +35,10 @@ module Amber::Helpers
       if name && name.downcase.starts_with?("http") && name.downcase.ends_with?(".zip")
         return fetch_zip name, destination, kind
       end
-      
+
       nil
     end
-    
+
     def try_github(name : String)
       url = "https://raw.githubusercontent.com/#{name}/master/shard.yml"
 
