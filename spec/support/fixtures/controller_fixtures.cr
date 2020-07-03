@@ -93,6 +93,10 @@ class RenderController < Amber::Controller::Base
     render(path: "spec/support/sample/views", partial: "test/_test.slang")
   end
 
+  def render_partial_with_locals
+    render(path: "spec/support/sample/views", partial: "test/_test_with_locals.slang", locals: {message: "Hello World"})
+  end
+
   def render_with_layout
     render("test/test.slang", layout: "layout.slang", path: "spec/support/sample/views", folder: "./")
   end

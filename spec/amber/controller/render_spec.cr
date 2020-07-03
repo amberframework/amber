@@ -17,6 +17,10 @@ module Amber::Controller
         RenderController.new(context).render_partial.should eq partial_only
       end
 
+      it "renders partial with locals" do
+        RenderController.new(context).render_partial_with_locals.should eq partial_only
+      end
+
       it "renders flash message" do
         RenderController.new(context).render_with_flash
       end
