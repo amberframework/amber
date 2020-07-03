@@ -7,12 +7,10 @@ module Amber::Controller::Helpers
         raise "Template or partial required!"
       {% end %}
 
-      {{ obj = locals }}
-
       # Convert locals key/values into variables
-      {% if obj %}
-        {% for i in obj %}
-          {{i}} = {{ obj[i] }}
+      {% if locals %}
+        {% for i in locals %}
+          {{i}} = {{ locals[i] }}
         {% end %}
       {% end %}
 
