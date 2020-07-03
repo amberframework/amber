@@ -2,9 +2,18 @@ module Amber::Controller::Helpers
   module Render
     LAYOUT = "application.slang"
 
-    macro render(template = nil, layout = true, partial = nil, path = "src/views", folder = __FILE__)
+    macro render(template = nil, layout = true, partial = nil, path = "src/views", folder = __FILE__, locals = nil)
       {% if !(template || partial) %}
         raise "Template or partial required!"
+      {% end %}
+
+      {{ obj = locals }}
+
+      # Convert locals key/values into variables
+      {% if obj %}
+        {% for i in obj %}
+          {{i}} = {{ obj[i] }}
+        {% end %}
       {% end %}
 
       {{ filename = template || partial }}
