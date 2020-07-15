@@ -17,8 +17,8 @@ services:
     image: <%= @name %>
     command: amber watch
     environment:
-    DATABASE_URL: <%= @db_url %>
-    REDIS_URL: redis://cache:6379
+      DATABASE_URL: <%= @db_url %>
+      REDIS_URL: redis://cache:6379
     ports:
       - 3000:3000
     links:
