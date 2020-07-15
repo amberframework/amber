@@ -17,11 +17,13 @@ services:
     image: <%= @name %>
     command: amber watch
     environment:
-      DATABASE_URL: <%= @db_url %>
+    DATABASE_URL: <%= @db_url %>
+    REDIS_URL: redis://cache:6379
     ports:
       - 3000:3000
     links:
       - db
+      - cache
     volumes:
     - .:/app
     - nodes:/app/node_modules
@@ -65,7 +67,14 @@ services:
     - db:/app/local/db
 <% end -%>
 
+  cache:
+    image: redis:5.0-alpine
+    command: redis-server
+    volumes:
+      - cache:/var/lib/redis/data
+
 volumes:
-  db:
   nodes:
   shards:
+  db:
+  cache:
