@@ -2,13 +2,14 @@ require "crypto/bcrypt/password"
 
 class <%= class_name %> < Granite::Base
   include Crypto
-  connection <%= config.database %>
-  <%= "table #{table_name}" %>
+  connection :<%= config.database %>
+  table :<%= table_name %>
 
   column id : Int64, primary: true
 <% @fields.reject{|f| f.hidden }.each do |field| -%>
   column <%= field.name %> : <%= field.cr_type %>?
 <% end -%>
+
 <% if config.database != "sqlite" -%>
   timestamps
 <% end -%>
