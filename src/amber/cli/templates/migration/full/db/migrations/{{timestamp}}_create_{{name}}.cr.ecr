@@ -1,0 +1,23 @@
+class Create<%= class_name %> < Granite::Migration
+  connection :<%= config.database %>
+
+  def up
+    create_table :<%= table_name %> do |t|
+      t.primary :id
+<% @fields.reject{|f| f.hidden }.each do |field| -%>
+      t.<%= field.type %> :<%= "#{field.name}#{field.reference? ? "_id" : ""}" %>
+<% end -%>
+<% if config.database != "sqlite" -%>
+      t.timestamps
+<% end -%>
+    end
+
+<% @fields.select{|f| f.reference? }.each do |field| -%>
+    create_index :<%= table_name %>, :<%= "#{field.name}_id" %>
+<% end -%>
+  end
+
+  def down
+    drop_table :<%= table_name %>
+  end
+end
