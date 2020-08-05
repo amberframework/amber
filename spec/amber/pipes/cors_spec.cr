@@ -8,10 +8,10 @@ module Amber::Pipe
       assert_cors_success(context)
     end
 
-    it "does not return CORS headers if Origin header not present" do
+    it "process requests as normal for non CORS requests" do
       context = cors_context("GET")
       cors_add_next(CORS.new).call(context)
-      assert_cors_failure context
+      assert_non_cors_request context
     end
 
     it "supports OPTIONS request" do
