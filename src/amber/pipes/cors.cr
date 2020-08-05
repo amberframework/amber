@@ -136,7 +136,7 @@ module Amber
         @origins.includes? "*"
       end
 
-      def origin_header?(request)
+      protected def origin_header?(request)
         @request_origin = request.headers[Headers::ORIGIN]? || request.headers[Headers::X_ORIGIN]?
       end
     end
