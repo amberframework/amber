@@ -10,7 +10,7 @@ module Amber::CLI
       @actions = ["forbidden", "not_found", "internal_server_error"]
     end
 
-    def pre_render(directory)
+    def pre_render(directory, **args)
       add_plugs
     end
 

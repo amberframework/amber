@@ -5,7 +5,7 @@ module Amber::DSL
     end
   end
 
-  record Router, router : Amber::Router::Router, valve : Symbol, scope : String do
+  record Router, router : Amber::Router::Router, valve : Symbol, scope : Amber::Router::Scope do
     RESOURCES = [:get, :post, :put, :patch, :delete, :options, :head, :trace, :connect]
 
     macro route(verb, resource, controller, action, constraints = {} of String => Regex)
@@ -25,13 +25,18 @@ module Amber::DSL
       router.add(%route)
     end
 
+    macro namespace(scoped_namespace)
+      scope.push({{scoped_namespace}})
+      {{yield}}
+      scope.pop
+    end
+
     {% for verb in RESOURCES %}
       macro {{verb.id}}(*args)
         route {{verb}}, \{{*args}}
         {% if verb == :get %}
         route :head, \{{*args}}
         {% end %}
-        route {{verb}}, \{{*args}}
         {% if ![:trace, :connect, :options, :head].includes? verb %}
         route :options, \{{*args}}
         {% end %}

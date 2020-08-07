@@ -1,9 +1,9 @@
-FROM amberframework/amber:v<%= Amber::VERSION %>
+FROM amberframework/amber:<%= Amber::VERSION %>
 
 WORKDIR /app
 
 COPY shard.* /app/
-RUN shards install 
+RUN shards install
 
 COPY . /app
 

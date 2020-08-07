@@ -2,6 +2,8 @@ require "teeplate"
 
 module Amber::Recipes
   module FileEntries
+    Log = ::Log.for(self)
+
     def each_file(absolute_path, filename, &block : String, String ->)
       Dir.open(absolute_path) do |directory|
         directory.each_child do |entry|
@@ -25,7 +27,7 @@ module Amber::Recipes
       io = template.render @ctx.as(Liquid::Context)
       files << ::Teeplate::StringData.new(filename, io.to_s, File.info(absolute_path).permissions)
     rescue ex
-      CLI.logger.error "failed to process #{absolute_path} - #{ex.message}"
+      Log.error(exception: ex) { "failed to process #{absolute_path}" }
     end
 
     def pack_blob(files, absolute_path, filename)

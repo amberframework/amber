@@ -2,9 +2,10 @@ require "./helpers"
 
 module Sentry
   class ProcessRunner
+    Log = ::Log.for("watch")
+
     property processes = Hash(String, Array(Process)).new
     property process_name : String
-    @logger : Amber::Environment::Logger
     FILE_TIMESTAMPS = Hash(String, Int64).new
 
     def initialize(
@@ -12,8 +13,7 @@ module Sentry
       @build_commands = Hash(String, String).new,  # { "task1" => [ ... ], "task2" => [ ... ] }
       @run_commands = Hash(String, String).new,    # { "task1" => [ ... ], "task2" => [ ... ] }
       @includes = Hash(String, Array(String)).new, # { "task1" => [ ... ], "task2" => [ ... ] }
-      @excludes = Hash(String, Array(String)).new, # { "task1" => [ ... ], "task2" => [ ... ] }
-      @logger = Amber::CLI.logger
+      @excludes = Hash(String, Array(String)).new  # { "task1" => [ ... ], "task2" => [ ... ] }
     )
       @app_running = false
     end
@@ -105,7 +105,11 @@ module Sentry
           log task, "Terminating process..."
         end
         procs.each do |process|
-          process.kill unless process.terminated?
+          {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+            process.signal(:term) unless process.terminated?
+          {% else %}
+            process.kill unless process.terminated?
+          {% end %}
         end
         procs.clear
       end
@@ -134,16 +138,7 @@ module Sentry
           end
 
           if ok_to_run
-            process = Amber::CLI::Helpers.run(run_command_run, wait: false, shell: false)
-            if process.is_a? Process
-              @processes["run"] ||= Array(Process).new
-              @processes["run"] << process
-            elsif process.is_a? Exception
-              log :run, "Could not run (#{process.message}), exiting...", :red
-              log :run, "Please check your watch config and try again.", :red
-              exit 1
-            end
-
+            start_process(run_command_run)
             @app_running = true
           end
         else
@@ -152,6 +147,22 @@ module Sentry
         end
       end
 
+      run_commands(skip_build, task_to_start)
+    end
+
+    private def start_process(run_command_run)
+      process = Amber::CLI::Helpers.run(run_command_run, wait: false, shell: false)
+      if process.is_a? Process
+        @processes["run"] ||= Array(Process).new
+        @processes["run"] << process
+      elsif process.is_a? Exception
+        log :run, "Could not run (#{process.message}), exiting...", :red
+        log :run, "Please check your watch config and try again.", :red
+        exit 1
+      end
+    end
+
+    private def run_commands(skip_build, task_to_start)
       @run_commands.each do |task, run_command|
         next if task == "run" # already handled
         next unless task_to_start == :all || task_to_start.to_s == task
@@ -187,7 +198,7 @@ module Sentry
     end
 
     private def log(task, msg, color = :light_gray)
-      @logger.info msg, "Watch #{task}", color
+      Log.for(task.to_s).info { msg.colorize(color) }
     end
   end
 end

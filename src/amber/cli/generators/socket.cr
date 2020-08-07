@@ -7,11 +7,11 @@ module Amber::CLI
       super(name, fields)
     end
 
-    def pre_render(directory)
+    def pre_render(directory, **args)
       add_dependencies
     end
 
-    def post_render(directory)
+    def post_render(directory, **args)
       fields.each do |field|
         WebSocketChannel.new(field.name, nil).render(directory)
       end

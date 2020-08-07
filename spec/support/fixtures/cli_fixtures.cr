@@ -56,16 +56,16 @@ module CLIFixtures
   def expected_post_model
     <<-MODEL
     class Post < Granite::Base
-      adapter pg
-      table_name posts
+      connection pg
+      table posts
 
       belongs_to :user
 
-      primary id : Int64
-      field title : String
-      field body : String
-      field published : Bool
-      field likes : Int32
+      column id : Int64, primary: true
+      column title : String?
+      column body : String?
+      column published : Bool?
+      column likes : Int32?
       timestamps
     end
 

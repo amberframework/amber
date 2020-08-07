@@ -4,10 +4,7 @@ require "mysql"
 require "sqlite3"
 
 module Amber::CLI
-  CLI.logger.progname = "Database"
-  Micrate.logger = settings.logger
-  Micrate.logger.progname = "Database"
-  Micrate.logger.level = Logger::DEBUG
+  Log = ::Log.for("database")
 
   class MainCommand < ::Cli::Supercommand
     command "db", aliased: "database"
@@ -29,7 +26,7 @@ module Amber::CLI
 
         Commands:
           drop      drops the database
-          create    dreates the database
+          create    creates the database
           migrate   migrate the database to the most recent version available
           rollback  roll back the database version by 1
           redo      re-run the latest database migration
@@ -42,27 +39,30 @@ module Amber::CLI
 
       def run
         CLI.toggle_colors(options.no_color?)
+        connect_to_database if args.commands.empty?
 
-        if args.commands.empty?
-          connect_to_database
-        end
+        process_commands(args.commands)
+      rescue e : Micrate::UnorderedMigrationsException
+        exit! Micrate::Cli.report_unordered_migrations(e.versions), error: true
+      rescue e : DB::ConnectionRefused
+        exit! "Connection unsuccessful: #{Micrate::DB.connection_url.colorize(:light_blue)}", error: true
+      rescue e : Exception
+        exit! e.message, error: true
+      end
 
-        args.commands.each do |command|
+      private def process_commands(commands)
+        commands.each do |command|
           Micrate::DB.connection_url = database_url
           case command
           when "drop"
-            Micrate.logger.info drop_database
+            drop_database
           when "create"
-            Micrate.logger.info create_database
+            create_database
           when "seed"
             Helpers.run("crystal db/seeds.cr", wait: true, shell: true)
-            Micrate.logger.info "Seeded database"
+            info "Seeded database"
           when "migrate"
-            begin
-              Micrate::Cli.run_up
-            rescue e : IndexError
-              exit! "No migrations to run in #{MIGRATIONS_DIR}."
-            end
+            migrate
           when "rollback"
             Micrate::Cli.run_down
           when "redo"
@@ -77,12 +77,12 @@ module Amber::CLI
             exit! help: true, error: false
           end
         end
-      rescue e : Micrate::UnorderedMigrationsException
-        exit! Micrate::Cli.report_unordered_migrations(e.versions), error: true
-      rescue e : DB::ConnectionRefused
-        exit! "Connection unsuccessful: #{Micrate::DB.connection_url.colorize(:light_blue)}", error: true
-      rescue e : Exception
-        exit! e.message, error: true
+      end
+
+      private def migrate
+        Micrate::Cli.run_up
+      rescue e : IndexError
+        exit! "No migrations to run in #{MIGRATIONS_DIR}."
       end
 
       private def drop_database
@@ -90,26 +90,26 @@ module Amber::CLI
         if url.starts_with? "sqlite3:"
           path = url.gsub("sqlite3:", "")
           File.delete(path)
-          "Deleted file #{path}"
+          info "Deleted file #{path}"
         else
           name = set_database_to_schema url
           Micrate::DB.connect do |db|
             db.exec "DROP DATABASE IF EXISTS #{name};"
           end
-          "Dropped database #{name}"
+          info "Dropped database #{name}"
         end
       end
 
       private def create_database
         url = Micrate::DB.connection_url.to_s
         if url.starts_with? "sqlite3:"
-          CREATE_SQLITE_MESSAGE
+          info CREATE_SQLITE_MESSAGE
         else
           name = set_database_to_schema url
           Micrate::DB.connect do |db|
             db.exec "CREATE DATABASE #{name};"
           end
-          "Created database #{name}"
+          info "Created database #{name}"
         end
       end
 
@@ -117,7 +117,7 @@ module Amber::CLI
         uri = URI.parse(url)
         if path = uri.path
           Micrate::DB.connection_url = url.gsub(path, "/#{uri.scheme}")
-          return path.gsub("/", "")
+          path.gsub("/", "")
         else
           error "Could not determine database name"
         end

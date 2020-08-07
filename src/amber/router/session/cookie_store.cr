@@ -76,7 +76,7 @@ module Amber::Router::Session
     end
 
     def expires_at
-      Time.now + expires.seconds if @expires > 0
+      Time.utc + expires.seconds if @expires > 0
     end
 
     def current_session

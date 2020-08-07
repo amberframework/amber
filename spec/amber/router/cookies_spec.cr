@@ -1,4 +1,4 @@
-require "../../../spec_helper"
+require "../../spec_helper"
 
 module Amber::Router
   describe Cookies::Store do
@@ -40,13 +40,13 @@ module Amber::Router
 
       cookies.set "that & guy", "foo & bar => baz"
 
-      cookie_header(cookies).should eq "that%20%26%20guy=foo%20%26%20bar%20%3D%3E%20baz; path=/"
+      cookie_header(cookies).should eq "that+%26+guy=foo+%26+bar+%3D%3E+baz; path=/"
     end
 
     it "sets the cookie with expiration" do
       cookies = new_cookie_store
 
-      expiry_time = Time.new(2017, 6, 7, 9)
+      expiry_time = Time.local(2017, 6, 7, 9)
 
       cookies.set "user_name", "david", expires: expiry_time
 
@@ -91,7 +91,7 @@ module Amber::Router
     it "sets multiple cookies" do
       cookies = new_cookie_store
 
-      expiry_time = Time.new(2017, 6, 7, 9)
+      expiry_time = Time.local(2017, 6, 7, 9)
       cookies.set "user_name", "david", expires: expiry_time
       cookies.set "login", "XJ-122"
 

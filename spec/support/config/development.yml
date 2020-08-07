@@ -5,12 +5,6 @@ logging:
   filter:
     - password
     - confirm_password
-  context:
-    - request
-    - session
-    - headers
-    - cookies
-    - params
 
 host: "localhost"
 name: development_settings

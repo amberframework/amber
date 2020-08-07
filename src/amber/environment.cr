@@ -14,10 +14,6 @@ module Amber::Environment
       @@settings = Settings.from_yaml("default: settings")
     end
 
-    def self.logger
-      settings.logger
-    end
-
     def self.env=(env : EnvType)
       @@env = Env.new(env.to_s)
       @@settings = Loader.new(env, path).settings

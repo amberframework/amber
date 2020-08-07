@@ -17,6 +17,8 @@ module Amber
     # end
     # ```
     abstract struct ClientSocket
+      Log = ::Log.for(self)
+
       @@channels = [] of NamedTuple(path: String, channel: Channel)
 
       MAX_SOCKET_IDLE_TIME = 100.seconds
@@ -68,7 +70,7 @@ module Amber
         @raw_params = @context.params
         @params = Amber::Validators::Params.new(@raw_params)
         @socket.on_pong do
-          @pongs.push(Time.now)
+          @pongs.push(Time.utc)
           @pongs.delete_at(0) if @pongs.size > 3
         end
       end
@@ -93,7 +95,7 @@ module Amber
       protected def beat
         @socket.send("ping")
         @socket.ping
-        @pings.push(Time.now)
+        @pings.push(Time.utc)
         @pings.delete_at(0) if @pings.size > 3
         check_alive!
       rescue ex : IO::Error
@@ -115,7 +117,7 @@ module Amber
 
       protected def on_message(message)
         if @socket.closed?
-          Amber.logger.error "Ignoring message sent to closed socket"
+          Log.error { "Ignoring message sent to closed socket" }
         else
           @subscription_manager.dispatch self, decode_message(message)
         end

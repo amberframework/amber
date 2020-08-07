@@ -56,7 +56,7 @@ module Amber::Router::Session
     end
 
     def to_h
-      store.hmget(session_id).each_slice(2).to_h
+      store.hgetall(session_id).each_slice(2).to_h
     end
 
     def update(hash : Hash(String, String))
@@ -86,7 +86,7 @@ module Amber::Router::Session
     end
 
     def expires_at
-      (Time.now + expires.seconds) if @expires > 0
+      (Time.utc + expires.seconds) if @expires > 0
     end
 
     def current_session

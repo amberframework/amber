@@ -3,6 +3,8 @@ const path = require('path');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 let config = {
   entry: {
@@ -49,7 +51,13 @@ let config = {
       fileName: '../../config/asset_manifest.json',
       publicPath: '/dist/',
       writeToFileEmit: true
-    })
+    }),
+    new MiniCssExtractPlugin({
+      filename: '[name].bundle.css'
+    }),
+    new HtmlWebpackPlugin({
+      title: 'Caching',
+    }),
   ],
   // For more info about webpack logs see: https://webpack.js.org/configuration/stats/
   stats: 'errors-only'

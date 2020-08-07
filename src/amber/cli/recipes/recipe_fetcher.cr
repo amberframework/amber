@@ -1,8 +1,14 @@
 require "http/client"
-require "zip"
+{% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+  require "compress/zip"
+{% else %}
+  require "zip"
+{% end %}
 
 module Amber::Recipes
   class RecipeFetcher
+    Log = ::Log.for(self)
+
     getter kind : String # one of the supported kinds [app, model, controller, scaffold]
     getter name : String
     getter directory : String
@@ -15,47 +21,41 @@ module Amber::Recipes
     end
 
     def fetch
-      if Dir.exists?(@directory)
-        return @directory
-      end
+      return @directory if Dir.exists?(@directory)
+      return "#{@name}/#{@kind}" if Dir.exists?("#{@name}/#{@kind}")
 
-      if Dir.exists?("#{@name}/#{@kind}")
-        return "#{@name}/#{@kind}"
-      end
+      parts, recipes_folder = @name.split("/"), recipes
 
-      parts = @name.split("/")
-
-      recipes_folder = @kind == "app" ? "#{app_dir}/.recipes" : "./.recipes"
-
-      if parts.size == 2
-        shard_name = parts[-1]
-
-        if shard_name && @kind != "app"
-          if Dir.exists?("#{recipes_folder}/lib/#{shard_name}/#{@kind}")
-            return "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
-          end
-          return nil
+      if parts.size == 2 && (shard_name = parts[-1])
+        if @kind != "app"
+          path = "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
+          return Dir.exists?(path) ? path : nil
         end
 
-        if shard_name && @kind == "app" && try_github
+        if @kind == "app" && try_github
           fetch_github shard_name
-          if Dir.exists?("#{recipes_folder}/lib/#{shard_name}/#{@kind}")
-            return "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
-          end
+          path = "#{recipes_folder}/lib/#{shard_name}/#{@kind}"
+          return path if Dir.exists?(path)
         end
       end
 
       @template_path = "#{recipes_folder}/zip/#{@name}"
+      fetch_template(recipes_folder, @name)
+    end
 
-      if Dir.exists?("#{@template_path}/#{@kind}")
-        return "#{@template_path}/#{@kind}"
-      end
+    def fetch_template(template_path, name)
+      path = "#{template_path}/#{@kind}"
+      return path if Dir.exists?(path)
 
-      if (name = @name) && name.downcase.starts_with?("http") && name.downcase.ends_with?(".zip")
+      if name && name.downcase.starts_with?("http") && name.downcase.ends_with?(".zip")
         return fetch_zip name
       end
 
-      return fetch_url
+      fetch_url
+    end
+
+    def recipes
+      @kind == "app" ? "#{app_dir}/.recipes" : "./.recipes"
     end
 
     def try_github
@@ -76,14 +76,14 @@ module Amber::Recipes
 
       yaml = {name: "recipe", version: "0.1.0", dependencies: {shard_name => {github: @name, branch: "master"}}}
 
-      CLI.logger.info "Create Recipe shard #{filename}", "Generate", :light_cyan
+      Log.info { "Create Recipe shard #{filename}".colorize(:light_cyan) }
       File.open(filename, "w") { |f| yaml.to_yaml(f) }
     end
 
     def fetch_github(shard_name)
       create_recipe_shard shard_name
 
-      CLI.logger.info "Installing Recipe", "Generate", :light_cyan
+      Log.info { "Installing Recipe".colorize(:light_cyan) }
       Amber::CLI::Helpers.run("cd #{app_dir}/.recipes && shards update")
     end
 
@@ -102,7 +102,7 @@ module Amber::Recipes
             end
           end
         elsif response.status_code != 200
-          CLI.logger.error "Could not find the recipe #{@name} : #{response.status_code} #{response.status_message}", "Generate", :light_red
+          Log.error { "Could not find the recipe #{@name} : #{response.status_code} #{response.status_message}".colorize(:light_red) }
           return nil
         end
 
@@ -113,27 +113,40 @@ module Amber::Recipes
     def save_zip(response : HTTP::Client::Response)
       Dir.mkdir_p(@template_path)
 
-      Zip::Reader.open(response.body_io) do |zip|
-        zip.each_entry do |entry|
-          path = "#{@template_path}/#{entry.filename}"
-          if entry.dir?
-            Dir.mkdir_p(path)
-          else
-            File.write(path, entry.io.gets_to_end)
+      {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+        Compress::Zip::Reader.open(response.body_io) do |zip|
+          zip.each_entry do |entry|
+            path = "#{@template_path}/#{entry.filename}"
+            if entry.dir?
+              Dir.mkdir_p(path)
+            else
+              File.write(path, entry.io.gets_to_end)
+            end
           end
         end
-      end
+      {% else %}
+        Zip::Reader.open(response.body_io) do |zip|
+          zip.each_entry do |entry|
+            path = "#{@template_path}/#{entry.filename}"
+            if entry.dir?
+              Dir.mkdir_p(path)
+            else
+              File.write(path, entry.io.gets_to_end)
+            end
+          end
+        end
+      {% end %}
 
       if Dir.exists?("#{@template_path}/#{@kind}")
         return "#{@template_path}/#{@kind}"
       end
 
-      CLI.logger.error "Cannot generate #{@kind} from #{@name} recipe", "Generate", :light_red
-      return nil
+      Log.error { "Cannot generate #{@kind} from #{@name} recipe".colorize(:light_red) }
+      nil
     end
 
     def fetch_url
-      return fetch_zip "#{recipe_source}/#{@name}.zip"
+      fetch_zip "#{recipe_source}/#{@name}.zip"
     end
   end
 end

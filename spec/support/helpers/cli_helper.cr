@@ -1,5 +1,6 @@
 require "file_utils"
 require "json"
+require "json_mapping"
 
 class RouteJSON
   JSON.mapping({
@@ -27,8 +28,8 @@ module CLIHelper
 
   def prepare_test_app
     cleanup
-    scaffold_app("#{TESTING_APP}", "-d", "sqlite")
-    environment_yml(ENV["AMBER_ENV"], "#{Dir.current}/config/environments/")
+    scaffold_app(TESTING_APP, "-d", "sqlite")
+    environment_yml(CURRENT_ENVIRONMENT, "#{Dir.current}/config/environments/")
   end
 
   def dirs(for app)
@@ -39,7 +40,7 @@ module CLIHelper
   def expected_db_url(db_key, env)
     case db_key
     when "pg"
-      "postgres://postgres:@localhost:5432/#{TEST_APP_NAME}_#{env}"
+      "postgres://postgres:password@localhost:5432/#{TEST_APP_NAME}_#{env}"
     when "mysql"
       "#{db_key}://root@localhost:3306/#{TEST_APP_NAME}_#{env}"
     else
@@ -94,8 +95,6 @@ module CLIHelper
       shard = shard.gsub(/github\:\samberframework\/amber\n.*(?=\n)/, "path: ../../../amber")
       File.write("#{path}/shard.yml", shard)
     end
-
-    system("shards install")
   end
 
   def prepare_db_yml(path = ENV_CONFIG_PATH)
@@ -105,13 +104,13 @@ module CLIHelper
   end
 
   def recipe_app(app_name, *options)
-    Amber::CLI::MainCommand.run ["new", app_name] | options.to_a
+    Amber::CLI::MainCommand.run ["new", app_name, "-y"] | options.to_a
     Dir.cd(app_name)
     prepare_yaml(Dir.current)
   end
 
   def scaffold_app(app_name, *options)
-    Amber::CLI::MainCommand.run ["new", app_name, "--no-deps"] | options.to_a
+    Amber::CLI::MainCommand.run ["new", app_name, "-y", "--no-deps"] | options.to_a
     Dir.cd(app_name)
     prepare_yaml(Dir.current)
   end

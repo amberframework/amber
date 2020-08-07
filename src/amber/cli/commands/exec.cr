@@ -10,7 +10,7 @@ module Amber::CLI
       @filelogs : String
 
       def initialize(__previous, __argv)
-        @filename = "./tmp/#{Time.now.to_unix_ms}_console.cr"
+        @filename = "./tmp/#{Time.utc.to_unix_ms}_console.cr"
         @filelogs = @filename.sub("console.cr", "console_result.log")
         super(__previous, __argv)
       end

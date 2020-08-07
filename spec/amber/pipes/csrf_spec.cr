@@ -2,13 +2,16 @@ require "../../spec_helper"
 
 module Amber
   module Pipe
-    describe CSRF do
+    def self.set_dir_and_env
       Dir.cd CURRENT_DIR
       Amber.env = :test
+    end
 
+    describe CSRF do
       context "when requests have HTTP methods" do
         CSRF::CHECK_METHODS.each do |method|
           it "raises forbidden error for #{method} request" do
+            set_dir_and_env
             csrf = CSRF.new
 
             request = HTTP::Request.new(method, "/")
@@ -23,6 +26,7 @@ module Amber
       context "when requests have allowed HTTP methods" do
         %w(GET HEAD OPTIONS TRACE CONNECT).each do |method|
           it "accepts requests for GET methods" do
+            set_dir_and_env
             csrf = CSRF.new
             request = HTTP::Request.new(method, "/")
 
@@ -35,6 +39,7 @@ module Amber
 
       context "when tokens match" do
         it "accepts requests params token" do
+          set_dir_and_env
           csrf = CSRF.new
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
@@ -47,6 +52,7 @@ module Amber
         end
 
         it "accepts requests for header token" do
+          set_dir_and_env
           csrf = CSRF.new
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
@@ -61,6 +67,7 @@ module Amber
 
       context "across requests" do
         it "is valid across request" do
+          set_dir_and_env
           request = HTTP::Request.new("GET", "/")
           context = create_context(request)
 
@@ -77,6 +84,7 @@ module Amber
 
       context "when tokens don't match" do
         it "raises a forbidden error for params token" do
+          set_dir_and_env
           csrf = CSRF.new
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
@@ -90,6 +98,7 @@ module Amber
         end
 
         it "raises a forbidden error for header token" do
+          set_dir_and_env
           csrf = CSRF.new
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
@@ -103,6 +112,7 @@ module Amber
         end
 
         it "raises a forbidden error for an invalid base64 token" do
+          set_dir_and_env
           csrf = CSRF.new
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
@@ -118,6 +128,7 @@ module Amber
 
       context "generator" do
         it "masks token for client" do
+          set_dir_and_env
           request = HTTP::Request.new("GET", "/")
           context = create_context(request)
 
@@ -128,6 +139,7 @@ module Amber
         end
 
         it "generates random tokens for client" do
+          set_dir_and_env
           request = HTTP::Request.new("GET", "/")
           context = create_context(request)
 
@@ -140,6 +152,7 @@ module Amber
 
       context "TokenOperations" do
         it "properly unmasks masked token" do
+          set_dir_and_env
           request = HTTP::Request.new("GET", "/")
           context = create_context(request)
           decoded_token = Base64.decode(CSRF.token_strategy.real_session_token(context))

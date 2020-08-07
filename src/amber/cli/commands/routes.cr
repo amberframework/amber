@@ -82,12 +82,13 @@ module Amber::CLI
                 next unless filter_actions.includes?(action)
               when "except"
                 next if filter_actions.includes?(action)
+              else
+                build_route(
+                  verb: verb, controller: route_match[3]?, action: action,
+                  pipeline: current_pipe, scope: current_scope,
+                  uri_pattern: build_uri_pattern(route_match[2]?, action, current_scope)
+                )
               end
-              build_route(
-                verb: verb, controller: route_match[3]?, action: action,
-                pipeline: current_pipe, scope: current_scope,
-                uri_pattern: build_uri_pattern(route_match[2]?, action, current_scope)
-              )
             end
           end
         end

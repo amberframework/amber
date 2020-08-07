@@ -60,6 +60,12 @@ module RouterHelper
     origin_header.should_not be_nil
   end
 
+  def assert_non_cors_request(context)
+    origin_header = context.response.headers["Access-Control-Allow-Origin"]?
+    context.response.status_code.should eq 200
+    origin_header.should be_nil
+  end
+
   def assert_cors_failure(context)
     origin_header = context.response.headers["Access-Control-Allow-Origin"]?
     context.response.status_code.should eq 403
@@ -70,5 +76,10 @@ module RouterHelper
     domain = "example.com"
     origins = Amber::Pipe::CORS::OriginType.new
     origins << domain
+  end
+
+  def cors_add_next(cors)
+    cors.next = ->(_context : HTTP::Server::Context) { "test" }
+    cors
   end
 end

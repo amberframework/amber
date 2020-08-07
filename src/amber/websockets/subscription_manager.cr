@@ -3,6 +3,7 @@ module Amber
     # `SubscriptionManager` manages the list of channel subscriptions for the socket connection.
     # Also handles dispatching actions (messages) to the appropriate channel.
     struct SubscriptionManager
+      Log = ::Log.for(self)
       property subscriptions = Hash(String, Channel).new
 
       def dispatch(client_socket, message)
@@ -14,7 +15,7 @@ module Amber
         when "message" then message client_socket, message
         when "leave"   then leave client_socket, message
         else
-          Amber.logger.error "Uncaptured event #{event}"
+          Log.error { "Uncaptured event #{event}" }
         end
       end
 

@@ -3,6 +3,7 @@ require "./ssl"
 
 module Amber
   class Server
+    Log = ::Log.for(self)
     include Amber::DSL::Server
     alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
     property pubsub_adapter : WebSocketAdapter = WebSockets::Adapters::MemoryAdapter
@@ -56,8 +57,8 @@ module Amber
     end
 
     def start
-      time = Time.now
-      logger.info "#{version.colorize(:light_cyan)} serving application \"#{settings.name.capitalize}\" at #{host_url.colorize(:light_cyan).mode(:underline)}"
+      time = Time.local
+      Log.info { "#{version.colorize(:light_cyan)} serving application \"#{settings.name.capitalize}\" at #{host_url.colorize(:light_cyan).mode(:underline)}" }
       handler.prepare_pipelines
       server = HTTP::Server.new(handler)
 
@@ -70,25 +71,19 @@ module Amber
 
       Signal::INT.trap do
         Signal::INT.reset
-        logger.info "Shutting down Amber"
+        Log.info { "Shutting down Amber" }
         server.close
       end
 
       loop do
         begin
-          logger.info "Server started in #{Amber.env.colorize(:yellow)}."
-          logger.info "Startup Time #{Time.now - time}".colorize(:white)
+          Log.info { "Server started in #{Amber.env.colorize(:yellow)}." }
+          Log.info { "Startup Time #{Time.local - time}".colorize(:white) }
           server.listen
           break
-        rescue e : Errno
-          if e.errno == Errno::EMFILE
-            logger.error e.message
-            logger.info "Restarting server..."
-            sleep 1
-          else
-            logger.error e.message
-            break
-          end
+        rescue e : IO::Error
+          Log.error(exception: e) { "Restarting server..." }
+          sleep 1
         end
       end
     end
@@ -107,10 +102,6 @@ module Amber
 
     def scheme
       ssl_enabled? ? "https" : "http"
-    end
-
-    def logger
-      Amber.logger
     end
 
     def settings

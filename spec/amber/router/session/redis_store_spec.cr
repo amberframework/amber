@@ -1,4 +1,4 @@
-require "../../../../spec_helper"
+require "../../../spec_helper"
 require "redis"
 
 # TODO: This test can't run on it's own because it needs the EXPIRES constant which is set elsewhere.
@@ -137,6 +137,22 @@ module Amber::Router::Session
         cookie_store.delete("ses")
 
         cookie_store.values.should eq %w(a b c)
+      end
+    end
+
+    describe "#to_h" do
+      it "returns an hash of available keys/values" do
+        cookies = new_cookie_store
+        cookie_store = RedisStore.new(REDIS_STORE, cookies, "ses", EXPIRES)
+
+        cookie_store["a"] = "z"
+        cookie_store["b"] = "y"
+        cookie_store["c"] = "x"
+
+        cookie_store.delete("ses")
+
+        cookie_store.to_h.keys.should eq %w(a b c)
+        cookie_store.to_h["c"].should eq "x"
       end
     end
 

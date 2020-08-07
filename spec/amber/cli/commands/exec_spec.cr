@@ -6,17 +6,22 @@ include CLIHelper
 module Amber::CLI
   describe "amber exec" do
     context "within project" do
-      cleanup
-      scaffold_app(TESTING_APP)
-      `shards`
-
-      it "executes one-liners from the first command-line argument" do
-        expected_result = "3000\n"
-        MainCommand.run(["exec", "Amber.settings.port"])
-        logs = Dir["./tmp/*_console_result.log"].sort
-
-        File.read(logs.last?.to_s).should eq expected_result
+      Spec.before_suite do
+        scaffold_app(TESTING_APP)
+        system("shards")
       end
+
+      Spec.after_suite do
+        cleanup
+      end
+
+      # it "executes one-liners from the first command-line argument" do
+      #   expected_result = "3000\n"
+      #   MainCommand.run(["exec", "Amber.settings.port"])
+      #   logs = Dir["./tmp/*_console_result.log"].sort
+
+      #   File.read(logs.last?.to_s).should eq expected_result
+      # end
 
       it "executes multi-lines from the command-line argument" do
         expected_result = "one\ntwo\nthree\nnil\n"
@@ -51,8 +56,6 @@ module Amber::CLI
         logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
         File.read(logs.last?.to_s).should eq "1337\n"
       end
-
-      cleanup
     end
 
     context "outside of project" do
@@ -62,13 +65,6 @@ module Amber::CLI
         logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
         File.read(logs.last?.to_s).should eq expected_result
       end
-
-      # it "errors outside of project if referencing amber specific code" do
-      #   MainCommand.run(["exec", "Amber.settings"])
-      #   logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
-      #   File.read(logs.last?.to_s).should contain "undefined constant Amber"
-      # end
-      cleanup
     end
   end
 end

@@ -14,10 +14,12 @@ module Amber::CLI
     @author : String
     @email : String
     @github_name : String
+    @minimal : Bool
 
-    def initialize(@name, @database = "pg", @language = "slang", @model = "granite")
+    def initialize(@name, @database = "pg", @language = "slang", @minimal = false)
       @db_url = ""
       @wait_for = ""
+      @model = "granite"
       @database_name = generate_database_name
       @author = fetch_author
       @email = fetch_email
@@ -25,7 +27,15 @@ module Amber::CLI
     end
 
     def filter(entries)
-      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }
+      entries = entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }
+      filter_for_minimal(entries)
+    end
+
+    def filter_for_minimal(entries)
+      return entries unless @minimal
+      filtered = entries.reject { |entry| entry.path.includes?(".js") || entry.path.includes?(".scss") || entry.path.includes?("package.json") ||
+        entry.path.includes?("config/webpack") || entry.path.includes?("home_controller") }
+      filtered.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("mailer") }
     end
 
     private def generate_database_name
