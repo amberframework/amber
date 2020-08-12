@@ -7,7 +7,6 @@ module Amber::Plugins
     getter directory : String
 
     def initialize(@name : String)
-      pp Dir.current
       @directory = "#{Dir.current}/lib/#{name}/#{kind}"
     end
 
