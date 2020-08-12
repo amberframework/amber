@@ -23,7 +23,7 @@ module Amber::CLI
         ensure_name_argument!
 
         if Amber::Plugins::Plugin.can_generate?(args.name)
-          template = Amber::Plugins::Plugin.new(args.name, ".")
+          template = Amber::Plugins::Plugin.new(args.name, "./src/plugins")
           template.generate args.action
         end
       end
