@@ -7,10 +7,8 @@ module Amber::Plugins
     getter directory : String
 
     def initialize(@name : String)
-      names = name.split(":")
-      library_name = names[0]
-      stage_name = names[1]
-      @directory = "#{Dir.current}/lib/#{library_name}/#{@kind}/#{stage_name}"
+      pp Dir.current
+      @directory = "#{Dir.current}/lib/#{name}/#{kind}"
     end
 
     def fetch
