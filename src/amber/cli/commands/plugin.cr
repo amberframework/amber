@@ -9,7 +9,7 @@ module Amber::CLI
     class Plugin < Command
       class Options
         arg "action", desc: "install or uninstall", required: true
-        arg "name", desc: "shard_name:folder of plugin", required: true
+        arg "name", desc: "name of the shard", required: true
         help
       end
 
@@ -31,11 +31,6 @@ module Amber::CLI
       private def ensure_name_argument!
         unless args.name?
           error "Parsing Error: The NAME argument is required."
-          exit! help: true, error: true
-        end
-
-        if args.name.split(":").size != 2
-          error "Invalid plugin name."
           exit! help: true, error: true
         end
       end
