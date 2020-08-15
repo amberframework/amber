@@ -8,7 +8,7 @@ module Amber::CLI
 
     class Plugin < Command
       class Options
-        arg "action", desc: "install or uninstall", required: true
+        bool ["-u", "--uninstall"], desc: "uninstall plugin", default: false
         arg "name", desc: "name of the shard", required: true
         help
       end
@@ -19,26 +19,26 @@ module Amber::CLI
       end
 
       def run
-        ensure_action_argument!
+        uninstall_plugin?
         ensure_name_argument!
 
         if Amber::Plugins::Plugin.can_generate?(args.name)
           template = Amber::Plugins::Plugin.new(args.name, "./src/plugins")
-          template.generate args.action
+          template.generate (options.uninstall? ? "uninstall" : "install")
         end
       end
 
       private def ensure_name_argument!
         unless args.name?
           error "Parsing Error: The NAME argument is required."
-          exit! help: true, error: true
+          exit! error: true
         end
       end
 
-      private def ensure_action_argument!
-        if args.action != "install"
-          error "Invalid plugin action, 'install' is the only supported action currently."
-          exit! help: true, error: true
+      private def uninstall_plugin?
+        if options.uninstall?
+          error "Invalid plugin action, 'uninstalling' is currently not supported."
+          exit! error: true
         end
       end
     end
