@@ -31,7 +31,7 @@ Following these guidelines helps to communicate that you respect the time of the
 
 Be a law abiding contributor!
 
-This project adheres to the Contributor Covenant [CODE OF CONDUCT](https://github.com/amberframework/amber/blob/master/.github/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [gitter channel](https://gitter.im/amberframework/amber)
+This project adheres to the Contributor Covenant [CODE OF CONDUCT](https://github.com/launchframework/launch/blob/master/.github/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [gitter channel](https://gitter.im/launchframework/launch)
 
 ## How Can I Contribute
 
@@ -45,7 +45,7 @@ Before creating bug reports, please check this list as you might find out that y
 
 **How Do I Submit A (Good) Bug Report?**
 
-Bugs are tracked as [GitHub issues](https://github.com/amberframework/amber/issues). After you've determined the cause of the bug, create an issue and provide the following information by filling in the template.
+Bugs are tracked as [GitHub issues](https://github.com/launchframework/launch/issues). After you've determined the cause of the bug, create an issue and provide the following information by filling in the template.
 
 **A good bug report**
 
@@ -105,7 +105,7 @@ Both issue lists are sorted by total number of comments. While not perfect, numb
 * Include thoughtfully-worded, well-structured
 * End files with a newline.
 * Format your code with `crystal tool format`
-* Build `amber.min.js` executing `npm install && npm run build` if `amber.js` has been changed
+* Build `launch.min.js` executing `npm install && npm run build` if `launch.js` has been changed
 * Specs Styleguide
 
 ## Style Guides

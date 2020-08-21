@@ -18,7 +18,7 @@ secret_key_base: ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4
 # ssl_cert_file:
 
 session:
-  key: "amber.session"
+  key: "launch.session"
   store: "signed_cookie"
   expires: 0
 

@@ -5,7 +5,7 @@
 .DS_Store
 lib/
 .shards/
-/amber
+/launch
 /tmp
 shard.lock
 package-lock.json

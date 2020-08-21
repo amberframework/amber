@@ -1,7 +1,7 @@
 module.exports = {
-  entry: './amber.js',
+  entry: './launch.js',
   output: {
-    filename: 'amber.min.js',
+    filename: 'launch.min.js',
     library: 'Launch',
     path: __dirname
   },

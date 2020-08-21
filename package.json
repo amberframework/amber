@@ -1,5 +1,5 @@
 {
-  "name": "amber",
+  "name": "launch",
   "version": "0.35.0",
   "description": "Front-end configuration for Launchcr Framework",
   "private": true,

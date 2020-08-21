@@ -1,25 +1,25 @@
-name: amber
+name: launch
 
 version: 0.35.0
 
 authors:
-  - Launch Team and Contributors <amberframework.org>
+  - Launch Team and Contributors <launchframework.org>
 
 crystal: 0.35.0
 
 license: MIT
 
 targets:
-  amber:
-    main: src/amber/cli.cr
+  launch:
+    main: src/launch/cli.cr
 
 dependencies:
-  amber_router:
-    github: amberframework/amber-router
+  launch_router:
+    github: launchframework/launch-router
     version: ~> 0.3.0
 
   cli:
-    github: amberframework/cli
+    github: launchframework/cli
     version: ~> 0.9.1
 
   compiled_license:
@@ -35,7 +35,7 @@ dependencies:
     version: ~> 0.3.3
 
   micrate:
-    github: amberframework/micrate
+    github: launchframework/micrate
     version: ~> 0.8.0
 
   pg:

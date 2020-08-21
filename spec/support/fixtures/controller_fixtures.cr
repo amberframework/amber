@@ -156,7 +156,7 @@ class ResponsesController < Launch::Controller::Base
   def block_redirect_flash
     respond_with do
       html do
-        redirect_to "/some_path", flash: {"success" => "amber is the bizness"}
+        redirect_to "/some_path", flash: {"success" => "launch is the bizness"}
       end
       json type: "json", name: "Launchator"
     end
@@ -187,7 +187,7 @@ class ResponsesController < Launch::Controller::Base
 
   def proc_redirect_flash
     respond_with do
-      html ->{ redirect_to "/some_path", flash: {"success" => "amber is the bizness"} }
+      html ->{ redirect_to "/some_path", flash: {"success" => "launch is the bizness"} }
       json type: "json", name: "Launchator"
     end
   end

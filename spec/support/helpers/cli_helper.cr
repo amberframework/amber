@@ -61,8 +61,8 @@ module CLIHelper
     YAML.parse(File.read(path))
   end
 
-  def amber_yml(path = TESTING_APP)
-    YAML.parse(File.read("#{path}/.amber.yml"))
+  def launch_yml(path = TESTING_APP)
+    YAML.parse(File.read("#{path}/.launch.yml"))
   end
 
   def shard_yml(path = TESTING_APP)
@@ -92,7 +92,7 @@ module CLIHelper
   def prepare_yaml(path)
     if File.exists?("#{path}/shard.yml")
       shard = File.read("#{path}/shard.yml")
-      shard = shard.gsub(/github\:\samberframework\/amber\n.*(?=\n)/, "path: ../../../amber")
+      shard = shard.gsub(/github\:\slaunchframework\/launch\n.*(?=\n)/, "path: ../../../launch")
       File.write("#{path}/shard.yml", shard)
     end
   end

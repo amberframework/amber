@@ -1,42 +1,42 @@
 PREFIX=/usr/local
 INSTALL_DIR=$(PREFIX)/bin
-AMBER_SYSTEM=$(INSTALL_DIR)/amber
+LAUNCH_SYSTEM=$(INSTALL_DIR)/launch
 
 OUT_DIR=$(CURDIR)/bin
-AMBER=$(OUT_DIR)/amber
-AMBER_SOURCES=$(shell find src/ -type f -name '*.cr')
+LAUNCH=$(OUT_DIR)/launch
+LAUNCH_SOURCES=$(shell find src/ -type f -name '*.cr')
 
 all: build
 
-build: lib $(AMBER)
+build: lib $(LAUNCH)
 
 lib:
 	@shards install --production
 
-$(AMBER): $(AMBER_SOURCES) | $(OUT_DIR)
-	@echo "Building amber in $@"
-	@crystal build -o $@ src/amber/cli.cr -p --no-debug
+$(LAUNCH): $(LAUNCH_SOURCES) | $(OUT_DIR)
+	@echo "Building launch in $@"
+	@crystal build -o $@ src/launch/cli.cr -p --no-debug
 
 $(OUT_DIR) $(INSTALL_DIR):
 	 @mkdir -p $@
 
 run:
-	$(AMBER)
+	$(LAUNCH)
 
 install: build | $(INSTALL_DIR)
-	@rm -f $(AMBER_SYSTEM)
-	@cp $(AMBER) $(AMBER_SYSTEM)
+	@rm -f $(LAUNCH_SYSTEM)
+	@cp $(LAUNCH) $(LAUNCH_SYSTEM)
 
 link: build | $(INSTALL_DIR)
-	@echo "Symlinking $(AMBER) to $(AMBER_SYSTEM)"
-	@ln -s $(AMBER) $(AMBER_SYSTEM)
+	@echo "Symlinking $(LAUNCH) to $(LAUNCH_SYSTEM)"
+	@ln -s $(LAUNCH) $(LAUNCH_SYSTEM)
 
 force_link: build | $(INSTALL_DIR)
-	@echo "Symlinking $(AMBER) to $(AMBER_SYSTEM)"
-	@ln -sf $(AMBER) $(AMBER_SYSTEM)
+	@echo "Symlinking $(LAUNCH) to $(LAUNCH_SYSTEM)"
+	@ln -sf $(LAUNCH) $(LAUNCH_SYSTEM)
 
 clean:
-	rm -rf $(AMBER)
+	rm -rf $(LAUNCH)
 
 distclean:
-	rm -rf $(AMBER) .crystal .shards libs lib
+	rm -rf $(LAUNCH) .crystal .shards libs lib

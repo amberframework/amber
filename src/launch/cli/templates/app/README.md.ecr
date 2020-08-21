@@ -1,0 +1,50 @@
+# <%= @name %>
+
+[![Launchcr Framework](https://img.shields.io/badge/using-launch_framework-orange.svg)](https://launchframework.org)
+
+This is a project written using [Launch](https://launchframework.org). Enjoy!
+
+## Getting Started
+
+These instructions will get a copy of this project running on your machine for development and testing purposes.
+
+Please see [deployment](https://docs.launchframework.org/launch/deployment) for notes on deploying the project in production.
+
+## Prerequisites
+
+This project requires [Crystal](https://crystal-lang.org/) ([installation guide](https://crystal-lang.org/docs/installation/)).
+
+## Development
+
+To start your Launch server:
+
+1. Install dependencies with `shards install`
+2. Build executables with `shards build`
+3. Create and migrate your database with `bin/launch db create migrate`. Also see [creating the database](https://docs.launchframework.org/launch/guides/create-new-app#creating-the-database).
+4. Start Launch server with `bin/launch watch`
+
+Now you can visit http://localhost:3000/ from your browser.
+
+Getting an error message you need help decoding? Check the [Launch troubleshooting guide](https://docs.launchframework.org/launch/troubleshooting), post a [tagged message on Stack Overflow](https://stackoverflow.com/questions/tagged/launch-framework), or visit [Launch on Gitter](https://gitter.im/launchframework/launch).
+
+Using Docker? Please check [Launch Docker guides](https://docs.launchframework.org/launch/guides/docker).
+
+## Tests
+
+To run the test suite:
+
+```
+crystal spec
+```
+
+## Contributing
+
+1. Fork it ( https://github.com/<%= @github_name %>/<%= @name %>/fork )
+2. Create your feature branch ( `git checkout -b my-new-feature` )
+3. Commit your changes ( `git commit -am 'Add some feature'` )
+4. Push to the branch ( `git push origin my-new-feature` )
+5. Create a new Pull Request
+
+## Contributors
+
+- [<%= @github_name %>](https://github.com/<%= @github_name %>) <%= @author %> - creator, maintainer
