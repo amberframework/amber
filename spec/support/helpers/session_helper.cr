@@ -1,10 +1,10 @@
 module SessionHelper
   def create_session_config(store)
-    Amber.settings.session = {
+    Launch.settings.session = {
       "key"     => "name.session",
       "store"   => store,
       "expires" => 120,
     }
-    Amber.settings.session
+    Launch.settings.session
   end
 end

@@ -1,49 +1,49 @@
 require "../spec_helper"
 
-struct UserSocket < Amber::WebSockets::ClientSocket; end
+struct UserSocket < Launch::WebSockets::ClientSocket; end
 
-struct RoomSocket < Amber::WebSockets::ClientSocket; end
+struct RoomSocket < Launch::WebSockets::ClientSocket; end
 
-describe Amber do
+describe Launch do
   describe ".env" do
     it "should return test" do
-      Amber.env.test?.should be_truthy
-      Amber.env.==(:test).should be_truthy
-      Amber.env.==(:development).should be_falsey
-      Amber.env.!=(:development).should be_truthy
-      Amber.env.!=(:test).should be_falsey
+      Launch.env.test?.should be_truthy
+      Launch.env.==(:test).should be_truthy
+      Launch.env.==(:development).should be_falsey
+      Launch.env.!=(:development).should be_truthy
+      Launch.env.!=(:test).should be_falsey
     end
   end
 
   describe ".env=" do
     context "when switching environments" do
       it "changes environment from TEST to PRODUCTION" do
-        current_settings = Amber.settings
-        Amber.env = :production
+        current_settings = Launch.settings
+        Launch.env = :production
         current_settings.port.should eq 3000
-        Amber.settings.port.should eq 4000
+        Launch.settings.port.should eq 4000
       end
 
-      it "sets Amber environment from yaml settings file" do
-        Amber.env = :development
-        Amber.settings.name.should eq "development_settings"
+      it "sets Launch environment from yaml settings file" do
+        Launch.env = :development
+        Launch.settings.name.should eq "development_settings"
       end
     end
   end
 
-  describe Amber::Server do
+  describe Launch::Server do
     describe ".configure" do
       it "overrides current environment settings" do
-        Amber.env = :test
+        Launch.env = :test
 
-        Amber::Server.configure do |server|
+        Launch::Server.configure do |server|
           server.name = "Hello World App"
           server.port = 8080
           server.logging.colorize = false
           server.logging.filter = %w(password confirm_password)
         end
 
-        settings = Amber.settings
+        settings = Launch.settings
 
         settings.name.should eq "Hello World App"
         settings.port.should eq 8080
@@ -53,17 +53,17 @@ describe Amber do
       end
 
       it "retains environment.yml settings that haven't been overwritten" do
-        Amber.env = :test
+        Launch.env = :test
         expected_session = {:key => "amber.session", :store => :signed_cookie, :expires => 0}
         expected_secrets = {
           "description" => "Store your test secrets credentials and settings here.",
         }
 
-        Amber::Server.configure do |server|
+        Launch::Server.configure do |server|
           server.name = "Fake App Name"
           server.port = 8080
         end
-        settings = Amber.settings
+        settings = Launch.settings
 
         settings.name.should eq "Fake App Name"
         settings.port_reuse.should eq true
@@ -77,9 +77,9 @@ describe Amber do
       end
 
       it "defines socket endpoint" do
-        Amber::Server.router.socket_routes = [] of NamedTuple(path: String, handler: Amber::WebSockets::Server::Handler)
+        Launch::Server.router.socket_routes = [] of NamedTuple(path: String, handler: Launch::WebSockets::Server::Handler)
 
-        Amber::Server.configure do
+        Launch::Server.configure do
           pipeline :web do
           end
 
@@ -89,13 +89,13 @@ describe Amber do
           end
         end
 
-        router = Amber::Server.router
+        router = Launch::Server.router
         websockets = router.socket_routes
 
         websockets[0][:path].should eq "/user"
-        websockets[0][:handler].is_a?(Amber::WebSockets::Server::Handler).should be_true
+        websockets[0][:handler].is_a?(Launch::WebSockets::Server::Handler).should be_true
         websockets[1][:path].should eq "/room"
-        websockets[1][:handler].is_a?(Amber::WebSockets::Server::Handler).should be_true
+        websockets[1][:handler].is_a?(Launch::WebSockets::Server::Handler).should be_true
       end
     end
   end

@@ -2,15 +2,15 @@ require "http"
 require "./parsers/*"
 require "./file"
 
-module Amber::Router
+module Launch::Router
   module Types
     alias Key = String | Symbol
-    alias Files = Hash(String, Amber::Router::File)
+    alias Files = Hash(String, Launch::Router::File)
     alias Params = Hash(String, String)
   end
 
   class Params
-    TYPE_EXT_REGEX   = Amber::Support::MimeTypes::TYPE_EXT_REGEX
+    TYPE_EXT_REGEX   = Launch::Support::MimeTypes::TYPE_EXT_REGEX
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     MULTIPART_FORM   = "multipart/form-data"
     APPLICATION_JSON = "application/json"
@@ -24,7 +24,7 @@ module Amber::Router
     end
 
     def [](key : Types::Key) : String
-      self.[key]? || raise Amber::Exceptions::Validator::InvalidParam.new(key)
+      self.[key]? || raise Launch::Exceptions::Validator::InvalidParam.new(key)
     end
 
     def []?(key : Types::Key)

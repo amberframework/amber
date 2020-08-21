@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module Support
     module MimeTypes
       DEFAULT_MIME_TYPE      = "application/octet-stream"
@@ -619,10 +619,10 @@ module Amber
       # Returns the Mime Type for a given format or file extname.
       #
       # ```
-      # Amber::Support::Mime.mime_type("json")                  # => "application/json"
-      # Amber::Support::Mime.mime_type(".jpg")                  # => "image/jpeg"
-      # Amber::Support::Mime.mime_type("unknown")               # => "application/octet-stream"
-      # Amber::Support::Mime.mime_type("unknown", "text/plain") # => "text/plain"
+      # Launch::Support::Mime.mime_type("json")                  # => "application/json"
+      # Launch::Support::Mime.mime_type(".jpg")                  # => "image/jpeg"
+      # Launch::Support::Mime.mime_type("unknown")               # => "application/octet-stream"
+      # Launch::Support::Mime.mime_type("unknown", "text/plain") # => "text/plain"
       # ```
       def self.mime_type(format : String, fallback = DEFAULT_MIME_TYPE)
         format = format[1..-1] if format.starts_with?('.')

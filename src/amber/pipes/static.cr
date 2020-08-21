@@ -5,7 +5,7 @@
   require "zlib"
 {% end %}
 
-module Amber
+module Launch
   module Pipe
     class Static < HTTP::StaticFileHandler
       def initialize(public_dir : String, fallthrough = false, directory_listing = false)

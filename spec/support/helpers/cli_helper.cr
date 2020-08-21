@@ -104,13 +104,13 @@ module CLIHelper
   end
 
   def recipe_app(app_name, *options)
-    Amber::CLI::MainCommand.run ["new", app_name, "-y"] | options.to_a
+    Launch::CLI::MainCommand.run ["new", app_name, "-y"] | options.to_a
     Dir.cd(app_name)
     prepare_yaml(Dir.current)
   end
 
   def scaffold_app(app_name, *options)
-    Amber::CLI::MainCommand.run ["new", app_name, "-y", "--no-deps"] | options.to_a
+    Launch::CLI::MainCommand.run ["new", app_name, "-y", "--no-deps"] | options.to_a
     Dir.cd(app_name)
     prepare_yaml(Dir.current)
   end

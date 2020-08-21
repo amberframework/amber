@@ -1,4 +1,4 @@
-module Amber::CLI
+module Launch::CLI
   class MainCommand < ::Cli::Supercommand
     command "e", aliased: "encrypt"
 

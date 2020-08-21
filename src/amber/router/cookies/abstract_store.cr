@@ -1,4 +1,4 @@
-module Amber::Router::Cookies
+module Launch::Router::Cookies
   abstract class AbstractStore
     getter store : Store
 

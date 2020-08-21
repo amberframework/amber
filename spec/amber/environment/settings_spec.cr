@@ -1,12 +1,12 @@
 require "../../spec_helper"
 
-module Amber::Environment
+module Launch::Environment
   describe Settings do
     Dir.cd CURRENT_DIR
 
     it "loads default environment settings from yaml file" do
       test_yaml = File.read(File.expand_path("./spec/support/config/test.yml"))
-      settings = Amber::Settings.from_yaml(test_yaml)
+      settings = Launch::Settings.from_yaml(test_yaml)
 
       settings.logging.severity.should eq Log::Severity::Warn
       settings.logging.colorize.should eq true
@@ -29,7 +29,7 @@ module Amber::Environment
 
     it "loads logging color setting from yaml file" do
       color_yaml = File.read(File.expand_path("./spec/support/config/test_with_color.yml"))
-      settings = Amber::Settings.from_yaml(color_yaml)
+      settings = Launch::Settings.from_yaml(color_yaml)
       settings.logging.color.should eq :red
     end
   end

@@ -1,6 +1,6 @@
 require "yaml_mapping"
 
-module Amber::CLI
+module Launch::CLI
   def self.config
     if File.exists? AMBER_YML
       begin

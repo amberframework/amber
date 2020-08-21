@@ -1,4 +1,4 @@
-# Amber Philosophy H.R.T.
+# Launch Philosophy H.R.T.
 
 *It's all about the community. Software development is a team sport!*
 

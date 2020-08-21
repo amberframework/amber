@@ -3,7 +3,7 @@ require "pg"
 require "mysql"
 require "sqlite3"
 
-module Amber::CLI
+module Launch::CLI
   Log = ::Log.for("database")
 
   class MainCommand < ::Cli::Supercommand
@@ -129,7 +129,7 @@ module Amber::CLI
       end
 
       private def command_line_tool
-        case Amber::CLI.config.database
+        case Launch::CLI.config.database
         when "pg"
           "psql"
         when "mysql"

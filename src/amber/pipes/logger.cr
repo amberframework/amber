@@ -1,7 +1,7 @@
-module Amber
+module Launch
   module Pipe
     class Logger < Base
-      Colorize.enabled = Amber.settings.logging.colorize
+      Colorize.enabled = Launch.settings.logging.colorize
 
       def initialize(@filter : Array(String) = log_config.filter,
                      @skip : Array(String) = log_config.skip)
@@ -68,7 +68,7 @@ module Amber
       end
 
       private def log_config
-        Amber.settings.logging
+        Launch.settings.logging
       end
     end
   end

@@ -1,7 +1,7 @@
 require "http"
 require "../../support/*"
 
-module Amber::Router::Cookies
+module Launch::Router::Cookies
   class EncryptedStore < AbstractStore
     def initialize(@store, secret)
       @encryptor = Support::MessageEncryptor.new(secret, digest: :sha256)

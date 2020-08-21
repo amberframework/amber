@@ -1,6 +1,6 @@
 require "./base"
 
-module Amber
+module Launch
   module Pipe
     module Headers
       VARY              = "Vary"

@@ -1,7 +1,7 @@
 require "http"
 require "./store"
 
-module Amber::Router::Cookies
+module Launch::Router::Cookies
   class PermanentStore < AbstractStore
     def get(name)
       @store.get(name)

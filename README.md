@@ -2,7 +2,7 @@
 
 **Productivity. Performance. Happiness.**
 
-_Amber makes building web applications fast, simple, and enjoyable - with fewer bugs and blazing fast performance._
+_Launch makes building web applications fast, simple, and enjoyable - with fewer bugs and blazing fast performance._
 
 [![Build Status](https://travis-ci.org/amberframework/amber.svg?branch=master)](https://travis-ci.org/amberframework/amber)
 [![Version](https://img.shields.io/github/tag/amberframework/amber.svg?maxAge=360&label=version)](https://github.com/amberframework/amber/releases/latest)
@@ -11,25 +11,25 @@ _Amber makes building web applications fast, simple, and enjoyable - with fewer 
 [![Liberapay patrons](https://img.shields.io/liberapay/patrons/amber-framework.svg?label=liberapay%20patrons)](https://liberapay.com/amber-framework/)
 [![Gitter](https://img.shields.io/gitter/room/amberframework/amber.svg)](https://gitter.im/amberframework/amber)
 
-# Welcome to Amber
+# Welcome to Launch
 
-**Amber** is a web application framework written in [Crystal](https://crystal-lang.org/) inspired by Kemal, Rails, Phoenix and other popular application frameworks.
+**Launch** is a web application framework written in [Crystal](https://crystal-lang.org/) inspired by Kemal, Rails, Phoenix and other popular application frameworks.
 
-The purpose of Amber is not to create yet another framework, but to take advantage of the beautiful Crystal language capabilities and provide engineers and the Crystal community with an efficient, cohesive, well maintained web framework that embraces the language philosophies, conventions, and guidelines.
+The purpose of Launch is not to create yet another framework, but to take advantage of the beautiful Crystal language capabilities and provide engineers and the Crystal community with an efficient, cohesive, well maintained web framework that embraces the language philosophies, conventions, and guidelines.
 
-Amber borrows concepts that have already been battle tested and successful, and embraces new concepts through team and community collaboration and analysis, which also aligns with Crystal's philosophy.
+Launch borrows concepts that have already been battle tested and successful, and embraces new concepts through team and community collaboration and analysis, which also aligns with Crystal's philosophy.
 
 ## Community
 
 Questions? Join our IRC channel [#amber](https://webchat.freenode.net/?channels=#amber) or [Gitter room](https://gitter.im/amberframework/amber) or ask on Stack Overflow under the [amber-framework](https://stackoverflow.com/questions/tagged/amber-framework) tag.
 
-Guidelines? We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) for Amber.
+Guidelines? We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) for Launch.
 
-Our Philosophy? [Read Amber Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md)
+Our Philosophy? [Read Launch Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md)
 
 ## Documentation
 
-Read Amber documentation on https://docs.amberframework.org
+Read Launch documentation on https://docs.amberframework.org
 
 ## Benchmarks
 
@@ -74,25 +74,25 @@ dependencies:
     github: amberframework/amber
 ```
 
-[Read Amber quick start guide](https://docs.amberframework.org/amber/getting-started)
+[Read Launch quick start guide](https://docs.amberframework.org/amber/getting-started)
 
-[Read Amber CLI commands usage](https://docs.amberframework.org/amber/cli)
+[Read Launch CLI commands usage](https://docs.amberframework.org/amber/cli)
 
-[Read more about Amber CLI installation guide](https://docs.amberframework.org/amber/guides/installation)
+[Read more about Launch CLI installation guide](https://docs.amberframework.org/amber/guides/installation)
 
-## Have an Amber-based Project?
+## Have an Launch-based Project?
 
-Use Amber badge
+Use Launch badge
 
-[![Amber Framework](https://img.shields.io/badge/using-amber_framework-orange.svg)](https://amberframework.org/)
+[![Launchcr Framework](https://img.shields.io/badge/using-amber_framework-orange.svg)](https://amberframework.org/)
 
 ```markdown
-[![Amber Framework](https://img.shields.io/badge/using-amber_framework-orange.svg)](https://amberframework.org/)
+[![Launchcr Framework](https://img.shields.io/badge/using-amber_framework-orange.svg)](https://amberframework.org/)
 ```
 
 ## Contributing
 
-Contributing to Amber can be a rewarding way to learn, teach, and build experience in just about any skill you can imagine. You don’t have to become a lifelong contributor to enjoy participating in Amber.
+Contributing to Launch can be a rewarding way to learn, teach, and build experience in just about any skill you can imagine. You don’t have to become a lifelong contributor to enjoy participating in Launch.
 
 Tracking issues? Check our [project board](https://github.com/orgs/amberframework/projects/1?fullscreen=true).
 
@@ -100,7 +100,7 @@ Code Triage? Join us on [codetriage](https://www.codetriage.com/amberframework/a
 
 [![Open Source Contributors](https://www.codetriage.com/amberframework/amber/badges/users.svg)](https://www.codetriage.com/amberframework/amber)
 
-Amber is a community effort and we want You to be part of it. [Join Amber Community!](https://github.com/amberframework/amber/blob/master/.github/CONTRIBUTING.md)
+Launch is a community effort and we want You to be part of it. [Join Launch Community!](https://github.com/amberframework/amber/blob/master/.github/CONTRIBUTING.md)
 
 1. Fork it https://github.com/amberframework/amber/fork
 2. Create your feature branch `git checkout -b my-new-feature`
@@ -119,7 +119,7 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 - [Mark Siemers](https://github.com/marksiemers "marksiemers")
 - [Robert Carpenter](https://github.com/robacarp "robacarp")
 
-[See more Amber contributors](https://github.com/amberframework/amber/graphs/contributors)
+[See more Launch contributors](https://github.com/amberframework/amber/graphs/contributors)
 
 ## License
 

@@ -1,7 +1,7 @@
 require "cli"
 require "../helpers/sentry"
 
-module Amber::CLI
+module Launch::CLI
   class MainCommand < ::Cli::Supercommand
     command "w", aliased: "watch"
 
@@ -14,8 +14,8 @@ module Amber::CLI
       end
 
       class Help
-        header "Starts Amber development server and rebuilds on file changes"
-        caption "starts Amber development server and rebuilds on file changes"
+        header "Starts Launch development server and rebuilds on file changes"
+        caption "starts Launch development server and rebuilds on file changes"
       end
 
       def run

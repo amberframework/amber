@@ -6,7 +6,7 @@ require "cli/spec"
 include CLIHelper
 include Cli::Spec::Helper
 
-module Amber::CLI
+module Launch::CLI
   extend Helpers
   describe "amber routes" do
     ENV["CRYSTAL_CLI_ENV"] = "test"
@@ -22,10 +22,10 @@ module Amber::CLI
           output.should contain header
         end
 
-        expected = "Amber::Controller::Static"
+        expected = "Launch::Controller::Static"
         output.should contain expected
         line = output_lines.find("") { |this_line| this_line.includes? expected }
-        expectations = %w(get Amber::Controller::Static index static /*)
+        expectations = %w(get Launch::Controller::Static index static /*)
         expectations.each do |expectation|
           line.should contain expectation
         end
@@ -46,7 +46,7 @@ module Amber::CLI
         MainCommand.run ["routes", "--json"] { |cmd| output = cmd.out.gets_to_end }
         routes = route_table_from_json(output)
 
-        expected = routes.find { |route| route.controller == "Amber::Controller::Static" }
+        expected = routes.find { |route| route.controller == "Launch::Controller::Static" }
         expected.nil?.should be_false
         if expected
           expected.verb.should eq "get"

@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Validators
+module Launch::Validators
   describe BaseRule do
     describe "#apply" do
       it "raises error when missing field" do

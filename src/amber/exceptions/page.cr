@@ -1,6 +1,6 @@
 require "exception_page"
 
-module Amber::Exceptions
+module Launch::Exceptions
   class Page < ExceptionPage
     def styles : ExceptionPage::Styles
       ExceptionPage::Styles.new(

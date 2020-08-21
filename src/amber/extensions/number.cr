@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module Extensions
     module Number
       # the positive number validation

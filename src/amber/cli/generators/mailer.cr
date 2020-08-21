@@ -1,6 +1,6 @@
 require "./field.cr"
 
-module Amber::CLI
+module Launch::CLI
   class Mailer < Generator
     command :mailer
     directory "#{__DIR__}/../templates/mailer"

@@ -5,7 +5,7 @@ require "../../../support/fixtures/cli_fixtures"
 include CLIHelper
 include CLIFixtures
 
-module Amber::CLI
+module Launch::CLI
   describe "database" do
     ENV["AMBER_ENV"] = "test"
 

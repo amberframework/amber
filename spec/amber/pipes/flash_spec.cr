@@ -1,7 +1,7 @@
 require "../../spec_helper"
 require "json"
 
-module Amber
+module Launch
   module Pipe
     describe Flash do
     end

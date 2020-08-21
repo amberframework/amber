@@ -34,7 +34,7 @@ module RouterHelper
       "/?test=test&test=test2&test_both=query&test_both=query1&#{HTTP::Request::METHOD}=put&status=1234",
       headers,
       body)
-    Amber::Router::Params.new(request)
+    Launch::Router::Params.new(request)
   end
 
   def multipart_form_post
@@ -43,7 +43,7 @@ module RouterHelper
     multipart_content = ::File.read(::File.expand_path("spec/support/sample/multipart.txt"))
     multipart_body = multipart_content.gsub("\n", "\r\n")
     request = HTTP::Request.new("POST", "/?test=test&test=test2&#{HTTP::Request::METHOD}=put&status=1234", headers, multipart_body)
-    Amber::Router::Params.new(request)
+    Launch::Router::Params.new(request)
   end
 
   def cors_context(method = "GET", **args)
@@ -74,7 +74,7 @@ module RouterHelper
 
   def origins
     domain = "example.com"
-    origins = Amber::Pipe::CORS::OriginType.new
+    origins = Launch::Pipe::CORS::OriginType.new
     origins << domain
   end
 

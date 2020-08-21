@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module Router
     class Scope
       @stack = [] of String

@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module WebSockets
     # Sockets subscribe to Channels, where the communication log is handled.  The channel provides functionality
     # to handle socket join `handle_joined` and socket messages `handle_message(msg)`.
@@ -6,7 +6,7 @@ module Amber
     # Example:
     #
     # ```crystal
-    # class ChatChannel < Amber::Websockets::Channel
+    # class ChatChannel < Launch::Websockets::Channel
     #   def handle_joined(client_socket)
     #     # functionality when the user joins the channel, optional
     #   end
@@ -73,14 +73,14 @@ module Amber
 
       # Ensure the pubsub adapter instance exists, and set up the on_message proc callback
       protected def setup_pubsub_adapter
-        @@adapter = Amber::Server.pubsub_adapter
+        @@adapter = Launch::Server.pubsub_adapter
         if pubsub_adapter = @@adapter
           pubsub_adapter.on_message(@topic_path, Proc(String, JSON::Any, Nil).new { |client_socket_id, message|
             self.on_message(client_socket_id, message)
           })
           pubsub_adapter
         else
-          raise "Invalid @@adapter on Amber::WebSockets::Channel"
+          raise "Invalid @@adapter on Launch::WebSockets::Channel"
         end
       end
     end

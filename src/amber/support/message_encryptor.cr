@@ -5,7 +5,7 @@ require "crypto/subtle"
 
 require "./message_verifier"
 
-module Amber::Support
+module Launch::Support
   class MessageEncryptor
     getter verifier : MessageVerifier
 

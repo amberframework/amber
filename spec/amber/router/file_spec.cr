@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Router
+module Launch::Router
   describe File do
     it "supports the upload of a file with a path as the filename" do
       formdata = <<-FORMDATA
@@ -12,7 +12,7 @@ module Amber::Router
 
       parser = HTTP::FormData::Parser.new IO::Memory.new(formdata.gsub('\n', "\r\n")), "---------------------------735323031399963166993862150"
       parser.next do |part|
-        attachment = Amber::Router::File.new(upload: part)
+        attachment = Launch::Router::File.new(upload: part)
         attachment.filename.should eq "/home/somewhere/yourfile.txt"
         ::File.basename(attachment.file.path).should end_with "yourfile.txt"
         attachment.file.delete

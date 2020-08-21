@@ -1,6 +1,6 @@
 require "../../../spec_helper"
 
-module Amber::Recipes
+module Launch::Recipes
   describe Recipe do
     recipe = "mydefault"
 

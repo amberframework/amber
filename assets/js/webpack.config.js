@@ -2,7 +2,7 @@ module.exports = {
   entry: './amber.js',
   output: {
     filename: 'amber.min.js',
-    library: 'Amber',
+    library: 'Launch',
     path: __dirname
   },
   optimization: {

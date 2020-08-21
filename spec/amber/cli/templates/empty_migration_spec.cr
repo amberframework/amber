@@ -1,7 +1,7 @@
 require "../../../spec_helper"
 require "./migration_spec_helper"
 
-module Amber::CLI
+module Launch::CLI
   describe EmptyMigration do
     migration = MigrationSpecHelper.sample_migration_for(Migration)
 

@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module Extensions
     module String
       def str?

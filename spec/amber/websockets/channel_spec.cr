@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber
+module Launch
   describe WebSockets::ClientSocket do
     describe "#on_message" do
       it "should call `handle_message`" do

@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber
+module Launch
   module Pipe
     describe Pipeline do
       it "connects pipes to the pipeline for given valve" do
@@ -17,7 +17,7 @@ module Amber
       describe "with given server config" do
         pipeline = Pipeline.new
 
-        Amber::Server.router.draw :web do
+        Launch::Server.router.draw :web do
           get "/valid/route", HelloController, :world
           get "/index/:name", HelloController, :world
           resources "/hello", HelloController

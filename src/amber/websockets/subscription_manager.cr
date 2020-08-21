@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module WebSockets
     # `SubscriptionManager` manages the list of channel subscriptions for the socket connection.
     # Also handles dispatching actions (messages) to the appropriate channel.

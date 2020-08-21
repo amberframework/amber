@@ -1,4 +1,4 @@
-module Amber::Validators
+module Launch::Validators
   # Holds a validation error message
   record Error, param : String, value : String?, message : String
 
@@ -21,7 +21,7 @@ module Amber::Validators
       @predicate = block
     end
 
-    def apply(params : Amber::Router::Params)
+    def apply(params : Launch::Router::Params)
       raise Exceptions::Validator::InvalidParam.new(@field) unless params.has_key? @field
       call_predicate(params)
     end
@@ -30,7 +30,7 @@ module Amber::Validators
       Error.new @field, @value.to_s, error_message
     end
 
-    private def call_predicate(params : Amber::Router::Params)
+    private def call_predicate(params : Launch::Router::Params)
       @value = params[@field]
       @present = params.has_key?(@field)
 
@@ -46,7 +46,7 @@ module Amber::Validators
 
   # RequiredRule returns false if key is missing or value is blank or if block returns false.
   class RequiredRule < BaseRule
-    def apply(params : Amber::Router::Params)
+    def apply(params : Launch::Router::Params)
       return false unless params.has_key?(@field)
       return false if params[@field].blank? && !@allow_blank
       call_predicate(params)
@@ -55,7 +55,7 @@ module Amber::Validators
 
   # OptionalRule only validates (evaluates block) if the key is present and the value is not blank (see call_predicate).
   class OptionalRule < BaseRule
-    def apply(params : Amber::Router::Params)
+    def apply(params : Launch::Router::Params)
       return true if !params.has_key?(@field)
       call_predicate(params)
     end
@@ -80,7 +80,7 @@ module Amber::Validators
   end
 
   class Params
-    getter raw_params : Amber::Router::Params
+    getter raw_params : Launch::Router::Params
     getter rules = [] of BaseRule
     getter params = {} of String => String?
     getter errors = [] of Error
@@ -113,7 +113,7 @@ module Amber::Validators
     # ```
     def validate!
       return params if valid?
-      raise Amber::Exceptions::Validator::ValidationFailed.new errors
+      raise Launch::Exceptions::Validator::ValidationFailed.new errors
     end
 
     # Returns True or false whether the validation passed

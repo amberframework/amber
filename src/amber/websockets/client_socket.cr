@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module WebSockets
     # `ClientSocket` struct maps a user to an [HTTP::WebSocket](https://crystal-lang.org/api/0.22.0/HTTP/WebSocket.html).  For every websocket connection
     # there will be an associated ClientSocket.  Authentication and authorization happen within the `ClientSocket`.  `ClientSocket` will subscribe to `Channel`s,
@@ -7,7 +7,7 @@ module Amber
     # Example:
     #
     # ```crystal
-    # struct UserSocket < Amber::Websockets::ClientSocket
+    # struct UserSocket < Launch::Websockets::ClientSocket
     #   channel "user_channel:*", UserChannel
     #   channel "room_channel:*", RoomChannel
     #
@@ -27,10 +27,10 @@ module Amber
       protected getter id : String
       getter socket : HTTP::WebSocket
       protected getter context : HTTP::Server::Context
-      protected getter raw_params : Amber::Router::Params
-      protected getter params : Amber::Validators::Params
-      protected getter session : Amber::Router::Session::AbstractStore?
-      protected getter cookies : Amber::Router::Cookies::Store?
+      protected getter raw_params : Launch::Router::Params
+      protected getter params : Launch::Validators::Params
+      protected getter session : Launch::Router::Session::AbstractStore?
+      protected getter cookies : Launch::Router::Cookies::Store?
       private property pongs = Array(Time).new
       private property pings = Array(Time).new
 
@@ -68,7 +68,7 @@ module Amber
         @id = UUID.random.to_s
         @subscription_manager = SubscriptionManager.new
         @raw_params = @context.params
-        @params = Amber::Validators::Params.new(@raw_params)
+        @params = Launch::Validators::Params.new(@raw_params)
         @socket.on_pong do
           @pongs.push(Time.utc)
           @pongs.delete_at(0) if @pongs.size > 3

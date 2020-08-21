@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber
+module Launch
   describe Route do
     handler = ->(_context : HTTP::Server::Context) {}
     subject = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, Router::Scope.new, "FakeController")
@@ -77,7 +77,7 @@ module Amber
   end
 end
 
-class FakeController < Amber::Controller::Base
+class FakeController < Launch::Controller::Base
   before_action do
     only :halt_action { halt!(900) }
   end
@@ -87,7 +87,7 @@ class FakeController < Amber::Controller::Base
   end
 end
 
-class FakeRedirectController < Amber::Controller::Base
+class FakeRedirectController < Launch::Controller::Base
   def redirect_action
     redirect_to "/"
     ""

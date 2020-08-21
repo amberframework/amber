@@ -1,7 +1,7 @@
 require "openssl/hmac"
 require "crypto/subtle"
 
-module Amber::Support
+module Launch::Support
   class MessageVerifier
     def initialize(@secret : String, @digest = :sha1)
     end

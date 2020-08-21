@@ -2,7 +2,7 @@ class HTTP::Server::Context
   property current_<%= @name %> : <%= class_name %>?
 end
 
-class Current<%= class_name %> < Amber::Pipe::Base
+class Current<%= class_name %> < Launch::Pipe::Base
   def call(context)
     <%= @name %>_id = context.session["<%= @name %>_id"]?
     if <%= @name %> = <%= class_name %>.find <%= @name %>_id
@@ -12,7 +12,7 @@ class Current<%= class_name %> < Amber::Pipe::Base
   end
 end
 
-class Authenticate < Amber::Pipe::Base
+class Authenticate < Launch::Pipe::Base
   def call(context)
     if context.current_<%= @name %>
       call_next(context)

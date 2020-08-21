@@ -1,6 +1,6 @@
 require "./generator"
 
-module Amber::CLI
+module Launch::CLI
   class Api < Generator
     command :api
     property model : Generator

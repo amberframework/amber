@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Router
+module Launch::Router
   describe Params do
     params = multipart_form_post
 
@@ -15,7 +15,7 @@ module Amber::Router
       end
 
       it "raises error for non existent param" do
-        expect_raises Amber::Exceptions::Validator::InvalidParam do
+        expect_raises Launch::Exceptions::Validator::InvalidParam do
           params["invalid"]
         end
       end

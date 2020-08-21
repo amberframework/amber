@@ -6,9 +6,9 @@ class HTTP::Request
   METHOD          = "_method"
   OVERRIDE_HEADER = "X-HTTP-Method-Override"
 
-  @matched_route : Amber::Router::RoutedResult(Amber::Route)?
+  @matched_route : Amber::Router::RoutedResult(Launch::Route)?
   @requested_method : String?
-  @params : Amber::Router::Params?
+  @params : Launch::Router::Params?
 
   def method
     case @method
@@ -22,7 +22,7 @@ class HTTP::Request
   end
 
   def params
-    @params ||= Amber::Router::Params.new(self)
+    @params ||= Launch::Router::Params.new(self)
   end
 
   def port
@@ -50,6 +50,6 @@ class HTTP::Request
   end
 
   private def router
-    Amber::Server.router
+    Launch::Server.router
   end
 end

@@ -1,4 +1,4 @@
-module Amber::Router::Session
+module Launch::Router::Session
   class SessionHash
     property changed = false
 
@@ -41,7 +41,7 @@ module Amber::Router::Session
   class CookieStore < AbstractStore
     property key : String
     property expires : Int32
-    property store : Amber::Router::Cookies::SignedStore | Amber::Router::Cookies::EncryptedStore
+    property store : Launch::Router::Cookies::SignedStore | Launch::Router::Cookies::EncryptedStore
     property session : SessionHash
 
     forward_missing_to session

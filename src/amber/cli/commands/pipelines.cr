@@ -2,7 +2,7 @@ require "cli"
 require "shell-table"
 require "../helpers/sentry"
 
-module Amber::CLI
+module Launch::CLI
   class MainCommand < ::Cli::Supercommand
     class Pipelines < Command
       getter result = Array(NamedTuple(pipes: Array(String), plugs: Array(String))).new

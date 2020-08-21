@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber
+module Launch
   class Server
     # Hello routes from pipeline_spec.cr aren't cleared with pipeline.clear,
     # which fails the spec 'should not have /hello route'.
@@ -11,10 +11,10 @@ module Amber
 
   module DSL
     def self.pipeline_custom
-      server = Amber::Server.instance
+      server = Launch::Server.instance
       server.handler.pipeline.clear
 
-      Amber::Server.configure do
+      Launch::Server.configure do
         pipeline :custom do
           plug Pipe::Logger.new
           plug Pipe::Error.new
@@ -25,10 +25,10 @@ module Amber
     end
 
     def self.pipeline_custom_multi_and_single
-      server = Amber::Server.instance
+      server = Launch::Server.instance
       server.handler.pipeline.clear
 
-      Amber::Server.configure do
+      Launch::Server.configure do
         pipeline :custom do
           plug Pipe::Logger.new
           plug Pipe::Error.new
@@ -43,10 +43,10 @@ module Amber
     end
 
     def self.all_pipelines
-      server = Amber::Server.instance
+      server = Launch::Server.instance
       server.handler.pipeline.clear
 
-      Amber::Server.configure do
+      Launch::Server.configure do
         pipeline :api, :web do
           plug Pipe::Logger.new
           plug Pipe::Error.new
@@ -57,10 +57,10 @@ module Amber
     end
 
     def self.pipeline_multi_and_single
-      server = Amber::Server.instance
+      server = Launch::Server.instance
       server.handler.pipeline.clear
 
-      Amber::Server.configure do
+      Launch::Server.configure do
         pipeline :api do
           plug Pipe::CORS.new
         end
@@ -79,10 +79,10 @@ module Amber
     end
 
     def self.pipeline_routes
-      server = Amber::Server.instance
+      server = Launch::Server.instance
       server.handler.pipeline.clear
 
-      Amber::Server.configure do
+      Launch::Server.configure do
         pipeline :web do
         end
 
@@ -201,7 +201,7 @@ module Amber
       describe "routes" do
         context "with a namespace" do
           it "should not have /hello route" do
-            Amber::Server.reset_instance
+            Launch::Server.reset_instance
             server = pipeline_routes
 
             request = HTTP::Request.new("GET", "/hello")

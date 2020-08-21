@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module Pipe
     class Flash < Base
       PARAM_KEY = "_flash"

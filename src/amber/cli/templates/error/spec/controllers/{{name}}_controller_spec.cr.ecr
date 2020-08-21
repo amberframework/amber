@@ -5,7 +5,7 @@ describe <%= class_name %>Controller do
   request = HTTP::Request.new("get", "/")
   response = HTTP::Server::Response.new(IO::Memory.new)
   context = HTTP::Server::Context.new(request, response)
-  exception = Amber::Exceptions::Base.new
+  exception = Launch::Exceptions::Base.new
   subject = <%= class_name %>Controller.new(context, exception)
 
   describe "#not_found" do
@@ -29,15 +29,15 @@ end
 
 # Controller Integration Test
 class <%= class_name %>ControllerTest < GarnetSpec::Controller::Test
-  getter handler : Amber::Pipe::Pipeline
+  getter handler : Launch::Pipe::Pipeline
 
   def initialize
-    @handler = Amber::Pipe::Pipeline.new
+    @handler = Launch::Pipe::Pipeline.new
     @handler.build :web do
-      plug Amber::Pipe::Error.new
+      plug Launch::Pipe::Error.new
     end
     @handler.build :static do
-      plug Amber::Pipe::Error.new
+      plug Launch::Pipe::Error.new
     end
     @handler.prepare_pipelines
   end

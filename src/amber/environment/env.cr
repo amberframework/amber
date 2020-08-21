@@ -1,4 +1,4 @@
-module Amber::Environment
+module Launch::Environment
   class Env
     AMBER_ENV = "AMBER_ENV"
 

@@ -1,4 +1,4 @@
-module Amber::Router::Parsers
+module Launch::Router::Parsers
   module FormData
     def self.parse(request : HTTP::Request)
       parse_part(request.body).not_nil!

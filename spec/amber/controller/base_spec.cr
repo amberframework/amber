@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Controller
+module Launch::Controller
   describe Base do
     controller = build_controller
 

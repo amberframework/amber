@@ -1,6 +1,6 @@
 require "http"
 
-module Amber
+module Launch
   module Pipe
     # Base class to include the HTTP::Handler module.
     class Base

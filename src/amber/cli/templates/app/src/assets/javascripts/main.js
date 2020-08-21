@@ -1,3 +1,3 @@
 import 'bootstrap';
-import Amber from 'amber';
+import Launch from 'amber';
 import Logo from '../images/logo.svg';

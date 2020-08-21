@@ -1,4 +1,4 @@
-class RedirectController < Amber::Controller::Base
+class RedirectController < Launch::Controller::Base
   def index
     "Index"
   end
@@ -20,7 +20,7 @@ class RedirectController < Amber::Controller::Base
   end
 end
 
-class HelloController < Amber::Controller::Base
+class HelloController < Launch::Controller::Base
   @total : Int32 = 0
 
   before_action do
@@ -68,7 +68,7 @@ class HelloController < Amber::Controller::Base
   end
 
   def say_hello
-    "Hello Amber!"
+    "Hello Launch!"
   end
 
   def client_ip_address
@@ -84,7 +84,7 @@ class HelloController < Amber::Controller::Base
   end
 end
 
-class RenderController < Amber::Controller::Base
+class RenderController < Launch::Controller::Base
   def render_template_page
     render(path: "spec/support/sample/views", template: "test/test.slang", layout: false)
   end
@@ -111,21 +111,21 @@ class RenderController < Amber::Controller::Base
   end
 end
 
-class ResponsesController < Amber::Controller::Base
+class ResponsesController < Launch::Controller::Base
   def index
     respond_with do
-      html "<html><body><h1>Elorest <3 Amber</h1></body></html>"
-      json type: "json", name: "Amberator"
+      html "<html><body><h1>Elorest <3 Launch</h1></body></html>"
+      json type: "json", name: "Launchator"
       xml "<xml><body><h1>Sort of xml</h1></body></xml>"
       text "Hello I'm text!"
-      js "console.log('Everyone <3 Amber')"
+      js "console.log('Everyone <3 Launch')"
     end
   end
 
   def show
     respond_with do
-      html "<html><body><h1>Elorest <3 Amber</h1></body></html>"
-      json type: "json", name: "Amberator"
+      html "<html><body><h1>Elorest <3 Launch</h1></body></html>"
+      json type: "json", name: "Launchator"
     end
   end
 
@@ -138,9 +138,9 @@ class ResponsesController < Amber::Controller::Base
   def block_html
     respond_with do
       html do
-        "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+        "<html><body><h1>Elorest <3 Launch</h1></body></html>"
       end
-      json type: "json", name: "Amberator"
+      json type: "json", name: "Launchator"
     end
   end
 
@@ -149,7 +149,7 @@ class ResponsesController < Amber::Controller::Base
       html do
         redirect_to "/some_path"
       end
-      json type: "json", name: "Amberator"
+      json type: "json", name: "Launchator"
     end
   end
 
@@ -158,7 +158,7 @@ class ResponsesController < Amber::Controller::Base
       html do
         redirect_to "/some_path", flash: {"success" => "amber is the bizness"}
       end
-      json type: "json", name: "Amberator"
+      json type: "json", name: "Launchator"
     end
   end
 
@@ -167,35 +167,35 @@ class ResponsesController < Amber::Controller::Base
       html do
         redirect_to "/some_path", status: 301
       end
-      json type: "json", name: "Amberator"
+      json type: "json", name: "Launchator"
     end
   end
 
   def proc_html
     respond_with do
-      html ->{ "<html><body><h1>Elorest <3 Amber</h1></body></html>" }
-      json type: "json", name: "Amberator"
+      html ->{ "<html><body><h1>Elorest <3 Launch</h1></body></html>" }
+      json type: "json", name: "Launchator"
     end
   end
 
   def proc_redirect
     respond_with do
       html ->{ redirect_to "/some_path" }
-      json type: "json", name: "Amberator"
+      json type: "json", name: "Launchator"
     end
   end
 
   def proc_redirect_flash
     respond_with do
       html ->{ redirect_to "/some_path", flash: {"success" => "amber is the bizness"} }
-      json type: "json", name: "Amberator"
+      json type: "json", name: "Launchator"
     end
   end
 
   def proc_perm_redirect
     respond_with do
       html ->{ redirect_to "/some_path", status: 301 }
-      json type: "json", name: "Amberator"
+      json type: "json", name: "Launchator"
     end
   end
 end

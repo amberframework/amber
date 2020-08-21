@@ -2,7 +2,7 @@ require "log"
 
 # About logger.cr File
 #
-# Amber is using the crystal standard library Log
+# Launch is using the crystal standard library Log
 # You can read details here: https://crystal-lang.org/api/0.35.0/Log.html
 
 # Using environment settings:
@@ -26,7 +26,7 @@ backend.formatter = Log::Formatter.new do |entry, io|
   io << entry.message
 end
 
-Log.builder.bind "*", Amber.settings.logging.severity, backend
+Log.builder.bind "*", Launch.settings.logging.severity, backend
 
 # Using crystal's standard environment variables:
 # CRYSTAL_LOG_LEVEL=INFO

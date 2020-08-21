@@ -1,7 +1,7 @@
 require "random/secure"
 require "crypto/subtle"
 
-module Amber
+module Launch
   module Pipe
     # The CSRF Handler adds support for Cross Site Request Forgery.
     class CSRF < Base
@@ -17,7 +17,7 @@ module Amber
         if valid_http_method?(context) || self.class.token_strategy.valid_token?(context)
           call_next(context)
         else
-          raise Amber::Exceptions::Forbidden.new("CSRF check failed.")
+          raise Launch::Exceptions::Forbidden.new("CSRF check failed.")
         end
       end
 

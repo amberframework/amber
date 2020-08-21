@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module WebSockets
     #
     # Manages the entire collection of ClientSockets.  Manages periodic timers for socket connections (heartbeat).

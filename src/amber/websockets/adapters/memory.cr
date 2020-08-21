@@ -1,4 +1,4 @@
-module Amber::WebSockets::Adapters
+module Launch::WebSockets::Adapters
   # The MemoryAdapter is intended for development use only and shouldn't be used in production.
   class MemoryAdapter
     @listeners = Array(NamedTuple(path: String, listener: Proc(String, JSON::Any, Nil))).new

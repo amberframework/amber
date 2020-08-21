@@ -1,4 +1,4 @@
-module Amber::DSL::Server
+module Launch::DSL::Server
   macro routes(valve, scope = "")
     router.draw {{valve}}, {{scope}} do
       {{yield}}

@@ -1,14 +1,14 @@
 require "./cluster"
 require "./ssl"
 
-module Amber
+module Launch
   class Server
     Log = ::Log.for(self)
-    include Amber::DSL::Server
+    include Launch::DSL::Server
     alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
     property pubsub_adapter : WebSocketAdapter = WebSockets::Adapters::MemoryAdapter
     getter handler = Pipe::Pipeline.new
-    getter router = Router::Router.new
+    getter router = Amber::Router::Router.new
 
     def self.instance
       @@instance ||= new
@@ -59,21 +59,21 @@ module Amber
       server = HTTP::Server.new(handler)
 
       if ssl_enabled?
-        ssl_config = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls
-        server.bind_tls Amber.settings.host, Amber.settings.port, ssl_config, settings.port_reuse
+        ssl_config = Launch::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls
+        server.bind_tls Launch.settings.host, Launch.settings.port, ssl_config, settings.port_reuse
       else
-        server.bind_tcp Amber.settings.host, Amber.settings.port, settings.port_reuse
+        server.bind_tcp Launch.settings.host, Launch.settings.port, settings.port_reuse
       end
 
       Signal::INT.trap do
         Signal::INT.reset
-        Log.info { "Shutting down Amber" }
+        Log.info { "Shutting down Launch" }
         server.close
       end
 
       loop do
         begin
-          Log.info { "Server started in #{Amber.env.colorize(:yellow)}." }
+          Log.info { "Server started in #{Launch.env.colorize(:yellow)}." }
           Log.info { "Startup Time #{Time.local - time}".colorize(:white) }
           server.listen
           break
@@ -85,7 +85,7 @@ module Amber
     end
 
     def version
-      "Amber #{Amber::VERSION}"
+      "Launch #{Launch::VERSION}"
     end
 
     def host_url
@@ -101,7 +101,7 @@ module Amber
     end
 
     def settings
-      Amber.settings
+      Launch.settings
     end
   end
 end

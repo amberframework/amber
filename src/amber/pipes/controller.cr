@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module Pipe
     # This is the default last pipe which is inserted automatically
     # in order to call the controller action.

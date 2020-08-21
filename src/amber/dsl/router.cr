@@ -1,11 +1,11 @@
-module Amber::DSL
+module Launch::DSL
   record Pipeline, pipeline : Pipe::Pipeline do
     def plug(pipe)
       pipeline.plug pipe
     end
   end
 
-  record Router, router : Amber::Router::Router, valve : Symbol, scope : Amber::Router::Scope do
+  record Router, router : Amber::Router::Router, valve : Symbol, scope : Launch::Router::Scope do
     RESOURCES = [:get, :post, :put, :patch, :delete, :options, :head, :trace, :connect]
 
     macro route(verb, resource, controller, action, constraints = {} of String => Regex)
@@ -18,7 +18,7 @@ module Amber::DSL
         end
       }
       %verb = {{verb.upcase.id.stringify}}
-      %route = Amber::Route.new(
+      %route = Launch::Route.new(
         %verb, {{resource}}, %handler, {{action}}, valve, scope, "{{controller.id}}", {{constraints}}
       )
 
@@ -79,7 +79,7 @@ module Amber::DSL
     end
 
     def websocket(path, app_socket)
-      Amber::WebSockets::Server.create_endpoint(path, app_socket)
+      Launch::WebSockets::Server.create_endpoint(path, app_socket)
     end
   end
 end

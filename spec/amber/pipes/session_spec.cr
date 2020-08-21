@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber
+module Launch
   module Pipe
     describe Session do
       it "sets a cookie" do
@@ -30,7 +30,7 @@ module Amber
 
         context "Redis Store" do
           it "sets session value in controller" do
-            Amber.settings.session = {
+            Launch.settings.session = {
               "key"     => "session_id",
               "store"   => "redis",
               "expires" => 120,

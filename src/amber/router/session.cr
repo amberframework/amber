@@ -1,4 +1,4 @@
 require "./session/*"
 
-module Amber::Router::Session
+module Launch::Router::Session
 end

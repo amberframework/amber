@@ -1,7 +1,7 @@
 require "./environment/**"
 require "./support/file_encryptor"
 
-module Amber::Environment
+module Launch::Environment
   alias EnvType = String | Symbol
 
   macro included
@@ -10,7 +10,7 @@ module Amber::Environment
 
     def self.settings
       @@settings ||= Loader.new(env.to_s, path).settings
-    rescue Amber::Exceptions::Environment
+    rescue Launch::Exceptions::Environment
       @@settings = Settings.from_yaml("default: settings")
     end
 

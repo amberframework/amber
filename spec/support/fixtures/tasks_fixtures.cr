@@ -1,4 +1,4 @@
-class FakeTask < Amber::Tasks::Task
+class FakeTask < Launch::Tasks::Task
   def description
     "Fake command task"
   end

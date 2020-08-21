@@ -1,6 +1,6 @@
 require "colorize"
 
-module Amber
+module Launch
   module Exceptions
     class Base < Exception
       getter status_code : Int32 = 500
@@ -67,7 +67,7 @@ module Amber
       class ValidationFailed < Base
         getter errors
 
-        def initialize(@errors : Array(Amber::Validators::Error))
+        def initialize(@errors : Array(Launch::Validators::Error))
           super("Validation failed. #{@errors}")
         end
       end

@@ -1,13 +1,13 @@
 require "../../generators/field.cr"
 
-module Amber::Recipes::Scaffold
+module Launch::Recipes::Scaffold
   class Controller < Teeplate::FileTree
-    include Amber::CLI::Helpers
+    include Launch::CLI::Helpers
     include FileEntries
 
     @name : String
-    @fields : Array(Amber::CLI::Field)
-    @visible_fields : Array(Amber::CLI::Field)
+    @fields : Array(Launch::CLI::Field)
+    @visible_fields : Array(Launch::CLI::Field)
     @database : String
     @language : String
     @model : String
@@ -20,9 +20,9 @@ module Amber::Recipes::Scaffold
       @language = CLI.config.language
       @database = CLI.config.database
       @model = CLI.config.model
-      @fields = fields.map { |field| Amber::CLI::Field.new(field, database: @database) }
+      @fields = fields.map { |field| Launch::CLI::Field.new(field, database: @database) }
       @fields += %w(created_at:time updated_at:time).map do |f|
-        Amber::CLI::Field.new(f, hidden: true, database: @database)
+        Launch::CLI::Field.new(f, hidden: true, database: @database)
       end
       @visible_fields = @fields.reject { |f| f.hidden }
       field_hash

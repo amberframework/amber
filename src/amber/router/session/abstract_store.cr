@@ -1,4 +1,4 @@
-module Amber::Router::Session
+module Launch::Router::Session
   # All Session Stores should implement the following API
   abstract class AbstractStore
     abstract def id

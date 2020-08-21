@@ -1,4 +1,4 @@
-module Amber::Controller::Helpers
+module Launch::Controller::Helpers
   module Responders
     Log = ::Log.for(self)
 

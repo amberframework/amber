@@ -1,9 +1,9 @@
 require "file_utils"
 require "../generators/field.cr"
 
-module Amber::Recipes
+module Launch::Recipes
   class Controller < Teeplate::FileTree
-    include Amber::CLI::Helpers
+    include Launch::CLI::Helpers
     include FileEntries
 
     getter template

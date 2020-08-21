@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Environment
+module Launch::Environment
   describe Env do
     {% for env in %w(development staging test sandbox production) %}
     describe ".{{env.id}}?" do

@@ -3,7 +3,7 @@ require "./support/helpers/cli_helper"
 
 include CLIHelper
 
-module Amber::CLI
+module Launch::CLI
   extend self
 
   def generate_app(*options)
@@ -31,7 +31,7 @@ module Amber::CLI
     MainCommand.run ["generate", "controller", "-y", "MyController", "myview"]
 
     prepare_yaml(Dir.current)
-    Amber::CLI.env = "test"
+    Launch::CLI.env = "test"
     MainCommand.run ["db", "drop", "create", "migrate"]
   end
 end

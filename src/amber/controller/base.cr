@@ -3,7 +3,7 @@ require "http"
 require "./filters"
 require "./helpers/*"
 
-module Amber::Controller
+module Launch::Controller
   class Base
     include Helpers::CSRF
     include Helpers::Redirect
@@ -14,7 +14,7 @@ module Amber::Controller
     include Callbacks
 
     protected getter context : HTTP::Server::Context
-    protected getter params : Amber::Validators::Params
+    protected getter params : Launch::Validators::Params
 
     delegate :client_ip,
       :cookies,
@@ -38,7 +38,7 @@ module Amber::Controller
       to: context
 
     def initialize(@context : HTTP::Server::Context)
-      @params = Amber::Validators::Params.new(context.params)
+      @params = Launch::Validators::Params.new(context.params)
     end
   end
 end

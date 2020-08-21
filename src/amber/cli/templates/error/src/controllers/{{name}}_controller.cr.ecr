@@ -1,5 +1,5 @@
 class <%= class_name %>Controller < ApplicationController
-  include Amber::Controller::Error::Helpers
+  include Launch::Controller::Error::Helpers
 
   def initialize(@context : HTTP::Server::Context, @ex : Exception)
     super(@context)

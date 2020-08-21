@@ -20,6 +20,6 @@ require "./amber/validators/**"
 require "./amber/websockets/**"
 require "./amber/environment"
 
-module Amber
-  include Amber::Environment
+module Launch
+  include Launch::Environment
 end

@@ -3,7 +3,7 @@ require "../../../support/helpers/cli_helper"
 
 include CLIHelper
 
-module Amber::CLI
+module Launch::CLI
   describe "amber exec" do
     context "within project" do
       Spec.before_suite do
@@ -17,7 +17,7 @@ module Amber::CLI
 
       # it "executes one-liners from the first command-line argument" do
       #   expected_result = "3000\n"
-      #   MainCommand.run(["exec", "Amber.settings.port"])
+      #   MainCommand.run(["exec", "Launch.settings.port"])
       #   logs = Dir["./tmp/*_console_result.log"].sort
 
       #   File.read(logs.last?.to_s).should eq expected_result

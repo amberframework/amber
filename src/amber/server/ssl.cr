@@ -1,6 +1,6 @@
 require "openssl"
 
-module Amber
+module Launch
   class SSL
     def initialize(@key_file : String, @cert_file : String)
     end

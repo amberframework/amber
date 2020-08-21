@@ -1,4 +1,4 @@
-module Amber::Support
+module Launch::Support
   # Allow clients browser reloading using WebSockets and file watchers.
   struct ClientReload
     Log = ::Log.for(self)
@@ -22,7 +22,7 @@ module Amber::Support
     end
 
     private def create_reload_server
-      Amber::WebSockets::Server::Handler.new "/#{WEBSOCKET_PATH}" do |session|
+      Launch::WebSockets::Server::Handler.new "/#{WEBSOCKET_PATH}" do |session|
         SESSIONS << session
         session.on_close do
           SESSIONS.delete session

@@ -1,4 +1,4 @@
-module Amber::CLI
+module Launch::CLI
   class WebSocket < Generator
     command :socket
     directory "#{__DIR__}/../templates/socket"

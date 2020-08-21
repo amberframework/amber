@@ -1,12 +1,12 @@
 require "./message_encryptor"
 
-module Amber::Support
+module Launch::Support
   ENCRYPT_ENV = "AMBER_ENCRYPTION_KEY"
   FILE_PATH   = "./.encryption_key"
 
   module FileEncryptor
     def self.read(filename : String, encryption_key = self.encryption_key)
-      encryptor = Amber::Support::MessageEncryptor.new(encryption_key)
+      encryptor = Launch::Support::MessageEncryptor.new(encryption_key)
       encryptor.verify_and_decrypt(File.open(filename).gets_to_end.to_slice)
     end
 
@@ -22,7 +22,7 @@ module Amber::Support
     def self.encryption_key(file = FILE_PATH)
       ENV[ENCRYPT_ENV]? || File.open(file).read_line
     rescue
-      raise Amber::Exceptions::EncryptionKeyMissing.new(file, ENCRYPT_ENV)
+      raise Launch::Exceptions::EncryptionKeyMissing.new(file, ENCRYPT_ENV)
     end
   end
 end

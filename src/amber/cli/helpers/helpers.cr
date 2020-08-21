@@ -1,4 +1,4 @@
-module Amber::CLI::Helpers
+module Launch::CLI::Helpers
   def add_routes(pipeline, route)
     routes_file = File.read("./config/routes.cr")
     routes = routes_file.match(/routes :#{pipeline}(.*?) do(.+?)end/m)

@@ -1,4 +1,4 @@
-module Amber::Controller::Helpers
+module Launch::Controller::Helpers
   module Redirect
     def redirect_to(location : String, **args)
       Redirector.new(location, **args).redirect(self)
@@ -31,12 +31,12 @@ module Amber::Controller::Helpers
     @flash : Hash(String, String)? = nil
 
     def self.from_controller_action(controller : Class, action : Symbol, **options)
-      route = Amber::Server.router.match_by_controller_action(controller.to_s.downcase, action)
+      route = Launch::Server.router.match_by_controller_action(controller.to_s.downcase, action)
       redirect(route, **options)
     end
 
     def self.from_controller_action(controller : Symbol | String, action : Symbol, **options)
-      route = Amber::Server.router.match_by_controller_action("#{controller}controller", action)
+      route = Launch::Server.router.match_by_controller_action("#{controller}controller", action)
       redirect(route, **options)
     end
 

@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber
+module Launch
   module Pipe
     describe Error do
       it "returns status code 404 when route not found" do
@@ -17,7 +17,7 @@ module Amber
         error.next = ->(_context : HTTP::Server::Context) { raise "Oops!" }
         request = HTTP::Request.new("GET", "/")
 
-        Amber::Server.router.draw :web do
+        Launch::Server.router.draw :web do
           get "/", HelloController, :index
         end
 

@@ -1,4 +1,4 @@
-struct UserSocket < Amber::WebSockets::ClientSocket
+struct UserSocket < Launch::WebSockets::ClientSocket
   property test_field = Array(String).new
 
   channel "user_room:*", UserChannel
@@ -8,7 +8,7 @@ struct UserSocket < Amber::WebSockets::ClientSocket
   end
 end
 
-class UserChannel < Amber::WebSockets::Channel
+class UserChannel < Launch::WebSockets::Channel
   property test_field = Array(String).new
 
   def handle_leave(client_socket)

@@ -1,4 +1,4 @@
-module Amber::Router::Parsers
+module Launch::Router::Parsers
   module Multipart
     def self.parse(request : HTTP::Request) : Tuple(Types::Params, Types::Files)
       multipart_params = Types::Params.new
@@ -8,7 +8,7 @@ module Amber::Router::Parsers
         next unless upload
         filename = upload.filename
         if filename.is_a?(String) && !filename.empty?
-          files[upload.name] = Amber::Router::File.new(upload: upload)
+          files[upload.name] = Launch::Router::File.new(upload: upload)
         else
           multipart_params[upload.name] = upload.body.gets_to_end
         end

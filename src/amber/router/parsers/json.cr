@@ -1,4 +1,4 @@
-module Amber::Router::Parsers
+module Launch::Router::Parsers
   module JSON
     def self.parse(request : HTTP::Request)
       json_params = Types::Params.new

@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module Pipe
     # This class picks the correct pipeline based on the request
     # and executes it.
@@ -13,15 +13,15 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
-        raise Amber::Exceptions::RouteNotFound.new(context.request) unless context.valid_route?
+        raise Launch::Exceptions::RouteNotFound.new(context.request) unless context.valid_route?
         if context.websocket?
           context.process_websocket_request
         elsif @drain[context.valve]
           @drain[context.valve].call(context)
           context.finalize_response!
         end
-      rescue e : Amber::Exceptions::Base
-        Amber::Pipe::Error.new.call(context)
+      rescue e : Launch::Exceptions::Base
+        Launch::Pipe::Error.new.call(context)
       end
 
       # Connects pipes to a pipeline to process requests
@@ -37,7 +37,7 @@ module Amber
 
       def prepare_pipelines
         pipeline.keys.each do |valve|
-          @drain[valve] ||= build_pipeline(pipeline[valve], Amber::Pipe::Controller.new)
+          @drain[valve] ||= build_pipeline(pipeline[valve], Launch::Pipe::Controller.new)
         end
       end
 

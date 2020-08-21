@@ -1,10 +1,10 @@
 require "../../spec_helper"
 
-module Amber
+module Launch
   module Pipe
     def self.set_dir_and_env
       Dir.cd CURRENT_DIR
-      Amber.env = :test
+      Launch.env = :test
     end
 
     describe CSRF do
@@ -44,7 +44,7 @@ module Amber
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
           token = CSRF.token(context)
-          context.params[Amber::Pipe::CSRF::PARAM_KEY] = token.to_s
+          context.params[Launch::Pipe::CSRF::PARAM_KEY] = token.to_s
 
           result = csrf.call(context)
 
@@ -57,7 +57,7 @@ module Amber
           request = HTTP::Request.new("PUT", "/")
           context = create_context(request)
           token = CSRF.token(context)
-          context.request.headers[Amber::Pipe::CSRF::HEADER_KEY] = token.to_s
+          context.request.headers[Launch::Pipe::CSRF::HEADER_KEY] = token.to_s
 
           result = csrf.call(context)
 

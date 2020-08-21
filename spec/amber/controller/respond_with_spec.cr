@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Controller
+module Launch::Controller
   describe Base do
     describe "#respond_with" do
       request = HTTP::Request.new("GET", "")
@@ -9,14 +9,14 @@ module Amber::Controller
 
       describe "#string input" do
         it "respond_with html as default option" do
-          expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+          expected_result = "<html><body><h1>Elorest <3 Launch</h1></body></html>"
           ResponsesController.new(context).index.should eq expected_result
           context.response.headers["Content-Type"].should eq "text/html"
           context.response.status_code.should eq 200
         end
 
         it "respond_with html as default option with */* header" do
-          expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+          expected_result = "<html><body><h1>Elorest <3 Launch</h1></body></html>"
           context.request.headers["Accept"] = "*/*"
           ResponsesController.new(context).index.should eq expected_result
           context.response.headers["Content-Type"].should eq "text/html"
@@ -24,7 +24,7 @@ module Amber::Controller
         end
 
         it "respond_with html" do
-          expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+          expected_result = "<html><body><h1>Elorest <3 Launch</h1></body></html>"
           context.request.headers["Accept"] = "text/html"
           ResponsesController.new(context).index.should eq expected_result
           context.response.headers["Content-Type"].should eq "text/html"
@@ -32,7 +32,7 @@ module Amber::Controller
         end
 
         it "responds with json" do
-          expected_result = %({"type":"json","name":"Amberator"})
+          expected_result = %({"type":"json","name":"Launchator"})
           context.request.headers["Accept"] = "application/json"
           ResponsesController.new(context).index.should eq expected_result
           context.response.headers["Content-Type"].should eq "application/json"
@@ -40,7 +40,7 @@ module Amber::Controller
         end
 
         it "responds with json having */* at end" do
-          expected_result = %({"type":"json","name":"Amberator"})
+          expected_result = %({"type":"json","name":"Launchator"})
           context.request.headers["Accept"] = "application/json,*/*"
           ResponsesController.new(context).index.should eq expected_result
           context.response.headers["Content-Type"].should eq "application/json"
@@ -48,7 +48,7 @@ module Amber::Controller
         end
 
         it "responds with javascript" do
-          expected_result = %(console.log('Everyone <3 Amber'))
+          expected_result = %(console.log('Everyone <3 Launch'))
           context.request.headers["Accept"] = "application/javascript"
           ResponsesController.new(context).index.should eq expected_result
           context.response.headers["Content-Type"].should eq "application/javascript"
@@ -56,7 +56,7 @@ module Amber::Controller
         end
 
         it "responds with javascript having */* at end" do
-          expected_result = %(console.log('Everyone <3 Amber'))
+          expected_result = %(console.log('Everyone <3 Launch'))
           context.request.headers["Accept"] = "application/javascript,*/*"
           ResponsesController.new(context).index.should eq expected_result
           context.response.headers["Content-Type"].should eq "application/javascript"
@@ -80,7 +80,7 @@ module Amber::Controller
         end
 
         it "responds with json for path.json" do
-          expected_result = %({"type":"json","name":"Amberator"})
+          expected_result = %({"type":"json","name":"Launchator"})
           context.request.path = "/response/1.json"
           ResponsesController.new(context).index.should eq expected_result
           context.response.headers["Content-Type"].should eq "application/json"
@@ -120,7 +120,7 @@ module Amber::Controller
 
         it "respond with default if extension is invalid and accepts isn't defined" do
           context.response.status_code = 200
-          expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+          expected_result = "<html><body><h1>Elorest <3 Launch</h1></body></html>"
           context.request.path = "/response/1.texas"
           context.request.headers["Accept"] = "text/html"
           ResponsesController.new(context).index.should eq expected_result
@@ -129,7 +129,7 @@ module Amber::Controller
         end
 
         it "responds with or accept header request if extension is invalid" do
-          expected_result = %({"type":"json","name":"Amberator"})
+          expected_result = %({"type":"json","name":"Launchator"})
           context.request.headers["Accept"] = "application/json"
           context.request.path = "/response/1.texas"
           ResponsesController.new(context).index.should eq expected_result
@@ -138,7 +138,7 @@ module Amber::Controller
         end
 
         it "responds html as default with invalid extension but having */* at end" do
-          expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+          expected_result = "<html><body><h1>Elorest <3 Launch</h1></body></html>"
           context.request.headers["Accept"] = "unsupported/extension,*/*"
           ResponsesController.new(context).index.should eq expected_result
           context.response.headers["Content-Type"].should eq "text/html"
@@ -157,7 +157,7 @@ module Amber::Controller
       describe "#proc input" do
         it "responds with html from a proc" do
           context.response.status_code = 200
-          expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+          expected_result = "<html><body><h1>Elorest <3 Launch</h1></body></html>"
           context.request.headers["Accept"] = "text/html"
           ResponsesController.new(context).proc_html.should eq expected_result
           context.response.headers["Content-Type"].should eq "text/html"

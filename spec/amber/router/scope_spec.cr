@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber
+module Launch
   module Router
     describe Scope do
       describe "#push" do

@@ -2,7 +2,7 @@ require "base64"
 require "yaml"
 require "openssl/hmac"
 
-module Amber
+module Launch
   module Router
     module Flash
       def self.from_session(flash_content)

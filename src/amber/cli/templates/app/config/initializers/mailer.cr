@@ -1,12 +1,12 @@
 require "quartz_mailer"
 
 Quartz.config do |c|
-  c.smtp_enabled = Amber.settings.smtp.enabled
+  c.smtp_enabled = Launch.settings.smtp.enabled
 
-  c.smtp_address = ENV["SMTP_ADDRESS"]? || Amber.settings.smtp.host
-  c.smtp_port = ENV["SMTP_PORT"]? || Amber.settings.smtp.port
-  c.username = ENV["SMTP_USERNAME"]? || Amber.settings.smtp.username
-  c.password = ENV["SMTP_PASSWORD"]? || Amber.settings.smtp.password
+  c.smtp_address = ENV["SMTP_ADDRESS"]? || Launch.settings.smtp.host
+  c.smtp_port = ENV["SMTP_PORT"]? || Launch.settings.smtp.port
+  c.username = ENV["SMTP_USERNAME"]? || Launch.settings.smtp.username
+  c.password = ENV["SMTP_PASSWORD"]? || Launch.settings.smtp.password
 
   c.use_authentication = !c.password.blank?
   c.use_tls = EMail::Client::TLSMode::NONE

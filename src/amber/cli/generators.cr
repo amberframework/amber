@@ -5,7 +5,7 @@ require "inflector"
 require "./helpers/helpers"
 require "./generators/**"
 
-module Amber::CLI
+module Launch::CLI
   class Generators
     Log = ::Log.for("generate")
 
@@ -241,7 +241,7 @@ module Amber::CLI
     end
 
     def generate(command : String, options)
-      if gen_class = Amber::CLI::Generator.registered_commands[command]?
+      if gen_class = Launch::CLI::Generator.registered_commands[command]?
         info "Generating #{gen_class}"
         gen_class.new(name, fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
       else

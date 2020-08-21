@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Extensions
+module Launch::Extensions
   describe String do
     it "returns true on valid email address" do
       "info@burakdemirtas.org".email?.should eq(true)

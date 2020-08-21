@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module WebSockets
     module Server
       extend self
@@ -25,7 +25,7 @@ module Amber
 
       class Handler < HTTP::WebSocketHandler
         def initialize(@path : String, &@proc : HTTP::WebSocket, HTTP::Server::Context -> Void)
-          Amber::Server.router.add_socket_route(@path, self)
+          Launch::Server.router.add_socket_route(@path, self)
         end
 
         def call(context)

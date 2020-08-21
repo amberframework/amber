@@ -1,6 +1,6 @@
 require "../../../spec_helper"
 
-module Amber::CLI
+module Launch::CLI
   describe App do
     pg_app = App.new("sample-app")
     mysql_app = App.new("sample-app", "mysql")

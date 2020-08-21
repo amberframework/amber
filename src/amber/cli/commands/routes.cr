@@ -2,7 +2,7 @@ require "cli"
 require "shell-table"
 require "../helpers/sentry"
 
-module Amber::CLI
+module Launch::CLI
   class MainCommand < ::Cli::Supercommand
     class Routes < Command
       RESOURCE_ROUTE_REGEX  = /(\w+)\s+\"([^\"]+)\",\s*([\w:]+)(?:,\s*(\w+)\:\s*\[([^\]]+)\])?/

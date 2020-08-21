@@ -1,4 +1,4 @@
-module Amber::Environment
+module Launch::Environment
   class Logging
     alias OptionsType = Hash(String, String | Bool | Array(String))
 

@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Router
+module Launch::Router
   describe HTTP::Request do
     headers = HTTP::Headers.new
 
@@ -66,7 +66,7 @@ module Amber::Router
           it "parses params from route" do
             handler = ->(_context : HTTP::Server::Context) {}
             route = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, Scope.new, "FakeController")
-            Amber::Server.router.add(route)
+            Launch::Server.router.add(route)
             request = HTTP::Request.new("GET", "/fake/action/123/john")
             request.params["id"].should eq "123"
             request.params["name"].should eq "john"

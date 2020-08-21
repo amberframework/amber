@@ -1,7 +1,7 @@
 require "./base"
 require "../exceptions/page"
 
-module Amber::Controller
+module Launch::Controller
   class Error < Base
     def initialize(@context : HTTP::Server::Context, @ex : Exception)
       super(@context)
@@ -45,14 +45,14 @@ module Amber::Controller
       end
 
       private def html_response
-        if Amber.env.development?
-          Amber::Exceptions::Page.for_runtime_exception(context, @ex).to_s
+        if Launch.env.development?
+          Launch::Exceptions::Page.for_runtime_exception(context, @ex).to_s
         else
           "<html><body><pre>#{@ex.message}</pre></body></html>"
         end
       end
     end
 
-    include Amber::Controller::Error::Helpers
+    include Launch::Controller::Error::Helpers
   end
 end

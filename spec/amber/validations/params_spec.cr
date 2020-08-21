@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Validators
+module Launch::Validators
   describe Params do
     describe "#validation" do
       context "required params" do

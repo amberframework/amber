@@ -1,7 +1,7 @@
 require "yaml"
 require "yaml_mapping"
 
-module Amber::Environment
+module Launch::Environment
   class Settings
     alias SettingValue = String | Int32 | Bool | Nil
 
@@ -54,7 +54,7 @@ module Amber::Environment
       },
       database_url: {type: String, default: ""},
       host: {type: String, default: "localhost"},
-      name: {type: String, default: "Amber_App"},
+      name: {type: String, default: "Launch_App"},
       port: {type: Int32, default: 3000},
       port_reuse: {type: Bool, default: true},
       process_count: {type: Int32, default: 1},

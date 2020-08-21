@@ -10,7 +10,7 @@ RUN apt-get install -y nodejs
 
 WORKDIR /opt/amber
 
-# Build Amber
+# Build Launch
 ENV PATH /opt/amber/bin:$PATH
 COPY . /opt/amber
 RUN shards build amber

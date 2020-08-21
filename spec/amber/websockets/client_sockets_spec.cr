@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber
+module Launch
   describe WebSockets::ClientSockets do
     describe "#add_client_socket" do
       it "should add the client socket to the list" do

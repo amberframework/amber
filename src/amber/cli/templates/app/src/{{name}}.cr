@@ -1,4 +1,4 @@
 require "../config/application"
 
-Amber::Support::ClientReload.new if Amber.settings.auto_reload?
-Amber::Server.start
+Launch::Support::ClientReload.new if Launch.settings.auto_reload?
+Launch::Server.start

@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Extensions
+module Launch::Extensions
   describe HTTPServerContext do
     it "defaults client_ip to nil" do
       request = HTTP::Request.new("GET", "/")

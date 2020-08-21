@@ -6,7 +6,7 @@ require "cli/spec"
 include CLIHelper
 include Cli::Spec::Helper
 
-module Amber::CLI
+module Launch::CLI
   extend Helpers
 
   describe "amber pipelines" do
@@ -19,16 +19,16 @@ module Amber::CLI
 
       web_default_plugs = %w(
         Citrine::I18n::Handler
-        Amber::Pipe::Error
-        Amber::Pipe::Logger
-        Amber::Pipe::Session
-        Amber::Pipe::Flash
-        Amber::Pipe::CSRF
+        Launch::Pipe::Error
+        Launch::Pipe::Logger
+        Launch::Pipe::Session
+        Launch::Pipe::Flash
+        Launch::Pipe::CSRF
       )
 
       static_default_plugs = %w(
-        Amber::Pipe::Error
-        Amber::Pipe::Static
+        Launch::Pipe::Error
+        Launch::Pipe::Static
       )
 
       pipe_plugs = {

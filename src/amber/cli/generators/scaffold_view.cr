@@ -1,5 +1,5 @@
-module Amber::CLI
-  class ScaffoldView < Amber::CLI::Generator
+module Launch::CLI
+  class ScaffoldView < Launch::CLI::Generator
     directory "#{__DIR__}/../templates/scaffold/view"
 
     def initialize(name, fields)

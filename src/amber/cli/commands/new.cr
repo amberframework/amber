@@ -1,4 +1,4 @@
-module Amber::CLI
+module Launch::CLI
   class_property color = true
 
   class MainCommand < ::Cli::Supercommand
@@ -18,8 +18,8 @@ module Amber::CLI
       end
 
       class Help
-        header "Generates a new Amber project"
-        caption "generates a new Amber project"
+        header "Generates a new Launch project"
+        caption "generates a new Launch project"
       end
 
       def run
@@ -39,7 +39,7 @@ module Amber::CLI
           exit! error: true
         end
         if (options.r? != nil)
-          generator = Amber::Recipes::Recipe.new(name, full_path_name, "#{options.r}")
+          generator = Launch::Recipes::Recipe.new(name, full_path_name, "#{options.r}")
         else
           generator = Generators.new(name, full_path_name)
         end

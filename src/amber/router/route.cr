@@ -1,6 +1,6 @@
 require "./scope"
 
-module Amber
+module Launch
   struct Route
     property :handler, :action, :verb, :resource, :valve, :params, :scope, :controller, :constraints
 

@@ -11,7 +11,7 @@ module WebsocketsHelper
     http_server = nil
 
     spawn do
-      handler = Amber::WebSockets::Server.create_endpoint("/", UserSocket)
+      handler = Launch::WebSockets::Server.create_endpoint("/", UserSocket)
       http_server = server = HTTP::Server.new(handler)
       address = server.bind_unused_port
       channel.send(address.port)

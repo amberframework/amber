@@ -1,9 +1,9 @@
 require "../../spec_helper"
 
-module Amber
+module Launch
   describe WebSockets::ClientSocket do
     Spec.after_each do
-      Amber::WebSockets::ClientSockets.client_sockets.keys.size.should eq 0
+      Launch::WebSockets::ClientSockets.client_sockets.keys.size.should eq 0
     end
 
     describe "#channel" do
@@ -29,8 +29,8 @@ module Amber
       it "should broadcast the message to all subscribers" do
         chan = Channel(String).new
         http_server, ws = create_socket_server
-        client_socket = Amber::WebSockets::ClientSockets.client_sockets.values.first
-        Amber::WebSockets::ClientSockets.add_client_socket(client_socket)
+        client_socket = Launch::WebSockets::ClientSockets.client_sockets.values.first
+        Launch::WebSockets::ClientSockets.add_client_socket(client_socket)
         client_socket.on_message({event: "join", topic: "user_room:939"}.to_json)
         ws.on_message &->(msg : String) { chan.send(msg) }
         UserSocket.broadcast("message", "user_room:939", "msg:new", {"message" => "test"})
@@ -81,7 +81,7 @@ module Amber
     describe "#disconnect!" do
       it "it should close the socket" do
         http_server, _ = create_socket_server
-        client_socket = Amber::WebSockets::ClientSockets.client_sockets.values.first
+        client_socket = Launch::WebSockets::ClientSockets.client_sockets.values.first
         client_socket.disconnect!
         client_socket.socket.closed?.should be_true
         client_socket.disconnect!
@@ -90,9 +90,9 @@ module Amber
 
       it "should remove the client socket from the ClientSockets list" do
         http_server, _ = create_socket_server
-        client_socket = Amber::WebSockets::ClientSockets.client_sockets.values.first
+        client_socket = Launch::WebSockets::ClientSockets.client_sockets.values.first
         client_socket.disconnect!
-        Amber::WebSockets::ClientSockets.client_sockets.keys.size.should eq 0
+        Launch::WebSockets::ClientSockets.client_sockets.keys.size.should eq 0
         client_socket.disconnect!
         http_server.close
       end
@@ -109,7 +109,7 @@ module Amber
       it "should get called on socket disconnect" do
         chan = Channel(String).new
         http_server, ws = create_socket_server
-        client_socket = Amber::WebSockets::ClientSockets.client_sockets.values.first
+        client_socket = Launch::WebSockets::ClientSockets.client_sockets.values.first
         ws.on_close &->(_code : HTTP::WebSocket::CloseCode, _msg : String) { chan.send("closed") }
         ws.close(HTTP::WebSocket::CloseCode::NormalClosure, "close")
 

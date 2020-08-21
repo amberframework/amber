@@ -5,8 +5,8 @@ require "./config"
 require "./commands/command"
 require "./commands/*"
 
-module Amber::CLI
-  include Amber::Environment
+module Launch::CLI
+  include Launch::Environment
   AMBER_YML = ".amber.yml"
 
   def self.toggle_colors(on_off)
@@ -15,12 +15,12 @@ module Amber::CLI
 
   class MainCommand < ::Cli::Supercommand
     command_name "amber"
-    version "Amber CLI (amberframework.org) - v#{VERSION}"
+    version "Launch CLI (amberframework.org) - v#{VERSION}"
 
     class Help
-      title "\nAmber CLI"
+      title "\nLaunch CLI"
       header <<-EOS
-        The `amber new` command creates a new Amber application with a default
+        The `amber new` command creates a new Launch application with a default
         directory structure and configuration at the path you specify.
 
         You can specify extra command-line arguments to be used every time
@@ -37,12 +37,12 @@ module Amber::CLI
       footer <<-EOS
       Example:
         amber new ~/Code/Projects/weblog
-        This generates a skeletal Amber installation in ~/Code/Projects/weblog.
+        This generates a skeletal Launch installation in ~/Code/Projects/weblog.
       EOS
     end
 
     class Options
-      version desc: "prints Amber version"
+      version desc: "prints Launch version"
       help desc: "describe available commands and usages"
       string ["-t", "--template"], desc: "preconfigure for selected template engine", any_of: %w(slang ecr), default: "slang"
       string ["-d", "--database"], desc: "preconfigure for selected database.", any_of: %w(pg mysql sqlite), default: "pg"

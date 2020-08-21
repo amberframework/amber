@@ -1,4 +1,4 @@
-module Amber::Controller::Helpers
+module Launch::Controller::Helpers
   module Route
     def action_name
       request.route.action

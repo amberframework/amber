@@ -1,4 +1,4 @@
-module Amber
+module Launch
   module Support
     module LocaleFormat
       ALPHA = {

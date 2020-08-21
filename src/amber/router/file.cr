@@ -1,6 +1,6 @@
 require "http/headers"
 
-module Amber::Router
+module Launch::Router
   struct File
     getter file : ::File
     getter filename : String?

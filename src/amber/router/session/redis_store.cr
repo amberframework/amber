@@ -1,14 +1,14 @@
 require "redis"
 require "uuid"
 
-module Amber::Router::Session
+module Launch::Router::Session
   class RedisStore < AbstractStore
     @id : String?
     getter store : Redis
     property expires : Int32
     property key : String
     property session_id : String
-    property cookies : Amber::Router::Cookies::Store
+    property cookies : Launch::Router::Cookies::Store
 
     def self.build(store, cookies, session)
       new(store, cookies, session[:key].to_s, session[:expires].to_i)

@@ -1,9 +1,9 @@
 {
   "name": "amber",
   "version": "0.35.0",
-  "description": "Front-end configuration for Amber Framework",
+  "description": "Front-end configuration for Launchcr Framework",
   "private": true,
-  "author": "Amber",
+  "author": "Launch",
   "license": "MIT",
   "scripts": {
     "build": "cd assets/js && webpack --config webpack.config.js"

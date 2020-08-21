@@ -1,8 +1,8 @@
-module Amber
+module Launch
   module Pipe
-    class PoweredByAmber < Base
+    class PoweredByLaunch < Base
       def call(context : HTTP::Server::Context)
-        context.response.headers["X-Powered-By"] = "Amber"
+        context.response.headers["X-Powered-By"] = "Launch"
         call_next(context)
       end
     end

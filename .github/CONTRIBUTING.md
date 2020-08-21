@@ -1,8 +1,8 @@
-# Contributing to Amber
+# Contributing to Launch
 
 First thank you for taking the time to contribute and making our community great!
 
-Amber is an open source project and we love to receive contributions from our community — you! The following is a set of guidelines for contributing to Amber, which are hosted in the Amber Framework on GitHub.
+Launch is an open source project and we love to receive contributions from our community — you! The following is a set of guidelines for contributing to Launch, which are hosted in the Launchcr Framework on GitHub.
 
 Following these guidelines helps to communicate that you respect the time of the developers managing and developing this open source project. In return, they should reciprocate that respect in addressing your issue, assessing changes, and helping you finalize your pull requests. These are just guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
@@ -37,7 +37,7 @@ This project adheres to the Contributor Covenant [CODE OF CONDUCT](https://githu
 
 ### How to report a bug
 
-This section guides you through submitting a bug report for Amber. Following these guidelines helps maintainers and the community understand your report, reproduce the behavior, and find related reports.
+This section guides you through submitting a bug report for Launch. Following these guidelines helps maintainers and the community understand your report, reproduce the behavior, and find related reports.
 
 **Before Submitting A Bug Report**
 
@@ -58,7 +58,7 @@ Bugs are tracked as [GitHub issues](https://github.com/amberframework/amber/issu
 Explain the problem and include additional details to help maintainers reproduce the problem:
 
 * Use a clear and descriptive title for the issue to identify the problem.
-* Describe the exact steps which reproduce the problem in as many details as possible. For example, start by explaining how you started Amber, e.g. which command exactly you used in the terminal, or how you started Amber otherwise. When listing steps, don't just say what you did, but explain how you did it. For example, if you moved the cursor to the end of a line, explain if you used the mouse, or a keyboard shortcut or an Amber command, and if so which one?
+* Describe the exact steps which reproduce the problem in as many details as possible. For example, start by explaining how you started Launch, e.g. which command exactly you used in the terminal, or how you started Launch otherwise. When listing steps, don't just say what you did, but explain how you did it. For example, if you moved the cursor to the end of a line, explain if you used the mouse, or a keyboard shortcut or an Launch command, and if so which one?
 * Provide specific examples to demonstrate the steps. Include links to files or GitHub projects, or copy/pasteable snippets, which you use in those examples. If you're providing snippets in the issue, use Markdown code blocks.
 * Describe the behavior you observed after following the steps and point out what exactly is the problem with that behavior.
 * Explain which behavior you expected to see instead and why.
@@ -68,7 +68,7 @@ Explain the problem and include additional details to help maintainers reproduce
 
 ### How to suggest a feature or enhancement
 
-This section guides you through submitting an enhancement suggestion for Amber, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion and find related suggestions.
+This section guides you through submitting an enhancement suggestion for Launch, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion and find related suggestions.
 
 Before creating enhancement suggestions, please check this list as you might find out that you don't need to create one. When you are creating an enhancement suggestion, please include as many details as possible. Fill in the template, including the steps that you imagine you would take if the feature you're requesting existed.
 
@@ -84,15 +84,15 @@ Enhancement suggestions are tracked as GitHub issues. After you've determined wh
 * Provide a step-by-step description of the suggested enhancement in as many details as possible.
 * Provide specific examples to demonstrate the steps. Include copy/pasteable snippets which you use in those examples, as Markdown code blocks.
 * Describe the current behavior and explain which behavior you expected to see instead and why.
-* Include screenshots and animated GIFs which help you demonstrate the steps or point out the part of Amber which the suggestion is related to. You can use this tool to record GIFs on macOS and Windows, and this tool or this tool on Linux.
-* Explain why this enhancement would be useful to most Amber users and isn't something that can or should be implemented as a community package.
+* Include screenshots and animated GIFs which help you demonstrate the steps or point out the part of Launch which the suggestion is related to. You can use this tool to record GIFs on macOS and Windows, and this tool or this tool on Linux.
+* Explain why this enhancement would be useful to most Launch users and isn't something that can or should be implemented as a community package.
 * List some other text editors or applications where this enhancement exists.
-* Specify which version of Amber you're using. You can get the exact version by running Amber -v in your terminal, or by starting Amber and running the Application: About command from the Command Palette.
+* Specify which version of Launch you're using. You can get the exact version by running Launch -v in your terminal, or by starting Launch and running the Application: About command from the Command Palette.
 * Specify the name and version of the OS you're using.
 
 ### Your First Contribution
 
-Unsure where to begin contributing to Amber? You can start by looking through these beginner and help-wanted issues:
+Unsure where to begin contributing to Launch? You can start by looking through these beginner and help-wanted issues:
 
 Beginner issues - issues which should only require a few lines of code, and a test or two.
 Help wanted issues - issues which should be a bit more involved than beginner issues.

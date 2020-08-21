@@ -16,4 +16,4 @@ backend.formatter = Log::Formatter.new do |entry, io|
 end
 Log.builder.bind "*", :info, backend
 
-Amber::CLI::MainCommand.run ARGV
+Launch::CLI::MainCommand.run ARGV

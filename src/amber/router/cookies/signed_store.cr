@@ -2,7 +2,7 @@ require "./*"
 require "http"
 require "../../support/*"
 
-module Amber::Router::Cookies
+module Launch::Router::Cookies
   class SignedStore < AbstractStore
     def initialize(@store, secret)
       @verifier = Support::MessageVerifier.new(secret)

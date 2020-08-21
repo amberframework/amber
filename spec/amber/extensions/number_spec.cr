@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Extensions
+module Launch::Extensions
   describe Number do
     it "negative number test" do
       (-5.542_3).negative?.should eq(true)

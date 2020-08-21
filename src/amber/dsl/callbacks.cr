@@ -1,4 +1,4 @@
-module Amber::DSL
+module Launch::DSL
   module Callbacks
     macro before_action
       def before_filters : Nil

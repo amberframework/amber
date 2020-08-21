@@ -1,6 +1,6 @@
 require "./build_spec_helper"
 
-module Amber::CLI
+module Launch::CLI
   describe "building a generated app using granite model and slang template" do
     cleanup
     generate_app("-t", "slang")

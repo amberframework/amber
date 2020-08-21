@@ -1,16 +1,16 @@
 require "../../spec_helper"
 
-module Amber
+module Launch
   module Pipe
-    describe PoweredByAmber do
-      context "Adds X-Powered-By: Amber to response" do
+    describe PoweredByLaunch do
+      context "Adds X-Powered-By: Launch to response" do
         pipeline = Pipeline.new
 
         pipeline.build :web do
-          plug PoweredByAmber.new
+          plug PoweredByLaunch.new
         end
 
-        Amber::Server.router.draw :web do
+        Launch::Server.router.draw :web do
           options "/poweredbyamber", HelloController, :world
         end
 
@@ -21,7 +21,7 @@ module Amber
           response = create_request_and_return_io(pipeline, request)
 
           response.status_code.should eq 200
-          response.headers["X-Powered-By"].should eq "Amber"
+          response.headers["X-Powered-By"].should eq "Launch"
           response.body.should contain "Hello World!"
         end
       end

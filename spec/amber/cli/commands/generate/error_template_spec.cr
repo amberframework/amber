@@ -3,7 +3,7 @@ require "../../../../support/helpers/cli_helper"
 
 include CLIHelper
 
-module Amber::CLI
+module Launch::CLI
   describe MainCommand::Generate do
     it "generates controller and views" do
       scaffold_app(TESTING_APP)

@@ -1,4 +1,4 @@
-module Amber::CLI
+module Launch::CLI
   class ErrorTemplate < Generator
     command :error
     directory "#{__DIR__}/../templates/error"
@@ -15,7 +15,7 @@ module Amber::CLI
     end
 
     private def add_plugs
-      add_plugs :web, "plug Amber::Pipe::Error.new"
+      add_plugs :web, "plug Launch::Pipe::Error.new"
     end
   end
 end

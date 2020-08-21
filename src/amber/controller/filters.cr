@@ -1,9 +1,9 @@
 require "../dsl/*"
 
-module Amber::Controller
+module Launch::Controller
   module Callbacks
     macro included
-      include Amber::DSL::Callbacks
+      include Launch::DSL::Callbacks
        property filters : Filters = Filters.new
        #TODO: Find a way to make these protected again.
        def run_before_filter(action)

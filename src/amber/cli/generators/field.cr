@@ -1,4 +1,4 @@
-module Amber::CLI
+module Launch::CLI
   class Field
     TYPE_MAPPING = {
       common: {

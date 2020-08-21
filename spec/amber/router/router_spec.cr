@@ -5,7 +5,7 @@ module Amber
     describe Router do
       describe "#resources" do
         it "defines all resources" do
-          router = Router.new
+          router = Amber::Router::Router.new
 
           router.draw :web do
             resources "hello", HelloController
@@ -32,7 +32,7 @@ module Amber
 
         context "when specifying constraints" do
           it "uses constraints for defining crud routes" do
-            router = Router.new
+            router = Amber::Router::Router.new
             router.draw :web do
               resources "/orders", HelloController, constraints: {"id" => /\d\d\d/}
             end
@@ -59,7 +59,7 @@ module Amber
 
         context "when specifying actions" do
           it "defines only specified resources" do
-            router = Router.new
+            router = Amber::Router::Router.new
 
             router.draw :web do
               resources "hello", HelloController, only: [:index, :update]
@@ -75,7 +75,7 @@ module Amber
           end
 
           it "defines resources excluding from list" do
-            router = Router.new
+            router = Amber::Router::Router.new
 
             router.draw :web do
               resources "hello", HelloController, except: [:index, :update]
@@ -94,21 +94,21 @@ module Amber
 
       describe "#route_defined?" do
         it "returns false when route is not drawn" do
-          router = Router.new
+          router = Amber::Router::Router.new
           request = HTTP::Request.new("GET", "/products/world")
 
           router.route_defined?(request).should eq false
         end
 
         it "returns true when route exists" do
-          router = Router.new
+          router = Amber::Router::Router.new
           request = HTTP::Request.new("GET", "/hello/world")
 
           handler = ->(context : HTTP::Server::Context) {
             context.content = "hey world"
           }
 
-          route = Route.new("GET", "/hello/world", handler)
+          route = Launch::Route.new("GET", "/hello/world", handler)
           router.add(route)
 
           router.route_defined?(request).should eq true
@@ -117,7 +117,7 @@ module Amber
 
       describe "#draw" do
         it "registers a route" do
-          router = Router.new
+          router = Amber::Router::Router.new
           request = HTTP::Request.new("GET", "/checkout/elias")
 
           router.draw :web do
@@ -130,7 +130,7 @@ module Amber
         end
 
         it "registers routes with constraints as Hash" do
-          router = Router.new
+          router = Amber::Router::Router.new
           router.draw :web do
             get "/checkout/:cart", HelloController, :world, {"cart" => /\d\d\d/}
           end
@@ -147,22 +147,22 @@ module Amber
 
       describe "#add" do
         it "register a GET route" do
-          router = Router.new
+          router = Amber::Router::Router.new
           handler = ->(context : HTTP::Server::Context) {
             context.content = "hey world"
           }
 
-          route = Route.new("GET", "/some/joe", handler)
+          route = Launch::Route.new("GET", "/some/joe", handler)
           router.add(route)
         end
 
         it "correctly passes constraints from Route as Hash" do
-          router = Router.new
+          router = Amber::Router::Router.new
           handler = ->(context : HTTP::Server::Context) {
             context.content = "hey world"
           }
 
-          route = Route.new("GET", "/posts/:slug", handler, :index, :web, Scope.new, "PostsController", {"slug" => /\d\d\-\w+/})
+          route = Launch::Route.new("GET", "/posts/:slug", handler, :index, :web, Launch::Router::Scope.new, "PostsController", {"slug" => /\d\d\-\w+/})
           router.add(route)
 
           request = HTTP::Request.new("GET", "/posts/hello")
@@ -178,11 +178,11 @@ module Amber
 
       describe "#match_by_controller_action" do
         handler = ->(_context : HTTP::Server::Context) {}
-        router = Router.new
-        route_a = Route.new("GET", "/fake", handler, :index, :web, Scope.new, "FakeController")
-        route_b = Route.new("GET", "/fake/new", handler, :new, :web, Scope.new, "FakeController")
-        route_c = Route.new("GET", "/fake/:id", handler, :show, :web, Scope.new, "FakeController")
-        route_d = Route.new("GET", "/another/:id", handler, :another, :web, Scope.new, "FakeController")
+        router = Amber::Router::Router.new
+        route_a = Launch::Route.new("GET", "/fake", handler, :index, :web, Launch::Router::Scope.new, "FakeController")
+        route_b = Launch::Route.new("GET", "/fake/new", handler, :new, :web, Launch::Router::Scope.new, "FakeController")
+        route_c = Launch::Route.new("GET", "/fake/:id", handler, :show, :web, Launch::Router::Scope.new, "FakeController")
+        route_d = Launch::Route.new("GET", "/another/:id", handler, :another, :web, Launch::Router::Scope.new, "FakeController")
 
         router.add route_a
         router.add route_b

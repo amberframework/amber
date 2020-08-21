@@ -1,30 +1,30 @@
-Amber::Server.configure do
+Launch::Server.configure do
   pipeline :web do
     # Plug is the method to use connect a pipe (middleware)
     # A plug accepts an instance of HTTP::Handler
-    # plug Amber::Pipe::PoweredByAmber.new
-    # plug Amber::Pipe::ClientIp.new(["X-Forwarded-For"])
+    # plug Launch::Pipe::PoweredByLaunch.new
+    # plug Launch::Pipe::ClientIp.new(["X-Forwarded-For"])
     plug Citrine::I18n::Handler.new
-    plug Amber::Pipe::Error.new
-    plug Amber::Pipe::Logger.new
-    plug Amber::Pipe::Session.new
-    plug Amber::Pipe::Flash.new
-    plug Amber::Pipe::CSRF.new
+    plug Launch::Pipe::Error.new
+    plug Launch::Pipe::Logger.new
+    plug Launch::Pipe::Session.new
+    plug Launch::Pipe::Flash.new
+    plug Launch::Pipe::CSRF.new
   end
 
   pipeline :api do
-    # plug Amber::Pipe::PoweredByAmber.new
-    plug Amber::Pipe::Error.new
-    plug Amber::Pipe::Logger.new
-    plug Amber::Pipe::Session.new
-    plug Amber::Pipe::CORS.new
+    # plug Launch::Pipe::PoweredByLaunch.new
+    plug Launch::Pipe::Error.new
+    plug Launch::Pipe::Logger.new
+    plug Launch::Pipe::Session.new
+    plug Launch::Pipe::CORS.new
   end
 
   # All static content will run these transformations
   pipeline :static do
-    # plug Amber::Pipe::PoweredByAmber.new
-    plug Amber::Pipe::Error.new
-    plug Amber::Pipe::Static.new("./public")
+    # plug Launch::Pipe::PoweredByLaunch.new
+    plug Launch::Pipe::Error.new
+    plug Launch::Pipe::Static.new("./public")
   end
 
   routes :web do
@@ -39,6 +39,6 @@ Amber::Server.configure do
   routes :static do
     # Each route is defined as follow
     # verb resource : String, controller : Symbol, action : Symbol
-    get "/*", Amber::Controller::Static, :index
+    get "/*", Launch::Controller::Static, :index
   end
 end

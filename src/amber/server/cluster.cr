@@ -1,4 +1,4 @@
-module Amber
+module Launch
   class Cluster
     @@env_hash : Hash(String, String)?
 
@@ -6,7 +6,7 @@ module Amber
       @@env_hash ||= begin
         env = ENV.to_h
         env["FORKED"] = "1"
-        env["AMBER_ENV"] = Amber.env.to_s
+        env["AMBER_ENV"] = Launch.env.to_s
         env
       end
     end

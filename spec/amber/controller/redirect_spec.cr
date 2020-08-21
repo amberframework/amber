@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Controller::Helpers
+module Launch::Controller::Helpers
   describe Redirector do
     describe "#redirect" do
       it "redirects to location" do
@@ -50,7 +50,7 @@ module Amber::Controller::Helpers
 
     describe ".from_controller_action" do
       Spec.before_suite do
-        Amber::Server.router.draw :web do
+        Launch::Server.router.draw :web do
           get "/redirect/:id", RedirectController, :show
           get "/redirect/:id/edit", RedirectController, :edit
           get "/redirect", RedirectController, :index
@@ -65,7 +65,7 @@ module Amber::Controller::Helpers
 
       it "redirects to full controller name as symbol" do
         # tmp fix for current travis crystal version.
-        Amber::Server.router.draw :web do
+        Launch::Server.router.draw :web do
           get "/redirect/:id", RedirectController, :show
           get "/redirect/:id/edit", RedirectController, :edit
           get "/redirect", RedirectController, :index

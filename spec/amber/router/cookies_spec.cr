@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber::Router
+module Launch::Router
   describe Cookies::Store do
     it "sets a cookie" do
       cookies = new_cookie_store

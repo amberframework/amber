@@ -1,6 +1,6 @@
 require "file_utils"
 
-module Amber::CLI
+module Launch::CLI
   class Controller < Generator
     command :controller
     directory "#{__DIR__}/../templates/controller"

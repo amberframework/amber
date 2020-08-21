@@ -3,7 +3,7 @@ require "../../support/helpers/router_helper"
 
 include RouterHelper
 
-module Amber
+module Launch
   module Pipe
     TEST_PUBLIC_PATH = "spec/support/sample/public"
     describe Static do
@@ -41,7 +41,7 @@ module Amber
           request = HTTP::Request.new("GET", "/fake.#{ext}")
           static = Static.new PUBLIC_PATH
           response = create_request_and_return_io(static, request)
-          response.headers["content-type"].should eq(Amber::Support::MimeTypes.mime_type(ext))
+          response.headers["content-type"].should eq(Launch::Support::MimeTypes.mime_type(ext))
           File.delete(file)
         end
       end
@@ -49,7 +49,7 @@ module Amber
       it "returns Not Found when directory_listing is disabled" do
         request = HTTP::Request.new("GET", "/dist")
         static_true = Static.new PUBLIC_PATH, directory_listing: true
-        static_false = Static.new PUBLIC_PATH # Listing is off by default in Amber
+        static_false = Static.new PUBLIC_PATH # Listing is off by default in Launch
 
         response_true = create_request_and_return_io(static_true, request)
         response_false = create_request_and_return_io(static_false, request)

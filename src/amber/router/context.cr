@@ -7,12 +7,12 @@ class HTTP::Server::Context
   METHODS      = %i(get post put patch delete head)
   CONTENT_TYPE = "Content-Type"
 
-  include Amber::Router::Session
-  include Amber::Router::Flash
+  include Launch::Router::Session
+  include Launch::Router::Flash
 
-  setter flash : Amber::Router::Flash::FlashStore?
-  setter cookies : Amber::Router::Cookies::Store?
-  setter session : Amber::Router::Session::AbstractStore?
+  setter flash : Launch::Router::Flash::FlashStore?
+  setter cookies : Launch::Router::Cookies::Store?
+  setter session : Launch::Router::Session::AbstractStore?
   property content : String?
 
   def initialize(@request : HTTP::Request, @response : HTTP::Server::Response)
@@ -23,15 +23,15 @@ class HTTP::Server::Context
   end
 
   def cookies
-    @cookies ||= Amber::Router::Cookies::Store.build(request, Amber.settings.secret_key_base)
+    @cookies ||= Launch::Router::Cookies::Store.build(request, Launch.settings.secret_key_base)
   end
 
   def session
-    @session ||= Amber::Router::Session::Store.new(cookies, Amber.settings.session).build
+    @session ||= Launch::Router::Session::Store.new(cookies, Launch.settings.session).build
   end
 
   def flash
-    @flash ||= Amber::Router::Flash.from_session(session.fetch(Amber::Pipe::Flash::PARAM_KEY, "{}"))
+    @flash ||= Launch::Router::Flash.from_session(session.fetch(Launch::Pipe::Flash::PARAM_KEY, "{}"))
   end
 
   def websocket?
@@ -50,7 +50,7 @@ class HTTP::Server::Context
   {% end %}
 
   def format
-    Amber::Support::MimeTypes.get_request_format(request)
+    Launch::Support::MimeTypes.get_request_format(request)
   end
 
   def port
@@ -82,7 +82,7 @@ class HTTP::Server::Context
     response.headers["Connection"] = "Keep-Alive"
     response.headers.add("Keep-Alive", "timeout=5, max=10000")
     unless response.headers[CONTENT_TYPE]?
-      response.headers[CONTENT_TYPE] = Amber::Support::MimeTypes.mime_type(format, "text/html")
+      response.headers[CONTENT_TYPE] = Launch::Support::MimeTypes.mime_type(format, "text/html")
     end
     response.print(@content) unless request.method == "HEAD"
   end

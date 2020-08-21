@@ -5,42 +5,42 @@ module Amber
   module Router
     # This is the main application handler all routers should finally hit this handler.
     class Router
-      PATH_EXT_REGEX = Controller::Helpers::Responders::Content::TYPE_EXT_REGEX
+      PATH_EXT_REGEX = Launch::Controller::Helpers::Responders::Content::TYPE_EXT_REGEX
       property :routes, :routes_hash, :socket_routes, :scope
 
       def initialize
-        @routes = RouteSet(Route).new
-        @routes_hash = {} of String => Route
-        @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new
-        @scope = Scope.new
+        @routes = RouteSet(Launch::Route).new
+        @routes_hash = {} of String => Launch::Route
+        @socket_routes = Array(NamedTuple(path: String, handler: Launch::WebSockets::Server::Handler)).new
+        @scope = Launch::Router::Scope.new
       end
 
-      def get_socket_handler(request) : WebSockets::Server::Handler
+      def get_socket_handler(request) : Launch::WebSockets::Server::Handler
         if socket_route = @socket_routes.find { |sr| sr[:path] == request.path }
           socket_route.[:handler]
         else
-          raise Exceptions::RouteNotFound.new(request)
+          raise Launch::Exceptions::RouteNotFound.new(request)
         end
       end
 
       # This registers all the routes for the application
       def draw(valve : Symbol)
-        with DSL::Router.new(self, valve, scope) yield
+        with Launch::DSL::Router.new(self, valve, scope) yield
       end
 
       def draw(valve : Symbol, namespace : String)
         scope.push(namespace)
-        with DSL::Router.new(self, valve, scope) yield
+        with Launch::DSL::Router.new(self, valve, scope) yield
         scope.pop
       end
 
-      def add(route : Route)
+      def add(route : Launch::Route)
         build_node(route.verb, route.resource)
         @routes.add(route.trail, route, route.constraints)
         @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route
       end
 
-      def add_socket_route(route, handler : WebSockets::Server::Handler)
+      def add_socket_route(route, handler : Launch::WebSockets::Server::Handler)
         @socket_routes.push({path: route, handler: handler})
       end
 
@@ -60,7 +60,7 @@ module Amber
         @routes_hash["#{controller}##{action}"]
       end
 
-      def match(http_verb, resource) : RoutedResult(Route)
+      def match(http_verb, resource) : RoutedResult(Launch::Route)
         if has_content_ext(resource)
           result = @routes.find build_node(http_verb, resource.sub(PATH_EXT_REGEX, ""))
           return result if result.found?

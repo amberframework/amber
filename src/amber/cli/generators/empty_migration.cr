@@ -1,6 +1,6 @@
 require "./migration"
 
-module Amber::CLI
+module Launch::CLI
   class EmptyMigration < Migration
     command :migration
     directory "#{__DIR__}/../templates/migration/empty"

@@ -1,4 +1,4 @@
-module Amber::Router::Session
+module Launch::Router::Session
   class Store
     getter config : Hash(Symbol, Symbol | String | Int32)
     getter cookies : Cookies::Store
@@ -16,7 +16,7 @@ module Amber::Router::Session
     end
 
     private def redis_store
-      Redis.new(url: Amber.settings.redis_url.to_s)
+      Redis.new(url: Launch.settings.redis_url.to_s)
     end
 
     private def redis?

@@ -1,7 +1,7 @@
 require "./*"
 require "http"
 
-module Amber::Router::Cookies
+module Launch::Router::Cookies
   class Store
     include Enumerable(String)
 

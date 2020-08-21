@@ -1,4 +1,4 @@
-module Amber::WebSockets::Adapters
+module Launch::WebSockets::Adapters
   # Allows websocket connections through redis pub/sub.
   class RedisAdapter
     @subscriber : Redis
@@ -10,8 +10,8 @@ module Amber::WebSockets::Adapters
 
     # Establish subscribe and publish connections to Redis
     def initialize
-      @subscriber = Redis.new(url: Amber.settings.redis_url)
-      @publisher = Redis.new(url: Amber.settings.redis_url)
+      @subscriber = Redis.new(url: Launch.settings.redis_url)
+      @publisher = Redis.new(url: Launch.settings.redis_url)
     end
 
     # Publish the *message* to the redis publisher with topic *topic_path*

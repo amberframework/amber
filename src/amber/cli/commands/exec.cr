@@ -1,6 +1,6 @@
 require "cli"
 
-module Amber::CLI
+module Launch::CLI
   class MainCommand < ::Cli::Supercommand
     command "x", aliased: "exec"
 

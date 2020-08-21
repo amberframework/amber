@@ -1,6 +1,6 @@
 require "../../spec_helper"
 
-module Amber
+module Launch
   describe SSL do
     it "generates tls" do
       tls = SSL.new(File.join(__DIR__, "key.pem"), File.join(__DIR__, "cert.pem")).generate_tls
