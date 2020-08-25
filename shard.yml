@@ -14,12 +14,12 @@ targets:
     main: src/launch/cli.cr
 
 dependencies:
-  launch_router:
-    github: launchframework/launch-router
+  amber_router:
+    github: amberframework/amber-router
     version: ~> 0.3.0
 
   cli:
-    github: launchframework/cli
+    github: amberframework/cli
     version: ~> 0.9.1
 
   compiled_license:
@@ -35,7 +35,7 @@ dependencies:
     version: ~> 0.3.3
 
   micrate:
-    github: launchframework/micrate
+    github: amberframework/micrate
     version: ~> 0.8.0
 
   pg:

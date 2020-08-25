@@ -2,11 +2,11 @@ require "yaml_mapping"
 
 module Launch::CLI
   def self.config
-    if File.exists? AMBER_YML
+    if File.exists? LAUNCH_YML
       begin
-        Config.from_yaml File.read(AMBER_YML)
+        Config.from_yaml File.read(LAUNCH_YML)
       rescue ex : YAML::ParseException
-        Log.error(exception: ex) { "Couldn't parse #{AMBER_YML} file" }
+        Log.error(exception: ex) { "Couldn't parse #{LAUNCH_YML} file" }
         exit 1
       end
     else

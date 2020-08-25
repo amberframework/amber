@@ -52,9 +52,9 @@ module Launch::Recipes
 
       describe "RecipeFetcher" do
         it "should use a shard app folder" do
-          template = RecipeFetcher.new("app", "damianham/launch_granite", "./mydefault").fetch
+          template = RecipeFetcher.new("app", "damianham/amber_granite", "./mydefault").fetch
           template.should_not be nil
-          template.should match(/.+mydefault\/.recipes\/lib\/launch_granite\/app$/)
+          template.should match(/.+mydefault\/.recipes\/lib\/amber_granite\/app$/)
         end
       end
     end
@@ -70,29 +70,29 @@ module Launch::Recipes
 
       describe "RecipeFetcher" do
         it "should use a shard controller folder" do
-          RecipeFetcher.new("app", "damianham/launch_granite", "./myapp").fetch
+          RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
           Dir.cd("./myapp") do
-            template = RecipeFetcher.new("controller", "damianham/launch_granite").fetch
+            template = RecipeFetcher.new("controller", "damianham/amber_granite").fetch
             template.should_not be nil
-            template.should match(/.+\.recipes\/lib\/launch_granite\/controller$/)
+            template.should match(/.+\.recipes\/lib\/amber_granite\/controller$/)
           end
         end
 
         it "should use a shard model folder" do
-          RecipeFetcher.new("app", "damianham/launch_granite", "./myapp").fetch
+          RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
           Dir.cd("./myapp") do
-            template = RecipeFetcher.new("model", "damianham/launch_granite").fetch
+            template = RecipeFetcher.new("model", "damianham/amber_granite").fetch
             template.should_not be nil
-            template.should match(/.+\.recipes\/lib\/launch_granite\/model$/)
+            template.should match(/.+\.recipes\/lib\/amber_granite\/model$/)
           end
         end
 
         it "should use a shard scaffold folder" do
-          RecipeFetcher.new("app", "damianham/launch_granite", "./myapp").fetch
+          RecipeFetcher.new("app", "damianham/amber_granite", "./myapp").fetch
           Dir.cd("./myapp") do
-            template = RecipeFetcher.new("scaffold", "damianham/launch_granite").fetch
+            template = RecipeFetcher.new("scaffold", "damianham/amber_granite").fetch
             template.should_not be nil
-            template.should match(/.+\.recipes\/lib\/launch_granite\/scaffold$/)
+            template.should match(/.+\.recipes\/lib\/amber_granite\/scaffold$/)
           end
         end
       end

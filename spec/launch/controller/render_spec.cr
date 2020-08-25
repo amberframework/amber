@@ -30,9 +30,9 @@ module Launch::Controller
       end
 
       it "renders a form with a csrf tag" do
-        reuslt = RenderController.new(context).render_with_csrf
-        reuslt.should contain "<form"
-        reuslt.should contain "<input type=\"hidden\" name=\"_csrf\" value="
+        result = RenderController.new(context).render_with_csrf
+        result.should contain "<form"
+        result.should contain "<input type=\"hidden\" name=\"_csrf\" value="
       end
     end
   end

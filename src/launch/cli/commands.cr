@@ -7,7 +7,7 @@ require "./commands/*"
 
 module Launch::CLI
   include Launch::Environment
-  AMBER_YML = ".launch.yml"
+  LAUNCH_YML = ".launch.yml"
 
   def self.toggle_colors(on_off)
     Colorize.enabled = !on_off
