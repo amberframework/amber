@@ -3,15 +3,15 @@ module CLIFixtures
     <<-CONT
     class AnimalController < ApplicationController
       def add
-        render("add.slang")
+        render("add.ecr")
       end
 
       def list
-        render("list.slang")
+        render("list.ecr")
       end
 
       def remove
-        render("remove.slang")
+        render("remove.ecr")
       end
     end
 
@@ -22,7 +22,7 @@ module CLIFixtures
     <<-SQL
     -- +micrate Up
     CREATE TABLE posts (
-      id BIGSERIAL PRIMARY KEY,
+      id INTEGER NOT NULL PRIMARY KEY,
       title VARCHAR,
       body TEXT,
       published BOOL,
@@ -56,7 +56,7 @@ module CLIFixtures
   def expected_post_model
     <<-MODEL
     class Post < Granite::Base
-      connection pg
+      connection sqlite
       table posts
 
       belongs_to :user
@@ -64,9 +64,8 @@ module CLIFixtures
       column id : Int64, primary: true
       column title : String?
       column body : String?
-      column published : Bool?
-      column likes : Int32?
-      timestamps
+      column published : Int64?
+      column likes : Int64?
     end
 
     MODEL

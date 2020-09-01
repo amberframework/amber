@@ -21,9 +21,9 @@ module Launch::CLI
     # see defaults below
     alias WatchOptions = Hash(String, Hash(String, Array(String)))
 
-    property database : String = "pg"
-    property language : String = "slang"
-    property model : String = "granite"
+    property database : String = "sqlite"
+    property language : String = "ecr"
+    property model : String = "granite" # TODO?
     property recipe : (String | Nil) = nil
     property recipe_source : (String | Nil) = nil
     property watch : WatchOptions
@@ -34,9 +34,9 @@ module Launch::CLI
     end
 
     YAML.mapping(
-      database: {type: String, default: "pg"},
-      language: {type: String, default: "slang"},
-      model: {type: String, default: "granite"},
+      database: {type: String, default: "sqlite"},
+      language: {type: String, default: "ecr"},
+      model: {type: String, default: "granite"}, # TODO?
       recipe: String | Nil,
       recipe_source: String | Nil,
       watch: {type: WatchOptions, default: default_watch_options}

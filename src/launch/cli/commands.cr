@@ -44,8 +44,8 @@ module Launch::CLI
     class Options
       version desc: "prints Launch version"
       help desc: "describe available commands and usages"
-      string ["-t", "--template"], desc: "preconfigure for selected template engine", any_of: %w(slang ecr), default: "slang"
-      string ["-d", "--database"], desc: "preconfigure for selected database.", any_of: %w(pg mysql sqlite), default: "pg"
+      string ["-t", "--template"], desc: "preconfigure for selected template engine", any_of: %w(slang ecr), default: "ecr"
+      string ["-d", "--database"], desc: "preconfigure for selected database.", any_of: %w(pg mysql sqlite), default: "sqlite"
       string ["-r", "--recipe"], desc: "use a named recipe. See documentation at https://docs.launchframework.org/launch/cli/recipes.", default: nil
     end
   end

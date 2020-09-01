@@ -16,10 +16,10 @@ module Launch::CLI
     @github_name : String
     @minimal : Bool
 
-    def initialize(@name, @database = "pg", @language = "slang", @minimal = false)
+    def initialize(@name, @database = "sqlite", @language = "ecr", @minimal = false)
       @db_url = ""
       @wait_for = ""
-      @model = "granite"
+      @model = "granite" # TODO?
       @database_name = generate_database_name
       @author = fetch_author
       @email = fetch_email

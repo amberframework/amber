@@ -7,7 +7,7 @@ include CLIFixtures
 
 module Launch::CLI
   describe "launch generate" do
-    ENV["AMBER_ENV"] = "test"
+    ENV["LAUNCH_ENV"] = "test"
     camel_case = "PostComment"
     snake_case = "post_comment"
     incorrect_case = "Post_comment"
@@ -78,20 +78,20 @@ module Launch::CLI
         File.exists?("./src/models/#{snake_case}.cr").should be_true
         File.exists?("./spec/controllers/#{snake_case}_controller_spec.cr").should be_true
         File.exists?("./src/controllers/#{snake_case}_controller.cr").should be_true
-        File.exists?("./src/views/#{snake_case}/_form.slang").should be_true
-        File.exists?("./src/views/#{snake_case}/edit.slang").should be_true
-        File.exists?("./src/views/#{snake_case}/index.slang").should be_true
-        File.exists?("./src/views/#{snake_case}/new.slang").should be_true
-        File.exists?("./src/views/#{snake_case}/show.slang").should be_true
+        File.exists?("./src/views/#{snake_case}/_form.ecr").should be_true
+        File.exists?("./src/views/#{snake_case}/edit.ecr").should be_true
+        File.exists?("./src/views/#{snake_case}/index.ecr").should be_true
+        File.exists?("./src/views/#{snake_case}/new.ecr").should be_true
+        File.exists?("./src/views/#{snake_case}/show.ecr").should be_true
         File.read("./spec/models/#{snake_case}_spec.cr").should contain spec_definition_prefix
         File.read("./src/models/#{snake_case}.cr").should contain class_definition_prefix
         File.read("./spec/controllers/#{snake_case}_controller_spec.cr").should contain spec_definition_prefix
         File.read("./src/controllers/#{snake_case}_controller.cr").should contain class_definition_prefix
-        File.read("./src/views/#{snake_case}/_form.slang").should contain snake_case
-        File.read("./src/views/#{snake_case}/edit.slang").should contain display
-        File.read("./src/views/#{snake_case}/index.slang").should contain display
-        File.read("./src/views/#{snake_case}/new.slang").should contain display
-        File.read("./src/views/#{snake_case}/show.slang").should contain snake_case
+        File.read("./src/views/#{snake_case}/_form.ecr").should contain snake_case
+        File.read("./src/views/#{snake_case}/edit.ecr").should contain display
+        File.read("./src/views/#{snake_case}/index.ecr").should contain display
+        File.read("./src/views/#{snake_case}/new.ecr").should contain display
+        File.read("./src/views/#{snake_case}/show.ecr").should contain snake_case
         File.read("./config/routes.cr").should contain "#{camel_case}Controller"
         File.read("./config/routes.cr").should_not contain "#{incorrect_case}Controller"
       end
@@ -154,43 +154,6 @@ module Launch::CLI
         File.exists?(src_filepath).should be_true
         File.read(src_filepath).should contain class_definition_prefix
         File.delete(src_filepath)
-      end
-      cleanup
-    end
-
-    it "generates auth correctly" do
-      scaffold_app(TESTING_APP)
-
-      camel_case = "AdminUser"
-      snake_case = "admin_user"
-      class_definition_prefix = "class #{camel_case}"
-      spec_definition_prefix = "describe #{camel_case}"
-      migration_definition_prefix = "CREATE TABLE #{snake_case}"
-
-      # "follows naming conventions for all files and class names"
-      [camel_case, snake_case].each do |arg|
-        MainCommand.run ["generate", "auth", "-y", arg]
-
-        File.exists?("./db/seeds.cr").should be_true
-        File.exists?("./spec/models/admin_user_spec.cr").should be_true
-        File.exists?("./src/controllers/session_controller.cr").should be_true
-        File.exists?("./src/pipes/authenticate.cr").should be_true
-        File.exists?("./src/models/admin_user.cr").should be_true
-        File.exists?("./src/views/admin_user/new.slang").should be_true
-        File.exists?("./src/views/session/new.slang").should be_true
-
-        migration_filename = Dir["./db/migrations/*_#{snake_case}.sql"].first
-        File.read("#{migration_filename}").should contain migration_definition_prefix
-        File.read("./db/seeds.cr").should contain camel_case
-        File.read("./spec/models/admin_user_spec.cr").should contain spec_definition_prefix
-        File.read("./src/controllers/session_controller.cr").should contain camel_case
-        File.read("./src/controllers/session_controller.cr").should contain snake_case
-        File.read("./src/pipes/authenticate.cr").should contain camel_case
-        File.read("./src/pipes/authenticate.cr").should contain snake_case
-        File.read("./src/models/admin_user.cr").should contain class_definition_prefix
-        File.read("./src/models/admin_user.cr").should contain snake_case
-        File.read("./src/views/admin_user/new.slang").should contain snake_case
-        File.read("./src/views/session/new.slang").should contain snake_case
       end
       cleanup
     end
