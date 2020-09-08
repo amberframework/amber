@@ -38,6 +38,8 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
+        return call_next(context) unless @origin.origin_header?(context.request)
+
         if @origin.match?(context.request)
           is_preflight_request = preflight?(context)
           put_expose_header(context.response)
@@ -134,7 +136,7 @@ module Amber
         @origins.includes? "*"
       end
 
-      private def origin_header?(request)
+      protected def origin_header?(request)
         @request_origin = request.headers[Headers::ORIGIN]? || request.headers[Headers::X_ORIGIN]?
       end
     end
