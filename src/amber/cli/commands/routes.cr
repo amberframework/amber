@@ -16,7 +16,6 @@ module Amber::CLI
         "post" => ["create"], "patch" => ["update"],
         "put" => ["update"], "delete" => ["destroy"],
       }
-      FILTER_NOT_RECOGNIZED = "Filter not recognized"
 
       command_name "routes"
       getter routes = Array(Hash(String, String)).new
@@ -84,13 +83,12 @@ module Amber::CLI
               when "except"
                 next if filter_actions.includes?(action)
               else
-                raise Exception.new(FILTER_NOT_RECOGNIZED)
+                build_route(
+                  verb: verb, controller: route_match[3]?, action: action,
+                  pipeline: current_pipe, scope: current_scope,
+                  uri_pattern: build_uri_pattern(route_match[2]?, action, current_scope)
+                )
               end
-              build_route(
-                verb: verb, controller: route_match[3]?, action: action,
-                pipeline: current_pipe, scope: current_scope,
-                uri_pattern: build_uri_pattern(route_match[2]?, action, current_scope)
-              )
             end
           end
         end
