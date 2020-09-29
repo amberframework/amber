@@ -32,5 +32,19 @@ module Amber::Environment
       settings = Amber::Settings.from_yaml(color_yaml)
       settings.logging.color.should eq :red
     end
+
+    describe "#static_file_server" do
+      it "sets default headers value as empty map" do
+        test_yaml = File.read(File.expand_path("./spec/support/config/test.yml"))
+        settings = Amber::Settings.from_yaml(test_yaml)
+        settings.public_file_server["headers"].should eq({} of String => String)
+      end
+
+      it "sets header file settings from environment yaml file" do
+        test_yaml = File.read(File.expand_path("./spec/support/config/with_public_file_server.yml"))
+        settings = Amber::Settings.from_yaml(test_yaml)
+        settings.public_file_server["headers"].should eq({"Cache-Control" => "private, max-age=7200"})
+      end
+    end
   end
 end
