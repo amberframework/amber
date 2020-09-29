@@ -75,10 +75,10 @@ module Amber::Environment
       },
       auto_reload: {type: Bool, default: false},
       public_file_server: {
-        type: Hash(String, Hash(String, String)),
+        type:    Hash(String, Hash(String, String)),
         default: {
-          "headers" => {} of String => String
-        }
+          "headers" => {} of String => String,
+        },
       }
     )
 

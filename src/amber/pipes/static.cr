@@ -133,9 +133,9 @@ module Amber
 
       private def add_response_headers(env : HTTP::Server::Context)
         {
-          "Accept-Ranges" => "bytes",
+          "Accept-Ranges"          => "bytes",
           "X-Content-Type-Options" => "nosniff",
-          "Cache-Control" => "private, max-age=3600",
+          "Cache-Control"          => "private, max-age=3600",
         }.merge(
           Amber.settings.public_file_server["headers"]
         ).each do |key, value|
