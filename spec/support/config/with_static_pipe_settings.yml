@@ -9,9 +9,10 @@ session:
   store: "encrypted_cookie"
   expires: 10
 
+pipes:
+  static:
+    headers:
+      "Cache-Control": "private, max-age=7200"
+
 secrets:
   description: "Store your test secrets credentials and settings here."
-
-public_file_server:
-  headers:
-    "Cache-Control": "private, max-age=7200"

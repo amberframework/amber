@@ -74,11 +74,13 @@ module Amber::Environment
         },
       },
       auto_reload: {type: Bool, default: false},
-      public_file_server: {
-        type:    Hash(String, Hash(String, String)),
+      pipes: {
+        type: Hash(String, Hash(String, Hash(String, SettingValue))),
         default: {
-          "headers" => {} of String => String,
-        },
+          "static" => {
+            "headers" => {} of String => SettingValue
+          }
+        }
       }
     )
 

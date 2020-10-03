@@ -64,9 +64,9 @@ module Amber
 
         response = create_request_and_return_io(static, request)
 
-        response.headers["Cache-Control"].should eq "private, max-age=3600"
         response.headers["Accept-Ranges"].should eq "bytes"
         response.headers["X-Content-Type-Options"].should eq "nosniff"
+        response.headers["Cache-Control"].should eq "no-store"
       end
     end
   end

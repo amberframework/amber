@@ -37,13 +37,13 @@ module Amber::Environment
       it "sets default headers value as empty map" do
         test_yaml = File.read(File.expand_path("./spec/support/config/test.yml"))
         settings = Amber::Settings.from_yaml(test_yaml)
-        settings.public_file_server["headers"].should eq({} of String => String)
+        settings.pipes.dig?("static", "headers").should eq({} of String => Amber::Settings::SettingValue)
       end
 
       it "sets header file settings from environment yaml file" do
-        test_yaml = File.read(File.expand_path("./spec/support/config/with_public_file_server.yml"))
+        test_yaml = File.read(File.expand_path("./spec/support/config/with_static_pipe_settings.yml"))
         settings = Amber::Settings.from_yaml(test_yaml)
-        settings.public_file_server["headers"].should eq({"Cache-Control" => "private, max-age=7200"})
+        settings.pipes.dig?("static", "headers").should eq({"Cache-Control" => "private, max-age=7200"})
       end
     end
   end
