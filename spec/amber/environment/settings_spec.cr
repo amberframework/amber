@@ -35,7 +35,7 @@ module Amber::Environment
 
     describe "#static_file_server" do
       it "sets default headers value as empty map" do
-        test_yaml = File.read(File.expand_path("./spec/support/config/test.yml"))
+        test_yaml = File.read(File.expand_path("./spec/support/config/development.yml"))
         settings = Amber::Settings.from_yaml(test_yaml)
         settings.pipes.dig?("static", "headers").should eq({} of String => Amber::Settings::SettingValue)
       end
