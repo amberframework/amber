@@ -145,7 +145,7 @@ module Amber
                     default_headers
                   end
         headers.each do |key, value|
-           env.response.headers[key] = value.as(String)
+          env.response.headers[key] = value.as(String)
         end
       end
 

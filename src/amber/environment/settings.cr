@@ -75,12 +75,12 @@ module Amber::Environment
       },
       auto_reload: {type: Bool, default: false},
       pipes: {
-        type: Hash(String, Hash(String, Hash(String, SettingValue))),
+        type:    Hash(String, Hash(String, Hash(String, SettingValue))),
         default: {
           "static" => {
-            "headers" => {} of String => SettingValue
-          }
-        }
+            "headers" => {} of String => SettingValue,
+          },
+        },
       }
     )
 
