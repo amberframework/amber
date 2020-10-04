@@ -73,7 +73,15 @@ module Amber::Environment
           "enabled" => false,
         },
       },
-      auto_reload: {type: Bool, default: false}
+      auto_reload: {type: Bool, default: false},
+      pipes: {
+        type:    Hash(String, Hash(String, Hash(String, SettingValue))),
+        default: {
+          "static" => {
+            "headers" => {} of String => SettingValue,
+          },
+        },
+      }
     )
 
     def session
