@@ -1,6 +1,6 @@
 # NOTE: Constants should be set before require begins.
 
-ENV["AMBER_ENV"] = "test"
+ENV["LAUNCH_ENV"] = "test"
 ENV[Launch::Support::ENCRYPT_ENV] = "mnDiAY4OyVjqg5u0wvpr0MoBkOGXBeYo7_ysjwsNzmw"
 TEST_PATH         = "spec/support/sample"
 PUBLIC_PATH       = TEST_PATH + "/public"
@@ -11,7 +11,7 @@ APP_TEMPLATE_PATH = "../../src/launch/cli/templates/app"
 CURRENT_DIR       = Dir.current
 
 Launch.path = "./spec/support/config"
-Launch.env=(ENV["AMBER_ENV"])
+Launch.env=(ENV["LAUNCH_ENV"])
 Launch.settings.redis_url = ENV["REDIS_URL"] if ENV["REDIS_URL"]?
 
 require "http"

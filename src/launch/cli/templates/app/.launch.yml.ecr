@@ -26,7 +26,7 @@ watch:
     #  - ./src/some_irrelevant_file.cr
   spec:
     run_commands:
-      - AMBER_ENV=test crystal spec
+      - LAUNCH_ENV=test crystal spec
     include:
       - ./spec/**/*.cr
 <%- unless @minimal -%>

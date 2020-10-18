@@ -55,17 +55,19 @@ module CLIFixtures
 
   def expected_post_model
     <<-MODEL
-    class Post < Granite::Base
-      connection sqlite
-      table posts
+    class Post < ApplicationModel
+      with_timestamps
+      mapping(
+        id: Primary32,
+        title: { type: String? },
+        body: { type: String? },
+        published: { type: Bool? },
+        likes: { type: Int32? },
+        created_at: { type: Time? },
+        updated_at: { type: Time? }
+      )
 
       belongs_to :user
-
-      column id : Int64, primary: true
-      column title : String?
-      column body : String?
-      column published : Int64?
-      column likes : Int64?
     end
 
     MODEL

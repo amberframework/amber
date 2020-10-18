@@ -4,11 +4,11 @@ module Launch
   module Pipe
     describe ClientIp do
       context "IP from headers" do
-        Launch::Server.router.draw :web do
-          get "/client_ip_address", HelloController, :client_ip_address
-        end
-
         it "gets first client IP from default header" do
+          Launch::Server.router.draw :web do
+            get "/client_ip_address", HelloController, :client_ip_address
+          end
+
           pipeline = Pipeline.new
           pipeline.build :web do
             plug ClientIp.new
@@ -26,6 +26,10 @@ module Launch
         end
 
         it "gets client IP from first custom header found" do
+          Launch::Server.router.draw :web do
+            get "/client_ip_address", HelloController, :client_ip_address
+          end
+
           pipeline = Pipeline.new
           pipeline.build :web do
             plug ClientIp.new(["X-Unmatched", "X-Client-IP"])

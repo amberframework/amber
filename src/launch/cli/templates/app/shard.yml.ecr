@@ -21,9 +21,12 @@ dependencies:
     version: <%= Launch::VERSION %>
     branch: launchcr
 
-  granite:
-    github: amberframework/granite
-    version: ~> 0.21.0
+  jennifer:
+    github: imdrasil/jennifer.cr
+    branch: master
+
+  sam:
+    github: imdrasil/sam.cr
 
   quartz_mailer:
     github: amberframework/quartz-mailer
@@ -33,19 +36,10 @@ dependencies:
     github: amberframework/jasper-helpers
     version: ~> 0.2.5
 
-<% case @database when "pg" -%>
-  pg:
-    github: will/crystal-pg
-    version: ~> 0.21.1
-<% when "mysql" -%>
-  mysql:
-    github: crystal-lang/crystal-mysql
-    version: ~> 0.11.1
-<% when "sqlite" -%>
-  sqlite3:
-    github: crystal-lang/crystal-sqlite3
-    version: ~> 0.16.0
-<% else -%>
+<% if @database == "sqlite" -%>
+  jennifer_sqlite3_adapter:
+    github: imdrasil/jennifer_sqlite3_adapter
+    version: 0.3.0
 <% end -%>
 
   citrine-i18n:

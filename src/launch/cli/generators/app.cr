@@ -4,6 +4,7 @@ module Launch::CLI
   class App < Teeplate::FileTree
     directory "#{__DIR__}/../templates/app"
     getter database_name
+    getter adapter_name : String
     @name : String
     @database : String
     @database_name : String
@@ -19,8 +20,9 @@ module Launch::CLI
     def initialize(@name, @database = "sqlite", @language = "ecr", @minimal = false)
       @db_url = ""
       @wait_for = ""
-      @model = "granite" # TODO?
+      @model = "jennifer"
       @database_name = generate_database_name
+      @adapter_name = generate_adapter_name
       @author = fetch_author
       @email = fetch_email
       @github_name = fetch_github_name
@@ -68,6 +70,19 @@ module Launch::CLI
         github_user = nil if github_user.empty?
       end
       github_user || "your-github-user"
+    end
+
+    def generate_adapter_name
+      case @database
+      when "pg"
+        "postgres"
+      when "sqlite"
+        "sqlite3"
+      when "mysql"
+        "mysql"
+      else
+        @database
+      end
     end
   end
 end

@@ -14,7 +14,7 @@ module Launch::CLI
       File.read("./spec/controllers/error_controller_spec.cr").should contain "ErrorController"
 
       ["forbidden", "not_found", "internal_server_error"].each do |view|
-        File.exists?("./src/views/error/#{view}.slang").should be_true
+        File.exists?("./src/views/error/#{view}.ecr").should be_true
       end
       cleanup
     end

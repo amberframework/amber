@@ -132,12 +132,12 @@ module Launch
       end
 
       private def add_response_headers(env : HTTP::Server::Context)
-        pipes = Amber.settings.pipes
+        pipes = Launch.settings.pipes
         default_headers = {
           "Accept-Ranges"          => "bytes",
           "X-Content-Type-Options" => "nosniff",
           "Cache-Control"          => "private, max-age=3600",
-        } of String => Amber::Settings::SettingValue
+        } of String => Launch::Settings::SettingValue
 
         headers = if pipes.has_key?("static") && pipes["static"].has_key?("headers")
                     default_headers.merge(pipes["static"]["headers"])

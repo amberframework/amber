@@ -1,9 +1,9 @@
 module Launch::Environment
   class Env
-    AMBER_ENV = "AMBER_ENV"
+    LAUNCH_ENV = "LAUNCH_ENV"
 
-    def initialize(@env : String = ENV[AMBER_ENV]? || "development")
-      ENV[AMBER_ENV] = @env
+    def initialize(@env : String = ENV[LAUNCH_ENV]? || "development")
+      ENV[LAUNCH_ENV] = @env
     end
 
     def in?(env_list : Array(EnvType))

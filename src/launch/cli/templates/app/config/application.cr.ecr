@@ -7,15 +7,19 @@
 # > We recommend not modifying the order of the requires since the order will
 # affect the behavior of the application.
 
+# Jennifer
+require "./jennifer"
+require "../db/migrations/*"
+# End of Jennifer
+
 require "launch"
 require "./settings"
 require "./logger"
 require "./i18n"
-require "./database"
 require "./initializers/**"
 
 # Start Generator Dependencies: Don't modify.
-require "./src/models/application_model.cr"
+require "../src/models/application_model.cr"
 require "../src/models/**"
 require "../src/channels/**"
 require "../src/sockets/**"

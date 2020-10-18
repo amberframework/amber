@@ -43,7 +43,12 @@ module Launch
         end
 
         def real_session_token(context) : String
-          (context.session[CSRF_KEY] ||= Random::Secure.urlsafe_base64(TOKEN_LENGTH)).to_s
+          # (context.session[CSRF_KEY] ||= Random::Secure.urlsafe_base64(TOKEN_LENGTH)).to_s
+          return context.session[CSRF_KEY].to_s if context.session[CSRF_KEY]?
+
+          token = Random::Secure.urlsafe_base64(TOKEN_LENGTH).to_s
+          context.session[CSRF_KEY] = token
+          token
         end
       end
 

@@ -14,7 +14,7 @@ module Launch::CLI
     end
 
     it "launch new #{TESTING_APP}" do
-      ENV["AMBER_ENV"] = "test"
+      ENV["LAUNCH_ENV"] = "test"
 
       scaffold_app(TESTING_APP)
       camel_case = "PostComment"
@@ -28,13 +28,13 @@ module Launch::CLI
       [camel_case, snake_case].each do |arg|
         MainCommand.run ["generate", "model", "-y", arg]
         filename = snake_case
-        granite_table_name = "table #{snake_case}s"
+        jennifer_table_name = "#{camel_case} < ApplicationModel"
         src_filepath = "./src/models/#{filename}.cr"
         spec_filepath = "./spec/models/#{filename}_spec.cr"
         File.exists?(src_filepath).should be_true
         File.exists?(spec_filepath).should be_true
         File.read(src_filepath).should contain class_definition_prefix
-        File.read(src_filepath).should contain granite_table_name
+        File.read(src_filepath).should contain jennifer_table_name
         File.read(spec_filepath).should contain spec_definition_prefix
         File.delete(src_filepath)
         File.delete(spec_filepath)
@@ -43,7 +43,7 @@ module Launch::CLI
     end
 
     it "launch new #{TESTING_APP} --minimal" do
-      ENV["AMBER_ENV"] = "test"
+      ENV["LAUNCH_ENV"] = "test"
 
       scaffold_app(TESTING_APP, "--minimal")
       camel_case = "PostComment"
@@ -59,13 +59,13 @@ module Launch::CLI
       [camel_case, snake_case].each do |arg|
         MainCommand.run ["generate", "model", "-y", arg]
         filename = snake_case
-        granite_table_name = "table #{snake_case}s"
+        jennifer_timestamps = "with_timestamps"
         src_filepath = "./src/models/#{filename}.cr"
         spec_filepath = "./spec/models/#{filename}_spec.cr"
         File.exists?(src_filepath).should be_true
         File.exists?(spec_filepath).should be_true
         File.read(src_filepath).should contain class_definition_prefix
-        File.read(src_filepath).should contain granite_table_name
+        File.read(src_filepath).should contain jennifer_timestamps
         File.read(spec_filepath).should contain spec_definition_prefix
         File.delete(src_filepath)
         File.delete(spec_filepath)
@@ -95,14 +95,18 @@ module Launch::CLI
           scaffold_app(TESTING_APP, "-d", db)
           set_dir
           %w(development test).each do |env|
-            db_key = db == "sqlite" ? "sqlite3" : db
-            db_url = environment_yml(env)["database_url"].as_s
+            db_adapter = database_yml(env)["adapter"].as_s
 
-            # "sets #{db} shards dependencies"
-            shard_yml["dependencies"][db_key].should_not be_nil
+            if db == "sqlite"
+              # "sets #{db} shards dependencies"
+              shard_yml["dependencies"]["jennifer_sqlite3_adapter"].should_not be_nil
+            end
+
+            db_key = db == "sqlite" ? "sqlite3" : db
+            db_key = db_key == "pg" ? "postgres" : db_key
 
             # "has correct database connection string"
-            db_url.should eq expected_db_url(db_key, env)
+            db_adapter.should eq db_key
           end
         end
       end

@@ -48,25 +48,26 @@ module Launch::CLI
       cleanup
     end
 
-    it "generates model correctly" do
-      scaffold_app(TESTING_APP)
-      MainCommand.run %w(
-        generate model -y Post title:string body:text published:bool likes:int user:references
-      )
+    pending("generates model correctly")
+    # it "generates model correctly" do
+    #   scaffold_app(TESTING_APP)
+    #   MainCommand.run %w(
+    #     generate model -y Post title:string body:text published:bool likes:int user:references
+    #   )
 
-      # "creates Post migration file"
-      generated_migration = Dir["./db/migrations/*_post.sql"].first
-      File.read(generated_migration).should eq expected_post_model_migration
+    #   # "creates Post migration file"
+    #   generated_migration = Dir["./db/migrations/*_post.sql"].first
+    #   File.read(generated_migration).should eq expected_post_model_migration
 
-      # "generates Post model spec file"
-      generated_spec = "./spec/models/post_spec.cr"
-      File.read(generated_spec).should eq expected_post_model_spec
+    #   # "generates Post model spec file"
+    #   generated_spec = "./spec/models/post_spec.cr"
+    #   File.read(generated_spec).should eq expected_post_model_spec
 
-      # "generates Post model"
-      generated_model = "src/models/post.cr"
-      File.read(generated_model).should eq expected_post_model
-      cleanup
-    end
+    #   # "generates Post model"
+    #   generated_model = "src/models/post.cr"
+    #   File.read(generated_model).should eq expected_post_model
+    #   cleanup
+    # end
 
     it "generates scaffold correctly" do
       scaffold_app(TESTING_APP)

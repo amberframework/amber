@@ -15,23 +15,16 @@ module Launch
       end
 
       describe "with given server config" do
-        pipeline = Pipeline.new
-
-        Launch::Server.router.draw :web do
-          get "/valid/route", HelloController, :world
-          get "/index/:name", HelloController, :world
-          resources "/hello", HelloController
-        end
-
-        pipeline.build :web { }
-        pipeline.prepare_pipelines
-
         it "raises exception when route not found" do
+          pipeline = setup_routes
+
           request = HTTP::Request.new("GET", "/bad/route")
           create_request_and_return_io(pipeline, request).status_code.should eq 404
         end
 
         it "routes" do
+          pipeline = setup_routes
+
           request = HTTP::Request.new("GET", "/index/elias")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Hello World!"
@@ -39,6 +32,8 @@ module Launch
         end
 
         it "responds to GET request" do
+          pipeline = setup_routes
+
           request = HTTP::Request.new("GET", "/hello")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Index"
@@ -46,6 +41,8 @@ module Launch
         end
 
         it "responds to PUT request" do
+          pipeline = setup_routes
+
           request = HTTP::Request.new("PUT", "/hello/1")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Update"
@@ -53,6 +50,8 @@ module Launch
         end
 
         it "responds to PATCH request" do
+          pipeline = setup_routes
+
           request = HTTP::Request.new("PATCH", "/hello/1")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Update"
@@ -60,6 +59,8 @@ module Launch
         end
 
         it "responds to POST request" do
+          pipeline = setup_routes
+
           request = HTTP::Request.new("POST", "/hello")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Create"
@@ -67,6 +68,8 @@ module Launch
         end
 
         it "responds to DELETE request" do
+          pipeline = setup_routes
+
           request = HTTP::Request.new("DELETE", "/hello/1")
           response = create_request_and_return_io(pipeline, request)
           response.body.should eq "Destroy"
@@ -74,6 +77,8 @@ module Launch
         end
 
         it "responds to HEAD request" do
+          pipeline = setup_routes
+
           request = HTTP::Request.new("HEAD", "/hello/1")
           response = create_request_and_return_io(pipeline, request)
           response.headers["Content-Length"].should eq "0"

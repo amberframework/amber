@@ -1,3 +1,0 @@
-require "granite/adapter/<%= @database %>"
-
-Granite::Connections << Granite::Adapter::<%= @database.capitalize %>.new(name: "<%= @database %>", url: ENV["DATABASE_URL"]? || Launch.settings.database_url)

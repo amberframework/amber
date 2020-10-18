@@ -6,7 +6,7 @@ module Launch
       @@env_hash ||= begin
         env = ENV.to_h
         env["FORKED"] = "1"
-        env["AMBER_ENV"] = Launch.env.to_s
+        env["LAUNCH_ENV"] = Launch.env.to_s
         env
       end
     end

@@ -49,7 +49,7 @@ module Launch::CLI
       end
     end
 
-    private def parse_fields(params : Array(String)?)
+    private def parse_fields(params : Array(String)?) : Array(Field)
       if params
         fields = params.map { |field| Field.new(field, database: config.database) }
       else

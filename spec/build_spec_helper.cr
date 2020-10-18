@@ -7,7 +7,7 @@ module Launch::CLI
   extend self
 
   def generate_app(*options)
-    ENV["AMBER_ENV"] = "test"
+    ENV["LAUNCH_ENV"] = "test"
 
     cleanup
     scaffold_app(TESTING_APP, *options)

@@ -1,0 +1,18 @@
+defaults: &defaults
+  host: <%= @adapter_name == "sqlite3" ? "\".\"" : "localhost" %>
+  adapter: <%= @adapter_name %>
+  user: ""
+  password: ""
+  migration_files_path: db/migrations # this is the default location for all migrations
+
+development:
+  db: <%= @name %>_development
+  <<: *defaults
+
+test:
+  db: <%= @name %>_test
+  <<: *defaults
+
+production:
+  db: <%= @name %>_production
+  <<: *defaults

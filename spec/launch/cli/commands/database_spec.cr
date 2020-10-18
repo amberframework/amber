@@ -7,10 +7,10 @@ include CLIFixtures
 
 module Launch::CLI
   describe "database" do
-    ENV["AMBER_ENV"] = "test"
+    ENV["LAUNCH_ENV"] = "test"
 
     describe "sqlite" do
-      context ENV["AMBER_ENV"] do
+      context ENV["LAUNCH_ENV"] do
         it "has connection settings in config/environments/env.yml" do
           env_yml = prepare_test_app
           env_yml["database_url"].should eq expected_db_url("sqlite3", env)
@@ -53,10 +53,10 @@ module Launch::CLI
     end
 
     describe "postgres" do
-      context ENV["AMBER_ENV"] do
-        it "has #{ENV["AMBER_ENV"]}  connection settings" do
+      context ENV["LAUNCH_ENV"] do
+        it "has #{ENV["LAUNCH_ENV"]}  connection settings" do
           scaffold_app("#{TESTING_APP}", "-d", "pg")
-          env_yml = environment_yml(ENV["AMBER_ENV"], "#{Dir.current}/config/environments/")
+          env_yml = environment_yml(ENV["LAUNCH_ENV"], "#{Dir.current}/config/environments/")
           env_yml["database_url"].should eq expected_db_url("pg", env)
           cleanup
         end
