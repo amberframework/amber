@@ -7,6 +7,8 @@
 # this file, we recommend to use yaml configurations before changing any settings here.
 # Any uncommented setting here will override the YAML with the value set here.
 
+env = Launch.env.to_s
+
 Launch::Server.configure do |settings|
   # Use your environment variables settings here.
   #
@@ -30,17 +32,17 @@ Launch::Server.configure do |settings|
   # Secret Key Base: is used for specifying a key which allows sessions
   # for the application to be verified against a known secure key to
   # prevent tampering. Applications get Launch.secret_key
-  # initialized to a random key present in `ENV["AMBER_SECRET_KEY"]` or
+  # initialized to a random key present in `ENV["LAUNCH_SECRET_KEY"]` or
   # `.launch_secret_key` in this order.
   #
-  # settings.secret_key_base= <%= Random::Secure.urlsafe_base64(32) %>
+  # settings.secret_key_base = <%= Random::Secure.urlsafe_base64(32) %>
   #
   #
   # Host: is the application server host address or ip address. Useful for when
   # deploying Launch to a PAAS and likely the assigned server IP is either
   # known or unknown. Defaults to an environment variable HOST
   #
-  # settings.host = ENV["HOST"] if ENV["HOST"]?
+  # settings.host = Launch.credentials[env]["host"]
   #
   #
   # Port Reuse: Launch supports clustering mode which allows to spin
@@ -68,7 +70,7 @@ Launch::Server.configure do |settings|
   # Redis URL: Redis is an in memory key value storage. Launch utilizes redis as
   # a storing option for session information.
   #
-  # settings.redis_url = ENV["REDIS_URL"] if ENV["REDIS_URL"]?
+  # settings.redis_url = Launch.credentials[env]["redis_url"]
   #
   #
   # Database URL: This is the database connection string or data file url.
@@ -76,7 +78,7 @@ Launch::Server.configure do |settings|
   # database or the data file. Defaults to the database provider you chose at
   # at app generation.
   #
-  # settings.database_url = ENV["DATABASE_URL"] if ENV["DATABASE_URL"]?
+  # settings.database_url = Launch.credentials[env]["database_url"]
   #
   #
   # SSL Key File: The private key is a text file used initially to generate a

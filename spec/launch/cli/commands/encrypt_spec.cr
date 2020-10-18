@@ -23,7 +23,7 @@ module Launch::CLI
     it "creates a 44 characters secret key in .encryption_key" do
       scaffold_app(TESTING_APP)
       MainCommand.run ["encrypt", "--noedit"]
-      File.read(".encryption_key").size.should eq 44
+      File.read("./config/master.key").size.should eq 44
       cleanup
     end
   end

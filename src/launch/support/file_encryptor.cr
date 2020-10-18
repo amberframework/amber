@@ -1,8 +1,8 @@
 require "./message_encryptor"
 
 module Launch::Support
-  ENCRYPT_ENV = "AMBER_ENCRYPTION_KEY"
-  FILE_PATH   = "./.encryption_key"
+  ENCRYPT_ENV = "LAUNCH_ENCRYPTION_KEY"
+  FILE_PATH   = "./config/master.key"
 
   module FileEncryptor
     def self.read(filename : String, encryption_key = self.encryption_key)

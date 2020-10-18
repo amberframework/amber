@@ -6,12 +6,12 @@ describe Launch::Support::FileEncryptor do
   Dir.mkdir_p("./tmp")
   context "#encryption_key" do
     it "load encryption_key from ENV variable" do
-      ENV["AMBER_ENCRYPTION_KEY"] = "fake encryption key"
+      ENV["LAUNCH_ENCRYPTION_KEY"] = "fake encryption key"
       Launch::Support::FileEncryptor.encryption_key.should eq "fake encryption key"
     end
 
     it "load encryption_key from .encryption_key file" do
-      ENV["AMBER_ENCRYPTION_KEY"] = nil
+      ENV["LAUNCH_ENCRYPTION_KEY"] = nil
       File.write(secret_file, "fake secret key")
       Launch::Support::FileEncryptor.encryption_key(secret_file).should eq "fake secret key"
 
@@ -20,7 +20,7 @@ describe Launch::Support::FileEncryptor do
     end
 
     it "reads encryption key from file without newline char" do
-      ENV["AMBER_ENCRYPTION_KEY"] = nil
+      ENV["LAUNCH_ENCRYPTION_KEY"] = nil
       File.write(secret_file, "#{secret_key}\n")
       result = Launch::Support::FileEncryptor.encryption_key(secret_file)
       result.should eq secret_key
@@ -29,7 +29,7 @@ describe Launch::Support::FileEncryptor do
   end
 
   context "read and write global_key" do
-    ENV["AMBER_ENCRYPTION_KEY"] = secret_key
+    ENV["LAUNCH_ENCRYPTION_KEY"] = secret_key
 
     it "writes and encrypted file" do
       Launch::Support::FileEncryptor.write(secret_file, "name: elorest")
@@ -48,7 +48,7 @@ describe Launch::Support::FileEncryptor do
   end
 
   context "read and write with specified key" do
-    ENV["AMBER_ENCRYPTION_KEY"] = nil
+    ENV["LAUNCH_ENCRYPTION_KEY"] = nil
     it "writes and encrypted file" do
       Launch::Support::FileEncryptor.write(secret_file, "name: elorest", secret_key)
       File.exists?(secret_file).should be_truthy
