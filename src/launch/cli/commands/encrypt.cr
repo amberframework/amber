@@ -4,7 +4,6 @@ module Launch::CLI
 
     class Encrypt < Command
       class Options
-        arg "env", desc: "environment file to encrypt", default: "production"
         string ["-e", "--editor"], desc: "preferred editor: [vim, nano, pico, etc]", default: ENV.fetch("EDITOR", "vim")
         bool ["--noedit"], desc: "skip editing and just encrypt", default: false
         help
@@ -16,12 +15,11 @@ module Launch::CLI
       end
 
       def run
-        env = args.env
         encrypted_file = "config/credentials.yml.enc"
         unencrypted_file = "config/credentials.yml"
 
         unless File.exists?(unencrypted_file) || File.exists?(encrypted_file)
-          raise Exceptions::Environment.new("./config/credentials.yml.enc", env)
+          raise Exceptions::Environment.new("./config/credentials.yml.", "enc")
         end
 
         if File.exists?(encrypted_file)

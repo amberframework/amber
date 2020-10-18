@@ -6,23 +6,23 @@ include CLIHelper
 
 module Launch::CLI
   describe "launch encrypt" do
-    it "creates a hidden .test.enc file" do
+    it "creates a credentials file" do
       scaffold_app(TESTING_APP)
-      MainCommand.run ["encrypt", "test"]
-      File.exists?("config/environments/.test.enc").should be_true
+      MainCommand.run ["encrypt", "--noedit"]
+      File.exists?("config/credentials.yml.enc").should be_true
       cleanup
     end
 
-    it "unencrypts .test.enc" do
+    it "unencrypts credentials" do
       scaffold_app(TESTING_APP)
-      MainCommand.run ["encrypt", "test"]
-      String.new(Support::FileEncryptor.read("./config/environments/.test.enc")).should contain "port: 3000"
+      MainCommand.run ["encrypt", "--noedit"]
+      String.new(Support::FileEncryptor.read("./config/credentials.yml.enc")).should contain "secret_key_base:"
       cleanup
     end
 
     it "creates a 44 characters secret key in .encryption_key" do
       scaffold_app(TESTING_APP)
-      MainCommand.run ["encrypt", "test"]
+      MainCommand.run ["encrypt", "--noedit"]
       File.read(".encryption_key").size.should eq 44
       cleanup
     end
