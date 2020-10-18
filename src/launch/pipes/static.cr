@@ -109,12 +109,13 @@ module Launch
         file_path = File.expand_path(path, Dir.current)
         mime_type ||= mime_type(file_path)
         env.response.content_type = mime_type
-        env.response.headers["Accept-Ranges"] = "bytes"
-        env.response.headers["X-Content-Type-Options"] = "nosniff"
-        add_cache_header(env)
+
+        add_response_headers(env)
+
         minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
         request_headers = env.request.headers
         filesize = File.size(file_path)
+
         File.open(file_path) do |file|
           next multipart(file, env) if next_multipart?(env)
 
@@ -130,8 +131,22 @@ module Launch
         return
       end
 
-      private def add_cache_header(env : HTTP::Server::Context)
-        env.response.headers["Cache-Control"] = "private, max-age=3600"
+      private def add_response_headers(env : HTTP::Server::Context)
+        pipes = Amber.settings.pipes
+        default_headers = {
+          "Accept-Ranges"          => "bytes",
+          "X-Content-Type-Options" => "nosniff",
+          "Cache-Control"          => "private, max-age=3600",
+        } of String => Amber::Settings::SettingValue
+
+        headers = if pipes.has_key?("static") && pipes["static"].has_key?("headers")
+                    default_headers.merge(pipes["static"]["headers"])
+                  else
+                    default_headers
+                  end
+        headers.each do |key, value|
+          env.response.headers[key] = value.as(String)
+        end
       end
 
       private def next_multipart?(env)

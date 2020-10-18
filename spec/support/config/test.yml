@@ -22,6 +22,10 @@ session:
   store: "signed_cookie"
   expires: 0
 
+pipes:
+  static:
+    headers:
+      "Cache-Control": "no-store"
+
 secrets:
   description: "Store your test secrets credentials and settings here."
-

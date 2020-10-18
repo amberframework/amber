@@ -38,5 +38,10 @@ smtp:
   username: api_key
   enabled: false
 
+pipes:
+  static:
+    headers:
+      "Cache-Control": "private, max-age=3600"
+
 secrets:
   description: Store your production secrets credentials and settings here.

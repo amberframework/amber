@@ -57,6 +57,17 @@ module Launch
         response_true.body.should match(/index/)
         response_false.status_code.should eq 404
       end
+
+      it "sets default response headers" do
+        request = HTTP::Request.new("GET", "/index.html")
+        static = Static.new PUBLIC_PATH
+
+        response = create_request_and_return_io(static, request)
+
+        response.headers["Accept-Ranges"].should eq "bytes"
+        response.headers["X-Content-Type-Options"].should eq "nosniff"
+        response.headers["Cache-Control"].should eq "no-store"
+      end
     end
   end
 end
