@@ -7,11 +7,17 @@ module Launch::Environment
   macro included
     class_property path : String = "./config/environments/"
     @@settings : Settings?
+    @@credentials : YAML::Any?
 
     def self.settings
       @@settings ||= Loader.new(env.to_s, path).settings
-    rescue Launch::Exceptions::Environment
-      @@settings = Settings.from_yaml("default: settings")
+      # Dont rescue errors if environment yml doesn't exist.
+      # rescue Launch::Exceptions::Environment
+      #   @@settings = Settings.from_yaml("default: settings")
+    end
+
+    def self.credentials
+      @@credentials ||= Loader.new(env.to_s, path).credentials
     end
 
     def self.env=(env : EnvType)

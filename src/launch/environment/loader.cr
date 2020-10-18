@@ -9,11 +9,17 @@ module Launch::Environment
       Settings.from_yaml(settings_content.to_s)
     end
 
+    def credentials
+      YAML.parse(Support::FileEncryptor.read_as_string(credentials_settings_file))
+    rescue e : Exception
+      puts e
+      # TODO
+      raise "No credentials.yml.enc file"
+    end
+
     private def settings_content
       if File.exists?(yml_settings_file)
         File.read(yml_settings_file)
-      elsif File.exists?(enc_settings_file)
-        Support::FileEncryptor.read_as_string(enc_settings_file)
       end
     end
 
@@ -21,12 +27,12 @@ module Launch::Environment
       @yml_settings ||= File.expand_path("#{@path}/#{@environment}.yml")
     end
 
-    private def enc_settings_file
-      @enc_settings ||= File.expand_path("#{@path}/.#{@environment}.enc")
+    private def credentials_settings_file
+      @credentials ||= File.expand_path("./config/credentials.yml.enc")
     end
 
     private def settings_file_exist?
-      File.exists?(yml_settings_file) || File.exists?(enc_settings_file)
+      File.exists?(yml_settings_file)
     end
   end
 end

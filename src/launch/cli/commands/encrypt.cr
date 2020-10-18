@@ -17,11 +17,11 @@ module Launch::CLI
 
       def run
         env = args.env
-        encrypted_file = "config/environments/.#{env}.enc"
-        unencrypted_file = "config/environments/#{env}.yml"
+        encrypted_file = "config/credentials.yml.enc"
+        unencrypted_file = "config/credentials.yml"
 
         unless File.exists?(unencrypted_file) || File.exists?(encrypted_file)
-          raise Exceptions::Environment.new("./config/environments/", env)
+          raise Exceptions::Environment.new("./config/credentials.yml.enc", env)
         end
 
         if File.exists?(encrypted_file)
