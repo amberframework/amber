@@ -3,7 +3,7 @@ module Amber::Plugins
     include Amber::CLI::Helpers
     include Amber::Recipes::FileEntries
 
-    property template : String | Nil
+    property template : String?
 
     property name : String
     getter language : String = CLI.config.language
@@ -14,6 +14,15 @@ module Amber::Plugins
       @timestamp = Time.utc.to_s("%Y%m%d%H%M%S%L")
     end
 
+    def render(directory, **args)
+      pre_render(directory, **args)
+      super(directory, **args)
+    end
+
+    def pre_render(directory, **args)
+      add_routes
+    end
+
     # setup the Liquid context
     def set_context(ctx)
       return if ctx.nil?
@@ -21,6 +30,17 @@ module Amber::Plugins
       ctx.set "name", name
       ctx.set "language", language
       ctx.set "timestamp", timestamp
+    end
+
+    private def add_routes
+      return unless File.exists?("#{template}/config.yml")
+
+      config_file = File.read("#{template}/config.yml").to_s
+      settings = Settings.from_yaml(config_file)
+
+      settings.routes["pipelines"].each do |pipe, routes|
+        add_routes pipe, routes.join("\n    ")
+      end
     end
   end
 end
