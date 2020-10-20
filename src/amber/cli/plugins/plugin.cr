@@ -14,13 +14,14 @@ module Amber::Plugins
     Log = ::Log.for(self)
     getter name : String
     getter directory : String
+    getter args : Array(String)
 
     def self.can_generate?(name : String)
       template = Fetcher.new(name).fetch
       !(template.nil?)
     end
 
-    def initialize(name : String, directory : String)
+    def initialize(name : String, directory : String, @args : Array(String))
       @name = name
 
       @directory = File.join(directory)
@@ -33,7 +34,7 @@ module Amber::Plugins
       case action
       when "install"
         log_message "Adding plugin #{name}"
-        Installer.new(name).render(directory, list: true, color: true)
+        Installer.new(name, args).render(directory, list: true, color: true)
       else
         Log.error { "Invalid plugin command".colorize(:light_red) }
       end

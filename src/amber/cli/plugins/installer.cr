@@ -8,10 +8,13 @@ module Amber::Plugins
     property name : String
     getter language : String = CLI.config.language
     property timestamp : String
+    property args : Hash(String, String)
 
-    def initialize(@name)
+    def initialize(@name, args)
       @template = Fetcher.new(name).fetch
       @timestamp = Time.utc.to_s("%Y%m%d%H%M%S%L")
+      @args = Hash(String, String).new
+      args.each_with_index { |arg, idx| @args[("a".."z").to_a[idx]] = arg }
     end
 
     # setup the Liquid context
@@ -21,6 +24,7 @@ module Amber::Plugins
       ctx.set "name", name
       ctx.set "language", language
       ctx.set "timestamp", timestamp
+      ctx.set "args", args
     end
   end
 end
