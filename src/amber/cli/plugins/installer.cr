@@ -25,10 +25,15 @@ module Amber::Plugins
     def render(directory, **args)
       pre_render(directory, **args)
       super(directory, **args)
+      post_render(directory, **args)
     end
 
     def pre_render(directory, **args)
       add_routes
+    end
+
+    def post_render(directory, **args)
+      cleanup(directory)
     end
 
     # setup the Liquid context
@@ -52,6 +57,12 @@ module Amber::Plugins
       config.routes["plugs"].each do |pipe, plugs|
         add_plugs pipe, plugs.join("\n    ")
       end
+    end
+
+    private def cleanup(directory)
+      return unless File.exists?("#{directory}/config.yml")
+
+      File.delete("#{directory}/config.yml")
     end
   end
 end

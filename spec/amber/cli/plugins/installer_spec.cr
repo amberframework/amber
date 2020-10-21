@@ -29,5 +29,11 @@ module Amber::Plugins
       installer.args["name"]?.should_not be_nil
       installer.args["name"].should eq "Amber"
     end
+
+    it "should clean up config.yml after rendering" do
+      scaffold_app_with_plugin
+      Installer.new("test", [] of String).render("#{Dir.current}/src/plugins", list: true, color: true)
+      File.exists?("#{Dir.current}/src/plugins/config.yml").should be_false
+    end
   end
 end
