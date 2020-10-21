@@ -17,6 +17,7 @@ module Amber::Plugins
       routes = File.read("#{Dir.current}/config/routes.cr")
       routes.empty?.should be_false
       routes.should contain "post \"/plugin\", PluginController, :create"
+      routes.should contain "plug Authenticate.new"
     end
 
     it "should pass args to liquid context" do

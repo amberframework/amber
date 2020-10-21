@@ -2,6 +2,9 @@ module PluginHelper
   def yml_config_contents
     <<-FILE
       routes:
+        plugs:
+          web:
+            - plug Authenticate.new
         pipelines:
           web:
             - post "/plugin", PluginController, :create

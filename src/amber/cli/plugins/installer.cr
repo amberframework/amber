@@ -48,6 +48,10 @@ module Amber::Plugins
       config.routes["pipelines"].each do |pipe, routes|
         add_routes pipe, routes.join("\n    ")
       end
+
+      config.routes["plugs"].each do |pipe, plugs|
+        add_plugs pipe, plugs.join("\n    ")
+      end
     end
   end
 end
