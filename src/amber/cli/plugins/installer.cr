@@ -9,12 +9,17 @@ module Amber::Plugins
     getter language : String = CLI.config.language
     property timestamp : String
     property args : Hash(String, String)
+    property settings : Settings?
 
-    def initialize(@name, args)
+    def initialize(@name, arguments)
       @template = Fetcher.new(name).fetch
       @timestamp = Time.utc.to_s("%Y%m%d%H%M%S%L")
       @args = Hash(String, String).new
-      args.each_with_index { |arg, idx| @args[("a".."z").to_a[idx]] = arg }
+      if File.exists?("#{template}/config.yml")
+        config_file = File.read("#{template}/config.yml").to_s
+        @settings = Settings.from_yaml(config_file)
+        arguments.each_with_index { |arg, idx| @args[settings.not_nil!.args[idx]] = arg }
+      end
     end
 
     def render(directory, **args)
@@ -37,12 +42,10 @@ module Amber::Plugins
     end
 
     private def add_routes
-      return unless File.exists?("#{template}/config.yml")
+      config = settings
+      return if config.nil?
 
-      config_file = File.read("#{template}/config.yml").to_s
-      settings = Settings.from_yaml(config_file)
-
-      settings.routes["pipelines"].each do |pipe, routes|
+      config.routes["pipelines"].each do |pipe, routes|
         add_routes pipe, routes.join("\n    ")
       end
     end

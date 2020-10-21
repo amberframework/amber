@@ -9,6 +9,10 @@ module Amber::Plugins
       routes: {
         type:    RouteType,
         default: {"pipelines" => Hash(String, Array(String)).new},
+      },
+      args: {
+        type: Array(String),
+        default: [] of String
       }
     )
   end
