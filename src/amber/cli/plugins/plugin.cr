@@ -8,6 +8,7 @@ require "../helpers/helpers"
 require "../recipes/file_entries"
 require "./fetcher"
 require "./installer"
+require "./settings"
 
 module Amber::Plugins
   class Plugin

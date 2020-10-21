@@ -65,7 +65,7 @@ module Amber
       end
 
       private def file_redirect_path(path, is_dir_path)
-        "#{path}/#{is_dir_path ? "/" : ""}"
+        "#{path}/#{is_dir_path ? "" : "/"}"
       end
 
       private def call_next_with_file_path(context, request_path, file_path)
