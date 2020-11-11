@@ -8,7 +8,14 @@ module Amber::Plugins
     YAML.mapping(
       routes: {
         type:    RouteType,
-        default: {"pipelines" => Hash(String, Array(String)).new},
+        default: {
+          "pipelines" => Hash(String, Array(String)).new,
+          "plugs"     => Hash(String, Array(String)).new,
+        },
+      },
+      args: {
+        type:    Array(String),
+        default: [] of String,
       }
     )
   end
