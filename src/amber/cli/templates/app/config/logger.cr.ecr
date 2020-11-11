@@ -6,6 +6,7 @@ require "log"
 # You can read details here: https://crystal-lang.org/api/0.35.0/Log.html
 
 # Using environment settings:
+Colorize.enabled = Amber.settings.logging.colorize
 backend = Log::IOBackend.new(STDOUT)
 
 # Custom formatter
@@ -21,11 +22,13 @@ backend.formatter = Log::Formatter.new do |entry, io|
   # io << entry.timestamp.in(time_zone).to_s("%I:%M:%S")
   io << " "
   io << entry.source
+  io << " |"
   io << " (#{entry.severity})" if entry.severity > Log::Severity::Debug
   io << " "
   io << entry.message
 end
 
+Log.builder.clear
 Log.builder.bind "*", Amber.settings.logging.severity, backend
 
 # Using crystal's standard environment variables:

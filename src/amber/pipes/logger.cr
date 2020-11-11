@@ -64,7 +64,7 @@ module Amber
       end
 
       private def log(msg, prog, color = :white)
-        Log.for(prog).debug { "#{prog.colorize(color)} | #{msg}" }
+        Log.for(prog.colorize(color).to_s).debug { msg }
       end
 
       private def log_config
