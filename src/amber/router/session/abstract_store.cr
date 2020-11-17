@@ -3,7 +3,7 @@ module Amber::Router::Session
   abstract class AbstractStore
     abstract def id
     abstract def destroy
-    abstract def update(other_hash)
+    abstract def update(other_hash : Hash(String | Symbol, String))
     abstract def set_session
     abstract def current_session
   end
