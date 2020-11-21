@@ -42,8 +42,6 @@ module Amber::CLI
         connect_to_database if args.commands.empty?
 
         process_commands(args.commands)
-      rescue e : Micrate::UnorderedMigrationsException
-        exit! Micrate::Cli.report_unordered_migrations(e.versions), error: true
       rescue e : DB::ConnectionRefused
         exit! "Connection unsuccessful: #{Micrate::DB.connection_url.colorize(:light_blue)}", error: true
       rescue e : Exception
