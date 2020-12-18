@@ -39,7 +39,11 @@ module Amber::Router::Cookies
 
     def self.build(request, secret)
       headers = request.headers
-      host = request.host
+      host = {% if compare_versions(Crystal::VERSION, "1.0.0-0") >= 0 %}
+               request.hostname
+             {% else %}
+               request.host
+             {% end %}
       secure = (headers["HTTPS"]? == "on")
       new(host, secret, secure).tap do |store|
         store.update(from_headers(headers))
