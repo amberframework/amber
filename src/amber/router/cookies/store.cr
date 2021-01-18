@@ -39,7 +39,7 @@ module Amber::Router::Cookies
 
     def self.build(request, secret)
       headers = request.headers
-      host = {% if compare_versions(Crystal::VERSION, "1.0.0-0") >= 0 %}
+      host = {% if compare_versions(Crystal::VERSION, "0.36.0-0") >= 0 %}
                request.hostname
              {% else %}
                request.host
