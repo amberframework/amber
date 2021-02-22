@@ -5,7 +5,7 @@ module Amber
     #
     # Example:
     #
-    # ```crystal
+    # ```
     # class ChatChannel < Amber::Websockets::Channel
     #   def handle_joined(client_socket)
     #     # functionality when the user joins the channel, optional

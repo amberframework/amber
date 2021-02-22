@@ -89,6 +89,20 @@ Use Amber badge
 ```markdown
 [![Amber Framework](https://img.shields.io/badge/using-amber_framework-orange.svg)](https://amberframework.org/)
 ```
+## Release Checklist
+
+- Test and release all dependencies
+- Test everything locally
+- Run `crelease 0.36.0`
+- repoint amber to master branch in `src/amber/cli/templates/app/shard.yml.ecr` template
+- update release notes
+- update homebrew version and sha
+- update linux repositories
+- build and deploy docker image:
+  - verify Dockerfile is using the latest crystal version
+  - `docker login`
+  - `docker build -t amberframework/amber:0.36.0`
+  - `docker push amberframework/amber:0.36.0`
 
 ## Contributing
 

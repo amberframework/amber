@@ -6,7 +6,7 @@ module Amber
     #
     # Example:
     #
-    # ```crystal
+    # ```
     # struct UserSocket < Amber::Websockets::ClientSocket
     #   channel "user_channel:*", UserChannel
     #   channel "room_channel:*", RoomChannel
@@ -50,7 +50,7 @@ module Amber
 
       # Broadcast a message to all subscribers of the topic
       #
-      # ```crystal
+      # ```
       # UserSocket.broadcast("message", "chats_room:1", "msg:new", {"message" => "test"})
       # ```
       def self.broadcast(event : String, topic : String, subject : String, payload : Hash)

@@ -93,7 +93,7 @@ module Amber::Validators
 
     # Setups validation rules to be performed
     #
-    # ```crystal
+    # ```
     # params.validation do
     #   required(:email) { |p| p.url? }
     #   required(:age, UInt32)
@@ -108,7 +108,7 @@ module Amber::Validators
     # of validated params Otherwise raises a Validator::ValidationFailed error
     # messages contain errors.
     #
-    # ```crystal
+    # ```
     # user = User.new params.validate!
     # ```
     def validate!
@@ -118,7 +118,7 @@ module Amber::Validators
 
     # Returns True or false whether the validation passed
     #
-    # ```crystal
+    # ```
     # unless params.valid?
     #   response.puts {errors: params.errors}.to_json
     #   response.status_code 400
@@ -142,7 +142,7 @@ module Amber::Validators
     # Validates each field with a given set of predicates returns true if the
     # field is valid otherwise returns false
     #
-    # ```crystal
+    # ```
     # required(:email) { |p| p.email? & p.size.between? 1..10 }
     # ```
     def add_rule(rule : BaseRule)
