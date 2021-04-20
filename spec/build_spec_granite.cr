@@ -10,7 +10,7 @@ module Amber::CLI
     end
 
     it "shards update - dependencies" do
-      system("shards update").should be_true
+      system("shards update --ignore-crystal-version").should be_true
     end
 
     it "shards build - generates a binary" do
@@ -31,7 +31,7 @@ module Amber::CLI
     end
 
     it "shards update - dependencies" do
-      system("shards update").should be_true
+      system("shards update --ignore-crystal-version ").should be_true
     end
 
     it "shards build - generates a binary" do
