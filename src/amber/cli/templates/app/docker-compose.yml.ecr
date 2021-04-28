@@ -41,6 +41,8 @@ services:
 <% if @database == "pg" -%>
   db:
     image: postgres
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -50,6 +52,8 @@ services:
 <% elsif @database == "mysql" -%>
   db:
     image: mysql:5.6
+    ports:
+      - 3306:3306
     environment:
       MYSQL_USER: admin
       MYSQL_PASSWORD: password
