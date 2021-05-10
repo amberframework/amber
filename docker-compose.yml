@@ -6,6 +6,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: test_app
+    ports:
+      - "5432:5432"
   redis:
     image: redis:5.0-alpine
     command: redis-server
