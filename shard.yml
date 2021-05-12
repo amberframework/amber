@@ -16,15 +16,15 @@ targets:
 dependencies:
   amber_router:
     github: amberframework/amber-router
-    version: ~> 0.4.4
+    # version: ~> 0.4.4
 
   cli:
     github: amberframework/cli
-    version: ~> 0.9.3
+    version: ~> 0.10.0
 
   compiled_license:
     github: elorest/compiled_license
-    version: ~> 0.1.3
+    version: ~> 1.0.0
 
   kilt:
     github: jeromegn/kilt
@@ -56,7 +56,7 @@ dependencies:
 
   shell-table:
     github: luckyframework/shell-table.cr
-    commit: 078a04ea58ead5203bb435a3b5fff448ddabaeea
+    commit: c5658cce2efc04e06e3a58fd254a0858f3722ee7
 
   slang:
     github: jeromegn/slang
@@ -79,7 +79,7 @@ dependencies:
 
   json_mapping:
     github: crystal-lang/json_mapping.cr
-    version: ~> 0.1.0
+    # version: ~> 0.1.0
 
 development_dependencies:
   ameba:
