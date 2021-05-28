@@ -14,7 +14,7 @@ module Amber::CLI
     end
 
     it "shards build - generates a binary" do
-      system("shards build #{TEST_APP_NAME}").should be_true
+      system("shards build #{TEST_APP_NAME} --ignore-crystal-version").should be_true
     end
 
     it "executes specs" do
@@ -35,7 +35,7 @@ module Amber::CLI
     end
 
     it "shards build - generates a binary" do
-      system("shards build #{TEST_APP_NAME}").should be_true
+      system("shards build #{TEST_APP_NAME} --ignore-crystal-version").should be_true
     end
 
     it "executes specs" do
