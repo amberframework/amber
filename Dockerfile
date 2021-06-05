@@ -1,4 +1,4 @@
-FROM crystallang/crystal:0.36.1
+FROM crystallang/crystal:1.0.0
 
 # Install Dependencies
 ARG DEBIAN_FRONTEND=noninteractive
@@ -13,6 +13,6 @@ WORKDIR /opt/amber
 # Build Amber
 ENV PATH /opt/amber/bin:$PATH
 COPY . /opt/amber
-RUN shards build amber
+RUN shards build amber --ignore-crystal-version
 
 CMD ["crystal", "spec"]
