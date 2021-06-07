@@ -23,17 +23,15 @@ dependencies:
 
   granite:
     github: amberframework/granite
-    version: ~> 0.22.1
-    github: dare892/granite
-    branch: crystal-1.0.0
+    version: ~> 0.23.0
 
   quartz_mailer:
     github: amberframework/quartz-mailer
-    version: ~> 0.7.0
+    version: ~> 0.8.0
 
   jasper_helpers:
     github: amberframework/jasper-helpers
-    version: ~> 0.2.5
+    version: ~> 0.4.1
 
 <% case @database when "pg" -%>
   pg:
@@ -51,13 +49,13 @@ dependencies:
 <% end -%>
 
   citrine-i18n:
-    github: amberframework/citrine-i18n
-    version: ~> 0.4.0
+    github: dare892/citrine-i18n
+    version: ~> 1.0.0
 
 development_dependencies:
   garnet_spec:
     github: amberframework/garnet-spec
-    version: 0.2.0
+    version: 0.4.1
   ameba:
     github: crystal-ameba/ameba
     version: ~> 0.13.4
