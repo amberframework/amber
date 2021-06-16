@@ -21,6 +21,9 @@ module Amber
     #   end
     # end
     # ```
+    CHANNEL_TOPIC_PATHS = [] of String
+
+
     abstract class Channel
       @@adapter : WebSockets::Adapters::RedisAdapter? | WebSockets::Adapters::MemoryAdapter?
       @topic_path : String
@@ -32,7 +35,11 @@ module Amber
 
       def handle_leave(client_socket); end
 
-      def initialize(@topic_path); end
+      def initialize(@topic_path)
+      
+        CHANNEL_TOPIC_PATHS << @topic_path
+      
+      end
 
       # Called from proc when message is returned from the pubsub service
       def on_message(client_socket_id, message)

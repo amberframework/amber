@@ -22,7 +22,7 @@ module Amber::WebSockets::Adapters
     # Add a redis subscriber with topic *topic_path*
     def on_message(topic_path, listener)
       spawn do
-        @subscriber.subscribe(topic_path) do |on|
+        @subscriber.subscribe(CHANNEL_TOPIC_PATHS) do |on|
           on.message do |_, m|
             msg = JSON.parse(m)
             sender_id = msg["sender"].as_s
