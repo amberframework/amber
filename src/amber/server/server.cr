@@ -27,6 +27,11 @@ module Amber
       instance.pubsub_adapter.instance
     end
 
+    def self.pubsub_adapter=(adapter)
+      instance.pubsub_adapter = adapter
+      puts "using #{instance.pubsub_adapter.instance}"
+    end
+
     def self.router
       instance.router
     end

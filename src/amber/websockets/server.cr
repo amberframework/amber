@@ -17,6 +17,7 @@ module Amber
           end
 
           socket.on_close do
+            Log.info { "Client socket closed" }
             instance.on_disconnect
             ClientSockets.remove_client_socket(instance)
           end

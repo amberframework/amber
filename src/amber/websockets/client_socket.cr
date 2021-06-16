@@ -21,7 +21,7 @@ module Amber
 
       @@channels = [] of NamedTuple(path: String, channel: Channel)
 
-      MAX_SOCKET_IDLE_TIME = 100.seconds
+      MAX_SOCKET_IDLE_TIME = 1.minute
       BEAT_INTERVAL        = 30.seconds
 
       protected getter id : String
@@ -72,6 +72,7 @@ module Amber
         @socket.on_pong do
           @pongs.push(Time.utc)
           @pongs.delete_at(0) if @pongs.size > 3
+          Fiber.yield
         end
       end
 
@@ -97,6 +98,7 @@ module Amber
         @socket.ping
         @pings.push(Time.utc)
         @pings.delete_at(0) if @pings.size > 3
+        Fiber.yield
         check_alive!
       rescue ex : IO::Error
         disconnect!
@@ -133,7 +135,10 @@ module Amber
 
         # disconnect if no pongs have been received
         #  or no pongs have been received beyond the threshold time
+        # puts "pongs empty #{@pongs.empty?}"
+        # puts "socket over max idle time #{(@pings.last - @pongs.first) > MAX_SOCKET_IDLE_TIME}"
         if @pongs.empty? || (@pings.last - @pongs.first) > MAX_SOCKET_IDLE_TIME
+          Log.info { "Disconnected websocket because pings empty or socket idle too long" }
           disconnect!
         end
       end
