@@ -70,11 +70,10 @@ module Amber
         @raw_params = @context.params
         @params = Amber::Validators::Params.new(@raw_params)
         @socket.on_pong do
-          
+          Log.debug("Pong received")
           @pongs.push(Time.utc)
           @pongs.delete_at(0) if @pongs.size > 3
-          
-          Fiber.yield
+          check_alive!
         end
       end
 
@@ -100,7 +99,6 @@ module Amber
         @socket.ping
         @pings.push(Time.utc)
         @pings.delete_at(0) if @pings.size > 3
-        check_alive!
       rescue ex : IO::Error
         disconnect!
       end
