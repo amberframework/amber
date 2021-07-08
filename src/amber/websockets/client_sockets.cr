@@ -12,11 +12,9 @@ module Amber
 
         # send ping & receive pong control frames, to prevent stale connections : https://tools.ietf.org/html/rfc6455#section-5.5.2
         spawn do
-          while true
-            if @socket && @socket.closed?
-              beat
-              sleep ClientSocket::BEAT_INTERVAL
-            end
+          while client_socket && !client_socket.socket.closed?
+            client_socket.beat
+            sleep ClientSocket::BEAT_INTERVAL
           end
         end
 
