@@ -15,6 +15,7 @@ module Amber
           while client_socket && !client_socket.socket.closed?
             sleep ClientSocket::BEAT_INTERVAL
             client_socket.beat
+            Fiber.yield
           end
         end
       end
