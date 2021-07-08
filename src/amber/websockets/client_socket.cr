@@ -22,7 +22,7 @@ module Amber
       @@channels = [] of NamedTuple(path: String, channel: Channel)
 
       MAX_SOCKET_IDLE_TIME = 1.minute
-      BEAT_INTERVAL        = 30.seconds
+      BEAT_INTERVAL        = 5.seconds
 
       protected getter id : String
       getter socket : HTTP::WebSocket
@@ -72,6 +72,10 @@ module Amber
         @socket.on_pong do
           @pongs.push(Time.utc)
           @pongs.delete_at(0) if @pongs.size > 3
+          if client_socket && !client_socket.socket.closed?
+            sleep ClientSocket::BEAT_INTERVAL
+            client_socket.beat
+          end
           Fiber.yield
         end
       end
