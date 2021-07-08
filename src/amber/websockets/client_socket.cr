@@ -21,8 +21,8 @@ module Amber
 
       @@channels = [] of NamedTuple(path: String, channel: Channel)
 
-      MAX_SOCKET_IDLE_TIME = 1.minute
-      BEAT_INTERVAL        = 5.seconds
+      MAX_SOCKET_IDLE_TIME = 100.seconds
+      BEAT_INTERVAL        = 30.seconds
 
       protected getter id : String
       getter socket : HTTP::WebSocket
@@ -70,7 +70,7 @@ module Amber
         @raw_params = @context.params
         @params = Amber::Validators::Params.new(@raw_params)
         @socket.on_pong do
-          Log.info { "Pong received" }
+          # Log.info { "Pong received" }
           @pongs.push(Time.utc)
           @pongs.delete_at(0) if @pongs.size > 3
           Fiber.yield
@@ -96,7 +96,7 @@ module Amber
 
       # Sends ping opcode to client : https://tools.ietf.org/html/rfc6455#section-5.5.2
       protected def beat
-        Log.info { "Sending WS ping" }
+        # Log.info { "Sending WS ping" }
         @socket.send("ping")
         @socket.ping
         @pings.push(Time.utc)
