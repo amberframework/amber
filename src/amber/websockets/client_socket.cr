@@ -73,13 +73,13 @@ module Amber
           
           @pongs.push(Time.utc)
           @pongs.delete_at(0) if @pongs.size > 3
-          Fiber.yield
+          
           if @socket && @socket.closed?
-              spawn do
-                sleep ClientSocket::BEAT_INTERVAL
-                beat
-              end
+            sleep ClientSocket::BEAT_INTERVAL
+            beat
           end
+
+          Fiber.yield
         end
       end
 
