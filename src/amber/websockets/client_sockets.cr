@@ -11,7 +11,15 @@ module Amber
         @@client_sockets[client_socket.id] = client_socket
 
         # send ping & receive pong control frames, to prevent stale connections : https://tools.ietf.org/html/rfc6455#section-5.5.2
-        client_socket.beat
+        spawn do
+          while true
+            if @socket && @socket.closed?
+              beat
+              sleep ClientSocket::BEAT_INTERVAL
+            end
+          end
+        end
+
       end
 
       def remove_client_socket(client_socket)
