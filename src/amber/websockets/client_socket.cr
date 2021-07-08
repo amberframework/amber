@@ -70,7 +70,7 @@ module Amber
         @raw_params = @context.params
         @params = Amber::Validators::Params.new(@raw_params)
         @socket.on_pong do
-          Log.debug("Pong received")
+          Log.info { "Pong received" }
           @pongs.push(Time.utc)
           @pongs.delete_at(0) if @pongs.size > 3
           check_alive!
