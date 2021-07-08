@@ -70,13 +70,16 @@ module Amber
         @raw_params = @context.params
         @params = Amber::Validators::Params.new(@raw_params)
         @socket.on_pong do
+          
           @pongs.push(Time.utc)
           @pongs.delete_at(0) if @pongs.size > 3
-          if @socket && @socket.closed?
-            sleep ClientSocket::BEAT_INTERVAL
-            @socket.beat
-          end
           Fiber.yield
+          if @socket && @socket.closed?
+              spawn do
+                sleep ClientSocket::BEAT_INTERVAL
+                beat
+              end
+          end
         end
       end
 
