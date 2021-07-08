@@ -22,7 +22,9 @@ module Amber
       end
 
       def remove_client_socket(client_socket)
-        @@client_sockets.delete(client_socket.id)
+        if @@client_sockets.has_key?(client_socket.id)
+          @@client_sockets.delete(client_socket.id)
+        end
       end
 
       def client_sockets
