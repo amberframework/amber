@@ -96,7 +96,6 @@ module Amber
 
       # Sends ping opcode to client : https://tools.ietf.org/html/rfc6455#section-5.5.2
       protected def beat
-        # Log.info { "Sending WS ping" }
         @socket.send("ping")
         @socket.ping
         @pings.push(Time.utc)

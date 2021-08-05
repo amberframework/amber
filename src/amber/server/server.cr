@@ -29,7 +29,7 @@ module Amber
 
     def self.pubsub_adapter=(adapter)
       instance.pubsub_adapter = adapter
-      puts "using #{instance.pubsub_adapter.instance}"
+      Log.info { "using #{instance.pubsub_adapter.instance}" }
     end
 
     def self.router

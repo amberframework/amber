@@ -23,9 +23,6 @@ module Amber
         channel2.subscribe_to_channel(client_socket2, "{}")
         channel2.subscribe_to_channel(client_socket, "{}")
         
-        # channel.test_field.last.should eq "handle joined #{client_socket.id}"
-        # Amber::WebSockets::CHANNEL_TOPIC_PATHS.should eq ["user_room", "secondary_room"]
-        
         Amber::Server.pubsub_adapter = Amber::WebSockets::Adapters::RedisAdapter
 
         redis_adapter = Amber::Server.instance.pubsub_adapter.instance
