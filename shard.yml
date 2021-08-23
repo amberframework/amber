@@ -52,6 +52,7 @@ dependencies:
 
   redis:
     github: mixflame/crystal-redis
+    branch: master
 
   shell-table:
     github: luckyframework/shell-table.cr
