@@ -51,7 +51,7 @@ dependencies:
     version: ~> 0.18.0
 
   redis:
-    github: mixflame/crystal-redis
+    github: stefanwille/crystal-redis
     branch: master
 
   shell-table:
