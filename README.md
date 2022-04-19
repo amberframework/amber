@@ -11,6 +11,10 @@ _Amber makes building web applications fast, simple, and enjoyable - with fewer 
 [![Liberapay patrons](https://img.shields.io/liberapay/patrons/amber-framework.svg?label=liberapay%20patrons)](https://liberapay.com/amber-framework/)
 [![Gitter](https://img.shields.io/gitter/room/amberframework/amber.svg)](https://gitter.im/amberframework/amber)
 
+# Looking for maintainers
+
+Amber is looking for volunteers to take over maintainership of the repository, reviewing and merging pull requests, stewarding updates to follow along with Crystal language updates, etc. [More information here](https://github.com/amberframework/amber/issues/1277).
+
 # Welcome to Amber
 
 **Amber** is a web application framework written in [Crystal](https://crystal-lang.org/) inspired by Kemal, Rails, Phoenix and other popular application frameworks.
