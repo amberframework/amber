@@ -33,7 +33,7 @@ Our Philosophy? [Read Amber Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md)
 
 ## Documentation
 
-Read Amber documentation on https://docs.amberframework.org
+Read Amber documentation on https://docs.amberframework.org/amber
 
 ## Benchmarks
 
