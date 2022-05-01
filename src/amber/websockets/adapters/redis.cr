@@ -16,8 +16,11 @@ module Amber::WebSockets::Adapters
 
     # Establish subscribe and publish connections to Redis
     def initialize
-      @subscriber = Redis.new(host: Amber.settings.secrets["REDIS_HOST"], port: Amber.settings.secrets["REDIS_PORT"].to_i, password: Amber.settings.secrets["REDIS_PASSWORD"])
-      @publisher = Redis.new(host: Amber.settings.secrets["REDIS_HOST"], port: Amber.settings.secrets["REDIS_PORT"].to_i, password: Amber.settings.secrets["REDIS_PASSWORD"])
+      @subscriber = Redis.new(host: Amber.settings.secrets["REDIS_HOST"], port: Amber.settings.secrets["REDIS_PORT"].to_i)
+      @publisher = Redis.new(host: Amber.settings.secrets["REDIS_HOST"], port: Amber.settings.secrets["REDIS_PORT"].to_i)
+      
+      @subscriber.auth(Amber.settings.secrets["REDIS_PASSWORD"])
+      @publisher.auth(Amber.settings.secrets["REDIS_PASSWORD"])
 
       spawn do
         @subscriber.subscribe(CHANNEL_TOPIC_PATHS) do |on|
