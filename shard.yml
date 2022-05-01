@@ -46,10 +46,6 @@ dependencies:
     github: crystal-lang/crystal-mysql
     version: ~> 0.13.0
 
-  sqlite3:
-    github: crystal-lang/crystal-sqlite3
-    version: ~> 0.18.0
-
   redis:
     github: stefanwille/crystal-redis
     branch: master
