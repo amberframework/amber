@@ -52,6 +52,7 @@ module Amber::CLI
         file = File.open(@filelogs, "w")
         spawn show
         process = Process.run(code, shell: true, output: file, error: file)
+        sleep 1.millisecond
         process.exit_status
       end
 
