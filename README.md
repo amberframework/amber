@@ -25,7 +25,7 @@ Amber borrows concepts that have already been battle tested and successful, and 
 
 ## Community
 
-Questions? Join our IRC channel [#amber](https://webchat.freenode.net/?channels=#amber) or [Gitter room](https://gitter.im/amberframework/amber) or ask on Stack Overflow under the [amber-framework](https://stackoverflow.com/questions/tagged/amber-framework) tag.
+Questions? Join our [Discord](https://discord.gg/vwvP5zakSn).
 
 Guidelines? We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) for Amber.
 
