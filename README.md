@@ -25,7 +25,7 @@ Amber borrows concepts that have already been battle tested and successful, and 
 
 ## Community
 
-Questions? Join our [Discord](https://discord.gg/7hcPbC9t8Y).
+Questions? Join our [Discord](https://discord.gg/vwvP5zakSn).
 
 Guidelines? We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) for Amber.
 
