@@ -11,6 +11,10 @@ _Amber makes building web applications fast, simple, and enjoyable - with fewer 
 [![Liberapay patrons](https://img.shields.io/liberapay/patrons/amber-framework.svg?label=liberapay%20patrons)](https://liberapay.com/amber-framework/)
 [![Gitter](https://img.shields.io/gitter/room/amberframework/amber.svg)](https://gitter.im/amberframework/amber)
 
+# Looking for maintainers
+
+Amber is looking for volunteers to take over maintainership of the repository, reviewing and merging pull requests, stewarding updates to follow along with Crystal language updates, etc. [More information here](https://github.com/amberframework/amber/issues/1277).
+
 # Welcome to Amber
 
 **Amber** is a web application framework written in [Crystal](https://crystal-lang.org/) inspired by Kemal, Rails, Phoenix and other popular application frameworks.
@@ -21,7 +25,7 @@ Amber borrows concepts that have already been battle tested and successful, and 
 
 ## Community
 
-Questions? Join our IRC channel [#amber](https://webchat.freenode.net/?channels=#amber) or [Gitter room](https://gitter.im/amberframework/amber) or ask on Stack Overflow under the [amber-framework](https://stackoverflow.com/questions/tagged/amber-framework) tag.
+Questions? Join our [Discord](https://discord.gg/vwvP5zakSn).
 
 Guidelines? We have adopted the Contributor Covenant to be our [CODE OF CONDUCT](.github/CODE_OF_CONDUCT.md) for Amber.
 
@@ -29,7 +33,7 @@ Our Philosophy? [Read Amber Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md)
 
 ## Documentation
 
-Read Amber documentation on https://docs.amberframework.org
+Read Amber documentation on https://docs.amberframework.org/amber
 
 ## Benchmarks
 
@@ -52,6 +56,7 @@ brew install amber
 git clone https://github.com/amberframework/amber.git
 cd amber
 git checkout stable
+shards install
 make
 sudo make install
 ```
