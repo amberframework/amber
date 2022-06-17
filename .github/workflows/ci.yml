@@ -1,14 +1,15 @@
 on:
   push:
-    branches: [master]
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    container:
+      image: crystallang/crystal
+
     steps:
       - name: Download source
-        uses: actions/checkout@v2
-      - name: Install Crystal
-        uses: crystal-lang/install-crystal@v1
+        uses: actions/checkout@v3
       - name: Install shards
         run: shards install
       - name: Run tests
