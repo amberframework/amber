@@ -15,7 +15,10 @@ jobs:
         run: shards install
 
       - name: Install redis
-        run: apt install redis-server
+        run: sudo apt-get install redis
+      
+      - name: Verify Redis is running
+        run: redis-cli ping
 
       - name: Run tests
-        run: crystal spec
+        run: bin/amber_spec
