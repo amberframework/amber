@@ -15,7 +15,7 @@ jobs:
         run: shards install
 
       - name: Install redis
-        run: sudo apt-get install redis
+        run: apt-get install redis
       
       - name: Verify Redis is running
         run: redis-cli ping
