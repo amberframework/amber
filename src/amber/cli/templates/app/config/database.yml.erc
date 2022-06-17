@@ -1,0 +1,18 @@
+default: &default
+  host: localhost
+  user: ""
+  password: ""
+  adapter: postgres
+  migration_files_path: db/migrations
+
+development:
+  <<: *default
+  db: <%= "#{@name}_development" %>
+
+test:
+  <<: *default
+  db: <%= "#{@name}_test" %>
+
+production:
+  <<: *default
+  db: <%= "#{@name}_production" %>

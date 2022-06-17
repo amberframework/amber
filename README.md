@@ -136,6 +136,7 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 - [Nick Franken](https://github.com/fridgerator "fridgerator")
 - [Mark Siemers](https://github.com/marksiemers "marksiemers")
 - [Robert Carpenter](https://github.com/robacarp "robacarp")
+- [Seth T.](https://github.com/crimson-knight "crimson-knight")
 
 [See more Amber contributors](https://github.com/amberframework/amber/graphs/contributors)
 

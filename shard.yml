@@ -1,6 +1,6 @@
 name: amber
 
-version: 1.2.1
+version: 1.5
 
 authors:
   - Amber Team and Contributors <amberframework.org>
@@ -33,10 +33,6 @@ dependencies:
   liquid:
     github: dare892/liquid.cr
     branch: chore/bump-version-crystal1.0.0
-
-  micrate:
-    github: amberframework/micrate
-    version: ~> 0.12.0
 
   pg:
     github: will/crystal-pg
@@ -85,4 +81,4 @@ dependencies:
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
-    version: ~> 0.13.4
+    version: ~> 1.0.0

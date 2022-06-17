@@ -59,7 +59,7 @@ module Amber::CLI
           end
 
           pipe_plugs.each do |pipe_name, plugs|
-            output_plugs = output_lines.select { |line| line.includes?(pipe_name) }
+            output_plugs = output_lines.select(&.includes?(pipe_name))
             plugs.each_with_index do |plug, index|
               output_plug = output_plugs[index]
               (output_plug != nil).should be_true

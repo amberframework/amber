@@ -126,7 +126,7 @@ module Amber::CLI
 
       private def print_routes_table_json
         puts routes.map { |route|
-          route.transform_keys { |key| key.to_s.downcase.gsub(' ', '_') }
+          route.transform_keys(&.to_s.downcase.gsub(' ', '_'))
         }.to_json
       end
 

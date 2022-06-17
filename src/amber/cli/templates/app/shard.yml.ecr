@@ -18,12 +18,11 @@ targets:
 dependencies:
   amber:
     github: amberframework/amber
-    #version: <%= Amber::VERSION %>
-    branch: master
+    version: <%= Amber::VERSION %>
 
-  granite:
-    github: amberframework/granite
-    version: ~> 0.23.0
+  jennifer:
+    github: imdrasil/jennifer.cr
+    version: ~> 0.12.0
 
   quartz_mailer:
     github: amberframework/quartz-mailer
@@ -41,16 +40,11 @@ dependencies:
   mysql:
     github: crystal-lang/crystal-mysql
     version: ~> 0.13.0
-<% when "sqlite" -%>
-  sqlite3:
-    github: crystal-lang/crystal-sqlite3
-    version: ~> 0.18.0
-<% else -%>
 <% end -%>
 
-  citrine-i18n:
-    github: dare892/citrine-i18n
-    version: ~> 1.0.0
+  i18n:
+    github: crimson-knight/i18n.cr
+    version: ~> 0.4.1
 
 development_dependencies:
   garnet_spec:

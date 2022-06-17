@@ -23,7 +23,7 @@ module Amber::CLI
 
     property database : String = "pg"
     property language : String = "slang"
-    property model : String = "granite"
+    property model : String = "jennifer"
     property recipe : (String | Nil) = nil
     property recipe_source : (String | Nil) = nil
     property watch : WatchOptions
@@ -36,7 +36,7 @@ module Amber::CLI
     YAML.mapping(
       database: {type: String, default: "pg"},
       language: {type: String, default: "slang"},
-      model: {type: String, default: "granite"},
+      model: {type: String, default: "jennifer"},
       recipe: String | Nil,
       recipe_source: String | Nil,
       watch: {type: WatchOptions, default: default_watch_options}

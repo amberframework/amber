@@ -63,7 +63,7 @@ module Amber
       private def put_response_headers(response)
         response.headers[Headers::ALLOW_CREDENTIALS] = @credentials.to_s if @credentials
         response.headers[Headers::ALLOW_ORIGIN] = @origin.request_origin.not_nil!
-        response.headers[Headers::VARY] = vary unless @origin.any?
+        response.headers[Headers::VARY] = vary if !@origin.empty?
       end
 
       private def vary
@@ -130,6 +130,10 @@ module Amber
           when Regex  then origin =~ request_origin
           end
         end
+      end
+
+      def empty?
+        !any?
       end
 
       def any?
