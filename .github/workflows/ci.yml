@@ -15,8 +15,7 @@ jobs:
         run: shards install
 
       - name: Install redis
-        run: apt install redis
-      
+        run: apt install redis-server
 
       - name: Run tests
         run: crystal spec
