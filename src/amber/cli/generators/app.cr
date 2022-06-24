@@ -15,6 +15,7 @@ module Amber::CLI
     @email : String
     @github_name : String
     @minimal : Bool
+    @whoami : String
 
     def initialize(@name, @database = "pg", @language = "slang", @minimal = false)
       @db_url = ""
@@ -24,6 +25,7 @@ module Amber::CLI
       @author = fetch_author
       @email = fetch_email
       @github_name = fetch_github_name
+      @whoami = `whoami` || ""
     end
 
     def filter(entries)

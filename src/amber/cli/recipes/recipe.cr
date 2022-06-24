@@ -68,11 +68,13 @@ module Amber::Recipes
         Controller.new(name, @recipe, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
       when "model"
         info "Rendering Model #{name} from #{@recipe}"
-        Amber::CLI::Migration.new(name, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
+        # TODO tied Jennifer migration into here
+        #Amber::CLI::Migration.new(name, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
         Model.new(name, @recipe, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
       when "scaffold"
         info "Rendering Scaffold #{name} from #{@recipe}"
-        Amber::CLI::Migration.new(name, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
+        # TODO tied Jennifer migration into here
+        #Amber::CLI::Migration.new(name, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
         Model.new(name, @recipe, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
         Scaffold::Controller.new(name, @recipe, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
         Scaffold::View.new(name, @recipe, @fields).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)

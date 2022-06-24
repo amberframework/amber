@@ -4,7 +4,7 @@ Amber::Server.configure do
     # A plug accepts an instance of HTTP::Handler
     # plug Amber::Pipe::PoweredByAmber.new
     # plug Amber::Pipe::ClientIp.new(["X-Forwarded-For"])
-    plug Citrine::I18n::Handler.new
+    # plug Citrine::I18n::Handler.new ## TODO Change this to be crimson-knight/i18n.cr
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Logger.new
     plug Amber::Pipe::Session.new

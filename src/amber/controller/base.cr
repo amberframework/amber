@@ -10,6 +10,7 @@ module Amber::Controller
     include Helpers::Render
     include Helpers::Responders
     include Helpers::Route
+    # TODO: create a handler for the i18n.cr shard and add it to Amber
     include Helpers::I18n
     include Callbacks
 

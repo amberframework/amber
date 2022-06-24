@@ -12,3 +12,5 @@ shard.lock
 package-lock.json
 node_modules
 *.dwarf
+/myapp/
+cli

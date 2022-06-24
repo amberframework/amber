@@ -23,6 +23,7 @@ module Amber::CLI
       end
 
       def run
+        puts "Starting the new app build"
         CLI.toggle_colors(options.no_color?)
         if args.name == "."
           name = File.basename(Dir.current)
@@ -38,17 +39,19 @@ module Amber::CLI
           info "#{full_path_name} should be #{full_path_name.gsub(/\s+/, "_")}"
           exit! error: true
         end
+
         if (options.r? != nil)
           generator = Amber::Recipes::Recipe.new(name, full_path_name, "#{options.r}")
         else
           generator = Generators.new(name, full_path_name)
         end
+        
         generator.generate_app(options)
 
         # Encrypts production.yml by default.
-        cwd = Dir.current; Dir.cd(full_path_name)
-        MainCommand.run ["encrypt", "production", "--noedit"]
-        Dir.cd(cwd)
+        #cwd = Dir.current; Dir.cd(full_path_name)
+        #MainCommand.run ["encrypt", "production", "--noedit"]
+        #Dir.cd(cwd)
       end
     end
   end
