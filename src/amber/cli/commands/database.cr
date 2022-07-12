@@ -17,6 +17,8 @@ module Amber::CLI
         header <<-EOS
           Performs database migrations and maintenance tasks. Powered by Jennifer (https://github.com/imdrasil/jennifer.cr)
 
+          TIP: If you're using ZSH and trying to pass model params that are nilable, wrap those arguments in quotes.
+
         Commands:
           create        Will create only one database. This means that for test environment (and for any extra environment you want) this command should be invoked separately.
           drop          Drops database described in the configuration.
@@ -33,69 +35,48 @@ module Amber::CLI
         caption "performs database migrations, model generations and maintenance tasks"
       end
 
+      # ameba:disable Metrics/CyclomaticComplexity
       def run
         CLI.toggle_colors(options.no_color?)
-        #connect_to_database if args.commands.empty?
-        puts "You ran the DB command! YAY!"
-        puts args
-        process_commands(args.commands)
-      #rescue e : DB::ConnectionRefused
-      #  exit! "Connection unsuccessful: #{Micrate::DB.connection_url.colorize(:light_blue)}", error: true
-      #rescue e : Exception
-      #  exit! e.message, error: true
-      end
+        params = ""
+        commands = args.commands
 
-      private def process_commands(commands)
+        if commands.first.matches?(/migration|rollback|model|step/)
+          new_commands = [commands.delete_at(0)]
+          params = commands.join(" ")
+          commands = new_commands
+        end
+
         commands.each do |command|
           case command
           when "create"
-            `crystal sam.cr -- db:create`
+            puts `crystal sam.cr db:create`
           when "drop"
-            `crystal sam.cr -- db:drop`
+            puts `crystal sam.cr db:drop`
           when "migration"
-            `crystal sam.cr -- db:migration`
+            puts `crystal sam.cr generate:migration #{params}`
           when "model"
-            # This should have args passed in
-            `crystal sam.cr -- db:model`
+            puts `crystal sam.cr generate:model #{params}`
           when "migrate"
-            `crystal sam.cr -- db:migrate`
+            puts `crystal sam.cr db:migrate`
           when "rollback"
-            # This should have args passed in
-            `crystal sam.cr -- db:rollback`
+            puts `crystal sam.cr db:rollback #{params}`
           when "schema_load"
-            # This should have args passed in
-            `crystal sam.cr -- db:rollback`
+            puts `crystal sam.cr db:schema:load`
           when "seed"
-            `crystal sam.cr -- db:seed`
+            puts `crystal sam.cr db:seed`
           when "setup"
-            `crystal sam.cr -- db:seed`
+            puts `crystal sam.cr db:create && crystal sam.cr db:schema:load`
           when "step"
-            `crystal sam.cr -- db:step`
+            puts `crystal sam.cr db:step #{params}`
           when "version"
-            `crystal sam.cr -- db:version`
+            puts `crystal sam.cr db:version`
           else
             exit! help: true, error: false
           end
         end
       end
 
-
-      private def command_line_tool
-        case Amber::CLI.config.database
-        when "pg"
-          "psql"
-        when "mysql"
-          "mysql"
-        when "sqlite"
-          "sqlite3"
-        else
-          exit! "invalid database configuration", error: true
-        end
-      end
-
-      # private def database_url
-      #   ENV["DATABASE_URL"]? || CLI.settings.database_url
-      # end
     end
   end
 end

@@ -1,11 +1,15 @@
 module Amber::Controller::Helpers
   module I18n
     def t(*arg)
-      ::I18n.translate(*arg, force_locale: context.locale)
+      # removed the param forced_locale because it was requiring the `context.locale` which then doesn't compile
+      # TODO add a way to specify the locale from the URL
+      ::I18n.translate(*arg)
     end
 
     def l(*arg)
-      ::I18n.localize(*arg, force_locale: context.locale)
+      # removed the param forced_locale because it was requiring the `context.locale` which then doesn't compile
+      # TODO add a way to specify the locale from the URL
+      ::I18n.localize(*arg)
     end
   end
 end

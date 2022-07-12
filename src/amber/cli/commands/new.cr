@@ -45,7 +45,7 @@ module Amber::CLI
         else
           generator = Generators.new(name, full_path_name)
         end
-        
+
         generator.generate_app(options)
 
         # Encrypts production.yml by default.
