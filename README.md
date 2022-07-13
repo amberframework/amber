@@ -127,6 +127,14 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 5. Push to the branch `git push origin my-new-feature`
 6. Create a new Pull Request
 
+### Tips for working on CLI features
+
+The CLI tool is compiled by running `crystal build src/amber/cli.cr` and then the binary is available for use in the apps root directory.
+
+- It is recommended you add a folder that symlinks to this binary, and then add that symlinked file to your $PATH under a similar but distinctly different command. `amber` will and should always default to the released version of the cli. I recommend using `.amber` or `ambr` as your symlinked alternative command name.
+- When testing the amber CLI, you can create an app within the amber project folder called `myapp` and it will be ignored by both ameba and git. This makes it a lot more convenient to test any CLI features.
+- One gotcha of the CLI tool is that it will be generating an app that uses the latest release of Amber, so if you're working on anything that may require a new amber release you can expect having to edit the sources in `myapp/lib/` folder. This should rarely ever be needed, but be aware that it's a difficulty.
+
 ## Contributors
 
 - [Dru Jensen](https://github.com/drujensen "drujensen")
