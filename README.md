@@ -56,6 +56,7 @@ brew install amber
 git clone https://github.com/amberframework/amber.git
 cd amber
 git checkout stable
+shards install
 make
 sudo make install
 ```
