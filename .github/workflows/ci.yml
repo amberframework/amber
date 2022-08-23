@@ -9,8 +9,8 @@ jobs:
 
     steps:
       - name: Update & install sqlite3
-        run: apt update && apt install sqlite3
-        
+        run: apt update && apt install -y sqlite3
+
       - name: Download source
         uses: actions/checkout@v3
 
