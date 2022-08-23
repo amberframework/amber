@@ -90,6 +90,10 @@ module Amber::Router::Cookies
             expires : Time? = nil, domain : String? = nil,
             secure : Bool = false, http_only : Bool = false,
             extension : String? = nil)
+          
+      name = URI.encode_www_form(name)
+      value = URI.encode_www_form(value)
+
       if @cookies[name]? != value || expires
         @cookies[name] = value
         @set_cookies[name] = HTTP::Cookie.new(name, value, path, expires, domain, secure, http_only, extension)
