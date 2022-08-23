@@ -10,7 +10,6 @@ module Amber::CLI
 
     def initialize(name, fields)
       super(name, nil)
-      @fields = all_fields(fields)
     end
 
     def pre_render(directory, **args)
@@ -86,24 +85,6 @@ module Amber::CLI
           context.current_#{@name}
         end
       AUTH
-    end
-
-    private def all_fields(fields)
-      fields.map { |field| Field.new(field, database: config.database) } +
-        auth_fields +
-        timestamp_fields
-    end
-
-    private def auth_fields
-      %w(email:string hashed_password:password).map do |f|
-        Field.new(f, hidden: false, database: config.database)
-      end
-    end
-
-    private def timestamp_fields
-      %w(created_at:time updated_at:time).map do |f|
-        Field.new(f, hidden: true, database: config.database)
-      end
     end
   end
 end
