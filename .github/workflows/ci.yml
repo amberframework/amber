@@ -2,12 +2,14 @@ on:
   push:
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     container:
       image: crystallang/crystal
 
     steps:
+      - name: Remove sqllite3 dev library
+        run: sudo apt uninstall libsqlite3-dev
       - name: Download source
         uses: actions/checkout@v3
 
