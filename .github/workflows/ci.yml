@@ -8,8 +8,8 @@ jobs:
       image: crystallang/crystal
 
     steps:
-      - name: Remove sqllite3 dev library
-        run: sudo apt uninstall libsqlite3-dev
+      - name: Install sqllite3 dev library
+        run: apt install libsqlite3-dev
       - name: Download source
         uses: actions/checkout@v3
 
