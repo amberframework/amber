@@ -90,7 +90,6 @@ module Amber::Router::Cookies
             expires : Time? = nil, domain : String? = nil,
             secure : Bool = false, http_only : Bool = false,
             extension : String? = nil)
-          
       name = URI.encode_www_form(name)
       value = URI.encode_www_form(value)
 

@@ -79,7 +79,7 @@ module Sentry
     private def check_processes
       @processes.each do |task, procs|
         # clean up process list and restart if terminated
-        if procs.any?
+        if !procs.empty?
           procs.reject!(&.terminated?)
 
           if procs.empty?
