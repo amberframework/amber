@@ -28,7 +28,7 @@ jobs:
         run: shards install
 
       - name: Check redis availability
-        run: redis-cli ping
+        run: redis-cli -h localhost ping
 
       - name: Run tests
         run: bin/amber_spec
