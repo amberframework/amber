@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Update & install sqlite3
-        run: apt update && apt install -y libsqlite3-dev redis-cli
+        run: apt update && apt install -y libsqlite3-dev redis
 
       - name: Download source
         uses: actions/checkout@v3
