@@ -1,18 +1,25 @@
 on:
   push:
 jobs:
-  build:
+  container-job:
+  
     runs-on: ubuntu-latest
 
     container:
       image: crystallang/crystal
 
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Update & install sqlite3
-        run: apt update && apt install -y libsqlite3-dev redis-server redis-tools
-
-      - name: Check redis is running
-        run: redis-cli ping
+        run: apt update && apt install -y libsqlite3-dev
 
       - name: Download source
         uses: actions/checkout@v3
@@ -22,3 +29,5 @@ jobs:
 
       - name: Run tests
         run: bin/amber_spec
+        env:
+          REDIS_URL: "redis:6379"
