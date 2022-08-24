@@ -10,9 +10,9 @@ jobs:
     steps:
       - name: Update & install sqlite3
         run: apt update && apt install -y libsqlite3-dev redis-server redis-tools
-      
-      - name: Redis Server in GitHub Actions
-        uses: supercharge/redis-github-action@1.4.0
+
+      - name: Check redis is running
+        run: redis-cli ping
 
       - name: Download source
         uses: actions/checkout@v3
