@@ -25,7 +25,7 @@ def <%= create_model_method %>
   model
 end
 
-class <%= class_name %>ControllerTest < GarnetSpec::Controller::Test
+class <%= class_name %>ControllerTest < GarnetSpec::SystemTest
   getter handler : Amber::Pipe::Pipeline
 
   def initialize
