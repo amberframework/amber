@@ -152,7 +152,7 @@ module Amber::Router::Session
         cookie_store.delete("ses")
 
         cookie_store.to_h.keys.should eq %w(a b c)
-        cookie_store.to_h["c"].should eq "x"
+        cookie_store.to_h.dig("c").should eq "x"
       end
     end
 

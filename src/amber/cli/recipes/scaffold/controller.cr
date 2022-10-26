@@ -24,7 +24,7 @@ module Amber::Recipes::Scaffold
       @fields += %w(created_at:time updated_at:time).map do |f|
         Amber::CLI::Field.new(f, hidden: true, database: @database)
       end
-      @visible_fields = @fields.reject { |f| f.hidden }
+      @visible_fields = @fields.reject(&.hidden)
       field_hash
 
       @template = RecipeFetcher.new("scaffold", @recipe).fetch
