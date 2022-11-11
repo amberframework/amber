@@ -43,7 +43,7 @@ module Amber::CLI
 
     def default_watch_options
       appname = self.class.get_name
-      options = WatchOptions{
+      WatchOptions{
         "run" => Hash{
           "build_commands" => [
             "mkdir -p bin",
