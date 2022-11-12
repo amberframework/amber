@@ -7,7 +7,7 @@ include CLIFixtures
 
 module Amber::CLI
   describe "database" do
-    Spec.around_each do |test|
+    around_each do |test|
       # override DATABASE_URL for this test suite
       if ENV["DATABASE_URL"]?
         db_url = ENV["DATABASE_URL"]
