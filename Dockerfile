@@ -9,6 +9,6 @@ WORKDIR /opt/amber
 # Build Amber
 ENV PATH /opt/amber/bin:$PATH
 COPY . /opt/amber
-RUN shards build amber --ignore-crystal-version
+RUN shards build amber
 
 CMD ["crystal", "spec"]

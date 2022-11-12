@@ -2,7 +2,7 @@ on:
   push:
 jobs:
   amber-spec:
-  
+
     runs-on: ubuntu-latest
 
     container:
@@ -21,7 +21,9 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_app
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -32,7 +34,7 @@ jobs:
 
     steps:
       - name: Update & install sqlite3
-        run: apt update && apt install -y libsqlite3-dev redis
+        run: apt update && apt install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev
 
       - name: Download source
         uses: actions/checkout@v3
@@ -40,7 +42,9 @@ jobs:
       - name: Install shards
         run: shards install
 
-      - name: Run tests
+      - name: Run main tests
         run: bin/amber_spec
         env:
+          DATABASE_URL: "postgres://postgres:password@postgres:5432/test_app"
           REDIS_URL: "redis://redis:6379"
+          AMBER_ENV: test
