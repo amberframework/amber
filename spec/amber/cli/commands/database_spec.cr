@@ -9,8 +9,8 @@ module Amber::CLI
   describe "database" do
     describe "sqlite" do
       it "has connection settings in config/environments/env.yml" do
-        db_url = ENV["DATABASE_URL"]
-        
+        db_url = ENV["DATABASE_URL"]?
+
         if ENV["DATABASE_URL"]?
           ENV.delete("DATABASE_URL")
         end
@@ -24,8 +24,8 @@ module Amber::CLI
       end
 
       it "creates and deletes the database when db migrate and drop" do
-        db_url = ENV["DATABASE_URL"]
-        
+        db_url = ENV["DATABASE_URL"]?
+
         if ENV["DATABASE_URL"]?
           ENV.delete("DATABASE_URL")
         end
@@ -45,7 +45,7 @@ module Amber::CLI
         db_filename = CLI.settings.database_url.gsub("sqlite3:", "")
         File.exists?(db_filename).should be_false
         cleanup
-        
+
         unless ENV["DATABASE_URL"]?
           ENV["DATABASE_URL"] = db_url
         end
@@ -54,8 +54,8 @@ module Amber::CLI
 
     describe "postgres" do
       it "has test connection settings" do
-        db_url = ENV["DATABASE_URL"]
-        
+        db_url = ENV["DATABASE_URL"]?
+
         if ENV["DATABASE_URL"]?
           ENV.delete("DATABASE_URL")
         end
