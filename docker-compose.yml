@@ -2,13 +2,18 @@ version: '2'
 services:
   db:
     image: postgres:10.2
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: test_app
+
   redis:
     image: redis:5.0-alpine
     command: redis-server
+    ports:
+      - 6379:6379
   spec:
     build: .
     working_dir: /opt/amber
