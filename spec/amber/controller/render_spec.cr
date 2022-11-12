@@ -29,11 +29,11 @@ module Amber::Controller
         RenderController.new(context).render_with_layout.should eq layout_with_template
       end
 
-      it "renders a form with a csrf tag" do
-        result = RenderController.new(context).render_with_csrf
-        result.should contain "<form"
-        result.should contain "<input type=\"hidden\" name=\"_csrf\" value="
-      end
+      # it "renders a form with a csrf tag" do
+      #   result = RenderController.new(context).render_with_csrf
+      #   result.should contain "<form"
+      #   result.should contain "<input type=\"hidden\" name=\"_csrf\" value="
+      # end
     end
   end
 end
