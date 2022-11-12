@@ -39,9 +39,9 @@ module Amber::CLI
       it "executes a .cr file from the first command-line argument" do
         File.write "amber_exec_spec_test.cr", "puts([:a] + [:b])"
         MainCommand.run(["exec", "amber_exec_spec_test.cr", "-e", "tail"])
+        File.delete("amber_exec_spec_test.cr")
         logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
         File.read(logs.last?.to_s).should eq "[:a, :b]\n"
-        File.delete("amber_exec_spec_test.cr")
       end
 
       it "opens editor and executes .cr file on close" do

@@ -7,7 +7,7 @@ module Amber::CLI
     class New < Command
       class Options
         arg "name", desc: "name/path of project", required: true
-        string "-d", desc: "Select the database database engine, can be one of: pg | mysql | sqlite", default: "sqlite"
+        string "-d", desc: "Select the database database engine, can be one of: pg | mysql | sqlite", default: "pg"
         string "-t", desc: "Selects the template engine language, can be one of: slang | ecr", default: "slang"
         string "-r", desc: "Use a named recipe.  See documentation at  https://docs.amberframework.org/amber/cli/recipes.", default: nil
         bool "--no-color", desc: "Disable colored output", default: false

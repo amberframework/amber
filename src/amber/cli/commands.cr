@@ -45,7 +45,7 @@ module Amber::CLI
       version desc: "prints Amber version"
       help desc: "describe available commands and usages"
       string ["-t", "--template"], desc: "preconfigure for selected template engine", any_of: %w(slang ecr), default: "slang"
-      string ["-d", "--database"], desc: "preconfigure for selected database.", any_of: %w(pg mysql sqlite), default: "sqlite"
+      string ["-d", "--database"], desc: "preconfigure for selected database.", any_of: %w(pg mysql sqlite), default: "pg"
       string ["-r", "--recipe"], desc: "use a named recipe. See documentation at https://docs.amberframework.org/amber/cli/recipes.", default: nil
     end
   end

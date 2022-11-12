@@ -21,7 +21,7 @@ module Amber::CLI
     # see defaults below
     alias WatchOptions = Hash(String, Hash(String, Array(String)))
 
-    property database : String = "sqlite"
+    property database : String = "pg"
     property language : String = "slang"
     property model : String = "granite"
     property recipe : (String | Nil) = nil
@@ -33,7 +33,7 @@ module Amber::CLI
     end
 
     YAML.mapping(
-      database: {type: String, default: "sqlite"},
+      database: {type: String, default: "pg"},
       language: {type: String, default: "slang"},
       model: {type: String, default: "granite"},
       recipe: String | Nil,
