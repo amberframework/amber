@@ -7,26 +7,29 @@ include CLIFixtures
 
 module Amber::CLI
   describe "database" do
-    around_each do |test|
-      # override DATABASE_URL for this test suite
-      if ENV["DATABASE_URL"]?
-        db_url = ENV["DATABASE_URL"]
-        ENV.delete("DATABASE_URL")
-        test.run
-        ENV["DATABASE_URL"] = db_url
-      else
-        test.run
-      end
-    end
-
     describe "sqlite" do
       it "has connection settings in config/environments/env.yml" do
+        db_url = ENV["DATABASE_URL"]
+        
+        if ENV["DATABASE_URL"]?
+          ENV.delete("DATABASE_URL")
+        end
         env_yml = prepare_test_app
         env_yml["database_url"].should eq expected_db_url("sqlite3", env)
         cleanup
+
+        unless ENV["DATABASE_URL"]?
+          ENV["DATABASE_URL"] = db_url
+        end
       end
 
       it "creates and deletes the database when db migrate and drop" do
+        db_url = ENV["DATABASE_URL"]
+        
+        if ENV["DATABASE_URL"]?
+          ENV.delete("DATABASE_URL")
+        end
+
         env_yml = prepare_test_app
         CLI.settings.database_url = env_yml["database_url"].to_s
 
@@ -42,15 +45,29 @@ module Amber::CLI
         db_filename = CLI.settings.database_url.gsub("sqlite3:", "")
         File.exists?(db_filename).should be_false
         cleanup
+        
+        unless ENV["DATABASE_URL"]?
+          ENV["DATABASE_URL"] = db_url
+        end
       end
     end
 
     describe "postgres" do
       it "has test connection settings" do
+        db_url = ENV["DATABASE_URL"]
+        
+        if ENV["DATABASE_URL"]?
+          ENV.delete("DATABASE_URL")
+        end
+
         scaffold_app("#{TESTING_APP}", "-d", "pg")
         env_yml = environment_yml("test", "#{Dir.current}/config/environments/")
         env_yml["database_url"].should eq expected_db_url("pg", env)
         cleanup
+
+        unless ENV["DATABASE_URL"]?
+          ENV["DATABASE_URL"] = db_url
+        end
       end
     end
   end
