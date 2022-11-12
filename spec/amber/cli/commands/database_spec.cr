@@ -24,7 +24,7 @@ module Amber::CLI
           cleanup
         end
 
-        it "creates the database when db migrate" do
+        it "creates and deletes the database when db migrate and drop" do
           env_yml = prepare_test_app
           CLI.settings.database_url = env_yml["database_url"].to_s
 
@@ -34,15 +34,7 @@ module Amber::CLI
           db_filename = CLI.settings.database_url.to_s.gsub("sqlite3:", "")
           File.exists?(db_filename).should be_true
           File.info(db_filename).size.should_not eq 0
-          cleanup
-        end
 
-        it "deletes the database when db drop" do
-          env_yml = prepare_test_app
-          CLI.settings.database_url = env_yml["database_url"].to_s
-
-          MainCommand.run ["generate", "model", "-y", "Post"]
-          MainCommand.run ["db", "migrate"]
           MainCommand.run ["db", "drop"]
 
           db_filename = CLI.settings.database_url.gsub("sqlite3:", "")
