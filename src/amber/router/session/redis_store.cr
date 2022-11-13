@@ -56,7 +56,7 @@ module Amber::Router::Session
     end
 
     def to_h
-      store.hgetall(session_id).each_slice(2).to_h
+      store.hgetall(session_id)
     end
 
     def update(hash : Hash(String | Symbol, String))

@@ -88,7 +88,7 @@ module Amber::CLI
         match = line.match(PIPELINE_REGEX)
 
         if match && (pipes = match[1])
-          pipes = pipes.split(/,\s*/).map { |s| s.gsub(/[:\"]/, "") }
+          pipes = pipes.split(/,\s*/).map(&.gsub(/[:\"]/, ""))
           result << {pipes: pipes, plugs: [] of String}
         else
           raise BadRoutesException.new(FAILED_TO_PARSE_ERROR)
@@ -113,7 +113,7 @@ module Amber::CLI
         table.border_color = :dark_gray unless options.no_color?
 
         if options.no_plugs?
-          result.map { |pipes_and_plugs| pipes_and_plugs[:pipes] }.flatten.uniq.each do |pipe|
+          result.flat_map { |pipes_and_plugs| pipes_and_plugs[:pipes] }.uniq!.each do |pipe|
             row = table.add_row
             row.add_column(pipe)
           end

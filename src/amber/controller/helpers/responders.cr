@@ -90,7 +90,7 @@ module Amber::Controller::Helpers
       accept = context.request.headers["Accept"]?
       if accept && !accept.empty?
         accepts = accept.split(";").first?.try(&.split(Content::ACCEPT_SEPARATOR_REGEX))
-        return accepts if !accepts.nil? && accepts.any?
+        return accepts if !accepts.nil? && !accepts.empty?
       end
     end
 

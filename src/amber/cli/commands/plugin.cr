@@ -25,7 +25,7 @@ module Amber::CLI
 
         if Amber::Plugins::Plugin.can_generate?(args.name)
           template = Amber::Plugins::Plugin.new(args.name, "./src/plugins", options.args)
-          template.generate (options.uninstall? ? "uninstall" : "install")
+          template.generate(options.uninstall? ? "uninstall" : "install")
         end
       end
 

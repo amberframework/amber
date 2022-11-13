@@ -45,7 +45,7 @@ module Amber
 
       def self.get_topic_channel(topic_path)
         topic_channels = @@channels.select { |ch| WebSockets.topic_path(ch[:path]) == topic_path }
-        return topic_channels[0][:channel] if topic_channels.any?
+        return topic_channels[0][:channel] if !topic_channels.empty?
       end
 
       # Broadcast a message to all subscribers of the topic

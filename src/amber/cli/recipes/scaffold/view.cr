@@ -21,7 +21,7 @@ module Amber::Recipes::Scaffold
         Amber::CLI::Field.new(f, hidden: true, database: @database)
       end
 
-      @visible_fields = @fields.reject { |f| f.hidden }
+      @visible_fields = @fields.reject(&.hidden)
 
       @template = RecipeFetcher.new("scaffold", @recipe).fetch
       unless @template.nil?

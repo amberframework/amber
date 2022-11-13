@@ -1,0 +1,46 @@
+on:
+  push:
+jobs:
+  amber-spec:
+  
+    runs-on: ubuntu-latest
+
+    container:
+      image: crystallang/crystal
+
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Update & install sqlite3
+        run: apt update && apt install -y libsqlite3-dev redis
+
+      - name: Download source
+        uses: actions/checkout@v3
+
+      - name: Install shards
+        run: shards install
+
+      - name: Run tests
+        run: bin/amber_spec
+        env:
+          REDIS_URL: "redis://redis:6379"
