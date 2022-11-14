@@ -12,5 +12,4 @@ shard.lock
 package-lock.json
 node_modules
 /myapp
-cli
 cli.dwarf
