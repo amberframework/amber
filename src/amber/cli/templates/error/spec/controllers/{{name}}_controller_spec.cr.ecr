@@ -28,7 +28,8 @@ describe <%= class_name %>Controller do
 end
 
 # Controller Integration Test
-class <%= class_name %>ControllerTest < GarnetSpec::SystemTest
+class <%= class_name %>ControllerTest
+  include RequestHelper
   getter handler : Amber::Pipe::Pipeline
 
   def initialize

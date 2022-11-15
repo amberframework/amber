@@ -2,7 +2,6 @@ ENV["AMBER_ENV"] ||= "test"
 
 require "spec"
 require "micrate"
-require "garnet_spec"
 
 require "../config/application"
 
