@@ -1,7 +1,7 @@
 version: '2'
 services:
   postgres:
-    image: postgres:10.2
+    image: postgres
     ports:
       - 5432:5432
     environment:
@@ -10,7 +10,7 @@ services:
       POSTGRES_DB: test_app
 
   redis:
-    image: redis:5.0-alpine
+    image: redis
     command: redis-server
     ports:
       - 6379:6379
