@@ -24,7 +24,6 @@ services:
       - db
     volumes:
     - .:/app
-    - nodes:/app/node_modules
     - shards:/app/lib
 
   migrate:
@@ -51,7 +50,7 @@ services:
       - db:/var/lib/postgres/data
 <% elsif @database == "mysql" -%>
   db:
-    image: mysql:5.6
+    image: mysql
     ports:
       - 3306:3306
     environment:
@@ -71,5 +70,4 @@ services:
 
 volumes:
   db:
-  nodes:
   shards:
