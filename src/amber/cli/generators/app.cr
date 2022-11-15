@@ -33,6 +33,10 @@ module Amber::CLI
       system("which git >/dev/null")
     end
 
+    def filter(entries)
+      entries.reject { |entry| entry.path.includes?("src/views") && !entry.path.includes?("#{@language}") }
+    end
+
     def fetch_author
       if which_git_command
         user_name = `git config --get user.name`.strip
