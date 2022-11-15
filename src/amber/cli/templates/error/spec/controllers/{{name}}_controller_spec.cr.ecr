@@ -29,7 +29,7 @@ end
 
 # Controller Integration Test
 class <%= class_name %>ControllerTest
-  include RequestHandler
+  include RequestHelper
   getter handler : Amber::Pipe::Pipeline
 
   def initialize
