@@ -29,6 +29,10 @@ module Amber::Controller
         RenderController.new(context).render_with_layout.should eq layout_with_template
       end
 
+      it "renders with layout equal to false" do
+        RenderLayoutFalseController.new(context).render_with_layout.should eq partial_only
+      end
+
       # it "renders a form with a csrf tag" do
       #   result = RenderController.new(context).render_with_csrf
       #   result.should contain "<form"
