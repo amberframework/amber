@@ -111,6 +111,14 @@ class RenderController < Amber::Controller::Base
   end
 end
 
+class RenderLayoutFalseController < Amber::Controller::Base
+  LAYOUT = false
+
+  def render_with_layout
+    render("test/test.slang", layout: "layout.slang", path: "spec/support/sample/views", folder: "./")
+  end
+end
+
 class ResponsesController < Amber::Controller::Base
   def index
     respond_with do

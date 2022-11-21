@@ -13,6 +13,7 @@ port_reuse: true
 process_count: 1
 redis_url: "redis://localhost:6379"
 database_url: "mysql://root@localhost:3306/development_settings_test"
+
 # ssl_key_file:
 # ssl_cert_file:
 
@@ -23,4 +24,3 @@ session:
 
 secrets:
   description: "Store your test secrets credentials and settings here."
-

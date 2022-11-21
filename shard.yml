@@ -30,6 +30,10 @@ dependencies:
     github: jeromegn/kilt
     version: ~> 0.6.0
 
+  slang:
+    github: jeromegn/slang
+    version: ~> 1.7.1
+
   liquid:
     github: dare892/liquid.cr
     branch: chore/bump-version-crystal1.0.0
@@ -57,10 +61,6 @@ dependencies:
   shell-table:
     github: luckyframework/shell-table.cr
     version: ~> 0.9.3
-
-  slang:
-    github: jeromegn/slang
-    version: ~> 1.7.1
 
   inflector:
     github: phoffer/inflector.cr

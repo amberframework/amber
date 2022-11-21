@@ -4,8 +4,10 @@ module Amber
   module Pipe
     describe ClientIp do
       context "IP from headers" do
-        Amber::Server.router.draw :web do
-          get "/client_ip_address", HelloController, :client_ip_address
+        before_each do
+          Amber::Server.router.draw :web do
+            get "/client_ip_address", HelloController, :client_ip_address
+          end
         end
 
         it "gets first client IP from default header" do

@@ -105,11 +105,7 @@ module Sentry
           log task, "Terminating process..."
         end
         procs.each do |process|
-          {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
             process.signal(:term) unless process.terminated?
-          {% else %}
-            process.kill unless process.terminated?
-          {% end %}
         end
         procs.clear
       end

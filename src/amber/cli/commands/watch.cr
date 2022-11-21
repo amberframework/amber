@@ -15,7 +15,7 @@ module Amber::CLI
 
       class Help
         header "Starts Amber development server and rebuilds on file changes"
-        caption "starts Amber development server and rebuilds on file changes"
+        caption "Starts Amber development server and rebuilds on file changes"
       end
 
       def run

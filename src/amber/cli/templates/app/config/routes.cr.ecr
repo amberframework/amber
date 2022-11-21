@@ -28,9 +28,7 @@ Amber::Server.configure do
   end
 
   routes :web do
-<% unless @minimal -%>
     get "/", HomeController, :index
-<% end -%>
   end
 
   routes :api do

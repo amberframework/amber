@@ -27,7 +27,6 @@ module Amber::CLI
     property recipe : (String | Nil) = nil
     property recipe_source : (String | Nil) = nil
     property watch : WatchOptions
-    property minimal : Bool = false
 
     def initialize
       @watch = default_watch_options
@@ -44,7 +43,7 @@ module Amber::CLI
 
     def default_watch_options
       appname = self.class.get_name
-      options = WatchOptions{
+      WatchOptions{
         "run" => Hash{
           "build_commands" => [
             "mkdir -p bin",
@@ -60,20 +59,6 @@ module Amber::CLI
           ],
         },
       }
-      add_npm_watch_options(options)
-    end
-
-    def add_npm_watch_options(options)
-      return options if @minimal
-      options["npm"] = Hash{
-        "build_commands" => [
-          "npm install --loglevel=error",
-        ],
-        "run_commands" => [
-          "npm run watch",
-        ],
-      }
-      options
     end
 
     def self.get_name

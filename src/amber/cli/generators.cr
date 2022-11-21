@@ -233,7 +233,7 @@ module Amber::CLI
 
     def generate_app(options)
       info "Rendering App #{name} in #{directory}"
-      App.new(name, options.d, options.t, options.minimal?).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
+      App.new(name, options.d, options.t).render(directory, list: true, interactive: !options.assume_yes?, color: options.no_color?)
       unless options.no_deps?
         info "Installing Dependencies"
         Helpers.run("cd #{directory} && shards update")

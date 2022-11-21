@@ -16,15 +16,18 @@ module Amber
 
       describe "with given server config" do
         pipeline = Pipeline.new
+        before_each do
+          pipeline = Pipeline.new
 
-        Amber::Server.router.draw :web do
-          get "/valid/route", HelloController, :world
-          get "/index/:name", HelloController, :world
-          resources "/hello", HelloController
+          Amber::Server.router.draw :web do
+            get "/valid/route", HelloController, :world
+            get "/index/:name", HelloController, :world
+            resources "/hello", HelloController
+          end
+
+          pipeline.build :web { }
+          pipeline.prepare_pipelines
         end
-
-        pipeline.build :web { }
-        pipeline.prepare_pipelines
 
         it "raises exception when route not found" do
           request = HTTP::Request.new("GET", "/bad/route")

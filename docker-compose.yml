@@ -1,22 +1,27 @@
 version: '2'
 services:
-  db:
-    image: postgres:10.2
+  postgres:
+    image: postgres
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: test_app
+
   redis:
-    image: redis:5.0-alpine
+    image: redis
     command: redis-server
+    ports:
+      - 6379:6379
+
   spec:
     build: .
-    working_dir: /opt/amber
+    command: bin/amber_spec
     environment:
-      DATABASE_URL: 'postgres://postgres:password@db:5432/test_app'
+      DATABASE_URL: 'postgres://postgres:password@postgres:5432/test_app'
       REDIS_URL: 'redis://redis:6379'
       AMBER_ENV: test
-      CI: "true"
     depends_on:
       - redis
-      - db
+      - postgres
