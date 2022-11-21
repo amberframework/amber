@@ -22,7 +22,7 @@ module Amber::Controller::Helpers
       {% end %}
 
       # Render Layout
-      {% if layout && !partial %}
+      {% if layout && LAYOUT != "false" && LAYOUT && !partial %}
         content = %content
         render_template("layouts/#{{{layout.class_name == "StringLiteral" ? layout : LAYOUT}}}", {{path}})
       {% else %}
