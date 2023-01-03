@@ -68,7 +68,7 @@ module Amber::Router::Cookies
       end
     end
 
-    def each(&block : T -> _)
+    def each(& : T -> _)
       @cookies.values.each do |cookie|
         yield cookie
       end

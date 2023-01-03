@@ -72,7 +72,7 @@ module Amber::Controller
 
     property filters = {} of Symbol => Array(Filter)
 
-    def register(precedence : Symbol) : Nil
+    def register(precedence : Symbol, &) : Nil
       with FilterBuilder.new(self, precedence) yield
     end
 
@@ -81,7 +81,7 @@ module Amber::Controller
       filters[filter.precedence] << filter
     end
 
-    def each(&block : {Symbol, Array(Filter)} -> _)
+    def each(& : {Symbol, Array(Filter)} -> _)
       filters.each do |key, filter|
         yield({key, filter})
       end

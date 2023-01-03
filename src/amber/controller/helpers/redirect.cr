@@ -66,7 +66,7 @@ module Amber::Controller::Helpers
     end
 
     private def raise_redirect_error(location)
-      if (!location.url? || !location.chars.first == '/')
+      if !location.url? || !location.chars.first == '/'
         raise Exceptions::Controller::Redirect.new(location)
       end
     end

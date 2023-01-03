@@ -19,7 +19,7 @@ module Amber
     end
 
     # Configure should probably be deprecated in favor of settings.
-    def self.configure
+    def self.configure(&)
       with self yield instance.settings
     end
 
