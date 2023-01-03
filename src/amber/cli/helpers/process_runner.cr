@@ -36,7 +36,7 @@ module Sentry
 
       @includes.each do |task, includes|
         excluded_files = Array(String).new
-        if (excludes = @excludes[task]?)
+        if excludes = @excludes[task]?
           excludes.each { |glob| excluded_files += Dir.glob(glob) }
         end
         includes.each do |glob|
@@ -105,7 +105,7 @@ module Sentry
           log task, "Terminating process..."
         end
         procs.each do |process|
-            process.signal(:term) unless process.terminated?
+          process.signal(:term) unless process.terminated?
         end
         procs.clear
       end

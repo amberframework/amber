@@ -34,7 +34,7 @@ module Amber::Validators
       @value = params[@field]
       @present = params.has_key?(@field)
 
-      return true if (params[@field].blank? && @allow_blank)
+      return true if params[@field].blank? && @allow_blank
 
       @predicate.call params[@field] unless @predicate.nil?
     end
@@ -99,7 +99,7 @@ module Amber::Validators
     #   required(:age, UInt32)
     # end
     # ```
-    def validation
+    def validation(&)
       with ValidationBuilder.new(self) yield
       self
     end

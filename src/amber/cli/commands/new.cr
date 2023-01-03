@@ -37,7 +37,7 @@ module Amber::CLI
           info "#{full_path_name} should be #{full_path_name.gsub(/\s+/, "_")}"
           exit! error: true
         end
-        if (options.r? != nil)
+        if options.r? != nil
           generator = Amber::Recipes::Recipe.new(name, full_path_name, "#{options.r}")
         else
           generator = Generators.new(name, full_path_name)

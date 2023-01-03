@@ -24,11 +24,11 @@ module Amber
       end
 
       # This registers all the routes for the application
-      def draw(valve : Symbol)
+      def draw(valve : Symbol, &)
         with DSL::Router.new(self, valve, scope) yield
       end
 
-      def draw(valve : Symbol, namespace : String)
+      def draw(valve : Symbol, namespace : String, &)
         scope.push(namespace)
         with DSL::Router.new(self, valve, scope) yield
         scope.pop

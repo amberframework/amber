@@ -62,7 +62,7 @@ module Amber
           fetch(key)
         end
 
-        def each
+        def each(&)
           @store.each do |key, value|
             yield({key, value})
             @read << key

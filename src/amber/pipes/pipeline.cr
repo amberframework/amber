@@ -25,7 +25,7 @@ module Amber
       end
 
       # Connects pipes to a pipeline to process requests
-      def build(valve : Symbol, &block)
+      def build(valve : Symbol, &)
         @valve = valve
         @pipeline[valve] = [] of HTTP::Handler unless pipeline.has_key? valve
         with DSL::Pipeline.new(self) yield

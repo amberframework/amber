@@ -1,3 +1,7 @@
 Excluded:
   - tmp/
   - myapp/
+
+Lint/NotNil:
+  Enabled: false
+
