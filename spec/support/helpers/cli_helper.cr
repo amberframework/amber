@@ -40,7 +40,7 @@ module CLIHelper
   def expected_db_url(db_key, env)
     case db_key
     when "pg"
-      "postgres://postgres:password@localhost:5432/#{TEST_APP_NAME}_#{env}"
+      "postgres://#{`whoami`.strip("\n")}:@localhost:5432/#{TEST_APP_NAME}_#{env}"
     when "mysql"
       "#{db_key}://root@localhost:3306/#{TEST_APP_NAME}_#{env}"
     else
