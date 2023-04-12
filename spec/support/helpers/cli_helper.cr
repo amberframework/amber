@@ -1,16 +1,15 @@
 require "file_utils"
 require "json"
-require "json_mapping"
 
 class RouteJSON
-  JSON.mapping({
-    verb:        String,
-    controller:  String,
-    action:      String,
-    pipeline:    String,
-    scope:       String,
-    uri_pattern: String,
-  })
+  include JSON::Serializable
+
+  property action : String
+  property controller : String
+  property pipeline : String
+  property scope : String
+  property uri_pattern : String
+  property verb : String
 end
 
 module CLIHelper

@@ -9,6 +9,7 @@ lib/
 /amber
 /tmp
 shard.lock
+.crystal-version
 package-lock.json
 node_modules
 /myapp
