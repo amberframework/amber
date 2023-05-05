@@ -75,6 +75,7 @@ module Amber::CLI
         if route_match = resource_string.to_s.match(RESOURCE_ROUTE_REGEX)
           filter = route_match[4]?
           filter_actions = route_match[5]?.to_s.gsub(/\:|\s/, "").split(",")
+
           ACTION_MAPPING.each do |verb, v|
             v.each do |action|
               case filter
@@ -82,13 +83,13 @@ module Amber::CLI
                 next unless filter_actions.includes?(action)
               when "except"
                 next if filter_actions.includes?(action)
-              else
-                build_route(
-                  verb: verb, controller: route_match[3]?, action: action,
-                  pipeline: current_pipe, scope: current_scope,
-                  uri_pattern: build_uri_pattern(route_match[2]?, action, current_scope)
-                )
               end
+
+              build_route(
+                verb: verb, controller: route_match[3]?, action: action,
+                pipeline: current_pipe, scope: current_scope,
+                uri_pattern: build_uri_pattern(route_match[2]?, action, current_scope)
+              )
             end
           end
         end
