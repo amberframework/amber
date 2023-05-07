@@ -29,6 +29,7 @@ module Amber::CLI
         password:  ["password", "String", "VARCHAR(255)"],
         time:      ["time", "Time", "TIMESTAMP NULL"],
         timestamp: ["time", "Time", "TIMESTAMP NULL"],
+        uuid:      ["uuid", "UUID", "binary(16)"],
       },
       sqlite: {
         int:       ["bigint", "Int64", "INT"],
