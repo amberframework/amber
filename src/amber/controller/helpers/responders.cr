@@ -7,7 +7,7 @@ module Amber::Controller::Helpers
     class Content
       TYPE = {
         html: "text/html",
-        json: "application/json",
+        json: "application/json; charset=utf-8",
         txt:  "text/plain",
         text: "text/plain",
         xml:  "application/xml",
