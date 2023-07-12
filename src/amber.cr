@@ -19,6 +19,7 @@ require "./amber/server/**"
 require "./amber/validators/**"
 require "./amber/websockets/**"
 require "./amber/environment"
+require "./amber/config"
 
 module Amber
   include Amber::Environment
