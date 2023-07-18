@@ -38,10 +38,9 @@ Read Amber documentation on https://docs.amberframework.org/amber
 
 ## Installation & Usage
 
-#### macOS
+#### Homebrew (macOS/Linux)
 
 ```
-brew tap amberframework/amber
 brew install amber
 ```
 
