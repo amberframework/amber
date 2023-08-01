@@ -35,7 +35,7 @@ module Amber::Controller
           expected_result = %({"type":"json","name":"Amberator"})
           context.request.headers["Accept"] = "application/json"
           ResponsesController.new(context).index.should eq expected_result
-          context.response.headers["Content-Type"].should eq "application/json"
+          context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
           context.response.status_code.should eq 200
         end
 
@@ -43,7 +43,7 @@ module Amber::Controller
           expected_result = %({"type":"json","name":"Amberator"})
           context.request.headers["Accept"] = "application/json,*/*"
           ResponsesController.new(context).index.should eq expected_result
-          context.response.headers["Content-Type"].should eq "application/json"
+          context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
           context.response.status_code.should eq 200
         end
 
@@ -83,7 +83,7 @@ module Amber::Controller
           expected_result = %({"type":"json","name":"Amberator"})
           context.request.path = "/response/1.json"
           ResponsesController.new(context).index.should eq expected_result
-          context.response.headers["Content-Type"].should eq "application/json"
+          context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
           context.response.status_code.should eq 200
         end
 
@@ -133,7 +133,7 @@ module Amber::Controller
           context.request.headers["Accept"] = "application/json"
           context.request.path = "/response/1.texas"
           ResponsesController.new(context).index.should eq expected_result
-          context.response.headers["Content-Type"].should eq "application/json"
+          context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
           context.response.status_code.should eq 200
         end
 
@@ -149,7 +149,7 @@ module Amber::Controller
           expected_result = %({"type":"json","error":"Unauthorized"})
           context.request.headers["Accept"] = "application/json"
           ResponsesController.new(context).custom_status_code.should eq expected_result
-          context.response.headers["Content-Type"].should eq "application/json"
+          context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
           context.response.status_code.should eq 403
         end
       end
