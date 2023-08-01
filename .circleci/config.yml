@@ -11,7 +11,7 @@ jobs:
       - run:
           name: Install missing dependencies
           command: |
-            apt-get update -qq && apt-get install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev curl vim
+            apt-get update -qq && apt-get install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev curl 
       - checkout
       - restore_cache:
           name: Restore Shards Cache
@@ -36,14 +36,14 @@ jobs:
     working_directory: ~/amber
     steps:
       - run:
+          name: Install missing dependencies
+          command: |
+            apt-get update -qq && apt-get install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev curl 
+      - checkout
+      - run:
           name: Create test results folder
           command: |
             mkdir ~/amber/test-results
-      - run:
-          name: Install missing dependencies
-          command: |
-            apt-get update -qq && apt-get install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev curl vim
-      - checkout
       - restore_cache:
           name: Restore Shards Cache
           keys: 
@@ -72,8 +72,12 @@ jobs:
       - run:
           name: Install missing dependencies
           command: |
-            apt-get update -qq && apt-get install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev curl vim
+            apt-get update -qq && apt-get install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev curl 
       - checkout
+      - run:
+          name: Create test results folder
+          command: |
+            mkdir ~/amber/test-results
       - restore_cache:
           name: Restore Shards Cache
           keys: 
