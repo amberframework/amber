@@ -8,6 +8,10 @@ jobs:
 
     working_directory: ~/amber
     steps:
+      - run:
+          name: Install missing dependencies
+          command: |
+            apt-get update -qq && apt-get install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev curl vim
       - checkout
       - restore_cache:
           name: Restore Shards Cache
@@ -23,11 +27,70 @@ jobs:
       - run:
           name: Running Ameba
           command: ./bin/ameba
+  
+  granite-test:
+    resource_class: medium
+    docker:
+      - image: crystallang/crystal:1.9.2
+
+    working_directory: ~/amber
+    steps:
+      - run:
+          name: Create test results folder
+          command: |
+            mkdir ~/amber/test-results
+      - run:
+          name: Install missing dependencies
+          command: |
+            apt-get update -qq && apt-get install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev curl vim
+      - checkout
+      - restore_cache:
+          name: Restore Shards Cache
+          keys: 
+            - shards-cache
+      - run:
+          name: shards install
+          command: shards install
+      - save_cache:
+          key: shards-cache
+          paths:
+            - lib
+      - run:
+          name: Running Granite Build Spec1
+          command: crystal spec spec/granite/build_spec.cr --junit_output ~/amber/test-results/granite-build-spec.xml
 
       - store_test_results:
           path: ~/amber/test-results
-  #granite-test:
-  #amber-specs:
+  
+  amber-specs:
+    resource_class: medium
+    docker:
+      - image: crystallang/crystal:1.9.2
+
+    working_directory: ~/amber
+    steps:
+      - run:
+          name: Install missing dependencies
+          command: |
+            apt-get update -qq && apt-get install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev curl vim
+      - checkout
+      - restore_cache:
+          name: Restore Shards Cache
+          keys: 
+            - shards-cache
+      - run:
+          name: shards install
+          command: shards install
+      - save_cache:
+          key: shards-cache
+          paths:
+            - lib
+      - run:
+          name: Running Amber specs
+          command: crystal spec --junit_output ~/amber/test-results/amber-specs.xml
+
+      - store_test_results:
+          path: ~/amber/test-results
 
 
 workflows:
@@ -35,4 +98,6 @@ workflows:
   amber:
     jobs:
       - ameba-test
+      - amber-specs
+      - granite-test
 
