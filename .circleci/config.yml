@@ -57,7 +57,7 @@ jobs:
             - lib
       - run:
           name: Running Granite Build Spec1
-          command: crystal spec spec/granite/build_spec.cr --junit_output ~/amber/test-results/granite-build-spec.xml
+          command: crystal spec spec/build_spec_granite.cr --junit_output ~/amber/test-results/granite-build-spec.xml
 
       - store_test_results:
           path: ~/amber/test-results
