@@ -1,0 +1,38 @@
+version: 2.1
+
+jobs:
+  ameba-test:
+    resource_class: medium
+    docker:
+      - image: crystallang/crystal:1.9.2
+
+    working_directory: ~/amber
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Shards Cache
+          keys: 
+            - shards-cache
+      - run:
+          name: shards install
+          command: shards install
+      - save_cache:
+          key: shards-cache
+          paths:
+            - lib
+      - run:
+          name: Running Ameba
+          command: ./bin/ameba
+
+      - store_test_results:
+          path: ~/amber/test-results
+  #granite-test:
+  #amber-specs:
+
+
+workflows:
+  version: 2
+  amber:
+    jobs:
+      - ameba-test
+
