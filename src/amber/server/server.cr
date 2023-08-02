@@ -18,11 +18,6 @@ module Amber
       instance.run
     end
 
-    # Configure should probably be deprecated in favor of settings.
-    def self.configure(&)
-      with self yield instance.settings
-    end
-
     def self.pubsub_adapter
       instance.pubsub_adapter.instance
     end
