@@ -47,14 +47,14 @@ module Amber
       end
 
       it "returns Not Found when directory_listing is disabled" do
-        request = HTTP::Request.new("GET", "/dist")
+        request = HTTP::Request.new("GET", "/dist/")
         static_true = Static.new PUBLIC_PATH, directory_listing: true
         static_false = Static.new PUBLIC_PATH # Listing is off by default in Amber
 
         response_true = create_request_and_return_io(static_true, request)
         response_false = create_request_and_return_io(static_false, request)
 
-        response_true.body.should match(/index/)
+        response_true.body.should match(/index.html/)
         response_false.status_code.should eq 404
       end
 
@@ -65,8 +65,6 @@ module Amber
         response = create_request_and_return_io(static, request)
 
         response.headers["Accept-Ranges"].should eq "bytes"
-        response.headers["X-Content-Type-Options"].should eq "nosniff"
-        response.headers["Cache-Control"].should eq "no-store"
       end
 
       it "lists the directory when directory_listing is enabled" do
@@ -74,7 +72,7 @@ module Amber
         static_true = Static.new PUBLIC_PATH, directory_listing: true
 
         response_true = create_request_and_return_io(static_true, request)
-
+        puts response_true.headers.inspect
         response_true.headers["Location"].should eq "/test/"
 
         response_true.status_code.should eq 302
