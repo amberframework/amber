@@ -45,7 +45,7 @@ module Amber::Controller
       end
 
       private def html_response
-        if Amber.env.development?
+        if Amber.env == :development
           Amber::Exceptions::Page.for_runtime_exception(context, @ex).to_s
         else
           "<html><body><pre>#{@ex.message}</pre></body></html>"

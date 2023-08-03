@@ -1,5 +1,6 @@
 module Amber::Environment
   macro included
+    class_property env = ENV["AMBER_ENV"]? || "development"
     class_property environments = {"development" => DefaultConfig.new, "test" => DefaultConfig.new, "production" => DefaultConfig.new}
 
     class DefaultConfig
@@ -36,7 +37,7 @@ module Amber::Environment
     end
 
     def self.settings
-      environments[ENV["AMBER_ENV"]]
+      environments[env]
     end
   end
 end
