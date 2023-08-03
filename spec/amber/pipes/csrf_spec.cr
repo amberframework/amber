@@ -4,7 +4,7 @@ module Amber
   module Pipe
     def self.set_dir_and_env
       Dir.cd CURRENT_DIR
-      Amber.env = :test
+      Amber.env = "test"
     end
 
     describe CSRF do
