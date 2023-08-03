@@ -20,7 +20,7 @@ module Amber::Router::Session
     end
 
     private def redis?
-      store == :redis
+      store == "redis"
     end
 
     private def encrypted_cookie?
