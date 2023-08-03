@@ -65,9 +65,16 @@ module Amber::Controller::Helpers
         if @requested_responses.size != 1 || @requested_responses.includes?("*/*")
           @requested_responses << @available_responses.keys.first
         end
-        @requested_responses.find do |resp|
-          @available_responses.keys.includes?(resp)
+        
+        result = @requested_responses.find do |resp|
+          @available_responses.keys.find { |r| r.includes?(resp) }
         end
+
+        if result == "application/json"
+          result = "application/json; charset=utf-8"
+        end
+
+        result
       end
     end
 

@@ -1,6 +1,6 @@
 name: amber
 
-version: 1.3.2
+version: 1.4.1
 
 authors:
   - Amber Team and Contributors <amberframework.org>
@@ -81,4 +81,4 @@ dependencies:
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
-    version: ~> 1.3.0
+    version: ~> 1.5.0
