@@ -1,10 +1,10 @@
 module Amber
   module Pipe
     class Logger < Base
-      Colorize.enabled = Amber.settings.logging.colorize
+      Colorize.enabled = Amber.settings.logging_colorize
 
-      def initialize(@filter : Array(String) = log_config.filter,
-                     @skip : Array(String) = log_config.skip)
+      def initialize(@filter : Array(String) = log_config[:filter],
+                     @skip : Array(String) = log_config[:skip])
       end
 
       def call(context : HTTP::Server::Context)
@@ -68,7 +68,7 @@ module Amber
       end
 
       private def log_config
-        Amber.settings.logging
+        {filter: Amber.settings.logging_filter, skip: Amber.settings.logging_skip}
       end
     end
   end
