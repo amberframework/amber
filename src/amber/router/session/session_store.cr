@@ -16,7 +16,7 @@ module Amber::Router::Session
     end
 
     private def redis_store
-      Redis.new(url: ENV["REDIS_URL"]? || Amber.settings.redis_url)
+      Redis.new(url: Amber.settings.redis_url)
     end
 
     private def redis?
