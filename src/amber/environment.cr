@@ -29,6 +29,10 @@ module Amber::Environment
 
       property smtp_enabled = false
       property pipes_static_headers = {"Cache-Control" => "no-store"}
+      
+      def session 
+        {:store => session_store, :key => session_key, :expires => session_expires} of Symbol => String | Symbol | Int32
+      end
     end
 
     def self.settings
