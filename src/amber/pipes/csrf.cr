@@ -43,7 +43,7 @@ module Amber
         end
 
         def real_session_token(context) : String
-          unless context.session[CSRF_KEY].is_a? String
+          unless context.session[CSRF_KEY]?.is_a? String
             context.session[CSRF_KEY] = Random::Secure.urlsafe_base64(TOKEN_LENGTH)
           end
           context.session[CSRF_KEY].as(String)
