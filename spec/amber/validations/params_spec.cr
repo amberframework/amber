@@ -5,14 +5,16 @@ module Amber::Validators
     describe "#validation" do
       context "JSON param" do
         it "parses json array as [] of JSON::Any" do
-          params = json_params_builder({ x: [ 1, 2, 3 ] }.to_json)
+          params = json_params_builder({ x: [ 1, 2, 3 ], y: {z: [ 1, 2 ] } }.to_json)
           validator = Validators::Params.new(params)
 
           validator.validation do
             required(:x)
+            required("y")
           end
 
           validator.validate!["x"].should be_a Array(JSON::Any)
+          validator.validate!["y"].should be_a JSON::Any
         end
       end
 

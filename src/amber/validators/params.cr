@@ -6,7 +6,7 @@ module Amber::Validators
   class BaseRule
     getter predicate : (String -> Bool)
     getter field : String
-    getter value : String | Array(JSON::Any) | Nil
+    getter value : String | Array(JSON::Any) | JSON::Any | Nil
     getter present : Bool
 
     def initialize(field : String | Symbol, @msg : String?, @allow_blank : Bool = true)
@@ -31,13 +31,22 @@ module Amber::Validators
     end
 
     private def call_predicate(params : Amber::Router::Params)
+      @present = params.has_key?(@field)
+
       begin
-        @value = JSON.parse(params[@field]).as_a
+        value = JSON.parse(params[@field])
+
+        if value.is_a? Array(JSON::Any)
+          @value = value
+        elsif value.as_a?
+          @value = value.as_a
+        else
+          @value = value
+        end
       rescue
         @value = params[@field]
       end
 
-      @present = params.has_key?(@field)
 
       return true if params[@field].blank? && @allow_blank
 
@@ -87,7 +96,7 @@ module Amber::Validators
   class Params
     getter raw_params : Amber::Router::Params
     getter rules = [] of BaseRule
-    getter params = {} of String => String | Array(JSON::Any) | Nil
+    getter params = {} of String => String | Array(JSON::Any) | JSON::Any | Nil
     getter errors = [] of Error
 
     def initialize(@raw_params)
