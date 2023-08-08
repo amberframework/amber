@@ -3,6 +3,19 @@ require "../../spec_helper"
 module Amber::Validators
   describe Params do
     describe "#validation" do
+      context "JSON param" do
+        it "parses json array as [] of JSON::Any" do
+          params = json_params_builder({ x: [ 1, 2, 3 ] }.to_json)
+          validator = Validators::Params.new(params)
+
+          validator.validation do
+            required(:x)
+          end
+
+          validator.validate!["x"].should be_a Array(JSON::Any)
+        end
+      end
+
       context "required params" do
         context "when missing" do
           it "is not valid and has 2 errors" do

@@ -6,7 +6,7 @@ module Amber::Validators
   class BaseRule
     getter predicate : (String -> Bool)
     getter field : String
-    getter value : String?
+    getter value : String | Array(JSON::Any) | Nil
     getter present : Bool
 
     def initialize(field : String | Symbol, @msg : String?, @allow_blank : Bool = true)
@@ -31,7 +31,12 @@ module Amber::Validators
     end
 
     private def call_predicate(params : Amber::Router::Params)
-      @value = params[@field]
+      begin
+        @value = JSON.parse(params[@field]).as_a
+      rescue
+        @value = params[@field]
+      end
+
       @present = params.has_key?(@field)
 
       return true if params[@field].blank? && @allow_blank
@@ -82,10 +87,11 @@ module Amber::Validators
   class Params
     getter raw_params : Amber::Router::Params
     getter rules = [] of BaseRule
-    getter params = {} of String => String?
+    getter params = {} of String => String | Array(JSON::Any) | Nil
     getter errors = [] of Error
 
-    def initialize(@raw_params); end
+    def initialize(@raw_params)
+    end
 
     # This will allow params to respond to HTTP::Params methods.
     # For example: [], []?, add, delete, each, fetch, etc.
