@@ -46,10 +46,13 @@ brew install amber
 
 #### Linux
 
+Currently, the only option to install on Linux is from source. At the time of this writing, v1.4.1 is the current stable release, but you should use the most recent tag in place of that.
+
 ```
+sudo apt-get install libreadline-dev libsqlite3-dev libpq-dev libmysqlclient-dev libssl-dev libyaml-dev libpcre3-dev libevent-dev
 git clone https://github.com/amberframework/amber.git
 cd amber
-git checkout stable
+git checkout v1.4.1
 shards install
 make
 sudo make install
