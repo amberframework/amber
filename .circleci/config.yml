@@ -96,12 +96,12 @@ jobs:
       - store_test_results:
           path: ~/amber/test-results
 
-
-workflows:
-  version: 2
-  amber:
-    jobs:
-      - ameba-test
-      - amber-specs
-      - granite-test
+# WIP - Commented out until fully working
+#workflows:
+#  version: 2
+#  amber:
+#    jobs:
+#      - ameba-test
+#      - amber-specs
+#      - granite-test
 
