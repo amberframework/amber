@@ -10,9 +10,6 @@ TESTING_APP       = "./tmp/#{TEST_APP_NAME}"
 APP_TEMPLATE_PATH = "../../src/amber/cli/templates/app"
 CURRENT_DIR       = Dir.current
 
-Amber.path = "./spec/support/config"
-Amber.env=(ENV["AMBER_ENV"])
-
 require "http"
 require "spec"
 require "../src/amber"
