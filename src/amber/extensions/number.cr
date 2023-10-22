@@ -1,21 +1,6 @@
 module Amber
   module Extensions
     module Number
-      # the positive number validation
-      def positive?
-        self.sign === 1
-      end
-
-      # the negative number validation
-      def negative?
-        self.sign === -1
-      end
-
-      # the number equals zero validation
-      def zero?
-        self.sign === self.class.zero
-      end
-
       # the number divisibility (n) validation
       def div?(n)
         self % n === 0
