@@ -124,7 +124,7 @@ jobs:
           command: brew install openssl@3 postgresql@15 sqlite crystal && brew link postgresql@15
       - run:
           name: Build the Amber binary & symlink to it
-          command: shards install && crystal build src/amber.cr -o bin/amber && ln -s bin/amber amber
+          command: shards install && crystal build src/amber.cr -o bin/amber && sudo ln -s $PWD/bin/amber /usr/local/bin/amber
       - save_cache:
           key: lib-cache
           paths:
