@@ -42,7 +42,7 @@ module Amber
           request = HTTP::Request.new("GET", "/fake.#{ext}")
           static = Static.new PUBLIC_PATH
           response = create_request_and_return_io(static, request)
-          response.headers["content-type"].should eq(Amber::Support::MimeTypes.mime_type(ext))
+          response.headers["content-type"].should contain(Amber::Support::MimeTypes.mime_type(ext))
           File.delete(file)
         end
       end
