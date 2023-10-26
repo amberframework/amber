@@ -31,12 +31,17 @@ jobs:
             - lib
       - run:
           name: Running Ameba
-          command: ./bin/ameba
+          command: bin/ameba
   
   granite-test:
     resource_class: medium
     docker:
       - image: crystallang/crystal:1.9.2
+      - image: postgres:15.4
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: granite_test
 
     working_directory: ~/amber
     steps:
@@ -135,7 +140,7 @@ jobs:
             - bin
       - run:
           name: Create A New Amber App with Postgres
-          command: amber new amber_apps/new_app && cd amber_app/new_app
+          command: amber new new_pg_app && cd new_pg_app
       - run:
           name: Create a database object
           command: amber db create && amber scaffold user name:string email:string
