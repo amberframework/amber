@@ -34,6 +34,7 @@ module Amber
         response.body.should eq "<head></head><body>Hello World!</body>\n"
       end
 
+      # Note: This test will fail on older systems that still expect "application/javascript" to be valid content-type, but this is deprecated
       it "serves the correct content type for serve file" do
         %w(png svg css js).each do |ext|
           file = File.expand_path(TEST_PUBLIC_PATH) + "/fake.#{ext}"
