@@ -1,10 +1,15 @@
 version: 2.1
 
+parameters:
+  pre_release_test_trigger:
+    type: string
+    default: ""
+
 jobs:
   ameba-test:
     resource_class: medium
     docker:
-      - image: crystallang/crystal:1.9.2
+      - image: crystallang/crystal:latest
 
     working_directory: ~/amber
     steps:
@@ -26,12 +31,17 @@ jobs:
             - lib
       - run:
           name: Running Ameba
-          command: ./bin/ameba
+          command: bin/ameba
   
   granite-test:
     resource_class: medium
     docker:
       - image: crystallang/crystal:1.9.2
+      - image: postgres:15.4
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: granite_test
 
     working_directory: ~/amber
     steps:
@@ -96,12 +106,81 @@ jobs:
       - store_test_results:
           path: ~/amber/test-results
 
-# WIP - Commented out until fully working
-#workflows:
-#  version: 2
-#  amber:
-#    jobs:
-#      - ameba-test
-#      - amber-specs
-#      - granite-test
+  osx_tests:
+    resource_class: macos.m1.medium.gen1
+    macos: 
+      # This is arbitrary, but necessary to get the latest version of macOS
+      xcode: 15.0.0 # v15 is a beta release, but it's also the latest version of macOS
+    environment:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - lib-cache
+      - restore_cache:
+          keys:
+            - bin-cache
+      - run:
+          name: Make directory for test output
+          command: mkdir -p test_output
+      - run:
+          name: Install Crystal & Dependencies
+          command: brew install openssl@3 postgresql@15 sqlite crystal && brew link postgresql@15
+      - run:
+          name: Build the Amber binary & symlink to it
+          command: shards install && crystal build src/amber/cli.cr -o bin/amber && sudo ln -s $PWD/bin/amber /usr/local/bin/amber
+      - save_cache:
+          key: lib-cache
+          paths:
+            - lib
+      - save_cache:
+          key: bin-cache
+          paths:
+            - bin
+      - run:
+          name: Create A New Amber App with Postgres
+          command: amber new new_pg_app && cd new_pg_app
+      - run:
+          name: Create a database object
+          command: amber db create && amber scaffold user name:string email:string
+      - run:
+          name: Run the Amber App in the background
+          command: amber watch & echo $! > amber.pid
+      - run:
+          name: Wait for server to start
+          command: sleep 15
+      - run:
+          name: Does the homepage return a 200?
+          command: curl http://localhost:3000/ | grep "Thank you for trying out the Amber Framework."
+      - run:
+          name: Stop the Amber App test for Postgres
+          command: kill -9 $(cat amber.pid)
+      - run:
+          name: Create A New Amber App with SQLite
+          command: cd .. && amber new new_app_sqlite --database sqlite && cd new_app_sqlite
+      - run:
+          name: Create the database
+          command: amber db create && amber db scaffold user name:string email:string && amber db migrate
+      - run:
+          name: Run the Amber App in the background
+          command: amber watch & echo $! > amber.pid
+      - run:
+          name: Wait for server to start
+          command: sleep 15
+      - run:
+          name: The home page is accessible and returns a 200
+          command: curl http://localhost:3000/ | grep "Thank you for trying out the Amber Framework."
+      
+
+workflows:
+  new_changes:
+    jobs:
+      - ameba-test
+      - amber-specs
+      - granite-test
+  pre_release_tests:
+    when: << pipeline.parameters.pre_release_test_trigger >>
+    jobs:
+      - osx_tests
 
