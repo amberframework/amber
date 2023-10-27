@@ -19,7 +19,7 @@ class <%= class_name %> < Granite::Base
 
   validate :email, "already in use", ->(<%= @name %> : <%= class_name %>) do
     existing = <%= class_name %>.find_by email: <%= @name %>.email
-    !existing || existing.id == user.id
+    !existing || existing.id == <%= @name %>.id
   end
 
   validate :password, "is too short", ->(<%= @name %> : <%= class_name %>) do
