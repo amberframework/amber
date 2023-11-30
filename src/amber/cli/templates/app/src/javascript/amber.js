@@ -231,28 +231,30 @@ export default {
 /**
  * Allows delete links to post for security and ease of use similar to Rails jquery_ujs
  */
-document.addEventListener("DOMContentLoaded", () => {
-  let elements = document.querySelectorAll("a[data-method='delete']");
-  for (let i = 0; i < elements.length; i++) {
-    elements[i].addEventListener("click", (e) => {
-      e.preventDefault();
-      let message = elements[i].getAttribute("data-confirm") || "Are you sure?";
-      if (confirm(message)) {
-        let form = document.createElement("form");
-        let input = document.createElement("input");
-        form.setAttribute("action", elements[i].getAttribute("href"));
-        form.setAttribute("method", "POST");
-        input.setAttribute("type", "hidden");
-        input.setAttribute("name", "_method");
-        input.setAttribute("value", "DELETE");
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
-      }
-      return false;
-    })
-  }
-});
+export function initialize() {
+  document.addEventListener("DOMContentLoaded", () => {
+    let elements = document.querySelectorAll("a[data-method='delete']");
+    for (let i = 0; i < elements.length; i++) {
+      elements[i].addEventListener("click", (e) => {
+        e.preventDefault();
+        let message = elements[i].getAttribute("data-confirm") || "Are you sure?";
+        if (confirm(message)) {
+          let form = document.createElement("form");
+          let input = document.createElement("input");
+          form.setAttribute("action", elements[i].getAttribute("href"));
+          form.setAttribute("method", "POST");
+          input.setAttribute("type", "hidden");
+          input.setAttribute("name", "_method");
+          input.setAttribute("value", "DELETE");
+          form.appendChild(input);
+          document.body.appendChild(form);
+          form.submit();
+        }
+        return false;
+      })
+    }
+  });
+}
 
 if (!Date.prototype.toGranite) {
   (function() {

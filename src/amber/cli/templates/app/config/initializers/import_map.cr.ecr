@@ -1,0 +1,15 @@
+require "asset_pipeline"
+
+FRONT_LOADER = AssetPipeline::FrontLoader.new(js_source_path: Path["src/javascript"], js_output_path: Path["public"]) do |import_maps|
+  import_map = AssetPipeline::ImportMap.new
+
+  if Amber.settings.auto_reload
+    import_map.add_import("client_reload", "/client_reload.js")
+  end
+
+  import_map.add_import("@popperjs/core", "https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js")
+  import_map.add_import("bootstrap", "https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.esm.min.js")
+  import_map.add_import("amber", "/amber.js")
+
+  import_maps << import_map
+end
