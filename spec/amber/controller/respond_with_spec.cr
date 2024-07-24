@@ -49,17 +49,17 @@ module Amber::Controller
 
         it "responds with javascript" do
           expected_result = %(console.log('Everyone <3 Amber'))
-          context.request.headers["Accept"] = "application/javascript"
+          context.request.headers["Accept"] = "text/javascript"
           ResponsesController.new(context).index.should eq expected_result
-          context.response.headers["Content-Type"].should eq "application/javascript"
+          context.response.headers["Content-Type"].should eq "text/javascript"
           context.response.status_code.should eq 200
         end
 
         it "responds with javascript having */* at end" do
           expected_result = %(console.log('Everyone <3 Amber'))
-          context.request.headers["Accept"] = "application/javascript,*/*"
+          context.request.headers["Accept"] = "text/javascript,*/*"
           ResponsesController.new(context).index.should eq expected_result
-          context.response.headers["Content-Type"].should eq "application/javascript"
+          context.response.headers["Content-Type"].should eq "text/javascript"
           context.response.status_code.should eq 200
         end
 

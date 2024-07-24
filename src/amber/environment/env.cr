@@ -2,8 +2,8 @@ module Amber::Environment
   class Env
     AMBER_ENV = "AMBER_ENV"
 
-    def initialize(@env : String = ENV[AMBER_ENV]? || "development")
-      ENV[AMBER_ENV] = @env
+    def initialize(env : String = ENV[AMBER_ENV]? || "development")
+      ENV[AMBER_ENV] = @env = env.downcase
     end
 
     def in?(env_list : Array(EnvType))
@@ -23,8 +23,11 @@ module Amber::Environment
     end
 
     macro method_missing(call)
-      env_name = {{call.name.id.stringify}}
-      (env_name.ends_with?('?') && self == env_name[0..-2])
+      {% if call.name.id.stringify.ends_with?("?") %}
+        (@env == {{ call.name.id.stringify.downcase[0..-2] }})
+      {% else %}
+        false
+      {% end %}
     end
   end
 end

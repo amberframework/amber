@@ -11,7 +11,7 @@ module Amber::Controller::Helpers
         txt:  "text/plain",
         text: "text/plain",
         xml:  "application/xml",
-        js:   "application/javascript",
+        js:   "text/javascript",
       }
 
       TYPE_EXT_REGEX         = /\.(#{TYPE.keys.join("|")})$/

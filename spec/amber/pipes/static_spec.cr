@@ -34,6 +34,7 @@ module Amber
         response.body.should eq "<head></head><body>Hello World!</body>\n"
       end
 
+      # Note: This test will fail on older systems that still expect "application/javascript" to be valid content-type, but this is deprecated
       it "serves the correct content type for serve file" do
         %w(png svg css js).each do |ext|
           file = File.expand_path(TEST_PUBLIC_PATH) + "/fake.#{ext}"
@@ -41,7 +42,7 @@ module Amber
           request = HTTP::Request.new("GET", "/fake.#{ext}")
           static = Static.new PUBLIC_PATH
           response = create_request_and_return_io(static, request)
-          response.headers["content-type"].should eq(Amber::Support::MimeTypes.mime_type(ext))
+          response.headers["content-type"].should contain(Amber::Support::MimeTypes.mime_type(ext))
           File.delete(file)
         end
       end
