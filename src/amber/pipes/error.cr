@@ -13,17 +13,22 @@ module Amber
         context.response.status_code = 403
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.forbidden)
-        Log.warn(exception: ex) { "Error: 403".colorize(:yellow) }
+        Log.warn(exception: ex) { error_msg(context, 403).colorize(:yellow) }
       rescue ex : Amber::Exceptions::RouteNotFound
         context.response.status_code = 404
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.not_found)
-        Log.warn(exception: ex) { "Error: 404".colorize(:yellow) }
+        Log.warn(exception: ex) { error_msg(context, 404).colorize(:yellow) }
       rescue ex : Exception
         context.response.status_code = 500
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.internal_server_error)
-        Log.error(exception: ex) { "Error: 500".colorize(:red) }
+        Log.error(exception: ex) { error_msg(context, 500).colorize(:red) }
+      end
+
+      private def error_msg(context : HTTP::Server::Context, number : Int)
+        request = context.request
+        "Error #{number} - #{request.method} #{request.path}"
       end
     end
   end
