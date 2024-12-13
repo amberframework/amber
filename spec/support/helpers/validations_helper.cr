@@ -1,4 +1,9 @@
 module ValidationsHelper
+  def json_params_builder(body = "")
+    request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/json"}, body)
+    params = Amber::Router::Params.new(request)
+  end 
+
   def params_builder(body = "")
     request = HTTP::Request.new("GET", "")
     params = Amber::Router::Params.new(request)
