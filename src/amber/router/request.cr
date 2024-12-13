@@ -3,23 +3,11 @@ require "./router"
 require "./route"
 
 class HTTP::Request
-  METHOD          = "_method"
-  OVERRIDE_HEADER = "X-HTTP-Method-Override"
-
+  METHOD = "_method"
+  
   @matched_route : Amber::Router::RoutedResult(Amber::Route)?
   @requested_method : String?
   @params : Amber::Router::Params?
-
-  def method
-    case @method
-    when "POST" then requested_method.to_s.upcase
-    else             @method
-    end
-  end
-
-  def requested_method
-    @requested_method ||= params.override_method?(METHOD) || headers[OVERRIDE_HEADER]? || @method
-  end
 
   def params
     @params ||= Amber::Router::Params.new(self)
