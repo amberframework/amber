@@ -13,3 +13,11 @@ development_dependencies:
   ameba:
     github: crystal-ameba/ameba
     version: ~> 1.5.0
+
+ai_docs:
+  include:
+    - docs/guides/lsp-setup.md
+  exclude:
+    - .claude/settings.local.json
+    - .claude/ralph-loop.local.md
+    - .claude/agents/amber-framework-engineer.md
