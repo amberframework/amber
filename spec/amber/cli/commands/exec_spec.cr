@@ -44,10 +44,30 @@ module Amber::CLI
         File.delete("amber_exec_spec_test.cr")
       end
 
-      it "opens editor and executes .cr file on close" do
-        MainCommand.run(["exec", "-e", "echo 'puts 1000' > "])
-        logs = `ls tmp/*_console_result.log`.strip.split(/\s/).sort
-        File.read(logs.last?.to_s).should eq "1000\n"
+      it "does not execute shell metacharacters in the editor option" do
+        marker = "amber_exec_editor_pwned"
+        File.delete(marker) if File.exists?(marker)
+
+        expect_raises(Exception) do
+          MainCommand.run(["exec", "-e", "sh -c 'touch #{marker}' #"])
+        end
+
+        File.exists?(marker).should be_false
+      end
+
+      it "does not execute shell metacharacters in copied filenames" do
+        filename = "amber_exec_spec_test; touch amber_exec_copy_pwned #.cr"
+        marker = "amber_exec_copy_pwned"
+        File.delete(marker) if File.exists?(marker)
+        File.write filename, "puts([:safe])"
+
+        begin
+          MainCommand.run(["exec", filename, "-e", "tail"])
+        ensure
+          File.delete(filename) if File.exists?(filename)
+        end
+
+        File.exists?(marker).should be_false
       end
 
       it "copies previous run into new file for editing and runs it returning results" do
