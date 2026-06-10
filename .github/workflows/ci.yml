@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - v2-dev
+  pull_request:
+    branches:
+      - master
+      - v2-dev
+
+jobs:
+  test:
+    name: Crystal ${{ matrix.crystal }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        crystal: [latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Crystal
+        uses: oprypin/install-crystal@v1
+        with:
+          crystal: ${{ matrix.crystal }}
+
+      - name: Install dependencies
+        run: shards install
+
+      - name: Run specs
+        run: crystal spec --order random
+
+      - name: Check formatting
+        run: crystal tool format --check
