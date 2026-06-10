@@ -3,13 +3,18 @@ require "../../spec_helper"
 # Use a fresh router for named route tests to avoid conflicts
 module Amber::Router
   describe NamedRoutes do
-    # Register test routes before running specs
-    Amber::Server.router.draw :web do
-      get "/named_users", HelloController, :index, route_name: :named_users
-      get "/named_users/:id", HelloController, :show, route_name: :named_user
-      get "/named_users/:id/edit", HelloController, :edit, route_name: :edit_named_user
-      get "/named_users/new", HelloController, :new, route_name: :new_named_user
-      post "/named_users", HelloController, :create, route_name: :create_named_user
+    # Register test routes before running specs.
+    # Use before_all so routes are registered on the live router instance even
+    # if another spec (e.g. dsl/server_spec.cr) called Amber::Server.reset_instance
+    # earlier in the suite run.
+    before_all do
+      Amber::Server.router.draw :web do
+        get "/named_users", HelloController, :index, route_name: :named_users
+        get "/named_users/:id", HelloController, :show, route_name: :named_user
+        get "/named_users/:id/edit", HelloController, :edit, route_name: :edit_named_user
+        get "/named_users/new", HelloController, :new, route_name: :new_named_user
+        post "/named_users", HelloController, :create, route_name: :create_named_user
+      end
     end
 
     describe ".path" do

@@ -117,7 +117,7 @@ module Backtracer
       return cached if cached
 
       return unless (lineno = @lineno) && (lineno > 0)
-      return unless (path = @path) && File.readable?(path)
+      return unless (path = @path) && File::Info.readable?(path)
 
       context_line = nil
       pre_context, post_context = %w[], %w[]

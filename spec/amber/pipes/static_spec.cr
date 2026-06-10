@@ -73,7 +73,6 @@ module Amber
         static_true = Static.new PUBLIC_PATH, directory_listing: true
 
         response_true = create_request_and_return_io(static_true, request)
-        puts response_true.headers.inspect
         response_true.headers["Location"].should eq "/test/"
 
         response_true.status_code.should eq 302

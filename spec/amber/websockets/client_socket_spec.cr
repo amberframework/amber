@@ -2,7 +2,7 @@ require "../../spec_helper"
 
 module Amber
   describe WebSockets::ClientSocket do
-    Spec.after_each do
+    after_each do
       Amber::WebSockets::ClientSockets.client_sockets.keys.size.should eq 0
     end
 
