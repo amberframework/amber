@@ -76,9 +76,8 @@ module Amber::CLI
 
         File.exists?("./spec/models/#{snake_case}_spec.cr").should be_true
         File.exists?("./src/models/#{snake_case}.cr").should be_true
-        
-        # Recently removed the controller specs, once controller testing is more mature, we'll add them back
-        #File.exists?("./spec/controllers/#{snake_case}_controller_spec.cr").should be_true
+
+        File.exists?("./spec/controllers/#{snake_case}_controller_spec.cr").should be_true
         File.exists?("./src/controllers/#{snake_case}_controller.cr").should be_true
         File.exists?("./src/views/#{snake_case}/_form.slang").should be_true
         File.exists?("./src/views/#{snake_case}/edit.slang").should be_true
@@ -87,7 +86,7 @@ module Amber::CLI
         File.exists?("./src/views/#{snake_case}/show.slang").should be_true
         File.read("./spec/models/#{snake_case}_spec.cr").should contain spec_definition_prefix
         File.read("./src/models/#{snake_case}.cr").should contain class_definition_prefix
-        #File.read("./spec/controllers/#{snake_case}_controller_spec.cr").should contain spec_definition_prefix
+        File.read("./spec/controllers/#{snake_case}_controller_spec.cr").should contain spec_definition_prefix
         File.read("./src/controllers/#{snake_case}_controller.cr").should contain class_definition_prefix
         File.read("./src/views/#{snake_case}/_form.slang").should contain snake_case
         File.read("./src/views/#{snake_case}/edit.slang").should contain display
@@ -96,6 +95,26 @@ module Amber::CLI
         File.read("./src/views/#{snake_case}/show.slang").should contain snake_case
         File.read("./config/routes.cr").should contain "#{camel_case}Controller"
         File.read("./config/routes.cr").should_not contain "#{incorrect_case}Controller"
+      end
+      cleanup
+    end
+
+    it "generates api correctly" do
+      scaffold_app(TESTING_APP)
+      [camel_case, snake_case].each do |arg|
+        MainCommand.run ["generate", "api", "-y", arg, "name:string"]
+
+        File.exists?("./spec/models/#{snake_case}_spec.cr").should be_true
+        File.exists?("./src/models/#{snake_case}.cr").should be_true
+        File.exists?("./spec/controllers/#{snake_case}_controller_spec.cr").should be_true
+        File.exists?("./src/controllers/#{snake_case}_controller.cr").should be_true
+
+        File.read("./spec/models/#{snake_case}_spec.cr").should contain spec_definition_prefix
+        File.read("./src/models/#{snake_case}.cr").should contain class_definition_prefix
+        File.read("./spec/controllers/#{snake_case}_controller_spec.cr").should contain spec_definition_prefix
+        File.read("./src/controllers/#{snake_case}_controller.cr").should contain class_definition_prefix
+
+        File.read("./config/routes.cr").should contain "#{camel_case}Controller"
       end
       cleanup
     end
