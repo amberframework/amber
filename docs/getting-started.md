@@ -27,7 +27,7 @@ version: 0.1.0
 dependencies:
   amber:
     github: amberframework/amber
-    branch: master
+    branch: v2-dev
 
 crystal: ">= 1.0.0"
 ```
