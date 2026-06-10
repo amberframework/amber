@@ -188,6 +188,7 @@ module Amber
           @socket.ping
           @pings.push(Time.utc)
           @pings.delete_at(0) if @pings.size > 3
+          check_alive!
         rescue ex : IO::Error
           disconnect!
         rescue ex : OpenSSL::SSL::Error
