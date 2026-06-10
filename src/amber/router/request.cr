@@ -32,17 +32,21 @@ class HTTP::Request
         return match[1].to_i
       end
     end
-    
-    # Fall back to URI parsing if available
-    if resource.starts_with?("http://") || resource.starts_with?("https://")
-      URI.parse(resource).port
-    else
-      nil
-    end
+
+    # Fall back to parsed_uri for absolute-URI resources
+    parsed_uri.port
   end
 
   def url
-    uri.to_s
+    parsed_uri.to_s
+  end
+
+  private def parsed_uri
+    if resource.starts_with?("http://") || resource.starts_with?("https://")
+      URI.parse(resource)
+    else
+      uri
+    end
   end
 
   def route
