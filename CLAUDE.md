@@ -94,7 +94,7 @@ puts Amber.env  # => "development"
 
 ### External Dependencies
 
-- **Grant ORM**: Separate shard (`crimson-knight/grant`) — ActiveRecord-style ORM for V2
+- **Grant ORM**: Separate shard — ActiveRecord-style ORM for V2 (see amberframework/grant)
 - **CLI**: Separate project (`amber_cli`) — not part of this repo
 - **Asset Pipeline**: Separate project (`amberframework/asset_pipeline`) — not part of this repo
 

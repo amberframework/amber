@@ -17,7 +17,3 @@ development_dependencies:
 ai_docs:
   include:
     - docs/guides/lsp-setup.md
-  exclude:
-    - .claude/settings.local.json
-    - .claude/ralph-loop.local.md
-    - .claude/agents/amber-framework-engineer.md
