@@ -43,8 +43,8 @@ version: 0.1.0
 
 dependencies:
   amber:
-    github: crimson-knight/amber
-    branch: master
+    github: amberframework/amber
+    branch: v2-dev
 
 crystal: ">= 1.0.0, < 2.0"
 YAML
@@ -82,8 +82,8 @@ dependencies:
 ```yaml
 dependencies:
   amber:
-    github: crimson-knight/amber
-    branch: master
+    github: amberframework/amber
+    branch: v2-dev
   # No redis dependency needed for default configuration
 ```
 
@@ -346,8 +346,8 @@ dependencies:
 ```yaml
 dependencies:
   amber:
-    github: crimson-knight/amber
-    branch: master
+    github: amberframework/amber
+    branch: v2-dev
   pg:
     github: will/crystal-pg
   granite:
@@ -495,8 +495,8 @@ Review your session configuration and update as needed.
 ```yaml
 dependencies:
   amber:
-    github: crimson-knight/amber
-    branch: master  # or version: ~> 2.0.0 once released
+    github: amberframework/amber
+    branch: v2-dev  # or version: ~> 2.0.0 once released
 ```
 
 ### Add to shard.yml (as needed)
@@ -513,7 +513,7 @@ dependencies:
 
 ## Migration Checklist
 
-- [ ] Update `shard.yml` to point to `crimson-knight/amber` and remove bundled dependencies
+- [ ] Update `shard.yml` to point to `amberframework/amber` (branch: v2-dev) and remove bundled dependencies
 - [ ] Run `shards install`
 - [ ] Replace `YAML.mapping` with `YAML::Serializable` in all custom types
 - [ ] Rename all `.slang` templates to `.ecr` and convert syntax

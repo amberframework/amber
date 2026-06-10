@@ -12,7 +12,7 @@ _Amber makes building web applications fast, simple, and enjoyable - with fewer 
 <img src="./hi_amber.png" alt="Amber Framework Demo" width="275" height="auto">
 
 
-_This is the current work in progress branch for the future of Amber v2._
+**Amber V2 is in active development (pre-release beta).** The `v2-dev` branch is stable enough for experimentation and early adoption but is not yet recommended for production. See [docs/migration-guide.md](docs/migration-guide.md) for a complete list of breaking changes from V1, and [amberframework/amber_cli](https://github.com/amberframework/amber_cli) for the standalone CLI tool that replaces the built-in generator commands.
 
 **Amber** is a web application framework written in [Crystal](https://crystal-lang.org/) inspired by Kemal, Rails, Phoenix, Flutter and other popular application frameworks.
 
@@ -92,6 +92,7 @@ Add this to your application's `shard.yml`:
 dependencies:
   amber:
     github: amberframework/amber
+    branch: v2-dev
 ```
 
 [Read Amber quick start guide](https://docs.amberframework.org/amber/getting-started)
@@ -105,21 +106,6 @@ Use Amber badge
 ```markdown
 [![Amber Framework](https://img.shields.io/badge/using-amber_framework-orange.svg)](https://amberframework.org/)
 ```
-## Release Checklist
-
-- Test and release all dependencies
-- Test everything locally
-- Run `crelease 0.36.0`
-- ensure all documentation is updated
-- update release notes
-- update homebrew version and sha
-- update linux repositories
-- build and deploy docker image:
-  - verify Dockerfile is using the latest crystal version
-  - `docker login`
-  - `docker build -t amberframework/amber:0.36.0`
-  - `docker push amberframework/amber:0.36.0`
-
 ## Contributing
 
 Contributing to Amber can be a rewarding way to learn, teach, and build experience in just about any skill you can imagine. You don’t have to become a lifelong contributor to enjoy participating in Amber.
