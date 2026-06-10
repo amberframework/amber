@@ -33,12 +33,12 @@ module Amber::DSL
 
     {% for verb in RESOURCES %}
       macro {{verb.id}}(*args)
-        route {{verb}}, \{{*args}}
+        route {{verb}}, \{{args.splat}}
         {% if verb == :get %}
-        route :head, \{{*args}}
+        route :head, \{{args.splat}}
         {% end %}
         {% if ![:trace, :connect, :options, :head].includes? verb %}
-        route :options, \{{*args}}
+        route :options, \{{args.splat}}
         {% end %}
       end
     {% end %}

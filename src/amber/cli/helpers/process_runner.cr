@@ -13,7 +13,7 @@ module Sentry
       @build_commands = Hash(String, String).new,  # { "task1" => [ ... ], "task2" => [ ... ] }
       @run_commands = Hash(String, String).new,    # { "task1" => [ ... ], "task2" => [ ... ] }
       @includes = Hash(String, Array(String)).new, # { "task1" => [ ... ], "task2" => [ ... ] }
-      @excludes = Hash(String, Array(String)).new  # { "task1" => [ ... ], "task2" => [ ... ] }
+      @excludes = Hash(String, Array(String)).new, # { "task1" => [ ... ], "task2" => [ ... ] }
     )
       @app_running = false
     end
@@ -25,7 +25,7 @@ module Sentry
       loop do
         scan_files
         check_processes
-        sleep 1
+        sleep 1.second
       end
     end
 
@@ -120,11 +120,11 @@ module Sentry
             ok_to_run = true
           else
             log :run, "Building..."
-            time = Time.monotonic
+            time = Time.instant
             build_result = Amber::CLI::Helpers.run(build_command_run)
             exit 1 unless build_result.is_a? Process::Status
             if build_result.success?
-              log :run, "Compiled in #{(Time.monotonic - time)}"
+              log :run, "Compiled in #{(Time.instant - time)}"
               stop_processes("run") if @app_running
               ok_to_run = true
             elsif !@app_running # first run
