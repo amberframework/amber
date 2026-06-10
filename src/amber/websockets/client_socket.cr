@@ -183,13 +183,18 @@ module Amber
 
       # Sends ping opcode to client : https://tools.ietf.org/html/rfc6455#section-5.5.2
       protected def beat
-        @socket.send("ping")
-        @socket.ping
-        @pings.push(Time.utc)
-        @pings.delete_at(0) if @pings.size > 3
-        check_alive!
-      rescue ex : IO::Error
-        disconnect!
+        begin
+          @socket.send("ping")
+          @socket.ping
+          @pings.push(Time.utc)
+          @pings.delete_at(0) if @pings.size > 3
+        rescue ex : IO::Error
+          disconnect!
+        rescue ex : OpenSSL::SSL::Error
+          # A dying TLS socket can raise OpenSSL::SSL::Error; treat it the same
+          # as a plain IO::Error so it does not escape and kill the heartbeat fiber.
+          disconnect!
+        end
       end
 
       protected def subscribed_to_topic?(topic)
