@@ -24,7 +24,7 @@ module Amber::Schema::Parser
       if max_size = options["max_size"]?.try(&.as_i64?)
         if size > max_size
           errors << CustomValidationError.new(
-            field_name, 
+            field_name,
             "File size #{size} bytes exceeds maximum of #{max_size} bytes",
             "file_too_large"
           )
@@ -35,7 +35,7 @@ module Amber::Schema::Parser
         if size < min_size
           errors << CustomValidationError.new(
             field_name,
-            "File size #{size} bytes is below minimum of #{min_size} bytes", 
+            "File size #{size} bytes is below minimum of #{min_size} bytes",
             "file_too_small"
           )
         end
@@ -109,7 +109,7 @@ module Amber::Schema::Parser
         data["content_type"] = JSON::Any.new(@content_type) if @content_type
         data["size"] = JSON::Any.new(@size.not_nil!.to_i64) if @size
         data["content"] = JSON::Any.new(@content)
-        
+
         # Add headers as a nested object
         headers_hash = {} of String => JSON::Any
         @headers.each do |name, values|
@@ -120,7 +120,7 @@ module Amber::Schema::Parser
           end
         end
         data["headers"] = JSON::Any.new(headers_hash)
-        
+
         JSON::Any.new(data)
       end
     end
@@ -131,10 +131,10 @@ module Amber::Schema::Parser
 
       HTTP::FormData.parse(request) do |upload|
         next unless upload
-        
+
         filename = upload.filename
         content = upload.body.gets_to_end
-        
+
         if filename.is_a?(String) && !filename.empty?
           # This is a file upload
           file_info = FileInfo.new(

@@ -45,7 +45,7 @@ module Example
   # Example schema using type coercion
   class ProductSchema < Amber::Schema::Definition
     field :name, String, required: true
-    field :price, Money  # Will use custom coercion
+    field :price, Money # Will use custom coercion
     field :quantity, Int32
     field :in_stock, Bool
     field :tags, Array(String)
@@ -61,14 +61,14 @@ module Example
 
     # Example 1: All values as strings (common from form data)
     data1 = {
-      "name" => JSON::Any.new("Widget"),
-      "price" => JSON::Any.new("$19.99"),
-      "quantity" => JSON::Any.new("100"),
-      "in_stock" => JSON::Any.new("true"),
-      "tags" => JSON::Any.new("electronics,gadgets,new"),
-      "metadata" => JSON::Any.new(%[{"color": "blue", "size": "large"}]),
+      "name"       => JSON::Any.new("Widget"),
+      "price"      => JSON::Any.new("$19.99"),
+      "quantity"   => JSON::Any.new("100"),
+      "in_stock"   => JSON::Any.new("true"),
+      "tags"       => JSON::Any.new("electronics,gadgets,new"),
+      "metadata"   => JSON::Any.new(%[{"color": "blue", "size": "large"}]),
       "created_at" => JSON::Any.new("2023-12-25T10:30:00Z"),
-      "product_id" => JSON::Any.new("550e8400-e29b-41d4-a716-446655440000")
+      "product_id" => JSON::Any.new("550e8400-e29b-41d4-a716-446655440000"),
     }
 
     schema1 = ProductSchema.new(data1)
@@ -77,7 +77,7 @@ module Example
     puts "Example 1 - String inputs:"
     puts "  Valid: #{result1.success?}"
     puts "  Name: #{schema1.name}"
-    puts "  Price: #{schema1.price}"  # Would need to implement Money getter
+    puts "  Price: #{schema1.price}" # Would need to implement Money getter
     puts "  Quantity: #{schema1.quantity}"
     puts "  In Stock: #{schema1.in_stock}"
     puts "  Tags: #{schema1.tags}"
@@ -87,14 +87,14 @@ module Example
 
     # Example 2: Mixed types (common from JSON)
     data2 = {
-      "name" => JSON::Any.new("Gadget"),
-      "price" => JSON::Any.new(2999),  # Cents as integer
-      "quantity" => JSON::Any.new(50.0),  # Float that can be exact int
-      "in_stock" => JSON::Any.new(1),  # Integer as boolean
-      "tags" => JSON::Any.new(["tech", "popular"]),
-      "metadata" => JSON::Any.new({"weight" => "500g"}),
-      "created_at" => JSON::Any.new(1703502600_i64),  # Unix timestamp
-      "product_id" => JSON::Any.new("123e4567-e89b-12d3-a456-426614174000")
+      "name"       => JSON::Any.new("Gadget"),
+      "price"      => JSON::Any.new(2999), # Cents as integer
+      "quantity"   => JSON::Any.new(50.0), # Float that can be exact int
+      "in_stock"   => JSON::Any.new(1),    # Integer as boolean
+      "tags"       => JSON::Any.new(["tech", "popular"]),
+      "metadata"   => JSON::Any.new({"weight" => "500g"}),
+      "created_at" => JSON::Any.new(1703502600_i64), # Unix timestamp
+      "product_id" => JSON::Any.new("123e4567-e89b-12d3-a456-426614174000"),
     }
 
     schema2 = ProductSchema.new(data2)
@@ -118,7 +118,7 @@ module Example
       ["enabled", true],
       ["disabled", false],
       ["1", true],
-      ["0", false]
+      ["0", false],
     ]
 
     puts "Example 3 - Boolean variations:"
@@ -131,12 +131,12 @@ module Example
 
     # Example 4: Invalid data to show error handling
     data4 = {
-      "name" => JSON::Any.new("Invalid Product"),
-      "price" => JSON::Any.new("not a price"),
-      "quantity" => JSON::Any.new("not a number"),
-      "in_stock" => JSON::Any.new("maybe"),
+      "name"       => JSON::Any.new("Invalid Product"),
+      "price"      => JSON::Any.new("not a price"),
+      "quantity"   => JSON::Any.new("not a number"),
+      "in_stock"   => JSON::Any.new("maybe"),
       "created_at" => JSON::Any.new("not a date"),
-      "product_id" => JSON::Any.new("not-a-uuid")
+      "product_id" => JSON::Any.new("not-a-uuid"),
     }
 
     schema4 = ProductSchema.new(data4)

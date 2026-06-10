@@ -26,7 +26,7 @@ describe "JSON Parser Basic Integration" do
     # Create schema and validate
     schema = SimpleSchema.new(data)
     result = schema.validate
-    
+
     # Debug output
     unless result.success?
       puts "\nValidation errors:"
@@ -34,9 +34,9 @@ describe "JSON Parser Basic Integration" do
         puts "  Field: #{error.field}, Message: #{error.message}, Code: #{error.code}"
       end
     end
-    
+
     result.success?.should be_true
-    
+
     # Access fields
     schema.name.should eq("John Doe")
     schema.age.should eq(25)
@@ -53,7 +53,7 @@ describe "JSON Parser Basic Integration" do
     data = Amber::Schema::Parser::JSONParser.parse_string(json)
     schema = SimpleSchema.new(data)
     result = schema.validate
-    
+
     result.failure?.should be_true
     result.errors.size.should eq(1)
     result.errors.first.field.should eq("name")

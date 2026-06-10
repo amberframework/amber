@@ -60,7 +60,6 @@ end
 describe "Schema Form Integration" do
   describe "URL-encoded form parsing" do
     it "validates simple form data" do
-
       # Simulate form submission
       body = "name=John&email=john@example.com&age=25&terms_accepted=true"
       request = HTTP::Request.new("POST", "/register")
@@ -80,14 +79,13 @@ describe "Schema Form Integration" do
     end
 
     it "handles nested form data" do
-
       body = "user[name]=John&user[email]=john@example.com&user[address][street]=123 Main St&user[address][city]=NYC&tags[]=developer&tags[]=ruby"
       request = HTTP::Request.new("POST", "/profile")
       request.headers["Content-Type"] = "application/x-www-form-urlencoded"
       request.body = IO::Memory.new(body)
 
       data = Amber::Schema::Parser::ParserRegistry.parse_request(request)
-      
+
       # The form parser should correctly parse nested structures
       data["user"].as_h["name"].as_s.should eq "John"
       data["user"].as_h["email"].as_s.should eq "john@example.com"
@@ -99,7 +97,6 @@ describe "Schema Form Integration" do
     end
 
     it "validates array fields" do
-
       body = "tags[]=programming&tags[]=crystal&tags[]=web&categories[]=tech&categories[]=tutorial"
       request = HTTP::Request.new("POST", "/tags")
       request.headers["Content-Type"] = "application/x-www-form-urlencoded"
@@ -118,7 +115,6 @@ describe "Schema Form Integration" do
     end
 
     it "handles validation errors in form data" do
-
       # Submit invalid data
       body = "name=Jo&email=invalid-email&age=15"
       request = HTTP::Request.new("POST", "/strict")
@@ -131,7 +127,7 @@ describe "Schema Form Integration" do
 
       result.success?.should be_false
       result.errors.size.should be >= 3
-      
+
       # Check that we get appropriate error types
       error_codes = result.errors.map(&.code)
       error_codes.should contain "invalid_length"
@@ -142,21 +138,20 @@ describe "Schema Form Integration" do
 
   describe "File upload handling" do
     it "validates file upload constraints" do
-
       # Create mock file upload data as the parser would create it
       file_data = {
-        "filename" => JSON::Any.new("profile.jpg"),
+        "filename"     => JSON::Any.new("profile.jpg"),
         "content_type" => JSON::Any.new("image/jpeg"),
-        "size" => JSON::Any.new(500000_i64),
-        "content" => JSON::Any.new("fake image content"),
-        "headers" => JSON::Any.new({
-          "Content-Type" => JSON::Any.new("image/jpeg")
-        } of String => JSON::Any)
+        "size"         => JSON::Any.new(500000_i64),
+        "content"      => JSON::Any.new("fake image content"),
+        "headers"      => JSON::Any.new({
+          "Content-Type" => JSON::Any.new("image/jpeg"),
+        } of String => JSON::Any),
       } of String => JSON::Any
 
       data = {
         "avatar" => JSON::Any.new(file_data),
-        "name" => JSON::Any.new("John Doe")
+        "name"   => JSON::Any.new("John Doe"),
       } of String => JSON::Any
 
       schema = FileUploadSchema.new(data)
@@ -164,7 +159,7 @@ describe "Schema Form Integration" do
 
       result.success?.should be_true
       schema.name.should eq "John Doe"
-      
+
       avatar = schema.avatar.not_nil!
       avatar["filename"].as_s.should eq "profile.jpg"
       avatar["content_type"].as_s.should eq "image/jpeg"
@@ -172,18 +167,17 @@ describe "Schema Form Integration" do
     end
 
     it "rejects files that are too large" do
-
       # Create file that's too large
       file_data = {
-        "filename" => JSON::Any.new("large_file.pdf"),
+        "filename"     => JSON::Any.new("large_file.pdf"),
         "content_type" => JSON::Any.new("application/pdf"),
-        "size" => JSON::Any.new(200000_i64),  # 200KB, exceeds 100KB limit
-        "content" => JSON::Any.new("fake pdf content"),
-        "headers" => JSON::Any.new({} of String => JSON::Any)
+        "size"         => JSON::Any.new(200000_i64), # 200KB, exceeds 100KB limit
+        "content"      => JSON::Any.new("fake pdf content"),
+        "headers"      => JSON::Any.new({} of String => JSON::Any),
       } of String => JSON::Any
 
       data = {
-        "document" => JSON::Any.new(file_data)
+        "document" => JSON::Any.new(file_data),
       } of String => JSON::Any
 
       schema = FileSizeSchema.new(data)
@@ -195,17 +189,16 @@ describe "Schema Form Integration" do
     end
 
     it "rejects files with invalid content types" do
-
       file_data = {
-        "filename" => JSON::Any.new("document.pdf"),
+        "filename"     => JSON::Any.new("document.pdf"),
         "content_type" => JSON::Any.new("application/pdf"),
-        "size" => JSON::Any.new(2000000_i64),  # 2MB, exceeds 1MB limit
-        "content" => JSON::Any.new("fake pdf content"),
-        "headers" => JSON::Any.new({} of String => JSON::Any)
+        "size"         => JSON::Any.new(2000000_i64), # 2MB, exceeds 1MB limit
+        "content"      => JSON::Any.new("fake pdf content"),
+        "headers"      => JSON::Any.new({} of String => JSON::Any),
       } of String => JSON::Any
 
       data = {
-        "image" => JSON::Any.new(file_data)
+        "image" => JSON::Any.new(file_data),
       } of String => JSON::Any
 
       schema = ImageOnlySchema.new(data)
@@ -217,35 +210,34 @@ describe "Schema Form Integration" do
     end
 
     it "handles multiple file uploads" do
-
       file1_data = {
-        "filename" => JSON::Any.new("doc1.pdf"),
+        "filename"     => JSON::Any.new("doc1.pdf"),
         "content_type" => JSON::Any.new("application/pdf"),
-        "size" => JSON::Any.new(1000_i64),
-        "content" => JSON::Any.new("pdf content 1"),
-        "headers" => JSON::Any.new({} of String => JSON::Any)
+        "size"         => JSON::Any.new(1000_i64),
+        "content"      => JSON::Any.new("pdf content 1"),
+        "headers"      => JSON::Any.new({} of String => JSON::Any),
       } of String => JSON::Any
 
       file2_data = {
-        "filename" => JSON::Any.new("doc2.pdf"),
+        "filename"     => JSON::Any.new("doc2.pdf"),
         "content_type" => JSON::Any.new("application/pdf"),
-        "size" => JSON::Any.new(2000_i64),
-        "content" => JSON::Any.new("pdf content 2"),
-        "headers" => JSON::Any.new({} of String => JSON::Any)
+        "size"         => JSON::Any.new(2000_i64),
+        "content"      => JSON::Any.new("pdf content 2"),
+        "headers"      => JSON::Any.new({} of String => JSON::Any),
       } of String => JSON::Any
 
       data = {
         "attachments" => JSON::Any.new([
           JSON::Any.new(file1_data),
-          JSON::Any.new(file2_data)
-        ] of JSON::Any)
+          JSON::Any.new(file2_data),
+        ] of JSON::Any),
       } of String => JSON::Any
 
       schema = MultiFileSchema.new(data)
       result = schema.validate
 
       result.success?.should be_true
-      
+
       attachments = schema.attachments.not_nil!
       attachments.size.should eq 2
       attachments[0]["filename"].as_s.should eq "doc1.pdf"
@@ -255,32 +247,31 @@ describe "Schema Form Integration" do
 
   describe "Mixed form and file data" do
     it "handles forms with both regular fields and file uploads" do
-
       # Simulate a complex form with files
       featured_image_data = {
-        "filename" => JSON::Any.new("featured.jpg"),
+        "filename"     => JSON::Any.new("featured.jpg"),
         "content_type" => JSON::Any.new("image/jpeg"),
-        "size" => JSON::Any.new(150000_i64),
-        "content" => JSON::Any.new("image content"),
-        "headers" => JSON::Any.new({} of String => JSON::Any)
+        "size"         => JSON::Any.new(150000_i64),
+        "content"      => JSON::Any.new("image content"),
+        "headers"      => JSON::Any.new({} of String => JSON::Any),
       } of String => JSON::Any
 
       attachment_data = {
-        "filename" => JSON::Any.new("extra.pdf"),
+        "filename"     => JSON::Any.new("extra.pdf"),
         "content_type" => JSON::Any.new("application/pdf"),
-        "size" => JSON::Any.new(50000_i64),
-        "content" => JSON::Any.new("pdf content"),
-        "headers" => JSON::Any.new({} of String => JSON::Any)
+        "size"         => JSON::Any.new(50000_i64),
+        "content"      => JSON::Any.new("pdf content"),
+        "headers"      => JSON::Any.new({} of String => JSON::Any),
       } of String => JSON::Any
 
       data = {
-        "title" => JSON::Any.new("My Great Article"),
-        "description" => JSON::Any.new("This is an awesome article"),
-        "category" => JSON::Any.new("tech"),
+        "title"          => JSON::Any.new("My Great Article"),
+        "description"    => JSON::Any.new("This is an awesome article"),
+        "category"       => JSON::Any.new("tech"),
         "featured_image" => JSON::Any.new(featured_image_data),
-        "attachments" => JSON::Any.new([JSON::Any.new(attachment_data)] of JSON::Any),
-        "tags" => JSON::Any.new([JSON::Any.new("crystal"), JSON::Any.new("programming")] of JSON::Any),
-        "published" => JSON::Any.new(true)
+        "attachments"    => JSON::Any.new([JSON::Any.new(attachment_data)] of JSON::Any),
+        "tags"           => JSON::Any.new([JSON::Any.new("crystal"), JSON::Any.new("programming")] of JSON::Any),
+        "published"      => JSON::Any.new(true),
       } of String => JSON::Any
 
       schema = CompleteFormSchema.new(data)
@@ -290,14 +281,14 @@ describe "Schema Form Integration" do
       schema.title.should eq "My Great Article"
       schema.category.should eq "tech"
       schema.published.should be_true
-      
+
       featured = schema.featured_image.not_nil!
       featured["filename"].as_s.should eq "featured.jpg"
-      
+
       attachments = schema.attachments.not_nil!
       attachments.size.should eq 1
       attachments[0]["filename"].as_s.should eq "extra.pdf"
-      
+
       tags = schema.tags.not_nil!
       tags.should contain "crystal"
       tags.should contain "programming"

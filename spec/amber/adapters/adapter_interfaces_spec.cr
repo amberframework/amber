@@ -69,7 +69,7 @@ describe "Adapter Interfaces" do
       # by attempting to create concrete implementations
 
       adapter = TestSessionAdapter.new
-      
+
       # Test that all methods are callable with correct signatures
       adapter.get("session_1", "key").should be_nil
       adapter.exists?("session_1", "key").should be_false
@@ -78,7 +78,7 @@ describe "Adapter Interfaces" do
       adapter.to_hash("session_1").should be_empty
       adapter.empty?("session_1").should be_true
       adapter.healthy?.should be_true
-      
+
       # Test that void methods don't raise
       adapter.set("session_1", "key", "value")
       adapter.delete("session_1", "key")
@@ -95,14 +95,14 @@ describe "Adapter Interfaces" do
       # by attempting to create concrete implementations
 
       adapter = TestPubSubAdapter.new
-      
+
       # Test that all methods are callable with correct signatures
       message = JSON.parse(%({"test": "message"}))
-      
+
       adapter.healthy?.should be_true
       adapter.subscriber_count.should eq(0)
       adapter.active_topics.should be_empty
-      
+
       # Test that void methods don't raise
       adapter.publish("test_topic", "sender_123", message)
       adapter.subscribe("test_topic") { |sender_id, msg| }
@@ -111,4 +111,4 @@ describe "Adapter Interfaces" do
       adapter.close
     end
   end
-end 
+end

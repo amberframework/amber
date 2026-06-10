@@ -12,15 +12,15 @@ module Amber::Schema::Validator
         it "passes when value is in allowed list" do
           validator = Enum.new("status", ["active", "inactive", "pending"])
           valid_statuses = ["active", "inactive", "pending"]
-          
+
           valid_statuses.each do |status|
             data = {"status" => JSON::Any.new(status)}
             result = LegacyResult.new(true, data)
             schema = TestSchema.new(data)
             context = Context.new(data, result, schema)
-            
+
             validator.validate(context)
-            
+
             result.success.should be_true, "Expected '#{status}' to be valid"
           end
         end
@@ -31,9 +31,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_false
           error = result.errors.first
           error.should be_a(CustomValidationError)
@@ -44,7 +44,7 @@ module Amber::Schema::Validator
 
         it "is case sensitive" do
           validator = Enum.new("status", ["Active", "Inactive"])
-          
+
           # Should pass
           data = {"status" => JSON::Any.new("Active")}
           result = LegacyResult.new(true, data)
@@ -52,9 +52,9 @@ module Amber::Schema::Validator
           context = Context.new(data, result, schema)
           validator.validate(context)
           result.success.should be_true
-          
+
           # Should fail
-          data = {"status" => JSON::Any.new("active")}  # lowercase
+          data = {"status" => JSON::Any.new("active")} # lowercase
           result = LegacyResult.new(true, data)
           context = Context.new(data, result, schema)
           validator.validate(context)
@@ -65,15 +65,15 @@ module Amber::Schema::Validator
       context "with integer enum values" do
         it "passes when integer value is in allowed list" do
           validator = Enum.new("priority", [1, 2, 3])
-          
+
           [1, 2, 3].each do |priority|
             data = {"priority" => JSON::Any.new(priority)}
             result = LegacyResult.new(true, data)
             schema = TestSchema.new(data)
             context = Context.new(data, result, schema)
-            
+
             validator.validate(context)
-            
+
             result.success.should be_true
           end
         end
@@ -84,9 +84,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_false
           error = result.errors.first
           error.message.not_nil!.should contain("must be one of: 1, 2, 3")
@@ -94,15 +94,15 @@ module Amber::Schema::Validator
 
         it "handles string representation of integers" do
           validator = Enum.new("level", [1, 2, 3])
-          
+
           # Should fail - enum expects integer but receives string
           data = {"level" => JSON::Any.new("1")}
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_false
         end
       end
@@ -110,15 +110,15 @@ module Amber::Schema::Validator
       context "with float enum values" do
         it "passes when float value is in allowed list" do
           validator = Enum.new("rate", [0.5, 1.0, 1.5, 2.0])
-          
+
           [0.5, 1.0, 1.5, 2.0].each do |rate|
             data = {"rate" => JSON::Any.new(rate)}
             result = LegacyResult.new(true, data)
             schema = TestSchema.new(data)
             context = Context.new(data, result, schema)
-            
+
             validator.validate(context)
-            
+
             result.success.should be_true
           end
         end
@@ -129,15 +129,15 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_false
         end
 
         it "handles float precision correctly" do
           validator = Enum.new("discount", [0.1, 0.2, 0.3])
-          
+
           # Should pass
           data = {"discount" => JSON::Any.new(0.2)}
           result = LegacyResult.new(true, data)
@@ -145,7 +145,7 @@ module Amber::Schema::Validator
           context = Context.new(data, result, schema)
           validator.validate(context)
           result.success.should be_true
-          
+
           # Should fail - slight precision difference
           data = {"discount" => JSON::Any.new(0.20000001)}
           result = LegacyResult.new(true, data)
@@ -158,7 +158,7 @@ module Amber::Schema::Validator
       context "with boolean values" do
         it "can validate boolean values" do
           validator = Enum.new("enabled", ["true", "false"])
-          
+
           # Should pass
           data = {"enabled" => JSON::Any.new(true)}
           result = LegacyResult.new(true, data)
@@ -166,7 +166,7 @@ module Amber::Schema::Validator
           context = Context.new(data, result, schema)
           validator.validate(context)
           result.success.should be_true
-          
+
           # Should also pass
           data = {"enabled" => JSON::Any.new(false)}
           result = LegacyResult.new(true, data)
@@ -179,7 +179,7 @@ module Amber::Schema::Validator
       describe "mixed type handling" do
         it "converts all allowed values to strings for comparison" do
           validator = Enum.new("code", ["A1", "B2", "100", "200"])
-          
+
           # String values
           data = {"code" => JSON::Any.new("A1")}
           result = LegacyResult.new(true, data)
@@ -187,7 +187,7 @@ module Amber::Schema::Validator
           context = Context.new(data, result, schema)
           validator.validate(context)
           result.success.should be_true
-          
+
           # Integer that matches string representation
           data = {"code" => JSON::Any.new(100)}
           result = LegacyResult.new(true, data)
@@ -206,7 +206,7 @@ module Amber::Schema::Validator
 
         it "handles single allowed value" do
           validator = Enum.new("constant", ["fixed_value"])
-          
+
           # Should pass
           data = {"constant" => JSON::Any.new("fixed_value")}
           result = LegacyResult.new(true, data)
@@ -214,7 +214,7 @@ module Amber::Schema::Validator
           context = Context.new(data, result, schema)
           validator.validate(context)
           result.success.should be_true
-          
+
           # Should fail
           data = {"constant" => JSON::Any.new("other_value")}
           result = LegacyResult.new(true, data)
@@ -229,9 +229,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_true
         end
 
@@ -241,9 +241,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_true
         end
 
@@ -253,15 +253,15 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_true
         end
 
         it "handles whitespace in enum values" do
           validator = Enum.new("choice", ["option 1", "option 2", "option 3"])
-          
+
           # Should pass
           data = {"choice" => JSON::Any.new("option 1")}
           result = LegacyResult.new(true, data)
@@ -269,9 +269,9 @@ module Amber::Schema::Validator
           context = Context.new(data, result, schema)
           validator.validate(context)
           result.success.should be_true
-          
+
           # Should fail - no trimming
-          data = {"choice" => JSON::Any.new("option 1 ")}  # Extra space
+          data = {"choice" => JSON::Any.new("option 1 ")} # Extra space
           result = LegacyResult.new(true, data)
           context = Context.new(data, result, schema)
           validator.validate(context)
@@ -284,31 +284,31 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           error = result.errors.first
           error.message.not_nil!.should eq("Field 'size' must be one of: small, medium, large, extra-large")
         end
 
         it "handles special characters in enum values" do
           validator = Enum.new("symbol", ["@", "#", "$", "&"])
-          
+
           ["@", "#", "$", "&"].each do |symbol|
             data = {"symbol" => JSON::Any.new(symbol)}
             result = LegacyResult.new(true, data)
             schema = TestSchema.new(data)
             context = Context.new(data, result, schema)
-            
+
             validator.validate(context)
-            
+
             result.success.should be_true
           end
         end
 
         it "handles unicode characters in enum values" do
           validator = Enum.new("emoji", ["😀", "😎", "🎉"])
-          
+
           # Should pass
           data = {"emoji" => JSON::Any.new("😀")}
           result = LegacyResult.new(true, data)
@@ -316,7 +316,7 @@ module Amber::Schema::Validator
           context = Context.new(data, result, schema)
           validator.validate(context)
           result.success.should be_true
-          
+
           # Should fail
           data = {"emoji" => JSON::Any.new("😢")}
           result = LegacyResult.new(true, data)
@@ -333,9 +333,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           error = result.errors.first
           error.message.not_nil!.should eq("Field 'color' must be one of: red, green, blue")
         end
@@ -347,9 +347,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           error = result.errors.first
           error.message.not_nil!.should contain("1, 2, 3, 4, 5, 6, 7, 8, 9, 10")
         end

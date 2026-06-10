@@ -151,9 +151,9 @@ module Amber::Schema
             "25/12/2023",
             "12/25/2023",
             "2023-12-25 10:30:00",
-            "2023/12/25 10:30:00"
+            "2023/12/25 10:30:00",
           ]
-          
+
           dates.each do |date_str|
             value = JSON::Any.new(date_str)
             result = TypeCoercion.coerce(value, "Time")
@@ -162,7 +162,7 @@ module Amber::Schema
         end
 
         it "converts Unix timestamp" do
-          timestamp = 1703502600_i64  # 2023-12-25 10:30:00 UTC
+          timestamp = 1703502600_i64 # 2023-12-25 10:30:00 UTC
           value = JSON::Any.new(timestamp)
           result = TypeCoercion.coerce(value, "Time")
           result.should_not be_nil
@@ -325,7 +325,7 @@ module Amber::Schema
       it "provides descriptive error information" do
         value = JSON::Any.new("not a number")
         error = TypeCoercion.coercion_error("age", value, "Int32")
-        
+
         error.field.should eq "age"
         error.source_type.should eq "String"
         error.target_type.should eq "Int32"

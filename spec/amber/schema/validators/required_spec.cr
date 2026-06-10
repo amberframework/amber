@@ -15,9 +15,9 @@ module Amber::Schema::Validator
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_true
         result.errors.should be_empty
       end
@@ -28,9 +28,9 @@ module Amber::Schema::Validator
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_true
         result.errors.should be_empty
       end
@@ -41,9 +41,9 @@ module Amber::Schema::Validator
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_false
         result.errors.size.should eq(1)
         error = result.errors.first
@@ -57,9 +57,9 @@ module Amber::Schema::Validator
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_false
         result.errors.size.should eq(1)
         error = result.errors.first
@@ -73,9 +73,9 @@ module Amber::Schema::Validator
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_false
         result.errors.size.should eq(1)
         error = result.errors.first
@@ -89,9 +89,9 @@ module Amber::Schema::Validator
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_true
         result.errors.should be_empty
       end
@@ -102,9 +102,9 @@ module Amber::Schema::Validator
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_true
         result.errors.should be_empty
       end
@@ -115,9 +115,9 @@ module Amber::Schema::Validator
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_true
         result.errors.should be_empty
       end
@@ -128,9 +128,9 @@ module Amber::Schema::Validator
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_true
         result.errors.should be_empty
       end
@@ -142,9 +142,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_true
         end
 
@@ -156,9 +156,9 @@ module Amber::Schema::Validator
           result.add_error(RequiredFieldError.new("other_field"))
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_false
           result.errors.size.should eq(2)
           result.errors.map(&.field).should contain("other_field")

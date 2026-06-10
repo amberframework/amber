@@ -12,7 +12,7 @@
 # ## Basic Migration Examples
 #
 # ### Old Way (Amber::Validators)
-# ```crystal
+# ```
 # class UsersController < Amber::Controller::Base
 #   def create
 #     validation = params.validation do
@@ -20,83 +20,83 @@
 #       required(:password) { |p| p.size >= 8 }
 #       optional(:name)
 #     end
-#     
+#
 #     unless validation.valid?
 #       response.status_code = 400
 #       response.print({errors: validation.errors}.to_json)
 #       return
 #     end
-#     
+#
 #     user = User.create!(
 #       email: params[:email],
 #       password: params[:password],
 #       name: params[:name]?
 #     )
-#     
+#
 #     response.print({id: user.id}.to_json)
 #   end
 # end
 # ```
 #
 # ### New Way (Schema API - Programmatic)
-# ```crystal
+# ```
 # class UsersController < Amber::Controller::Base
 #   schema :create do
 #     field :email, String, required: true
 #     field :password, String, required: true
 #     field :name, String, required: false
-#     
+#
 #     validate :email, format: "email"
 #     validate :password, min_length: 8
 #   end
-#   
+#
 #   validate_schema :create
-#   
+#
 #   def create
 #     # Data is already validated and available in request_data
 #     data = request_data.not_nil!
-#     
+#
 #     user = User.create!(
 #       email: data["email"].as_s,
 #       password: data["password"].as_s,
 #       name: data["name"]?.try(&.as_s)
 #     )
-#     
+#
 #     respond_with({
-#       "id" => user.id
+#       "id" => user.id,
 #     }, status: 201)
 #   end
 # end
 # ```
 #
 # ### New Way (Schema API - Annotations)
-# ```crystal
+# ```
 # class CreateUserSchema < Amber::Schema::RequestSchema
 #   def initialize(name : String)
 #     super(name)
 #     field :email, String, required: true
 #     field :password, String, required: true
 #     field :name, String
-#     
+#
 #     validate :email, format: "email"
 #     validate :password, min_length: 8
 #   end
 # end
 #
 # class UsersController < Amber::Controller::Base
-#   auto_validate  # Enable annotation processing
-#   
+#   auto_validate # Enable annotation processing
+#
 #   @[Request(schema: CreateUserSchema)]
 #   @[Response(status: 201, description: "User created")]
 #   def create
 #     data = request_data.not_nil!
-#     
+#
 #     user = User.create!(
 #       email: data["email"].as_s,
 #       password: data["password"].as_s,
 #       name: data["name"]?.try(&.as_s)
 #     )
-#     
+#
 #     respond_with({"id" => user.id}, status: 201)
 #   end
 # end
@@ -104,7 +104,7 @@
 #
 # ## Key Differences
 #
-# 1. **Validation Location**: 
+# 1. **Validation Location**:
 #    - Old: Inside action methods
 #    - New: Defined at class level or in separate schema classes
 #
@@ -134,7 +134,7 @@
 # ## Advanced Features
 #
 # ### Combining Multiple Data Sources
-# ```crystal
+# ```
 # @[Request(schema: UpdatePostSchema)]
 # @[PathParam(name: "id", type: "Int32")]
 # @[QueryParam(name: "preview", type: "Bool", default: false)]
@@ -147,7 +147,7 @@
 # ```
 #
 # ### Custom Validation Messages
-# ```crystal
+# ```
 # schema :create do
 #   field :age, Int32, required: true
 #   validate :age, min: 18, message: "Must be 18 or older"
@@ -155,7 +155,7 @@
 # ```
 #
 # ### Response Validation
-# ```crystal
+# ```
 # response_schema :show do
 #   field :id, Int32, required: true
 #   field :email, String, required: true
@@ -164,18 +164,18 @@
 #
 # def show
 #   user = User.find(params[:id])
-#   
+#
 #   # Automatically validates response structure
 #   respond_with({
-#     "id" => user.id,
-#     "email" => user.email,
-#     "created_at" => user.created_at.to_s
+#     "id"         => user.id,
+#     "email"      => user.email,
+#     "created_at" => user.created_at.to_s,
 #   })
 # end
 # ```
 #
 # ### Content Type Support
-# ```crystal
+# ```
 # @[Request(schema: UploadSchema, content_type: "multipart/form-data")]
 # def upload
 #   # Handle file uploads with validation
@@ -195,37 +195,37 @@
 # ## Common Patterns
 #
 # ### Optional Fields with Defaults
-# ```crystal
+# ```
 # schema :search do
 #   field :query, String, required: true
 #   field :page, Int32, default: 1
 #   field :per_page, Int32, default: 20
-#   
+#
 #   validate :page, min: 1
 #   validate :per_page, min: 1, max: 100
 # end
 # ```
 #
 # ### Nested Objects
-# ```crystal
+# ```
 # schema :create_order do
 #   field :customer_email, String, required: true
 #   field :items, Array(JSON::Any), required: true
-#   
+#
 #   validate :customer_email, format: "email"
 #   validate :items, min_items: 1
 # end
 # ```
 #
 # ### Conditional Validation
-# ```crystal
+# ```
 # schema :update_user do
 #   field :email, String
 #   field :password, String
 #   field :password_confirmation, String
-#   
+#
 #   # Only validate confirmation if password is provided
-#   validate :password_confirmation, 
+#   validate :password_confirmation,
 #     equals_field: "password",
 #     when: ->(data : Hash(String, JSON::Any)) { data.has_key?("password") }
 # end

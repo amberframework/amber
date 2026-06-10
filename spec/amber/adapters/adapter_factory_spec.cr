@@ -60,10 +60,10 @@ describe Amber::Adapters::AdapterFactory do
     describe "session adapters" do
       it "registers custom session adapter with proc" do
         custom_adapter = Amber::Adapters::MemorySessionAdapter.new
-        factory = ->{ custom_adapter.as(Amber::Adapters::SessionAdapter) }
+        factory = -> { custom_adapter.as(Amber::Adapters::SessionAdapter) }
 
         Amber::Adapters::AdapterFactory.register_session_adapter("custom", factory)
-        
+
         created_adapter = Amber::Adapters::AdapterFactory.create_session_adapter("custom")
         created_adapter.should eq(custom_adapter)
       end
@@ -72,7 +72,7 @@ describe Amber::Adapters::AdapterFactory do
         Amber::Adapters::AdapterFactory.register_session_adapter("custom") do
           Amber::Adapters::MemorySessionAdapter.new.as(Amber::Adapters::SessionAdapter)
         end
-        
+
         adapter = Amber::Adapters::AdapterFactory.create_session_adapter("custom")
         adapter.should be_a(Amber::Adapters::MemorySessionAdapter)
       end
@@ -81,7 +81,7 @@ describe Amber::Adapters::AdapterFactory do
         Amber::Adapters::AdapterFactory.register_session_adapter("custom") do
           Amber::Adapters::MemorySessionAdapter.new.as(Amber::Adapters::SessionAdapter)
         end
-        
+
         adapters = Amber::Adapters::AdapterFactory.available_session_adapters
         adapters.should contain("custom")
       end
@@ -90,7 +90,7 @@ describe Amber::Adapters::AdapterFactory do
         Amber::Adapters::AdapterFactory.register_session_adapter("custom") do
           Amber::Adapters::MemorySessionAdapter.new.as(Amber::Adapters::SessionAdapter)
         end
-        
+
         Amber::Adapters::AdapterFactory.session_adapter_registered?("custom").should be_true
       end
     end
@@ -98,10 +98,10 @@ describe Amber::Adapters::AdapterFactory do
     describe "pubsub adapters" do
       it "registers custom pubsub adapter with proc" do
         custom_adapter = Amber::Adapters::MemoryPubSubAdapter.new
-        factory = ->{ custom_adapter.as(Amber::Adapters::PubSubAdapter) }
+        factory = -> { custom_adapter.as(Amber::Adapters::PubSubAdapter) }
 
         Amber::Adapters::AdapterFactory.register_pubsub_adapter("custom", factory)
-        
+
         created_adapter = Amber::Adapters::AdapterFactory.create_pubsub_adapter("custom")
         created_adapter.should eq(custom_adapter)
       end
@@ -110,7 +110,7 @@ describe Amber::Adapters::AdapterFactory do
         Amber::Adapters::AdapterFactory.register_pubsub_adapter("custom") do
           Amber::Adapters::MemoryPubSubAdapter.new.as(Amber::Adapters::PubSubAdapter)
         end
-        
+
         adapter = Amber::Adapters::AdapterFactory.create_pubsub_adapter("custom")
         adapter.should be_a(Amber::Adapters::MemoryPubSubAdapter)
       end
@@ -119,7 +119,7 @@ describe Amber::Adapters::AdapterFactory do
         Amber::Adapters::AdapterFactory.register_pubsub_adapter("custom") do
           Amber::Adapters::MemoryPubSubAdapter.new.as(Amber::Adapters::PubSubAdapter)
         end
-        
+
         adapters = Amber::Adapters::AdapterFactory.available_pubsub_adapters
         adapters.should contain("custom")
       end
@@ -128,7 +128,7 @@ describe Amber::Adapters::AdapterFactory do
         Amber::Adapters::AdapterFactory.register_pubsub_adapter("custom") do
           Amber::Adapters::MemoryPubSubAdapter.new.as(Amber::Adapters::PubSubAdapter)
         end
-        
+
         Amber::Adapters::AdapterFactory.pubsub_adapter_registered?("custom").should be_true
       end
     end
@@ -145,4 +145,4 @@ describe Amber::Adapters::AdapterFactory do
       adapter.should be_a(Amber::Adapters::MemoryPubSubAdapter)
     end
   end
-end 
+end

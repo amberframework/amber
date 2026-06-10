@@ -63,7 +63,7 @@ module Amber::Mailer
       @html_body : String? = nil,
       @text_body : String? = nil,
       @headers : Hash(String, String) = {} of String => String,
-      @attachments : Array(Attachment) = [] of Attachment
+      @attachments : Array(Attachment) = [] of Attachment,
     )
     end
 

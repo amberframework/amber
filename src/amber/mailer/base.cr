@@ -30,10 +30,10 @@ module Amber::Mailer
   #
   # ```
   # mailer.to("a@example.com", "b@example.com")
-  #       .from("noreply@example.com")
-  #       .subject("Update")
-  #       .cc("manager@example.com")
-  #       .deliver
+  #   .from("noreply@example.com")
+  #   .subject("Update")
+  #   .cc("manager@example.com")
+  #   .deliver
   # ```
   abstract class Base
     getter list_of_recipients : Array(String) = [] of String

@@ -12,15 +12,15 @@ module Amber::Schema::Validator
         it "passes when string length is within range" do
           validator = Length.new("name", min: 3, max: 10)
           valid_strings = ["abc", "hello", "testing", "1234567890"]
-          
+
           valid_strings.each do |str|
             data = {"name" => JSON::Any.new(str)}
             result = LegacyResult.new(true, data)
             schema = TestSchema.new(data)
             context = Context.new(data, result, schema)
-            
+
             validator.validate(context)
-            
+
             result.success.should be_true, "Expected '#{str}' (length: #{str.size}) to be valid"
           end
         end
@@ -31,9 +31,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_false
           error = result.errors.first
           error.should be_a(LengthError)
@@ -49,9 +49,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_false
           error = result.errors.first
           error.should be_a(LengthError)
@@ -63,7 +63,7 @@ module Amber::Schema::Validator
 
         it "validates with only min constraint" do
           validator = Length.new("name", min: 5)
-          
+
           # Should pass
           data = {"name" => JSON::Any.new("hello world")}
           result = LegacyResult.new(true, data)
@@ -71,7 +71,7 @@ module Amber::Schema::Validator
           context = Context.new(data, result, schema)
           validator.validate(context)
           result.success.should be_true
-          
+
           # Should fail
           data = {"name" => JSON::Any.new("hi")}
           result = LegacyResult.new(true, data)
@@ -82,7 +82,7 @@ module Amber::Schema::Validator
 
         it "validates with only max constraint" do
           validator = Length.new("name", max: 5)
-          
+
           # Should pass
           data = {"name" => JSON::Any.new("hello")}
           result = LegacyResult.new(true, data)
@@ -90,7 +90,7 @@ module Amber::Schema::Validator
           context = Context.new(data, result, schema)
           validator.validate(context)
           result.success.should be_true
-          
+
           # Should fail
           data = {"name" => JSON::Any.new("toolong")}
           result = LegacyResult.new(true, data)
@@ -105,9 +105,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_true
         end
 
@@ -115,15 +115,15 @@ module Amber::Schema::Validator
           validator = Length.new("name", min: 3, max: 5)
           # These are 3 characters each
           valid_strings = ["你好吗", "🎉🎊🎈", "café"]
-          
+
           valid_strings.each do |str|
             data = {"name" => JSON::Any.new(str)}
             result = LegacyResult.new(true, data)
             schema = TestSchema.new(data)
             context = Context.new(data, result, schema)
-            
+
             validator.validate(context)
-            
+
             result.success.should be_true, "Expected '#{str}' to be valid"
           end
         end
@@ -135,18 +135,18 @@ module Amber::Schema::Validator
           valid_arrays = [
             [1, 2],
             ["a", "b", "c"],
-            [1, 2, 3, 4]
+            [1, 2, 3, 4],
           ]
-          
+
           valid_arrays.each do |arr|
             json_arr = arr.map { |v| JSON::Any.new(v) }
             data = {"items" => JSON::Any.new(json_arr)}
             result = LegacyResult.new(true, data)
             schema = TestSchema.new(data)
             context = Context.new(data, result, schema)
-            
+
             validator.validate(context)
-            
+
             result.success.should be_true, "Expected array of size #{arr.size} to be valid"
           end
         end
@@ -157,9 +157,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_false
           error = result.errors.first
           error.should be_a(LengthError)
@@ -173,9 +173,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_false
           error = result.errors.first
           error.should be_a(LengthError)
@@ -188,9 +188,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_true
         end
       end
@@ -208,17 +208,17 @@ module Amber::Schema::Validator
             JSON::Any.new(123_i64),
             JSON::Any.new(12.34),
             JSON::Any.new(true),
-            JSON::Any.new({"key" => JSON::Any.new("value")})
+            JSON::Any.new({"key" => JSON::Any.new("value")}),
           ]
-          
+
           non_validatable_values.each do |value|
             data = {"field" => value}
             result = LegacyResult.new(true, data)
             schema = TestSchema.new(data)
             context = Context.new(data, result, schema)
-            
+
             validator.validate(context)
-            
+
             result.success.should be_true, "Expected #{value.class} to be skipped"
           end
         end
@@ -229,9 +229,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_true
         end
 
@@ -241,9 +241,9 @@ module Amber::Schema::Validator
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_true
         end
       end
@@ -255,15 +255,15 @@ module Amber::Schema::Validator
       it "passes when length meets minimum" do
         validator = MinLength.new("name", 3)
         valid_values = ["abc", "hello", "very long string"]
-        
+
         valid_values.each do |value|
           data = {"name" => JSON::Any.new(value)}
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_true
         end
       end
@@ -274,9 +274,9 @@ module Amber::Schema::Validator
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_false
         error = result.errors.first
         error.should be_a(LengthError)
@@ -287,7 +287,7 @@ module Amber::Schema::Validator
 
       it "works with arrays" do
         validator = MinLength.new("items", 2)
-        
+
         # Should pass
         data = {"items" => JSON::Any.new([JSON::Any.new(1), JSON::Any.new(2)])}
         result = LegacyResult.new(true, data)
@@ -295,7 +295,7 @@ module Amber::Schema::Validator
         context = Context.new(data, result, schema)
         validator.validate(context)
         result.success.should be_true
-        
+
         # Should fail
         data = {"items" => JSON::Any.new([JSON::Any.new(1)])}
         result = LegacyResult.new(true, data)
@@ -306,13 +306,13 @@ module Amber::Schema::Validator
 
       it "handles boundary values" do
         validator = MinLength.new("name", 5)
-        data = {"name" => JSON::Any.new("12345")}  # Exactly 5 characters
+        data = {"name" => JSON::Any.new("12345")} # Exactly 5 characters
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_true
       end
     end
@@ -323,15 +323,15 @@ module Amber::Schema::Validator
       it "passes when length is within maximum" do
         validator = MaxLength.new("name", 10)
         valid_values = ["", "hello", "1234567890"]
-        
+
         valid_values.each do |value|
           data = {"name" => JSON::Any.new(value)}
           result = LegacyResult.new(true, data)
           schema = TestSchema.new(data)
           context = Context.new(data, result, schema)
-          
+
           validator.validate(context)
-          
+
           result.success.should be_true
         end
       end
@@ -342,9 +342,9 @@ module Amber::Schema::Validator
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_false
         error = result.errors.first
         error.should be_a(LengthError)
@@ -355,7 +355,7 @@ module Amber::Schema::Validator
 
       it "works with arrays" do
         validator = MaxLength.new("items", 3)
-        
+
         # Should pass
         data = {"items" => JSON::Any.new([JSON::Any.new(1), JSON::Any.new(2)])}
         result = LegacyResult.new(true, data)
@@ -363,7 +363,7 @@ module Amber::Schema::Validator
         context = Context.new(data, result, schema)
         validator.validate(context)
         result.success.should be_true
-        
+
         # Should fail
         arr = [1, 2, 3, 4].map { |v| JSON::Any.new(v) }
         data = {"items" => JSON::Any.new(arr)}
@@ -375,13 +375,13 @@ module Amber::Schema::Validator
 
       it "handles boundary values" do
         validator = MaxLength.new("name", 5)
-        data = {"name" => JSON::Any.new("12345")}  # Exactly 5 characters
+        data = {"name" => JSON::Any.new("12345")} # Exactly 5 characters
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_true
       end
 
@@ -391,9 +391,9 @@ module Amber::Schema::Validator
         result = LegacyResult.new(true, data)
         schema = TestSchema.new(data)
         context = Context.new(data, result, schema)
-        
+
         validator.validate(context)
-        
+
         result.success.should be_true
       end
     end

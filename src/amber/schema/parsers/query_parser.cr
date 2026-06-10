@@ -70,7 +70,7 @@ module Amber::Schema::Parser
 
       # Handle nested object notation: user[profile][name]
       parts = parse_nested_key(key)
-      
+
       if parts.size == 1
         # Simple key
         hash[key] = value
@@ -94,12 +94,12 @@ module Amber::Schema::Parser
     private def self.parse_nested_key(key : String) : Array(String)
       # Split on brackets and remove empty parts
       parts = key.split(/[\[\]]/).reject(&.empty?)
-      
+
       # If no brackets found, try splitting on dots
       if parts.size == 1 && key.includes?('.')
         parts = key.split('.')
       end
-      
+
       parts
     end
 
@@ -113,7 +113,7 @@ module Amber::Schema::Parser
       if int_value = value.to_i64?
         return JSON::Any.new(int_value)
       end
-      
+
       if float_value = value.to_f64?
         return JSON::Any.new(float_value)
       end
@@ -137,7 +137,7 @@ module Amber::Schema::Parser
 
       data.each do |key, value|
         full_key = prefix ? "#{prefix}[#{key}]" : key
-        
+
         case value.raw
         when Hash
           if nested = value.as_h?

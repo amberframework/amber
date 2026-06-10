@@ -5,7 +5,7 @@ module Amber::Adapters
   # In-memory implementation of PubSubAdapter.
   #
   # This adapter provides pub/sub messaging using in-memory channels and fiber-based
-  # message routing. This is the default pub/sub adapter and is suitable for 
+  # message routing. This is the default pub/sub adapter and is suitable for
   # development, testing, and single-instance applications.
   #
   # **Note**: Messages are only routed within the same application instance.
@@ -32,12 +32,12 @@ module Amber::Adapters
     end
 
     # Publishes a message to the specified topic.
-    # 
+    #
     # The message is immediately delivered to all subscribers of the topic
     # in the current application instance.
     #
     # @param topic The topic to publish to
-    # @param sender_id Unique identifier of the message sender  
+    # @param sender_id Unique identifier of the message sender
     # @param message The message payload as JSON::Any
     def publish(topic : String, sender_id : String, message : JSON::Any) : Nil
       subscribers = get_subscribers(topic)
@@ -123,7 +123,7 @@ module Amber::Adapters
     end
 
     # Clears all subscriptions.
-    # 
+    #
     # This is mainly useful for testing or when shutting down the adapter.
     def clear_all_subscriptions : Nil
       unsubscribe_all
@@ -136,11 +136,11 @@ module Amber::Adapters
       @mutex.synchronize do
         total_subscribers = @subscriptions.values.sum(&.size)
         active_topics = @subscriptions.count { |_, subs| !subs.empty? }
-        
+
         {
-          "total_topics" => @subscriptions.size,
-          "active_topics" => active_topics,
-          "total_subscribers" => total_subscribers
+          "total_topics"      => @subscriptions.size,
+          "active_topics"     => active_topics,
+          "total_subscribers" => total_subscribers,
         }
       end
     end
@@ -152,4 +152,4 @@ module Amber::Adapters
       end
     end
   end
-end 
+end

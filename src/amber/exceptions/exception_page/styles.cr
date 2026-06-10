@@ -8,7 +8,7 @@ class ExceptionPage::Styles
     @accent,
     @highlight = "#e5e5e5",
     @flash_highlight = "#ffdc93",
-    @logo_uri = crystal_logo
+    @logo_uri = crystal_logo,
   )
   end
 

@@ -82,14 +82,14 @@ module Amber::Schema::Parser
       new([
         Option::TrimWhitespace,
         Option::NormalizeWhitespace,
-        Option::RemoveHTML
+        Option::RemoveHTML,
       ])
     end
 
     def self.for_html : Sanitizer
       new([
         Option::TrimWhitespace,
-        Option::EscapeHTML
+        Option::EscapeHTML,
       ])
     end
 
@@ -97,14 +97,14 @@ module Amber::Schema::Parser
       new([
         Option::TrimWhitespace,
         Option::Lowercase,
-        Option::RemoveNonPrintable
+        Option::RemoveNonPrintable,
       ])
     end
 
     def self.for_email : Sanitizer
       new([
         Option::TrimWhitespace,
-        Option::Lowercase
+        Option::Lowercase,
       ])
     end
   end

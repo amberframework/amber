@@ -10,29 +10,29 @@ module Amber::Schema::Validator
       if allowed_values.empty?
         raise ArgumentError.new("Enum validator requires at least one allowed value")
       end
-      
+
       # Store original allowed values with their types preserved
       @allowed_values = allowed_values.map { |v| JSON::Any.new(v) }
-      
+
       # Also store string representations for error messages
       @allowed_string_representations = allowed_values.map(&.to_s)
-      
+
       # Determine the enum type for validation logic
       @enum_type = case allowed_values
-      when Array(String)
-        "String"
-      when Array(Int32)
-        "Int32"
-      when Array(Float64)
-        "Float64"
-      else
-        "String" # fallback
-      end
+                   when Array(String)
+                     "String"
+                   when Array(Int32)
+                     "Int32"
+                   when Array(Float64)
+                     "Float64"
+                   else
+                     "String" # fallback
+                   end
     end
 
     def validate(context : Context) : Nil
       return unless value = context.field_value(@field_name)
-      
+
       # Skip validation for nil values
       return if value.raw.nil?
 
@@ -58,10 +58,10 @@ module Amber::Schema::Validator
       when "Int32", "Float64"
         # For numeric enums, be strict about types - only allow exact type matches
         extracted_value = extract_value(value)
-        
+
         @allowed_values.any? do |allowed|
           allowed_extracted = extract_value(allowed)
-          
+
           # Strict type and value comparison for numeric enums
           case {extracted_value, allowed_extracted}
           when {Int32, Int32}, {Int64, Int64}

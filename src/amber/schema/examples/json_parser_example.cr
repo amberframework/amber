@@ -15,7 +15,7 @@ module JsonParserExample
     JSON
 
     result = Amber::Schema::Parser::JSONParser.parse_string(json_string)
-    
+
     puts "Parsed data:"
     puts "Name: #{result["name"].as_s}"
     puts "Age: #{result["age"].as_i}"
@@ -53,11 +53,11 @@ module JsonParserExample
     JSON
 
     result = Amber::Schema::Parser::JSONParser.parse_string(json_string)
-    
+
     user = result["user"].as_h
     profile = user["profile"].as_h
     addresses = profile["addresses"].as_a
-    
+
     puts "User ID: #{user["id"].as_i}"
     puts "Name: #{profile["firstName"].as_s} #{profile["lastName"].as_s}"
     puts "Addresses:"
@@ -71,9 +71,9 @@ module JsonParserExample
   def self.form_data_parsing
     # Simulating form data from HTTP params
     params = HTTP::Params.parse("user[name]=Alice&user[email]=alice@example.com&user[age]=25&tags[]=ruby&tags[]=crystal")
-    
+
     result = Amber::Schema::Parser::JSONParser.parse_params(params)
-    
+
     user = result["user"].as_h
     puts "Form data parsed:"
     puts "User name: #{user["name"].as_s}"
@@ -96,7 +96,7 @@ module JsonParserExample
     JSON
 
     data = Amber::Schema::Parser::JSONParser.parse_string(json_string)
-    
+
     puts "Parsed fields:"
     puts "username: #{data["username"].as_s}"
     puts "email: #{data["email"].as_s}"
@@ -106,7 +106,7 @@ module JsonParserExample
   # Example 5: Error handling
   def self.error_handling
     invalid_json = "{invalid json"
-    
+
     begin
       Amber::Schema::Parser::JSONParser.parse_string(invalid_json)
     rescue ex : Amber::Schema::SchemaDefinitionError
@@ -134,10 +134,10 @@ module JsonParserExample
     }
     JSON
     )
-    
+
     # Use ParserRegistry to automatically select the right parser
     result = Amber::Schema::Parser::ParserRegistry.parse_request(request)
-    
+
     puts "Parsed via registry:"
     puts "Name: #{result["name"].as_s}"
     puts "Theme: #{result["preferences"].as_h["theme"].as_s}"
@@ -154,15 +154,15 @@ module JsonParserExample
       "order[items][0][quantity]=2",
       "order[items][1][product]=Gadget",
       "order[items][1][quantity]=1",
-      "order[notes]=Rush delivery"
+      "order[notes]=Rush delivery",
     ].join("&"))
-    
+
     result = Amber::Schema::Parser::JSONParser.parse_params(params)
-    
+
     order = result["order"].as_h
     customer = order["customer"].as_h
     items = order["items"].as_a
-    
+
     puts "Order ID: #{order["id"].as_i}"
     puts "Customer: #{customer["name"].as_s} (#{customer["email"].as_s})"
     puts "Items:"

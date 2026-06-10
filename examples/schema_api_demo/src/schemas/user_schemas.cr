@@ -13,22 +13,22 @@ module Schemas
     field :username, String, required: true, min_length: 3, max_length: 20, pattern: "^[a-zA-Z0-9_]+$"
     field :password, String, required: true, min_length: 8, max_length: 100
     field :password_confirmation, String, required: true
-    
+
     # Optional fields with validation
     field :age, Int32, min: 13, max: 120
-    field :phone, String, pattern: "^\\+?[1-9]\\d{1,14}$"  # E.164 format
+    field :phone, String, pattern: "^\\+?[1-9]\\d{1,14}$" # E.164 format
     field :role, String, enum: ["user", "moderator", "admin"], default: "user"
-    field :tags, Array(String), max_length: 10  # Max 10 tags
-    
+    field :tags, Array(String), max_length: 10 # Max 10 tags
+
     # Nested object validation
     nested :address, AddressSchema
     nested :preferences, UserPreferencesSchema
-    
+
     # Custom validation - passwords must match
     validate do |context|
       password = context.data["password"]?.try(&.as_s)
       confirmation = context.data["password_confirmation"]?.try(&.as_s)
-      
+
       if password && confirmation && password != confirmation
         context.add_error(Amber::Schema::CustomValidationError.new(
           "password_confirmation",
@@ -37,7 +37,7 @@ module Schemas
         ))
       end
     end
-    
+
     # Custom validation - unique email
     validate do |context|
       if email = context.data["email"]?.try(&.as_s)
@@ -50,7 +50,7 @@ module Schemas
         end
       end
     end
-    
+
     # Custom validation - unique username
     validate do |context|
       if username = context.data["username"]?.try(&.as_s)
@@ -64,7 +64,7 @@ module Schemas
       end
     end
   end
-  
+
   # Schema for updating a user
   class UpdateUserSchema < Amber::Schema::Definition
     # All fields are optional for updates
@@ -77,11 +77,11 @@ module Schemas
     field :role, String, enum: ["user", "moderator", "admin"]
     field :is_active, Bool
     field :tags, Array(String), max_length: 10
-    
+
     # Nested schemas
     nested :address, AddressSchema
     nested :preferences, UserPreferencesSchema
-    
+
     # At least one field must be provided
     validate do |context|
       if context.data.empty?
@@ -93,23 +93,23 @@ module Schemas
       end
     end
   end
-  
+
   # Schema for address validation
   class AddressSchema < Amber::Schema::Definition
     field :street, String, required: true, min_length: 5, max_length: 100
     field :city, String, required: true, min_length: 2, max_length: 50
-    field :state, String, required: true, min_length: 2, max_length: 2  # US state code
-    field :postal_code, String, required: true, pattern: "^\\d{5}(-\\d{4})?$"  # US ZIP code
+    field :state, String, required: true, min_length: 2, max_length: 2        # US state code
+    field :postal_code, String, required: true, pattern: "^\\d{5}(-\\d{4})?$" # US ZIP code
     field :country, String, default: "US", enum: ["US", "CA", "MX"]
   end
-  
+
   # Schema for user preferences
   class UserPreferencesSchema < Amber::Schema::Definition
     field :theme, String, enum: ["light", "dark", "auto"], default: "light"
     field :notifications_enabled, Bool, default: true
     field :language, String, enum: ["en", "es", "fr", "de"], default: "en"
     field :timezone, String, default: "UTC"
-    
+
     # Validate timezone
     validate do |context|
       if tz = context.data["timezone"]?.try(&.as_s)
@@ -125,12 +125,12 @@ module Schemas
       end
     end
   end
-  
+
   # Schema for user search/filtering
   class UserSearchSchema < Amber::Schema::Definition
     # Define query parameters
     from_query do
-      field :q, String, max_length: 100  # Search query
+      field :q, String, max_length: 100 # Search query
       field :role, String, enum: ["user", "moderator", "admin"]
       field :is_active, Bool
       field :tags, Array(String)
@@ -140,11 +140,11 @@ module Schemas
       field :sort_order, String, enum: ["asc", "desc"], default: "desc"
     end
   end
-  
+
   # Schema for bulk user creation
   class BulkCreateUsersSchema < Amber::Schema::Definition
     field :users, Array(Hash(String, JSON::Any)), required: true, min_length: 1, max_length: 100
-    
+
     # Validate each user in the array
     validate do |context|
       if users = context.data["users"]?.try(&.as_a)
@@ -153,7 +153,7 @@ module Schemas
             # Create a schema instance for each user
             user_schema = CreateUserSchema.new(user_hash)
             result = user_schema.validate
-            
+
             if result.failure?
               result.errors.each do |error|
                 context.add_error(Amber::Schema::CustomValidationError.new(
@@ -174,12 +174,12 @@ module Schemas
       end
     end
   end
-  
+
   # Schema for bulk deletion
   class BulkDeleteUsersSchema < Amber::Schema::Definition
     field :ids, Array(Int64), required: true, min_length: 1, max_length: 100
     field :confirm, Bool, required: true
-    
+
     # Must confirm deletion
     validate do |context|
       if confirm = context.data["confirm"]?.try(&.as_bool)
@@ -192,7 +192,7 @@ module Schemas
         end
       end
     end
-    
+
     # Validate that all IDs exist
     validate do |context|
       if ids = context.data["ids"]?.try(&.as_a)
@@ -204,7 +204,7 @@ module Schemas
             end
           end
         end
-        
+
         if missing_ids.any?
           context.add_error(Amber::Schema::CustomValidationError.new(
             "ids",
@@ -215,18 +215,18 @@ module Schemas
       end
     end
   end
-  
+
   # Schema for user activation/deactivation
   class UserActivationSchema < Amber::Schema::Definition
     field :reason, String, max_length: 500
     field :notify_user, Bool, default: false
-    
+
     # Conditional field - if notifying user, email_template is required
     when_field :notify_user, true do
       field :email_template, String, required: true, enum: ["activation", "deactivation", "custom"]
       field :custom_message, String, max_length: 1000
     end
-    
+
     # If using custom template, custom_message is required
     validate do |context|
       if context.data["email_template"]?.try(&.as_s) == "custom"
@@ -240,7 +240,7 @@ module Schemas
       end
     end
   end
-  
+
   # Schema for authentication
   class LoginSchema < Amber::Schema::Definition
     field :username_or_email, String, required: true
@@ -248,29 +248,29 @@ module Schemas
     field :remember_me, Bool, default: false
     field :device_id, String, max_length: 100
     field :device_name, String, max_length: 100
-    
+
     # Require device info if remember_me is true
     when_field :remember_me, true do
       field :device_id, String, required: true
       field :device_name, String, required: true
     end
   end
-  
+
   # Schema for CSV import
   class UserImportSchema < Amber::Schema::Definition
     # File upload from multipart form
     from_body do
-      field :file, String, required: true  # Base64 encoded or file path
+      field :file, String, required: true # Base64 encoded or file path
       field :format, String, enum: ["csv", "json"], default: "csv"
       field :skip_errors, Bool, default: false
       field :dry_run, Bool, default: false
     end
-    
+
     # Validate file size (simulated)
     validate do |context|
       if file = context.data["file"]?.try(&.as_s)
         # In real app, would check actual file size
-        if file.size > 10_000_000  # 10MB limit
+        if file.size > 10_000_000 # 10MB limit
           context.add_error(Amber::Schema::CustomValidationError.new(
             "file",
             "File size must be less than 10MB",
@@ -280,7 +280,7 @@ module Schemas
       end
     end
   end
-  
+
   # Schema for export parameters
   class UserExportSchema < Amber::Schema::Definition
     from_query do
@@ -290,17 +290,17 @@ module Schemas
       field :date_from, String, format: "date"
       field :date_to, String, format: "date"
     end
-    
+
     # Validate date range
     validate do |context|
       date_from = context.data["date_from"]?.try(&.as_s)
       date_to = context.data["date_to"]?.try(&.as_s)
-      
+
       if date_from && date_to
         begin
           from = Time.parse(date_from, "%Y-%m-%d", Time::Location::UTC)
           to = Time.parse(date_to, "%Y-%m-%d", Time::Location::UTC)
-          
+
           if from > to
             context.add_error(Amber::Schema::CustomValidationError.new(
               "date_from",
@@ -314,7 +314,7 @@ module Schemas
       end
     end
   end
-  
+
   # Schema for contact form (demonstrates form data handling)
   class ContactFormSchema < Amber::Schema::Definition
     field :name, String, required: true, min_length: 2, max_length: 100
@@ -323,13 +323,13 @@ module Schemas
     field :message, String, required: true, min_length: 10, max_length: 5000
     field :phone, String, pattern: "^\\+?[1-9]\\d{1,14}$"
     field :preferred_contact, String, enum: ["email", "phone"], default: "email"
-    
+
     # If preferred contact is phone, phone number is required
     when_field :preferred_contact, "phone" do
       field :phone, String, required: true
     end
   end
-  
+
   # Schema for newsletter subscription
   class SubscriptionSchema < Amber::Schema::Definition
     field :email, String, required: true, format: "email"
@@ -337,7 +337,7 @@ module Schemas
     field :interests, Array(String), enum: ["tech", "business", "design", "marketing"]
     field :frequency, String, enum: ["daily", "weekly", "monthly"], default: "weekly"
     field :accept_terms, Bool, required: true
-    
+
     # Must accept terms
     validate do |context|
       unless context.data["accept_terms"]?.try(&.as_bool)

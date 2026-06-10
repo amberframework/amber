@@ -12,13 +12,13 @@ module Amber::Schema::Validator
       return unless value = context.field_value(@field_name)
 
       number = case value.raw
-      when Int
-        value.as_i.to_f64
-      when Float
-        value.as_f
-      else
-        return  # Skip validation for non-numeric types
-      end
+               when Int
+                 value.as_i.to_f64
+               when Float
+                 value.as_f
+               else
+                 return # Skip validation for non-numeric types
+               end
 
       if @min && number < @min.not_nil!
         context.add_error(RangeError.new(@field_name, @min, @max, number))
@@ -37,13 +37,13 @@ module Amber::Schema::Validator
       return unless value = context.field_value(@field_name)
 
       number = case value.raw
-      when Int
-        value.as_i.to_f64
-      when Float
-        value.as_f
-      else
-        return  # Skip validation for non-numeric types
-      end
+               when Int
+                 value.as_i.to_f64
+               when Float
+                 value.as_f
+               else
+                 return # Skip validation for non-numeric types
+               end
 
       if number < @min
         context.add_error(RangeError.new(@field_name, @min, nil, number))
@@ -60,13 +60,13 @@ module Amber::Schema::Validator
       return unless value = context.field_value(@field_name)
 
       number = case value.raw
-      when Int
-        value.as_i.to_f64
-      when Float
-        value.as_f
-      else
-        return  # Skip validation for non-numeric types
-      end
+               when Int
+                 value.as_i.to_f64
+               when Float
+                 value.as_f
+               else
+                 return # Skip validation for non-numeric types
+               end
 
       if number > @max
         context.add_error(RangeError.new(@field_name, nil, @max, number))

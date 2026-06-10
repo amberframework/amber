@@ -9,27 +9,27 @@ module Amber::Schema
     @@custom_coercions = {} of String => CoercionFunction
 
     # Common boolean string representations
-    TRUE_VALUES = {"true", "1", "yes", "y", "on", "t", "enabled", "active"}
+    TRUE_VALUES  = {"true", "1", "yes", "y", "on", "t", "enabled", "active"}
     FALSE_VALUES = {"false", "0", "no", "n", "off", "f", "disabled", "inactive"}
 
     # Common time formats for parsing
     TIME_FORMATS = [
-      "%Y-%m-%dT%H:%M:%S.%LZ",           # ISO8601 with milliseconds and Z
-      "%Y-%m-%dT%H:%M:%S.%L%:z",         # ISO8601 with milliseconds and timezone
-      "%Y-%m-%dT%H:%M:%S%:z",            # ISO8601 with timezone
-      "%Y-%m-%dT%H:%M:%SZ",              # ISO8601 with Z
-      "%Y-%m-%d %H:%M:%S",               # Common format
-      "%Y-%m-%d %H:%M:%S %z",            # Common format with timezone
-      "%Y-%m-%d %H:%M:%S.%L",            # Common format with milliseconds
-      "%Y/%m/%d %H:%M:%S",               # Alternative format
-      "%Y-%m-%d",                        # Date only (unambiguous)
-      "%Y/%m/%d",                        # Date only with slashes (unambiguous)
-      "%m/%d/%Y %H:%M:%S",               # American format
-      "%d/%m/%Y %H:%M:%S",               # European format
-      "%m-%d-%Y",                        # American date
-      "%d-%m-%Y",                        # European date
-      "%m/%d/%Y",                        # American date with slashes
-      "%d/%m/%Y",                        # European date with slashes
+      "%Y-%m-%dT%H:%M:%S.%LZ",   # ISO8601 with milliseconds and Z
+      "%Y-%m-%dT%H:%M:%S.%L%:z", # ISO8601 with milliseconds and timezone
+      "%Y-%m-%dT%H:%M:%S%:z",    # ISO8601 with timezone
+      "%Y-%m-%dT%H:%M:%SZ",      # ISO8601 with Z
+      "%Y-%m-%d %H:%M:%S",       # Common format
+      "%Y-%m-%d %H:%M:%S %z",    # Common format with timezone
+      "%Y-%m-%d %H:%M:%S.%L",    # Common format with milliseconds
+      "%Y/%m/%d %H:%M:%S",       # Alternative format
+      "%Y-%m-%d",                # Date only (unambiguous)
+      "%Y/%m/%d",                # Date only with slashes (unambiguous)
+      "%m/%d/%Y %H:%M:%S",       # American format
+      "%d/%m/%Y %H:%M:%S",       # European format
+      "%m-%d-%Y",                # American date
+      "%d-%m-%Y",                # European date
+      "%m/%d/%Y",                # American date with slashes
+      "%d/%m/%Y",                # European date with slashes
     ]
 
     # Main coercion method
@@ -119,7 +119,7 @@ module Amber::Schema
       when String
         # Handle empty string
         return nil if raw.empty?
-        
+
         # Try to parse
         if int_value = raw.to_i32?
           JSON::Any.new(int_value)
@@ -147,7 +147,7 @@ module Amber::Schema
       when String
         # Handle empty string
         return nil if raw.empty?
-        
+
         # Try to parse
         if int_value = raw.to_i64?
           JSON::Any.new(int_value)
@@ -170,7 +170,7 @@ module Amber::Schema
       when String
         # Handle empty string
         return nil if raw.empty?
-        
+
         # Try to parse
         if float_value = raw.to_f32?
           JSON::Any.new(float_value)
@@ -193,7 +193,7 @@ module Amber::Schema
       when String
         # Handle empty string
         return nil if raw.empty?
-        
+
         # Try to parse
         if float_value = raw.to_f64?
           JSON::Any.new(float_value)
@@ -211,7 +211,7 @@ module Amber::Schema
         value
       when String
         normalized = raw.downcase.strip
-        
+
         if TRUE_VALUES.includes?(normalized)
           JSON::Any.new(true)
         elsif FALSE_VALUES.includes?(normalized)
@@ -247,7 +247,7 @@ module Amber::Schema
       when String
         # Handle empty string
         return nil if raw.empty?
-        
+
         # Try parsing with each format
         TIME_FORMATS.each do |format|
           begin
@@ -291,7 +291,7 @@ module Amber::Schema
       when String
         # Handle empty string
         return nil if raw.empty?
-        
+
         # Validate UUID format
         begin
           uuid = UUID.new(raw)
@@ -309,10 +309,10 @@ module Amber::Schema
       when Hash
         # This should be a file upload hash with filename, content_type, etc
         hash_value = raw.as(Hash(String, JSON::Any))
-        
+
         # Validate that it has the expected file upload structure
         if hash_value.has_key?("filename") && hash_value.has_key?("content")
-          value  # Return the file data as-is
+          value # Return the file data as-is
         else
           nil
         end
@@ -378,7 +378,7 @@ module Amber::Schema
       when Hash
         # Already a hash, coerce values
         coerced_hash = {} of String => JSON::Any
-        
+
         raw.each do |key, val|
           key_str = key.to_s
           # Special handling for JSON::Any - don't coerce, just keep as-is
@@ -430,17 +430,17 @@ module Amber::Schema
     # Get a descriptive error for a failed coercion
     def self.coercion_error(field : String, value : JSON::Any, target_type : String) : CoercionError
       source_type = case value.raw
-      when String then "String"
-      when Int32 then "Int32"
-      when Int64 then "Int64"
-      when Float32 then "Float32"
-      when Float64 then "Float64"
-      when Bool then "Bool"
-      when Array then "Array"
-      when Hash then "Hash"
-      when Nil then "Nil"
-      else value.raw.class.to_s
-      end
+                    when String  then "String"
+                    when Int32   then "Int32"
+                    when Int64   then "Int64"
+                    when Float32 then "Float32"
+                    when Float64 then "Float64"
+                    when Bool    then "Bool"
+                    when Array   then "Array"
+                    when Hash    then "Hash"
+                    when Nil     then "Nil"
+                    else              value.raw.class.to_s
+                    end
 
       CoercionError.new(
         field: field,

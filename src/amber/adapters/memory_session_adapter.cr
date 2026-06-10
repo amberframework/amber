@@ -10,7 +10,7 @@ module Amber::Adapters
   #
   # **Note**: Session data will be lost when the application restarts since
   # everything is stored in memory. For production applications that require
-  # persistence or multi-instance deployments, consider using a database or 
+  # persistence or multi-instance deployments, consider using a database or
   # Redis-based adapter.
   #
   # ## Usage
@@ -54,7 +54,7 @@ module Amber::Adapters
     def set(session_id : String, key : String, value : String) : Nil
       @mutex.synchronize do
         entry = @sessions[session_id]?
-        
+
         if entry && !expired?(entry)
           # Update existing session
           entry.data[key] = value
@@ -73,7 +73,7 @@ module Amber::Adapters
       @mutex.synchronize do
         entry = @sessions[session_id]?
         return unless entry && !expired?(entry)
-        
+
         entry.data.delete(key)
       end
     end
@@ -90,7 +90,7 @@ module Amber::Adapters
       @mutex.synchronize do
         entry = @sessions[session_id]?
         return false unless entry && !expired?(entry)
-        
+
         entry.data.has_key?(key)
       end
     end
@@ -100,7 +100,7 @@ module Amber::Adapters
       @mutex.synchronize do
         entry = @sessions[session_id]?
         return Array(String).new unless entry && !expired?(entry)
-        
+
         entry.data.keys
       end
     end
@@ -110,7 +110,7 @@ module Amber::Adapters
       @mutex.synchronize do
         entry = @sessions[session_id]?
         return Array(String).new unless entry && !expired?(entry)
-        
+
         entry.data.values
       end
     end
@@ -120,7 +120,7 @@ module Amber::Adapters
       @mutex.synchronize do
         entry = @sessions[session_id]?
         return Hash(String, String).new unless entry && !expired?(entry)
-        
+
         entry.data.dup
       end
     end
@@ -130,7 +130,7 @@ module Amber::Adapters
       @mutex.synchronize do
         entry = @sessions[session_id]?
         return true unless entry && !expired?(entry)
-        
+
         entry.data.empty?
       end
     end
@@ -140,7 +140,7 @@ module Amber::Adapters
       @mutex.synchronize do
         entry = @sessions[session_id]?
         return unless entry
-        
+
         @sessions[session_id] = SessionEntry.new(
           data: entry.data,
           expires_at: Time.utc + seconds.seconds
@@ -152,7 +152,7 @@ module Amber::Adapters
     def batch_set(session_id : String, hash : Hash(String, String)) : Nil
       @mutex.synchronize do
         entry = @sessions[session_id]?
-        
+
         if entry && !expired?(entry)
           # Update existing session with new values
           hash.each { |key, value| entry.data[key] = value }
@@ -187,7 +187,7 @@ module Amber::Adapters
     private def start_cleanup_task
       return if @cleanup_running
       @cleanup_running = true
-      
+
       spawn do
         loop do
           sleep(60.seconds) # Cleanup every minute
@@ -206,7 +206,7 @@ module Amber::Adapters
     # Sets a value without mutex (for internal use in batch operations)
     protected def unsafe_set(session_id : String, key : String, value : String) : Nil
       entry = @sessions[session_id]?
-      
+
       if entry && !expired?(entry)
         # Update existing session
         entry.data[key] = value
@@ -223,7 +223,7 @@ module Amber::Adapters
     protected def unsafe_delete(session_id : String, key : String) : Nil
       entry = @sessions[session_id]?
       return unless entry && !expired?(entry)
-      
+
       entry.data.delete(key)
     end
 
@@ -231,7 +231,7 @@ module Amber::Adapters
     protected def unsafe_expire(session_id : String, seconds : Int32) : Nil
       entry = @sessions[session_id]?
       return unless entry
-      
+
       @sessions[session_id] = SessionEntry.new(
         data: entry.data,
         expires_at: Time.utc + seconds.seconds
@@ -256,4 +256,4 @@ module Amber::Adapters
       end
     end
   end
-end 
+end

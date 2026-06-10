@@ -5,7 +5,7 @@ module Amber::Schema
     macro included
       # Instance property to store validated request data
       property request_data : Hash(String, JSON::Any)? = nil
-      
+
       # Store validation result
       property validation_result : Amber::Schema::LegacyResult? = nil
     end
@@ -29,7 +29,7 @@ module Amber::Schema
     def validate_request(schema_name : String? = nil) : Amber::Schema::LegacyResult
       # Merge all request data
       data = merge_request_data
-      
+
       # For now, return success
       Amber::Schema::LegacyResult.success(data)
     end
@@ -85,16 +85,16 @@ module Amber::Schema
     def respond_with(data : Hash(String, JSON::Any) | NamedTuple | Nil = nil, status : Int32 = 200, schema_name : String? = nil)
       # Convert NamedTuple to Hash if needed
       response_data = case data
-      when NamedTuple
-        data.to_h.transform_values { |v| JSON::Any.new(v) }
-      when Hash
-        data
-      when Nil
-        {} of String => JSON::Any
-      else
-        raise "respond_with only accepts Hash(String, JSON::Any), NamedTuple, or Nil"
-      end
-      
+                      when NamedTuple
+                        data.to_h.transform_values { |v| JSON::Any.new(v) }
+                      when Hash
+                        data
+                      when Nil
+                        {} of String => JSON::Any
+                      else
+                        raise "respond_with only accepts Hash(String, JSON::Any), NamedTuple, or Nil"
+                      end
+
       # Set response properties
       response.status_code = status
       response.content_type = "application/json"
@@ -128,7 +128,7 @@ module Amber::Schema
     # Merge request data from all sources (body, query params, path params)
     private def merge_request_data : Hash(String, JSON::Any)
       data = {} of String => JSON::Any
-      
+
       # Start with path parameters from request.params (which includes route params)
       begin
         if request.valid_route?
@@ -142,23 +142,23 @@ module Amber::Schema
       rescue
         # Skip route params if not available
       end
-      
+
       # Add query parameters
       request.query_params.each do |key, value|
         data[key] = JSON::Any.new(value)
       end
-      
+
       # Parse and merge body data
       body_data = parse_request_body
       data.merge!(body_data)
-      
+
       data
     end
 
     # Parse request body based on content type
     private def parse_request_body : Hash(String, JSON::Any)
       content_type = request.headers["Content-Type"]?
-      
+
       begin
         # For now, just parse as JSON
         if request.body

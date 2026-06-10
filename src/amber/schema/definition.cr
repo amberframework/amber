@@ -120,7 +120,7 @@ module Amber::Schema
     # New validation method that returns typed Result
     def validate_typed : Success(Hash(String, JSON::Any)) | Failure(Hash(String, JSON::Any))
       result = self.validate
-      
+
       if result.success? && result.data
         Success(Hash(String, JSON::Any)).new(result.data.not_nil!)
       else
@@ -629,7 +629,7 @@ module Amber::Schema
     private def validate_field_type(field_name : String, field_def : FieldDef, value : JSON::Any)
       # Allow nil values for optional fields
       return if value.raw.nil? && !field_def.required
-      
+
       # Use type coercion system for validation
       unless ::Amber::Schema::TypeCoercion.can_coerce?(value, field_def.type)
         error_info = ::Amber::Schema::TypeCoercion.coercion_error(field_name, value, field_def.type)
@@ -640,14 +640,14 @@ module Amber::Schema
     private def validate_field_constraints(field_name : String, field_def : FieldDef, value : JSON::Any)
       # Skip constraint validation for nil values
       return if value.raw.nil?
-      
+
       # Validate based on options like min, max, format, etc.
       options = field_def.options
 
       # For numeric constraints, try to coerce to appropriate numeric type first
       if min = options["min"]?
         numeric_value = nil
-        
+
         # Try to get numeric value, including coercion from string
         if field_def.type.includes?("Int")
           if coerced = ::Amber::Schema::TypeCoercion.coerce(value, "Int64")
@@ -672,7 +672,7 @@ module Amber::Schema
 
       if max = options["max"]?
         numeric_value = nil
-        
+
         # Try to get numeric value, including coercion from string
         if field_def.type.includes?("Int")
           if coerced = ::Amber::Schema::TypeCoercion.coerce(value, "Int64")
@@ -698,10 +698,10 @@ module Amber::Schema
       # For string constraints, coerce to string first if needed
       if min_length = options["min_length"]?
         string_value = if value.as_s?
-          value.as_s
-        elsif coerced = ::Amber::Schema::TypeCoercion.coerce(value, "String")
-          coerced.as_s
-        end
+                         value.as_s
+                       elsif coerced = ::Amber::Schema::TypeCoercion.coerce(value, "String")
+                         coerced.as_s
+                       end
 
         if string_value
           if string_value.size < min_length.as_i
@@ -712,10 +712,10 @@ module Amber::Schema
 
       if max_length = options["max_length"]?
         string_value = if value.as_s?
-          value.as_s
-        elsif coerced = ::Amber::Schema::TypeCoercion.coerce(value, "String")
-          coerced.as_s
-        end
+                         value.as_s
+                       elsif coerced = ::Amber::Schema::TypeCoercion.coerce(value, "String")
+                         coerced.as_s
+                       end
 
         if string_value
           if string_value.size > max_length.as_i
@@ -754,9 +754,9 @@ module Amber::Schema
       end
 
       # File validation (for File type fields)
-      if field_def.type == "Hash(String, JSON::Any)" && 
-         (options.has_key?("max_size") || options.has_key?("allowed_types") || 
-          options.has_key?("allowed_extensions") || options.has_key?("filename_pattern"))
+      if field_def.type == "Hash(String, JSON::Any)" &&
+         (options.has_key?("max_size") || options.has_key?("allowed_types") ||
+         options.has_key?("allowed_extensions") || options.has_key?("filename_pattern"))
         file_errors = Parser::FileUploadValidator.validate_file(field_name, value, options)
         file_errors.each { |error| @errors << error }
       end
@@ -840,7 +840,6 @@ module Amber::Schema
         @errors << error
       end
     end
-    
 
     private def validate_conditionals
       self.class.conditional_groups.each do |group|
@@ -914,7 +913,6 @@ module Amber::Schema
       validate
     end
 
-
     # Convert validated data to hash
     def to_h : Hash(String, JSON::Any)
       @raw_data
@@ -942,4 +940,3 @@ module Amber::Schema
     Multipart
   end
 end
-

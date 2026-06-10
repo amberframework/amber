@@ -55,7 +55,7 @@ module Amber::Schema
 
       # Create result with parsed data
       result = LegacyResult.success(parsed_data)
-      
+
       # Copy any warnings from parser context
       parser_context.errors.each do |error|
         result.add_warning(Warning.new(error.field, error.message, error.code))

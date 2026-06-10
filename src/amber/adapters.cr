@@ -14,7 +14,7 @@ module Amber::Adapters
   # system (database, Redis, in-memory, file-based, etc.) as long as they provide the
   # required session operations.
   #
-  # ### PubSubAdapter  
+  # ### PubSubAdapter
   # Abstract interface for pub/sub messaging backends used by WebSocket channels.
   # Implementations can use any messaging system (Redis pub/sub, message queues,
   # in-memory broadcasting, etc.) as long as they provide publish/subscribe functionality.
@@ -56,7 +56,7 @@ module Amber::Adapters
   #
   # pubsub:
   #   adapter: "memory"  # Use built-in memory adapter
-  #   # OR  
+  #   # OR
   #   adapter: "custom"  # Use your registered custom adapter
   # ```
   #
@@ -72,4 +72,4 @@ module Amber::Adapters
   #   MyCustomPubSubAdapter.new(my_broker)
   # end
   # ```
-end 
+end

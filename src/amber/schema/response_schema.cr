@@ -10,7 +10,7 @@ module Amber::Schema
       description : String? = nil,
       version : String? = nil,
       @strip_null_values : Bool = false,
-      @strip_empty_arrays : Bool = false
+      @strip_empty_arrays : Bool = false,
     )
       super(name, description, version)
     end

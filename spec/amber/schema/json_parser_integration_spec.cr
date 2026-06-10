@@ -57,7 +57,7 @@ describe "JSON Parser Integration" do
       schema.email.should eq("john@example.com")
       schema.age.should eq(25)
       # schema.tags.should eq(["developer", "crystal"])  # TODO
-      schema.active.should be_true  # default value
+      schema.active.should be_true # default value
     end
 
     it "handles validation errors" do
@@ -75,7 +75,7 @@ describe "JSON Parser Integration" do
 
       result.failure?.should be_true
       result.errors.size.should be >= 3
-      
+
       errors_by_field = result.errors_by_field
       errors_by_field["name"].first.code.should eq("invalid_length")
       errors_by_field["email"].first.code.should eq("invalid_format")
@@ -90,8 +90,8 @@ describe "JSON Parser Integration" do
 
       result.success?.should be_true
       schema.name.should eq("Alice")
-      schema.age.should eq(30)  # String "30" coerced to Int32
-      schema.active.should be_false  # String "false" coerced to Bool
+      schema.age.should eq(30)      # String "30" coerced to Int32
+      schema.active.should be_false # String "false" coerced to Bool
       # schema.tags.should eq(["ruby", "amber"])  # TODO
     end
 
@@ -114,14 +114,14 @@ describe "JSON Parser Integration" do
 
       result.success?.should be_true
       schema.name.should eq("Bob Smith")
-      
+
       address = schema.address_schema
       address.should_not be_nil
       if addr = address
         addr.street.should eq("123 Main St")
         addr.city.should eq("New York")
         addr.zip.should eq("10001")
-        addr.country.should eq("USA")  # default value
+        addr.country.should eq("USA") # default value
       end
     end
 
@@ -168,17 +168,17 @@ describe "JSON Parser Integration" do
         "user[addresses][0][type]=home",
         "user[addresses][0][city]=NYC",
         "user[addresses][1][type]=work",
-        "user[addresses][1][city]=SF"
+        "user[addresses][1][city]=SF",
       ].join("&"))
 
       data = Amber::Schema::Parser::JSONParser.parse_params(params)
-      
+
       user = data["user"].as_h
       user["name"].as_s.should eq("Complex User")
-      
+
       profile = user["profile"].as_h
       profile["bio"].as_s.should eq("Developer")
-      
+
       # Note: Array index notation is not yet supported
       # addresses = user["addresses"].as_a
       # addresses.size.should eq(2)
@@ -188,7 +188,7 @@ describe "JSON Parser Integration" do
   describe "edge cases" do
     it "handles malformed JSON gracefully" do
       malformed = "{\"name\": \"test\", invalid}"
-      
+
       expect_raises(Amber::Schema::SchemaDefinitionError, /Invalid JSON/) do
         Amber::Schema::Parser::JSONParser.parse_string(malformed)
       end

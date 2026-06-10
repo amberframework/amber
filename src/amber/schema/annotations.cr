@@ -3,7 +3,7 @@
 module Amber::Schema
   # Schema Validation Annotations
   # =============================
-  
+
   # Mark a property as required in the schema
   # Example: @[Required]
   annotation Required

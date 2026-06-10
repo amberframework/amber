@@ -5,7 +5,7 @@ require "../../schema"
 class BookXMLSchema < Amber::Schema::Definition
   # Basic field extraction (using default parsing)
   field :isbn, String, required: true
-  field :title, String, required: true  
+  field :title, String, required: true
   field :author, String, required: true
   field :price, Float32
   field :year, Int32
@@ -14,24 +14,24 @@ class BookXMLSchema < Amber::Schema::Definition
   field :book_id, String, xpath: "//book/@id"
   field :genre, String, xpath: "//book/metadata/genre"
   field :publisher, String, xpath: "//book/metadata/publisher"
-  
+
   # Array extraction (note: XPath arrays need additional work, use basic parsing for now)
   # field :tags, Array(String), xpath: "//book/tags/tag"
-  
+
   # Namespace-aware extraction
   field :isbn13, String, xpath: "//isbn:code", namespaces: {"isbn" => "http://isbn.org/"}
-  
+
   validates_to BookResponse, BookError
   content_type "application/xml", "text/xml"
 end
 
 # Response types
 class BookResponse
-  def initialize(@isbn : String, @title : String, @author : String, 
+  def initialize(@isbn : String, @title : String, @author : String,
                  @price : Float32? = nil, @year : Int32? = nil, @book_id : String? = nil,
                  @genre : String? = nil, @publisher : String? = nil, @isbn13 : String? = nil)
   end
-  
+
   property isbn : String
   property title : String
   property author : String
@@ -41,7 +41,7 @@ class BookResponse
   property genre : String?
   property publisher : String?
   property isbn13 : String?
-  
+
   def to_json(json : JSON::Builder)
     json.object do
       json.field "isbn", isbn
@@ -60,9 +60,9 @@ end
 class BookError
   def initialize(@errors : Array(String))
   end
-  
+
   property errors : Array(String)
-  
+
   def to_json(json : JSON::Builder)
     json.object do
       json.field "errors", errors
@@ -74,7 +74,7 @@ end
 module XMLParserExample
   def self.run
     puts "=== Amber Schema XML Parser Example ==="
-    
+
     # Example XML data
     xml_data = %(
       <book id="bk001" xmlns:isbn="http://isbn.org/">
@@ -95,33 +95,33 @@ module XMLParserExample
         </tags>
       </book>
     )
-    
+
     puts "\n--- Basic XML Parsing ---"
-    
+
     # Basic parsing (without schema)
     basic_result = Amber::Schema::Parser::XMLParser.parse_string(xml_data)
     puts "Basic parsing result:"
     basic_result.each do |key, value|
       puts "  #{key}: #{value}"
     end
-    
+
     puts "\n--- Schema-based XML Parsing ---"
-    
+
     # Schema-based parsing
     schema = BookXMLSchema.new(basic_result)
     validation_result = schema.validate
-    
+
     if validation_result.success?
       puts "✓ XML validation successful!"
       puts "Title: #{schema.title}"
-      puts "Author: #{schema.author}" 
+      puts "Author: #{schema.author}"
       puts "ISBN: #{schema.isbn}"
       puts "Price: #{schema.price}"
       puts "Year: #{schema.year}"
       puts "Book ID: #{schema.book_id}" if schema.book_id
       puts "Genre: #{schema.genre}" if schema.genre
       puts "Publisher: #{schema.publisher}" if schema.publisher
-      
+
       # Convert to response object
       response = BookResponse.new(
         isbn: schema.isbn.not_nil!,
@@ -134,43 +134,42 @@ module XMLParserExample
         publisher: schema.publisher,
         isbn13: schema.isbn13
       )
-      
+
       puts "\nJSON Response:"
       puts response.to_json
-      
     else
       puts "✗ XML validation failed:"
       validation_result.errors.each do |error|
         puts "  - #{error.field}: #{error.message}"
       end
     end
-    
+
     puts "\n--- ParserRegistry Integration ---"
-    
+
     # Simulate HTTP request with XML body
     io = IO::Memory.new(xml_data)
     request = HTTP::Request.new("POST", "/books", body: io)
     request.headers["Content-Type"] = "application/xml"
-    
+
     # Parse through registry
     registry_result = Amber::Schema::Parser::ParserRegistry.parse_request(request)
     puts "Registry parsing result keys: #{registry_result.keys}"
-    
+
     puts "\n--- Content-Type Auto-Detection ---"
-    
+
     # Test auto-detection
     io2 = IO::Memory.new(xml_data)
     request2 = HTTP::Request.new("POST", "/books", body: io2)
     # No Content-Type header - should auto-detect XML
-    
+
     auto_result = Amber::Schema::Parser::ParserRegistry.parse_request(request2)
     puts "Auto-detected parsing result keys: #{auto_result.keys}"
-    
+
     puts "\n--- Error Handling ---"
-    
+
     # Test with malformed XML
     malformed_xml = %(<book><title>Unclosed tag<author>Test</book>)
-    
+
     begin
       malformed_result = Amber::Schema::Parser::XMLParser.parse_string(malformed_xml)
       puts "✓ Malformed XML handled gracefully"
@@ -178,7 +177,7 @@ module XMLParserExample
     rescue ex : Amber::Schema::SchemaDefinitionError
       puts "✗ XML parsing error: #{ex.message}"
     end
-    
+
     puts "\n=== Example Complete ==="
   end
 end

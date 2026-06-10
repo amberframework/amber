@@ -12,13 +12,13 @@ module Amber::Schema::Validator
       return unless value = context.field_value(@field_name)
 
       length = case value.raw
-      when String
-        value.as_s.size
-      when Array
-        value.as_a.size
-      else
-        return  # Skip validation for non-string/array types
-      end
+               when String
+                 value.as_s.size
+               when Array
+                 value.as_a.size
+               else
+                 return # Skip validation for non-string/array types
+               end
 
       if @min && length < @min.not_nil!
         context.add_error(LengthError.new(@field_name, @min, @max, length))
@@ -37,13 +37,13 @@ module Amber::Schema::Validator
       return unless value = context.field_value(@field_name)
 
       length = case value.raw
-      when String
-        value.as_s.size
-      when Array
-        value.as_a.size
-      else
-        return  # Skip validation for non-string/array types
-      end
+               when String
+                 value.as_s.size
+               when Array
+                 value.as_a.size
+               else
+                 return # Skip validation for non-string/array types
+               end
 
       if length < @min
         context.add_error(LengthError.new(@field_name, @min, nil, length))
@@ -60,13 +60,13 @@ module Amber::Schema::Validator
       return unless value = context.field_value(@field_name)
 
       length = case value.raw
-      when String
-        value.as_s.size
-      when Array
-        value.as_a.size
-      else
-        return  # Skip validation for non-string/array types
-      end
+               when String
+                 value.as_s.size
+               when Array
+                 value.as_a.size
+               else
+                 return # Skip validation for non-string/array types
+               end
 
       if length > @max
         context.add_error(LengthError.new(@field_name, nil, @max, length))

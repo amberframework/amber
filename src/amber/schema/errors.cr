@@ -61,7 +61,7 @@ module Amber::Schema
     def initialize(field : String, min : Float64? = nil, max : Float64? = nil, value : Float64? = nil)
       message = "Field '#{field}' is out of range"
       details = {} of String => JSON::Any
-      
+
       if min && max
         message = "Field '#{field}' must be between #{min} and #{max}"
         details["min"] = JSON::Any.new(min)
@@ -84,7 +84,7 @@ module Amber::Schema
     def initialize(field : String, min : Int32? = nil, max : Int32? = nil, actual : Int32? = nil)
       message = "Field '#{field}' has invalid length"
       details = {} of String => JSON::Any
-      
+
       if min && max
         message = "Field '#{field}' length must be between #{min} and #{max} characters"
         details["min_length"] = JSON::Any.new(min)
@@ -136,10 +136,10 @@ module Amber::Schema
 
     def to_h
       {
-        "field" => JSON::Any.new(@field),
+        "field"   => JSON::Any.new(@field),
         "message" => JSON::Any.new(@message),
-        "code" => JSON::Any.new(@code),
-        "type" => JSON::Any.new("warning")
+        "code"    => JSON::Any.new(@code),
+        "type"    => JSON::Any.new("warning"),
       } of String => JSON::Any
     end
   end

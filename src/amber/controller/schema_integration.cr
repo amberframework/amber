@@ -38,16 +38,16 @@ module Amber::Controller
       end
     end
   end
-  
+
   # Wrapper class that provides backward compatibility between Schema API
   # and the existing Amber::Validators::Params interface
   class SchemaParamsWrapper
     getter validated_data : Hash(String, JSON::Any)
     getter raw_params : Amber::Router::Params
-    
+
     def initialize(@validated_data : Hash(String, JSON::Any), @raw_params : Amber::Router::Params)
     end
-    
+
     # Delegate array-like access to validated data first, then raw params
     def [](key : String | Symbol)
       key_str = key.to_s
@@ -72,7 +72,7 @@ module Amber::Controller
         raw_params[key_str]
       end
     end
-    
+
     def []?(key : String | Symbol)
       key_str = key.to_s
       if validated_data.has_key?(key_str)
@@ -81,13 +81,13 @@ module Amber::Controller
         raw_params[key_str]?
       end
     end
-    
+
     # Check if key exists in either validated data or raw params
     def has_key?(key : String | Symbol) : Bool
       key_str = key.to_s
       validated_data.has_key?(key_str) || raw_params.has_key?(key_str)
     end
-    
+
     # Provide access to validation methods for migration
     def validation(&)
       # Create a temporary Amber::Validators::Params for validation
@@ -95,42 +95,42 @@ module Amber::Controller
       with Amber::Validators::ValidationBuilder.new(validator) yield
       validator
     end
-    
+
     # Convert to hash combining validated and raw data
     def to_h
       result = {} of String => String?
-      
+
       # Start with raw params
       raw_params.to_h.each do |k, v|
         result[k] = v
       end
-      
+
       # Override with validated data
       validated_data.each do |k, v|
         result[k] = case v.raw
-        when String
-          v.as_s
-        when Int64
-          v.as_i.to_s
-        when Float64
-          v.as_f.to_s
-        when Bool
-          v.as_bool.to_s
-        when Nil
-          nil
-        else
-          v.to_s
-        end
+                    when String
+                      v.as_s
+                    when Int64
+                      v.as_i.to_s
+                    when Float64
+                      v.as_f.to_s
+                    when Bool
+                      v.as_bool.to_s
+                    when Nil
+                      nil
+                    else
+                      v.to_s
+                    end
       end
-      
+
       result
     end
-    
+
     # Access to raw unvalidated params
     def to_unsafe_h
       raw_params.to_h
     end
-    
+
     # Forward missing methods to raw params for full compatibility
     forward_missing_to @raw_params
   end

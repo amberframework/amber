@@ -28,7 +28,7 @@ module Amber::Schema
       def self.parse_request(request : HTTP::Request) : Hash(String, JSON::Any)
         content_type = request.headers["Content-Type"]?
         parser_name = get(content_type)
-        
+
         case parser_name
         when "json"
           parse_json_request(request)
@@ -65,7 +65,7 @@ module Amber::Schema
       # Parse query string request
       private def self.parse_query_request(request : HTTP::Request) : Hash(String, JSON::Any)
         content_type = request.headers["Content-Type"]?
-        
+
         if content_type && content_type.starts_with?("multipart/form-data")
           # Handle multipart form data with files
           MultipartParser.parse_multipart_request(request)
@@ -157,7 +157,7 @@ module Amber::Schema
       end
 
       def can_parse?(value : JSON::Any) : Bool
-        true  # Type coercion always attempts to parse
+        true # Type coercion always attempts to parse
       end
 
       private def parse_string(value : JSON::Any) : JSON::Any

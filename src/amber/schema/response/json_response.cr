@@ -3,9 +3,9 @@ module Amber::Schema::ResponseFormatters
   class JSONResponse
     # Response structure options
     enum Structure
-      Simple     # Just data or error
-      Envelope   # Wrapped in standard envelope
-      JSONAPI    # JSON:API specification format
+      Simple   # Just data or error
+      Envelope # Wrapped in standard envelope
+      JSONAPI  # JSON:API specification format
     end
 
     getter structure : Structure
@@ -15,22 +15,22 @@ module Amber::Schema::ResponseFormatters
     def initialize(
       @structure : Structure = Structure::Envelope,
       @pretty : Bool = false,
-      @include_metadata : Bool = true
+      @include_metadata : Bool = true,
     )
     end
 
     # Format a response builder into JSON
     def format(builder : ResponseBuilder) : String
       response = case @structure
-      when Structure::Simple
-        format_simple(builder)
-      when Structure::Envelope
-        format_envelope(builder)
-      when Structure::JSONAPI
-        format_jsonapi(builder)
-      else
-        builder.build
-      end
+                 when Structure::Simple
+                   format_simple(builder)
+                 when Structure::Envelope
+                   format_envelope(builder)
+                 when Structure::JSONAPI
+                   format_jsonapi(builder)
+                 else
+                   builder.build
+                 end
 
       @pretty ? response.to_pretty_json : response.to_json
     end
@@ -46,7 +46,7 @@ module Amber::Schema::ResponseFormatters
         builder.data || {} of String => JSON::Any
       else
         {
-          "errors" => JSON::Any.new(builder.errors.map { |e| JSON::Any.new(e.to_h) })
+          "errors" => JSON::Any.new(builder.errors.map { |e| JSON::Any.new(e.to_h) }),
         }
       end
     end
@@ -63,7 +63,7 @@ module Amber::Schema::ResponseFormatters
 
     private def format_jsonapi(builder : ResponseBuilder) : Hash(String, JSON::Any)
       response = {
-        "jsonapi" => JSON::Any.new({"version" => JSON::Any.new("1.0")})
+        "jsonapi" => JSON::Any.new({"version" => JSON::Any.new("1.0")}),
       } of String => JSON::Any
 
       if builder.data
@@ -76,8 +76,8 @@ module Amber::Schema::ResponseFormatters
             JSON::Any.new({
               "status" => JSON::Any.new("422"),
               "source" => JSON::Any.new({"pointer" => JSON::Any.new("/data/attributes/#{error.field}")}),
-              "title" => JSON::Any.new(error.code),
-              "detail" => JSON::Any.new(error.message)
+              "title"  => JSON::Any.new(error.code),
+              "detail" => JSON::Any.new(error.message),
             })
           end
         )
@@ -93,10 +93,10 @@ module Amber::Schema::ResponseFormatters
     # Helper to create standard error responses
     def error_response(status : Int32, message : String, code : String? = nil) : String
       builder = ResponseBuilder.error(message, code || "error")
-      
+
       # Add HTTP status to metadata
       builder.add_metadata("http_status", JSON::Any.new(status.to_i64))
-      
+
       format(builder)
     end
 

@@ -31,7 +31,7 @@ describe Amber::Schema::Parser::XMLParser do
     it "parses simple XML document" do
       xml = %(<book id="123"><title>Ruby Programming</title><author>John Doe</author></book>)
       result = Amber::Schema::Parser::XMLParser.parse_string(xml)
-      
+
       result["book@id"].should eq(JSON::Any.new("123"))
       result["book.title"].should eq(JSON::Any.new("Ruby Programming"))
       result["book.author"].should eq(JSON::Any.new("John Doe"))
@@ -58,23 +58,23 @@ describe Amber::Schema::Parser::XMLParser do
         </library>
       )
       result = Amber::Schema::Parser::XMLParser.parse_string(xml)
-      
+
       result["library.section@name"].should eq(JSON::Any.new("fiction"))
-      result["library.section.book@id"].should eq(JSON::Any.new("2"))  # Last book wins
-      result["library.section.book.title"].should eq(JSON::Any.new("Book Two"))  # Last book wins
+      result["library.section.book@id"].should eq(JSON::Any.new("2"))           # Last book wins
+      result["library.section.book.title"].should eq(JSON::Any.new("Book Two")) # Last book wins
     end
 
     it "handles CDATA sections" do
       xml = %(<description><![CDATA[This is <em>content</em> with HTML]]></description>)
       result = Amber::Schema::Parser::XMLParser.parse_string(xml)
-      
+
       result["description"].should eq(JSON::Any.new("This is <em>content</em> with HTML"))
     end
 
     it "handles mixed content" do
       xml = %(<note>Hello <b>world</b> of XML</note>)
       result = Amber::Schema::Parser::XMLParser.parse_string(xml)
-      
+
       result["note#text"].should eq(JSON::Any.new("Hello world of XML"))
       result["note.b"].should eq(JSON::Any.new("world"))
     end
@@ -93,7 +93,7 @@ describe Amber::Schema::Parser::XMLParser do
       # XPath implementation needs more work to be fully functional
       xml = %(<book><title>Test</title></book>)
       result = Amber::Schema::Parser::XMLParser.extract_fields_with_schema(xml, BookSchema.new({} of String => JSON::Any))
-      
+
       result.should be_a(Hash(String, JSON::Any))
     end
 
@@ -108,9 +108,9 @@ describe Amber::Schema::Parser::XMLParser do
       body = %(<user><name>John</name><email>john@example.com</email></user>)
       io = IO::Memory.new(body)
       request = HTTP::Request.new("POST", "/users", body: io)
-      
+
       result = Amber::Schema::Parser::XMLParser.parse_request(request)
-      
+
       result["user.name"].should eq(JSON::Any.new("John"))
       result["user.email"].should eq(JSON::Any.new("john@example.com"))
     end
@@ -153,7 +153,7 @@ describe Amber::Schema::Parser::XMLParser do
       # Since XPath implementation needs work, just test basic functionality
       valid_xml = %(<book><title>Test</title><author>Author</author></book>)
       errors = Amber::Schema::Parser::XMLParser.validate_xml(valid_xml, RequiredFieldSchema.new({} of String => JSON::Any))
-      
+
       # For now, the validation doesn't find the fields due to XPath limitations
       # This is expected and will be improved in future iterations
       errors.should be_a(Array(Amber::Schema::Error))
@@ -172,7 +172,7 @@ describe Amber::Schema::Parser::XMLParser do
       xml = %(<root><book><title>Test</title></book><book><title>Test2</title></book></root>)
       document = XML.parse(xml)
       context = Amber::Schema::Parser::XMLParser::XPathContext.new(document)
-      
+
       results = context.query("//title")
       results.size.should eq(2)
       results[0].content.should eq("Test")
@@ -183,7 +183,7 @@ describe Amber::Schema::Parser::XMLParser do
       xml = %(<root><book id="1" type="fiction"><title>Test</title></book></root>)
       document = XML.parse(xml)
       context = Amber::Schema::Parser::XMLParser::XPathContext.new(document)
-      
+
       results = context.query("//book/@id")
       results.size.should eq(1)
       results[0].content.should eq("1")
@@ -200,7 +200,7 @@ describe Amber::Schema::Parser::XMLParser do
       document = XML.parse(xml)
       namespaces = {"books" => "http://example.com/books"}
       context = Amber::Schema::Parser::XMLParser::XPathContext.new(document, namespaces)
-      
+
       results = context.query("//books:title")
       results.size.should eq(1)
       results[0].content.should eq("Namespaced Title")
@@ -220,7 +220,7 @@ describe Amber::Schema::Parser::XMLParser do
       io = IO::Memory.new(xml_body)
       request = HTTP::Request.new("POST", "/users", body: io)
       request.headers["Content-Type"] = "application/xml"
-      
+
       result = Amber::Schema::Parser::ParserRegistry.parse_request(request)
       result["user.name"].should eq(JSON::Any.new("Test User"))
     end
@@ -230,7 +230,7 @@ describe Amber::Schema::Parser::XMLParser do
       io = IO::Memory.new(xml_body)
       request = HTTP::Request.new("POST", "/users", body: io)
       # No Content-Type header set
-      
+
       result = Amber::Schema::Parser::ParserRegistry.parse_request(request)
       result["user.name"].should eq(JSON::Any.new("Auto Detected"))
     end
@@ -240,7 +240,7 @@ describe Amber::Schema::Parser::XMLParser do
     it "handles empty elements" do
       xml = %(<root><empty></empty><self-closing/></root>)
       result = Amber::Schema::Parser::XMLParser.parse_string(xml)
-      
+
       result["root.empty"].should eq(JSON::Any.new(""))
       result["root.self-closing"].should eq(JSON::Any.new(""))
     end
@@ -248,7 +248,7 @@ describe Amber::Schema::Parser::XMLParser do
     it "handles elements with only whitespace" do
       xml = %(<root><whitespace>   </whitespace></root>)
       result = Amber::Schema::Parser::XMLParser.parse_string(xml)
-      
+
       result["root.whitespace"].should eq(JSON::Any.new(""))
     end
 
@@ -272,9 +272,9 @@ describe Amber::Schema::Parser::XMLParser do
           </catalog>
         </library>
       )
-      
+
       result = Amber::Schema::Parser::XMLParser.parse_string(xml)
-      
+
       result["library.catalog@type"].should eq(JSON::Any.new("books"))
       result["library.catalog.section@name"].should eq(JSON::Any.new("fiction"))
       result["library.catalog.section.book@isbn"].should eq(JSON::Any.new("123"))
@@ -287,7 +287,7 @@ describe Amber::Schema::Parser::XMLParser do
       # Just test that the parser doesn't crash
       result1 = Amber::Schema::Parser::XMLParser.parse_string("<book><title>Content")
       result1.should be_a(Hash(String, JSON::Any))
-      
+
       result2 = Amber::Schema::Parser::XMLParser.parse_string("<book><title></book>")
       result2.should be_a(Hash(String, JSON::Any))
     end

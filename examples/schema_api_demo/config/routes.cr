@@ -10,31 +10,31 @@ Amber::Server.configure do
       post "/activate", UsersController, :activate
       post "/deactivate", UsersController, :deactivate
     end
-    
+
     # Bulk operations
     post "/users/bulk", UsersController, :bulk_create
     delete "/users/bulk", UsersController, :bulk_delete
-    
+
     # Search with complex query parameters
     get "/users/search", UsersController, :search
-    
+
     # Export/Import operations
     get "/users/export", UsersController, :export
     post "/users/import", UsersController, :import
-    
+
     # Authentication endpoints
     post "/auth/login", AuthController, :login
     post "/auth/logout", AuthController, :logout
     post "/auth/refresh", AuthController, :refresh
-    
+
     # Health check endpoint
     get "/health", HealthController, :index
   end
-  
+
   # Web routes with form validation
   routes :web do
     get "/", HomeController, :index
-    
+
     # Form submission endpoints
     post "/contact", ContactController, :create
     post "/subscribe", SubscriptionController, :create

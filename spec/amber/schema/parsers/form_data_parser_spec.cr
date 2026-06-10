@@ -158,15 +158,15 @@ describe Amber::Schema::Parser::FileUploadValidator do
   describe ".validate_file" do
     it "validates file size constraints" do
       file_data = JSON::Any.new({
-        "filename" => JSON::Any.new("test.jpg"),
+        "filename"     => JSON::Any.new("test.jpg"),
         "content_type" => JSON::Any.new("image/jpeg"),
-        "size" => JSON::Any.new(1000_i64),
-        "content" => JSON::Any.new("fake content"),
-        "headers" => JSON::Any.new({} of String => JSON::Any)
+        "size"         => JSON::Any.new(1000_i64),
+        "content"      => JSON::Any.new("fake content"),
+        "headers"      => JSON::Any.new({} of String => JSON::Any),
       } of String => JSON::Any)
 
       options = {
-        "max_size" => JSON::Any.new(500_i64)
+        "max_size" => JSON::Any.new(500_i64),
       } of String => JSON::Any
 
       errors = Amber::Schema::Parser::FileUploadValidator.validate_file("avatar", file_data, options)
@@ -177,18 +177,18 @@ describe Amber::Schema::Parser::FileUploadValidator do
 
     it "validates content type restrictions" do
       file_data = JSON::Any.new({
-        "filename" => JSON::Any.new("test.txt"),
+        "filename"     => JSON::Any.new("test.txt"),
         "content_type" => JSON::Any.new("text/plain"),
-        "size" => JSON::Any.new(100_i64),
-        "content" => JSON::Any.new("fake content"),
-        "headers" => JSON::Any.new({} of String => JSON::Any)
+        "size"         => JSON::Any.new(100_i64),
+        "content"      => JSON::Any.new("fake content"),
+        "headers"      => JSON::Any.new({} of String => JSON::Any),
       } of String => JSON::Any)
 
       options = {
         "allowed_types" => JSON::Any.new([
           JSON::Any.new("image/jpeg"),
-          JSON::Any.new("image/png")
-        ] of JSON::Any)
+          JSON::Any.new("image/png"),
+        ] of JSON::Any),
       } of String => JSON::Any
 
       errors = Amber::Schema::Parser::FileUploadValidator.validate_file("avatar", file_data, options)
@@ -199,19 +199,19 @@ describe Amber::Schema::Parser::FileUploadValidator do
 
     it "validates file extensions" do
       file_data = JSON::Any.new({
-        "filename" => JSON::Any.new("test.exe"),
+        "filename"     => JSON::Any.new("test.exe"),
         "content_type" => JSON::Any.new("application/octet-stream"),
-        "size" => JSON::Any.new(100_i64),
-        "content" => JSON::Any.new("fake content"),
-        "headers" => JSON::Any.new({} of String => JSON::Any)
+        "size"         => JSON::Any.new(100_i64),
+        "content"      => JSON::Any.new("fake content"),
+        "headers"      => JSON::Any.new({} of String => JSON::Any),
       } of String => JSON::Any)
 
       options = {
         "allowed_extensions" => JSON::Any.new([
           JSON::Any.new(".jpg"),
           JSON::Any.new(".png"),
-          JSON::Any.new(".gif")
-        ] of JSON::Any)
+          JSON::Any.new(".gif"),
+        ] of JSON::Any),
       } of String => JSON::Any
 
       errors = Amber::Schema::Parser::FileUploadValidator.validate_file("document", file_data, options)
@@ -222,15 +222,15 @@ describe Amber::Schema::Parser::FileUploadValidator do
 
     it "validates filename patterns" do
       file_data = JSON::Any.new({
-        "filename" => JSON::Any.new("invalid@file&name.jpg"),
+        "filename"     => JSON::Any.new("invalid@file&name.jpg"),
         "content_type" => JSON::Any.new("image/jpeg"),
-        "size" => JSON::Any.new(100_i64),
-        "content" => JSON::Any.new("fake content"),
-        "headers" => JSON::Any.new({} of String => JSON::Any)
+        "size"         => JSON::Any.new(100_i64),
+        "content"      => JSON::Any.new("fake content"),
+        "headers"      => JSON::Any.new({} of String => JSON::Any),
       } of String => JSON::Any)
 
       options = {
-        "filename_pattern" => JSON::Any.new("^[a-zA-Z0-9._-]+$")
+        "filename_pattern" => JSON::Any.new("^[a-zA-Z0-9._-]+$"),
       } of String => JSON::Any
 
       errors = Amber::Schema::Parser::FileUploadValidator.validate_file("avatar", file_data, options)
@@ -241,18 +241,18 @@ describe Amber::Schema::Parser::FileUploadValidator do
 
     it "accepts valid files" do
       file_data = JSON::Any.new({
-        "filename" => JSON::Any.new("profile.jpg"),
+        "filename"     => JSON::Any.new("profile.jpg"),
         "content_type" => JSON::Any.new("image/jpeg"),
-        "size" => JSON::Any.new(500_i64),
-        "content" => JSON::Any.new("fake content"),
-        "headers" => JSON::Any.new({} of String => JSON::Any)
+        "size"         => JSON::Any.new(500_i64),
+        "content"      => JSON::Any.new("fake content"),
+        "headers"      => JSON::Any.new({} of String => JSON::Any),
       } of String => JSON::Any)
 
       options = {
-        "max_size" => JSON::Any.new(1000_i64),
-        "allowed_types" => JSON::Any.new([JSON::Any.new("image/jpeg")] of JSON::Any),
+        "max_size"           => JSON::Any.new(1000_i64),
+        "allowed_types"      => JSON::Any.new([JSON::Any.new("image/jpeg")] of JSON::Any),
         "allowed_extensions" => JSON::Any.new([JSON::Any.new(".jpg")] of JSON::Any),
-        "filename_pattern" => JSON::Any.new("^[a-zA-Z0-9._-]+$")
+        "filename_pattern"   => JSON::Any.new("^[a-zA-Z0-9._-]+$"),
       } of String => JSON::Any
 
       errors = Amber::Schema::Parser::FileUploadValidator.validate_file("avatar", file_data, options)
@@ -261,7 +261,7 @@ describe Amber::Schema::Parser::FileUploadValidator do
 
     it "rejects non-file data" do
       file_data = JSON::Any.new({
-        "not_a_file" => JSON::Any.new("value")
+        "not_a_file" => JSON::Any.new("value"),
       } of String => JSON::Any)
 
       options = {} of String => JSON::Any

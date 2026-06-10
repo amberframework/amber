@@ -4,7 +4,7 @@ module Amber::Schema
     # Response format options
     enum Format
       JSON
-      XML  # Future support
+      XML # Future support
     end
 
     # Response status
@@ -59,22 +59,22 @@ module Amber::Schema
     # Set pagination metadata
     def paginate(page : Int32, per_page : Int32, total : Int32)
       add_metadata("pagination", JSON::Any.new({
-        "page" => JSON::Any.new(page.to_i64),
-        "per_page" => JSON::Any.new(per_page.to_i64),
-        "total" => JSON::Any.new(total.to_i64),
-        "total_pages" => JSON::Any.new(((total.to_f / per_page).ceil).to_i64)
+        "page"        => JSON::Any.new(page.to_i64),
+        "per_page"    => JSON::Any.new(per_page.to_i64),
+        "total"       => JSON::Any.new(total.to_i64),
+        "total_pages" => JSON::Any.new(((total.to_f / per_page).ceil).to_i64),
       }))
     end
 
     # Build the response
     def build(format : Format = Format::JSON) : Hash(String, JSON::Any)
       response = {
-        "status" => JSON::Any.new(@status.to_s.downcase),
-        "success" => JSON::Any.new(@status != Status::Error)
+        "status"  => JSON::Any.new(@status.to_s.downcase),
+        "success" => JSON::Any.new(@status != Status::Error),
       } of String => JSON::Any
 
       response["data"] = JSON::Any.new(@data) if @data
-      
+
       if !@errors.empty?
         response["errors"] = JSON::Any.new(@errors.map { |e| JSON::Any.new(e.to_h) })
       end

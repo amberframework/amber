@@ -49,7 +49,7 @@ module Amber::Mailer
       @username : String? = nil,
       @password : String? = nil,
       @use_tls : Bool = false,
-      @helo_domain : String = "localhost"
+      @helo_domain : String = "localhost",
     )
     end
 

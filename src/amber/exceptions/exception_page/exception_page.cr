@@ -65,7 +65,7 @@ abstract class ExceptionPage
     @headers : HTTP::Headers = HTTP::Headers.new,
     @cookies : HTTP::Cookies = HTTP::Cookies.new,
     message : String? = nil,
-    url : String? = nil
+    url : String? = nil,
   )
     @title = title || "An Error Occurred: #{@status.description}"
     @message = message || "Something went wrong"

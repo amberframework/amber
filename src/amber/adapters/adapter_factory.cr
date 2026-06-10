@@ -15,7 +15,7 @@ module Amber::Adapters
   # ### Session Adapters
   # - `"memory"` - MemorySessionAdapter (default, always available)
   #
-  # ### PubSub Adapters  
+  # ### PubSub Adapters
   # - `"memory"` - MemoryPubSubAdapter (default, always available)
   #
   # ## Usage
@@ -30,7 +30,7 @@ module Amber::Adapters
   #   DatabaseSessionAdapter.new(MyDB.connection)
   # end
   #
-  # AdapterFactory.register_pubsub_adapter("redis") do  
+  # AdapterFactory.register_pubsub_adapter("redis") do
   #   RedisPubSubAdapter.new(Redis.new)
   # end
   # ```
@@ -38,7 +38,7 @@ module Amber::Adapters
     # Registry for session adapter factories
     @@session_adapters = Hash(String, Proc(SessionAdapter)).new
 
-    # Registry for pub/sub adapter factories  
+    # Registry for pub/sub adapter factories
     @@pubsub_adapters = Hash(String, Proc(PubSubAdapter)).new
 
     # Singleton instances for memory adapters
@@ -51,19 +51,19 @@ module Amber::Adapters
     # Ensures built-in adapters are registered
     private def self.ensure_initialized
       return if @@initialized
-      
+
       # Register built-in session adapters with singleton pattern
-      @@session_adapters["memory"] = ->{ 
+      @@session_adapters["memory"] = -> {
         @@memory_session_adapter ||= MemorySessionAdapter.new
         @@memory_session_adapter.not_nil!.as(SessionAdapter)
       }
-      
+
       # Register built-in pub/sub adapters with singleton pattern
-      @@pubsub_adapters["memory"] = ->{ 
+      @@pubsub_adapters["memory"] = -> {
         @@memory_pubsub_adapter ||= MemoryPubSubAdapter.new
         @@memory_pubsub_adapter.not_nil!.as(PubSubAdapter)
       }
-      
+
       @@initialized = true
     end
 
@@ -75,25 +75,25 @@ module Amber::Adapters
     # @raises ArgumentError if the adapter is not registered
     def self.create_session_adapter(adapter_name : String, **options) : SessionAdapter
       ensure_initialized
-      
+
       factory = @@session_adapters[adapter_name]?
       raise ArgumentError.new("Unknown session adapter: #{adapter_name}. Available: #{@@session_adapters.keys.join(", ")}") unless factory
-      
+
       factory.call
     end
 
     # Creates a pub/sub adapter instance based on the adapter name.
     #
-    # @param adapter_name The string identifier for the adapter type  
+    # @param adapter_name The string identifier for the adapter type
     # @param options Optional configuration hash for the adapter
     # @return PubSubAdapter instance
     # @raises ArgumentError if the adapter is not registered
     def self.create_pubsub_adapter(adapter_name : String, **options) : PubSubAdapter
       ensure_initialized
-      
+
       factory = @@pubsub_adapters[adapter_name]?
       raise ArgumentError.new("Unknown pub/sub adapter: #{adapter_name}. Available: #{@@pubsub_adapters.keys.join(", ")}") unless factory
-      
+
       factory.call
     end
 
@@ -123,7 +123,7 @@ module Amber::Adapters
 
     # Registers a pub/sub adapter factory using a block.
     #
-    # @param name String identifier for the adapter  
+    # @param name String identifier for the adapter
     # @param block Block that creates the adapter instance
     def self.register_pubsub_adapter(name : String, &block : -> PubSubAdapter)
       @@pubsub_adapters[name] = block
@@ -153,4 +153,4 @@ module Amber::Adapters
       @@pubsub_adapters.has_key?(name)
     end
   end
-end 
+end

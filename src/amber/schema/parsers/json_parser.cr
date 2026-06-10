@@ -73,9 +73,9 @@ module Amber::Schema::Parser
         when HTTP::FormData::Part
           # Handle file uploads
           file_info = {
-            "filename" => JSON::Any.new(value.filename || ""),
+            "filename"     => JSON::Any.new(value.filename || ""),
             "content_type" => JSON::Any.new(value.headers["Content-Type"]? || "application/octet-stream"),
-            "size" => JSON::Any.new(value.body.size.to_i64)
+            "size"         => JSON::Any.new(value.body.size.to_i64),
           }
           set_nested_value(result, key, file_info)
         end
@@ -135,7 +135,7 @@ module Amber::Schema::Parser
       if field_def.options["nested_schema"]?
         case value.raw
         when Hash
-          value  # Keep as JSON::Any for nested schema to process
+          value # Keep as JSON::Any for nested schema to process
         else
           raise SchemaDefinitionError.new("Expected object for nested schema field '#{field_def.name}', got #{value.raw.class}")
         end
@@ -170,7 +170,7 @@ module Amber::Schema::Parser
     private def self.parse_bracket_notation(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any))
       # Parse keys like: user[profile][name] or items[0] or tags[1][name]
       parts = key.split(/[\[\]]/).reject(&.empty?)
-      
+
       if parts.size == 1
         hash[parts[0]] = parse_value(value)
         return
@@ -179,7 +179,7 @@ module Amber::Schema::Parser
       # Navigate/create the nested structure
       current_hash : Hash(String, JSON::Any)? = hash
       current_array : Array(JSON::Any)? = nil
-      
+
       parts[0..-2].each_with_index do |part, index|
         if index == 0
           # First part is always a key in the main hash
@@ -213,7 +213,7 @@ module Amber::Schema::Parser
               # This is an array index
               array_index = part.to_i
               extend_array_to_index(current_array, array_index)
-              
+
               # Check if next part exists and what it is
               if next_part = parts[index + 1]?
                 if is_numeric?(next_part)
@@ -300,7 +300,7 @@ module Amber::Schema::Parser
     # Parse dot notation keys
     private def self.parse_dot_notation(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any))
       parts = key.split('.')
-      
+
       if parts.size == 1
         hash[parts[0]] = parse_value(value)
         return
@@ -340,7 +340,7 @@ module Amber::Schema::Parser
         if value =~ /^-?\d+$/ && (int_value = value.to_i64?)
           return JSON::Any.new(int_value)
         end
-        
+
         # Try float (including scientific notation)
         if value =~ /^-?\d*\.?\d+([eE][+-]?\d+)?$/ && (float_value = value.to_f64?)
           return JSON::Any.new(float_value)

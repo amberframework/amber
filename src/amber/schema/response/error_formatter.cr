@@ -3,16 +3,16 @@ module Amber::Schema::ResponseFormatters
   class ErrorFormatter
     # Error grouping strategies
     enum GroupBy
-      Field      # Group errors by field name
-      Code       # Group errors by error code
-      None       # Flat list of errors
+      Field # Group errors by field name
+      Code  # Group errors by error code
+      None  # Flat list of errors
     end
 
     # Error detail level
     enum DetailLevel
-      Minimal    # Just message
-      Standard   # Field, message, code
-      Full       # All error details including metadata
+      Minimal  # Just message
+      Standard # Field, message, code
+      Full     # All error details including metadata
     end
 
     getter group_by : GroupBy
@@ -22,7 +22,7 @@ module Amber::Schema::ResponseFormatters
     def initialize(
       @group_by : GroupBy = GroupBy::Field,
       @detail_level : DetailLevel = DetailLevel::Standard,
-      @include_field_path : Bool = true
+      @include_field_path : Bool = true,
     )
     end
 
@@ -98,7 +98,7 @@ module Amber::Schema::ResponseFormatters
     # Create detailed error report (for logging/debugging)
     def self.detailed_report(errors : Array(Error)) : String
       lines = ["Validation Errors:"]
-      
+
       errors.group_by(&.field).each do |field, field_errors|
         lines << "\n  Field: #{field.empty? ? "(general)" : field}"
         field_errors.each do |error|

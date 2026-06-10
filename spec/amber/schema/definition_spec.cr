@@ -73,7 +73,7 @@ module Amber::Schema
   # Temporarily comment out conditional schemas to test basic functionality first
   # class SchemaWithConditionals < Definition
   #   field :type, String, required: true
-    
+
   #   when_field :type, "business" do
   #     field :company_name, String, required: true
   #     field :tax_id, String, required: true
@@ -87,7 +87,7 @@ module Amber::Schema
 
   # class SchemaWithPresenceConditionals < Definition
   #   field :discount_code, String
-    
+
   #   when_present :discount_code do
   #     field :discount_amount, Float64, required: true
   #     field :discount_type, String, required: true
@@ -102,7 +102,7 @@ module Amber::Schema
     def validate_password_match
       password_val = @raw_data["password"]?
       confirmation_val = @raw_data["password_confirmation"]?
-      
+
       if password_val && confirmation_val && password_val.as_s != confirmation_val.as_s
         @errors << ::Amber::Schema::CustomValidationError.new(
           "password_confirmation",
@@ -118,7 +118,7 @@ module Amber::Schema
   class SchemaWithRequiresTogether < Definition
     field :latitude, Float64
     field :longitude, Float64
-    
+
     # requires_together :latitude, :longitude
   end
 
@@ -126,7 +126,7 @@ module Amber::Schema
     field :email, String
     field :phone, String
     field :username, String
-    
+
     # requires_one_of :email, :phone, :username
   end
 
@@ -151,18 +151,17 @@ module Amber::Schema
   end
 
   describe Definition do
-
     describe "basic field definition" do
       it "defines fields with various types" do
         data = {
-          "name" => JSON::Any.new("John Doe"),
-          "age" => JSON::Any.new(30),
-          "active" => JSON::Any.new(true)
+          "name"   => JSON::Any.new("John Doe"),
+          "age"    => JSON::Any.new(30),
+          "active" => JSON::Any.new(true),
         }
-        
+
         schema = SimpleSchema.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         schema.name.should eq("John Doe")
         schema.age.should eq(30)
@@ -171,10 +170,10 @@ module Amber::Schema
 
       it "handles missing optional fields" do
         data = {"name" => JSON::Any.new("Jane")}
-        
+
         schema = SimpleSchema.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         schema.name.should eq("Jane")
         schema.age.should be_nil
@@ -183,10 +182,10 @@ module Amber::Schema
 
       it "fails on missing required fields" do
         data = {"age" => JSON::Any.new(25)}
-        
+
         schema = SimpleSchema.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.size.should eq(1)
         result.errors.first.should be_a(RequiredFieldError)
@@ -197,10 +196,10 @@ module Amber::Schema
     describe "field options and defaults" do
       it "applies default values when fields are missing" do
         data = {} of String => JSON::Any
-        
+
         schema = SchemaWithDefaults.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         schema.title.should eq("Untitled")
         schema.count.should eq(0)
@@ -211,12 +210,12 @@ module Amber::Schema
       it "overrides defaults with provided values" do
         data = {
           "title" => JSON::Any.new("Custom"),
-          "count" => JSON::Any.new(42)
+          "count" => JSON::Any.new(42),
         }
-        
+
         schema = SchemaWithDefaults.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         schema.title.should eq("Custom")
         schema.count.should eq(42)
@@ -227,10 +226,10 @@ module Amber::Schema
     describe "validation constraints" do
       it "validates email format" do
         data = {"email" => JSON::Any.new("invalid-email")}
-        
+
         schema = SchemaWithValidations.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.any? { |e| e.is_a?(InvalidFormatError) && e.field == "email" }.should be_true
       end
@@ -238,12 +237,12 @@ module Amber::Schema
       it "validates URL format" do
         data = {
           "email" => JSON::Any.new("test@example.com"),
-          "url" => JSON::Any.new("not-a-url")
+          "url"   => JSON::Any.new("not-a-url"),
         }
-        
+
         schema = SchemaWithValidations.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.any? { |e| e.is_a?(InvalidFormatError) && e.field == "url" }.should be_true
       end
@@ -251,12 +250,12 @@ module Amber::Schema
       it "validates numeric ranges" do
         data = {
           "email" => JSON::Any.new("test@example.com"),
-          "age" => JSON::Any.new(15) # too young
+          "age"   => JSON::Any.new(15), # too young
         }
-        
+
         schema = SchemaWithValidations.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.any? { |e| e.is_a?(RangeError) && e.field == "age" }.should be_true
       end
@@ -264,12 +263,12 @@ module Amber::Schema
       it "validates string length" do
         data = {
           "email" => JSON::Any.new("test@example.com"),
-          "name" => JSON::Any.new("J") # too short
+          "name"  => JSON::Any.new("J"), # too short
         }
-        
+
         schema = SchemaWithValidations.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.any? { |e| e.is_a?(LengthError) && e.field == "name" }.should be_true
       end
@@ -280,10 +279,10 @@ module Amber::Schema
       #     "email" => JSON::Any.new("test@example.com"),
       #     "status" => JSON::Any.new("unknown")
       #   }
-        
+
       #   schema = SchemaWithValidations.new(data)
       #   result = schema.validate
-        
+
       #   result.failure?.should be_true
       #   result.errors.any? { |e| e.is_a?(CustomValidationError) && e.field == "status" }.should be_true
       # end
@@ -291,29 +290,29 @@ module Amber::Schema
       it "validates regex patterns" do
         data = {
           "email" => JSON::Any.new("test@example.com"),
-          "code" => JSON::Any.new("ABC123") # invalid format
+          "code"  => JSON::Any.new("ABC123"), # invalid format
         }
-        
+
         schema = SchemaWithValidations.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.any? { |e| e.is_a?(InvalidFormatError) && e.field == "code" }.should be_true
       end
 
       it "passes all validations with correct data" do
         data = {
-          "email" => JSON::Any.new("test@example.com"),
-          "url" => JSON::Any.new("https://example.com"),
-          "age" => JSON::Any.new(25),
-          "name" => JSON::Any.new("John Doe"),
+          "email"  => JSON::Any.new("test@example.com"),
+          "url"    => JSON::Any.new("https://example.com"),
+          "age"    => JSON::Any.new(25),
+          "name"   => JSON::Any.new("John Doe"),
           "status" => JSON::Any.new("active"),
-          "code" => JSON::Any.new("ABC-1234")
+          "code"   => JSON::Any.new("ABC-1234"),
         }
-        
+
         schema = SchemaWithValidations.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
       end
     end
@@ -321,10 +320,10 @@ module Amber::Schema
     describe "array types" do
       it "handles string arrays" do
         data = {"tags" => JSON::Any.new([JSON::Any.new("ruby"), JSON::Any.new("crystal"), JSON::Any.new("web")])}
-        
+
         schema = SchemaWithArrays.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         # Check raw data since type conversion has issues
         raw_tags = schema.raw_data["tags"].as_a
@@ -334,10 +333,10 @@ module Amber::Schema
 
       it "handles integer arrays" do
         data = {"numbers" => JSON::Any.new([JSON::Any.new(1), JSON::Any.new(2), JSON::Any.new(3), JSON::Any.new(4), JSON::Any.new(5)])}
-        
+
         schema = SchemaWithArrays.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         # Check raw data since type conversion has issues
         raw_numbers = schema.raw_data["numbers"].as_a
@@ -347,10 +346,10 @@ module Amber::Schema
 
       it "handles boolean arrays" do
         data = {"flags" => JSON::Any.new([JSON::Any.new(true), JSON::Any.new(false), JSON::Any.new(true)])}
-        
+
         schema = SchemaWithArrays.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         # Check raw data since type conversion has issues
         raw_flags = schema.raw_data["flags"].as_a
@@ -359,10 +358,10 @@ module Amber::Schema
 
       it "handles empty arrays" do
         data = {"tags" => JSON::Any.new([] of JSON::Any)}
-        
+
         schema = SchemaWithArrays.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         # Check raw data since type conversion has issues
         raw_tags = schema.raw_data["tags"].as_a
@@ -375,13 +374,13 @@ module Amber::Schema
         data = {
           "metadata" => JSON::Any.new({
             "key1" => JSON::Any.new("value1"),
-            "key2" => JSON::Any.new("value2")
-          })
+            "key2" => JSON::Any.new("value2"),
+          }),
         }
-        
+
         schema = SchemaWithHashes.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         # Check raw data since type conversion has issues
         raw_metadata = schema.raw_data["metadata"].as_h
@@ -392,13 +391,13 @@ module Amber::Schema
         data = {
           "scores" => JSON::Any.new({
             "player1" => JSON::Any.new(100),
-            "player2" => JSON::Any.new(85)
-          })
+            "player2" => JSON::Any.new(85),
+          }),
         }
-        
+
         schema = SchemaWithHashes.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         # Check raw data since type conversion has issues
         raw_scores = schema.raw_data["scores"].as_h
@@ -408,15 +407,15 @@ module Amber::Schema
       it "handles JSON::Any hash values" do
         data = {
           "settings" => JSON::Any.new({
-            "theme" => JSON::Any.new("dark"),
+            "theme"         => JSON::Any.new("dark"),
             "notifications" => JSON::Any.new(true),
-            "limit" => JSON::Any.new(50)
-          })
+            "limit"         => JSON::Any.new(50),
+          }),
         }
-        
+
         schema = SchemaWithHashes.new(data)
         result = schema.validate
-        
+
         if !result.success?
           puts "Validation errors: #{result.errors.map(&.message)}"
         end
@@ -432,13 +431,13 @@ module Amber::Schema
       it "handles Time values" do
         now = Time.utc
         data = {
-          "created_at" => JSON::Any.new(now.to_rfc3339),
-          "scheduled_for" => JSON::Any.new("2024-01-01T10:00:00Z")
+          "created_at"    => JSON::Any.new(now.to_rfc3339),
+          "scheduled_for" => JSON::Any.new("2024-01-01T10:00:00Z"),
         }
-        
+
         schema = SchemaWithTimeAndUUID.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         # Just verify the data is stored
         schema.raw_data.has_key?("created_at").should be_true
@@ -448,10 +447,10 @@ module Amber::Schema
       it "handles UUID values" do
         uuid = UUID.random
         data = {"uuid" => JSON::Any.new(uuid.to_s)}
-        
+
         schema = SchemaWithTimeAndUUID.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         # Just verify the data is stored
         schema.raw_data["uuid"].as_s.should eq(uuid.to_s)
@@ -459,20 +458,20 @@ module Amber::Schema
 
       it "validates invalid time formats" do
         data = {"created_at" => JSON::Any.new("not-a-time")}
-        
+
         schema = SchemaWithTimeAndUUID.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.any? { |e| e.is_a?(TypeMismatchError) && e.field == "created_at" }.should be_true
       end
 
       it "validates invalid UUID formats" do
         data = {"uuid" => JSON::Any.new("not-a-uuid")}
-        
+
         schema = SchemaWithTimeAndUUID.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.any? { |e| e.is_a?(TypeMismatchError) && e.field == "uuid" }.should be_true
       end
@@ -481,17 +480,17 @@ module Amber::Schema
     describe "nested schemas" do
       it "validates nested schema fields" do
         data = {
-          "name" => JSON::Any.new("John"),
+          "name"    => JSON::Any.new("John"),
           "address" => JSON::Any.new({
             "street" => JSON::Any.new("123 Main St"),
-            "city" => JSON::Any.new("Springfield"),
-            "zip" => JSON::Any.new("12345")
-          })
+            "city"   => JSON::Any.new("Springfield"),
+            "zip"    => JSON::Any.new("12345"),
+          }),
         }
-        
+
         schema = SchemaWithNested.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         # Check raw data since nested schema accessors have issues
         raw_address = schema.raw_data["address"].as_h
@@ -501,33 +500,32 @@ module Amber::Schema
 
       it "validates nested schema constraints" do
         data = {
-          "name" => JSON::Any.new("John"),
+          "name"    => JSON::Any.new("John"),
           "address" => JSON::Any.new({
             "street" => JSON::Any.new("123 Main St"),
-            "city" => JSON::Any.new("Springfield"),
-            "zip" => JSON::Any.new("invalid") # not 5 digits
-          })
+            "city"   => JSON::Any.new("Springfield"),
+            "zip"    => JSON::Any.new("invalid"), # not 5 digits
+          }),
         }
-        
+
         schema = SchemaWithNested.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.any? { |e| e.field == "address.zip" }.should be_true
       end
 
       it "fails on missing required nested fields" do
         data = {
-          "name" => JSON::Any.new("John"),
+          "name"    => JSON::Any.new("John"),
           "address" => JSON::Any.new({
-            "street" => JSON::Any.new("123 Main St")
-            # missing city
-          })
+            "street" => JSON::Any.new("123 Main St"), # missing city
+          }),
         }
-        
+
         schema = SchemaWithNested.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.any? { |e| e.field == "address.city" }.should be_true
       end
@@ -541,10 +539,10 @@ module Amber::Schema
     #       "company_name" => JSON::Any.new("Acme Corp"),
     #       "tax_id" => JSON::Any.new("12-3456789")
     #     }
-        
+
     #     schema = SchemaWithConditionals.new(data)
     #     result = schema.validate
-        
+
     #     result.success?.should be_true
     #   end
 
@@ -554,10 +552,10 @@ module Amber::Schema
     #       "first_name" => JSON::Any.new("John"),
     #       "last_name" => JSON::Any.new("Doe")
     #     }
-        
+
     #     schema = SchemaWithConditionals.new(data)
     #     result = schema.validate
-        
+
     #     result.success?.should be_true
     #   end
 
@@ -567,10 +565,10 @@ module Amber::Schema
     #       "company_name" => JSON::Any.new("Acme Corp")
     #       # missing tax_id
     #     }
-        
+
     #     schema = SchemaWithConditionals.new(data)
     #     result = schema.validate
-        
+
     #     result.failure?.should be_true
     #     result.errors.any? { |e| e.field == "tax_id" }.should be_true
     #   end
@@ -581,19 +579,19 @@ module Amber::Schema
     #       "discount_amount" => JSON::Any.new(10.0),
     #       "discount_type" => JSON::Any.new("percentage")
     #     }
-        
+
     #     schema = SchemaWithPresenceConditionals.new(data)
     #     result = schema.validate
-        
+
     #     result.success?.should be_true
     #   end
 
     #   it "doesn't require conditional fields when trigger field is absent" do
     #     data = {} of String => JSON::Any # no discount_code
-        
+
     #     schema = SchemaWithPresenceConditionals.new(data)
     #     result = schema.validate
-        
+
     #     result.success?.should be_true
     #   end
 
@@ -602,10 +600,10 @@ module Amber::Schema
     #       "discount_code" => JSON::Any.new("SAVE10")
     #       # missing discount_amount and discount_type
     #     }
-        
+
     #     schema = SchemaWithPresenceConditionals.new(data)
     #     result = schema.validate
-        
+
     #     result.failure?.should be_true
     #     result.errors.size.should eq(2)
     #     result.errors.any? { |e| e.field == "discount_amount" }.should be_true
@@ -616,25 +614,25 @@ module Amber::Schema
     describe "custom validators" do
       it "passes custom validation when conditions are met" do
         data = {
-          "password" => JSON::Any.new("secret123"),
-          "password_confirmation" => JSON::Any.new("secret123")
+          "password"              => JSON::Any.new("secret123"),
+          "password_confirmation" => JSON::Any.new("secret123"),
         }
-        
+
         schema = SchemaWithCustomValidators.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
       end
 
       it "fails custom validation when conditions are not met" do
         data = {
-          "password" => JSON::Any.new("secret123"),
-          "password_confirmation" => JSON::Any.new("different")
+          "password"              => JSON::Any.new("secret123"),
+          "password_confirmation" => JSON::Any.new("different"),
         }
-        
+
         schema = SchemaWithCustomValidators.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.any? { |e| e.code == "password_mismatch" }.should be_true
       end
@@ -647,28 +645,28 @@ module Amber::Schema
     #       "latitude" => JSON::Any.new(40.7128),
     #       "longitude" => JSON::Any.new(-74.0060)
     #     }
-        
+
     #     schema = SchemaWithRequiresTogether.new(data)
     #     result = schema.validate
-        
+
     #     result.success?.should be_true
     #   end
 
     #   it "passes when no fields are present" do
     #     data = {} of String => JSON::Any
-        
+
     #     schema = SchemaWithRequiresTogether.new(data)
     #     result = schema.validate
-        
+
     #     result.success?.should be_true
     #   end
 
     #   it "fails when only some fields are present" do
     #     data = {"latitude" => JSON::Any.new(40.7128)}
-        
+
     #     schema = SchemaWithRequiresTogether.new(data)
     #     result = schema.validate
-        
+
     #     result.failure?.should be_true
     #     result.errors.any? { |e| e.code == "requires_together" }.should be_true
     #   end
@@ -677,19 +675,19 @@ module Amber::Schema
     # describe "requires_one_of macro" do
     #   it "passes when exactly one field is present" do
     #     data = {"email" => JSON::Any.new("test@example.com")}
-        
+
     #     schema = SchemaWithRequiresOneOf.new(data)
     #     result = schema.validate
-        
+
     #     result.success?.should be_true
     #   end
 
     #   it "fails when no fields are present" do
     #     data = {} of String => JSON::Any
-        
+
     #     schema = SchemaWithRequiresOneOf.new(data)
     #     result = schema.validate
-        
+
     #     result.failure?.should be_true
     #     result.errors.any? { |e| e.code == "requires_one_of" }.should be_true
     #   end
@@ -699,10 +697,10 @@ module Amber::Schema
     #       "email" => JSON::Any.new("test@example.com"),
     #       "phone" => JSON::Any.new("+1234567890")
     #     }
-        
+
     #     schema = SchemaWithRequiresOneOf.new(data)
     #     result = schema.validate
-        
+
     #     result.failure?.should be_true
     #     result.errors.any? { |e| e.code == "requires_one_of" }.should be_true
     #   end
@@ -712,35 +710,35 @@ module Amber::Schema
       it "coerces string to integer" do
         data = {
           "name" => JSON::Any.new("Test"),
-          "age" => JSON::Any.new("30")
+          "age"  => JSON::Any.new("30"),
         }
-        
+
         schema = SimpleSchema.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         schema.age.should eq(30)
       end
 
       it "coerces string to boolean" do
         data = {
-          "name" => JSON::Any.new("Test"),
-          "active" => JSON::Any.new("true")
+          "name"   => JSON::Any.new("Test"),
+          "active" => JSON::Any.new("true"),
         }
-        
+
         schema = SimpleSchema.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         schema.active.should be_true
       end
 
       it "coerces numeric string to float" do
         data = {"ratio" => JSON::Any.new("3.14")}
-        
+
         schema = SchemaWithDefaults.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         schema.ratio.should eq(3.14)
       end
@@ -748,10 +746,10 @@ module Amber::Schema
       it "coerces unix timestamp to time" do
         timestamp = Time.utc.to_unix
         data = {"created_at" => JSON::Any.new(timestamp)}
-        
+
         schema = SchemaWithTimeAndUUID.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         schema.created_at.should_not be_nil
       end
@@ -759,12 +757,12 @@ module Amber::Schema
       it "fails to coerce invalid values" do
         data = {
           "name" => JSON::Any.new("Test"),
-          "age" => JSON::Any.new("not-a-number")
+          "age"  => JSON::Any.new("not-a-number"),
         }
-        
+
         schema = SimpleSchema.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.any? { |e| e.is_a?(TypeMismatchError) }.should be_true
       end
@@ -782,32 +780,32 @@ module Amber::Schema
 
       it "validates fields from all sources" do
         data = {
-          "page" => JSON::Any.new(2),
-          "per_page" => JSON::Any.new(50),
-          "id" => JSON::Any.new(123),
-          "name" => JSON::Any.new("Test Item"),
+          "page"        => JSON::Any.new(2),
+          "per_page"    => JSON::Any.new(50),
+          "id"          => JSON::Any.new(123),
+          "name"        => JSON::Any.new("Test Item"),
           "description" => JSON::Any.new("A test item"),
-          "api_key" => JSON::Any.new("secret-key-123")
+          "api_key"     => JSON::Any.new("secret-key-123"),
         }
-        
+
         schema = SchemaWithSourceBlocks.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
       end
 
       it "applies defaults in source blocks" do
         data = {
-          "id" => JSON::Any.new(123),
-          "name" => JSON::Any.new("Test"),
-          "api_key" => JSON::Any.new("key")
+          "id"      => JSON::Any.new(123),
+          "name"    => JSON::Any.new("Test"),
+          "api_key" => JSON::Any.new("key"),
         }
-        
+
         schema = SchemaWithSourceBlocks.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
-        schema.page.should eq(1) # default
+        schema.page.should eq(1)      # default
         schema.per_page.should eq(20) # default
       end
     end
@@ -830,22 +828,22 @@ module Amber::Schema
       it "handles nil values" do
         data = {
           "name" => JSON::Any.new("Test"),
-          "age" => JSON::Any.new(nil)
+          "age"  => JSON::Any.new(nil),
         }
-        
+
         schema = SimpleSchema.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         schema.age.should be_nil
       end
 
       it "handles empty strings" do
         data = {"name" => JSON::Any.new("")}
-        
+
         schema = SimpleSchema.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         schema.name.should eq("")
       end
@@ -853,22 +851,22 @@ module Amber::Schema
       it "handles deeply nested nil values" do
         data = {
           "metadata" => JSON::Any.new({
-            "key" => JSON::Any.new(nil)
-          })
+            "key" => JSON::Any.new(nil),
+          }),
         }
-        
+
         schema = SchemaWithHashes.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
       end
 
       it "handles mixed type arrays with coercion" do
         data = {"numbers" => JSON::Any.new([JSON::Any.new("1"), JSON::Any.new(2), JSON::Any.new("3")])}
-        
+
         schema = SchemaWithArrays.new(data)
         result = schema.validate
-        
+
         result.success?.should be_true
         # Just verify the data exists - coercion is tested separately
         schema.raw_data.has_key?("numbers").should be_true
@@ -879,25 +877,25 @@ module Amber::Schema
       it "provides detailed error information" do
         data = {
           "email" => JSON::Any.new("invalid"),
-          "age" => JSON::Any.new(10),
-          "name" => JSON::Any.new("X")
+          "age"   => JSON::Any.new(10),
+          "name"  => JSON::Any.new("X"),
         }
-        
+
         schema = SchemaWithValidations.new(data)
         result = schema.validate
-        
+
         result.failure?.should be_true
         result.errors.size.should be >= 3
-        
+
         # Check error details
         email_error = result.errors.find { |e| e.field == "email" }
         email_error.should_not be_nil
         email_error.not_nil!.code.should eq("invalid_format")
-        
+
         age_error = result.errors.find { |e| e.field == "age" }
         age_error.should_not be_nil
         age_error.not_nil!.code.should eq("out_of_range")
-        
+
         name_error = result.errors.find { |e| e.field == "name" }
         name_error.should_not be_nil
         name_error.not_nil!.code.should eq("invalid_length")
@@ -905,10 +903,10 @@ module Amber::Schema
 
       it "groups errors by field" do
         data = {"age" => JSON::Any.new(200)} # Both too high and missing email
-        
+
         schema = SchemaWithValidations.new(data)
         result = schema.validate
-        
+
         errors_by_field = result.errors_by_field
         errors_by_field.has_key?("email").should be_true
         errors_by_field.has_key?("age").should be_true
@@ -918,20 +916,20 @@ module Amber::Schema
     describe "validate_typed method" do
       it "returns typed Success result" do
         data = {"name" => JSON::Any.new("Test")}
-        
+
         schema = SimpleSchema.new(data)
         result = schema.validate_typed
-        
+
         result.should be_a(Success(Hash(String, JSON::Any)))
         result.success?.should be_true
       end
 
       it "returns typed Failure result" do
         data = {} of String => JSON::Any
-        
+
         schema = SimpleSchema.new(data)
         result = schema.validate_typed
-        
+
         result.should be_a(Failure(Hash(String, JSON::Any)))
         result.failure?.should be_true
       end
@@ -941,18 +939,18 @@ module Amber::Schema
       it "provides field information" do
         SimpleSchema.has_field?("name").should be_true
         SimpleSchema.has_field?("nonexistent").should be_false
-        
+
         SimpleSchema.field_names.should contain("name")
         SimpleSchema.field_names.should contain("age")
         SimpleSchema.field_names.should contain("active")
-        
+
         SimpleSchema.required_field_names.should eq(["name"])
       end
 
       # it "checks for conditionals" do
       #   SchemaWithConditionals.has_conditionals?.should be_true
       #   SimpleSchema.has_conditionals?.should be_false
-        
+
       #   SchemaWithConditionals.conditionals.size.should eq(2)
       # end
     end

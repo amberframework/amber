@@ -15,16 +15,16 @@ module Amber::Schema::Parser
       def query(xpath : String) : Array(XML::Node)
         # Basic XPath implementation since Crystal's XML doesn't have full XPath
         # This handles simple queries like //element, //element/@attr, etc.
-        
+
         if xpath.starts_with?("//")
           element_path = xpath[2..]
-          
+
           # Handle attribute queries like //book/@id
           if element_path.includes?("/@")
             parts = element_path.split("/@")
             element_name = parts[0]
             attr_name = parts[1]
-            
+
             nodes = find_elements_by_name(element_name)
             return nodes.compact_map do |node|
               if attr = node.attributes[attr_name]?
@@ -40,7 +40,7 @@ module Amber::Schema::Parser
                 return find_elements_by_namespace(local_name, namespace_uri)
               end
             end
-            
+
             return find_elements_by_name(element_path)
           end
         else
@@ -68,7 +68,7 @@ module Amber::Schema::Parser
         if node.name == target_name
           results << node
         end
-        
+
         node.children.each do |child|
           traverse_for_name(child, target_name, results)
         end
@@ -78,7 +78,7 @@ module Amber::Schema::Parser
       private def traverse_for_namespace(node : XML::Node, local_name : String, namespace_uri : String, results : Array(XML::Node))
         # For now, just match by local name since Crystal's XML API is limited
         # TODO: Implement proper namespace matching when available
-        if node.name.includes?(":") 
+        if node.name.includes?(":")
           # Handle prefixed names like "ns:book"
           if node.name.split(":").last == local_name
             results << node
@@ -86,7 +86,7 @@ module Amber::Schema::Parser
         elsif node.name == local_name
           results << node
         end
-        
+
         node.children.each do |child|
           traverse_for_namespace(child, local_name, namespace_uri, results)
         end
@@ -119,7 +119,7 @@ module Amber::Schema::Parser
 
       # Parse XML document
       document = XML.parse(xml_string)
-      
+
       # Convert to flat structure suitable for schema validation
       extract_default_fields(document)
     rescue ex : XML::Error
@@ -160,7 +160,7 @@ module Amber::Schema::Parser
     # Extract default fields from XML document (without schema)
     def self.extract_default_fields(document : XML::Node) : Hash(String, JSON::Any)
       result = {} of String => JSON::Any
-      
+
       # Start with root element
       if root = document.first_element_child
         extract_element_to_hash(root, result)
@@ -181,10 +181,10 @@ module Amber::Schema::Parser
 
       # Handle text content
       text_content = element.content.strip
-      
+
       # Check if element has children
       has_child_elements = element.children.any? { |child| child.element? }
-      
+
       if text_content.empty?
         # Empty element - still add it to the result if it has no children
         unless has_child_elements
@@ -209,7 +209,7 @@ module Amber::Schema::Parser
     # Extract namespaces from schema definition
     private def self.extract_schema_namespaces(schema : Definition) : Hash(String, String)
       namespaces = {} of String => String
-      
+
       schema.class.fields.each do |field_name, field_def|
         if ns_option = field_def.options["namespaces"]?
           case ns_option.raw
@@ -248,10 +248,10 @@ module Amber::Schema::Parser
     # Extract value from XML node
     def self.extract_node_value(node : XML::Node) : JSON::Any
       content = node.content.strip
-      
+
       # For now, treat all content as text since Crystal's XML API is limited
       # TODO: Add CDATA handling when API supports it
-      
+
       # Try to parse as different types
       parse_xml_value(content)
     end
@@ -276,7 +276,7 @@ module Amber::Schema::Parser
       if value =~ /^-?\d+$/ && (int_value = value.to_i64?)
         return JSON::Any.new(int_value)
       end
-      
+
       # Try float
       if value =~ /^-?\d*\.?\d+([eE][+-]?\d+)?$/ && (float_value = value.to_f64?)
         return JSON::Any.new(float_value)
@@ -292,7 +292,7 @@ module Amber::Schema::Parser
 
       begin
         document = XML.parse(xml_string)
-        
+
         # Create XPath context for validation
         namespaces = extract_schema_namespaces(schema)
         xpath_context = XPathContext.new(document, namespaces)
@@ -300,7 +300,7 @@ module Amber::Schema::Parser
         # Validate each required field
         schema.class.fields.each do |field_name, field_def|
           next unless field_def.required
-          
+
           if xpath = field_def.options["xpath"]?.try(&.as_s)
             nodes = xpath_context.query(xpath)
             if nodes.empty?
@@ -308,7 +308,6 @@ module Amber::Schema::Parser
             end
           end
         end
-
       rescue ex : XML::Error
         errors << CustomValidationError.new("", "Invalid XML: #{ex.message}", "xml_parse_error")
       end
@@ -336,13 +335,13 @@ module Amber::Schema::Parser
     # Handle XML namespace declarations
     def self.extract_namespace_declarations(element : XML::Node) : Hash(String, String)
       namespaces = {} of String => String
-      
+
       element.attributes.each do |attr|
         if attr.name.starts_with?("xmlns:")
-          prefix = attr.name[6..]  # Remove "xmlns:" prefix
+          prefix = attr.name[6..] # Remove "xmlns:" prefix
           namespaces[prefix] = attr.content
         elsif attr.name == "xmlns"
-          namespaces[""] = attr.content  # Default namespace
+          namespaces[""] = attr.content # Default namespace
         end
       end
 
@@ -354,7 +353,7 @@ module Amber::Schema::Parser
       return {} of String => JSON::Any if xml_string.empty?
 
       document = XML.parse(xml_string)
-      
+
       # Merge explicit namespaces with those found in document
       all_namespaces = explicit_namespaces.dup
       if root = document.first_element_child
@@ -364,7 +363,7 @@ module Amber::Schema::Parser
 
       # Create xpath context with all namespaces
       xpath_context = XPathContext.new(document, all_namespaces)
-      
+
       # For now, return default extraction
       # This could be enhanced to use namespace-aware extraction
       extract_default_fields(document)
