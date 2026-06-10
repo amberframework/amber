@@ -65,7 +65,7 @@ module Amber::Controller::Helpers
         if @requested_responses.size != 1 || @requested_responses.includes?("*/*")
           @requested_responses << @available_responses.keys.first
         end
-        
+
         result = @requested_responses.find do |resp|
           @available_responses.keys.find { |r| r.includes?(resp) }
         end

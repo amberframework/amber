@@ -13,7 +13,7 @@ module Sentry
       @build_commands = Hash(String, String).new,  # { "task1" => [ ... ], "task2" => [ ... ] }
       @run_commands = Hash(String, String).new,    # { "task1" => [ ... ], "task2" => [ ... ] }
       @includes = Hash(String, Array(String)).new, # { "task1" => [ ... ], "task2" => [ ... ] }
-      @excludes = Hash(String, Array(String)).new  # { "task1" => [ ... ], "task2" => [ ... ] }
+      @excludes = Hash(String, Array(String)).new, # { "task1" => [ ... ], "task2" => [ ... ] }
     )
       @app_running = false
     end

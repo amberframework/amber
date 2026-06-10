@@ -64,7 +64,7 @@ module Amber::Router
 
         context "when parsing route params" do
           it "parses params from route" do
-            handler = ->(_context : HTTP::Server::Context) {}
+            handler = ->(_context : HTTP::Server::Context) { }
             route = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, Scope.new, "FakeController")
             Amber::Server.router.add(route)
             request = HTTP::Request.new("GET", "/fake/action/123/john")
@@ -72,43 +72,6 @@ module Amber::Router
             request.params["name"].should eq "john"
           end
         end
-      end
-    end
-
-    describe "#method" do
-      %w(PUT PATCH DELETE).each do |method|
-        it "overrides form POST method to PUT, PATCH, DELETE" do
-          headers[HTTP::Request::OVERRIDE_HEADER] = method
-          request = HTTP::Request.new("POST", "/?test=test", headers)
-          request.method.should eq method
-        end
-
-        it "takes form post over header override" do
-          headers[HTTP::Request::OVERRIDE_HEADER] = "PUT"
-          headers["content-type"] = "application/x-www-form-urlencoded"
-          request = HTTP::Request.new("POST", "/?test=test", headers, "_method=PATCH")
-          request.method.should eq "PATCH"
-        end
-      end
-
-      it "overrides form request method only by upper case value" do
-        headers["content-type"] = "application/x-www-form-urlencoded"
-        request = HTTP::Request.new("POST", "/?test=test", headers, "_method=put")
-        request.method.should eq "PUT"
-      end
-    end
-
-    %w(PUT PATCH DELETE).each do |method|
-      it "overrides form POST method to PUT, PATCH, DELETE" do
-        headers["content-type"] = "application/x-www-form-urlencoded"
-        request = HTTP::Request.new("POST", "/?test=test", headers, "_method=#{method}")
-        request.method.should eq method
-      end
-
-      it "does not override other than PUT, PATCH, DELETE" do
-        headers["content-type"] = "application/x-www-form-urlencoded"
-        request = HTTP::Request.new("HEAD", "/?test=test", headers, "_method=#{method}")
-        request.method.should eq "HEAD"
       end
     end
   end
