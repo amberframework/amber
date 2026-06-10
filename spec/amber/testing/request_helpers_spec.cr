@@ -33,24 +33,27 @@ class TestRequestController < Amber::Controller::Base
   end
 end
 
-# Set up routes before all tests
-Amber::Server.router.draw :web do
-  get "/test", TestRequestController, :index
-  get "/test/json", TestRequestController, :json_echo
-  get "/test/redirect", TestRequestController, :redirect_action
-  get "/test/:id", TestRequestController, :show
-  post "/test", TestRequestController, :create
-  put "/test/:id", TestRequestController, :update
-  patch "/test/:id", TestRequestController, :update
-  delete "/test/:id", TestRequestController, :destroy
-end
-
-Amber::Server.handler.build(:web) { }
-
 module RequestHelpersSpec
   extend Amber::Testing::RequestHelpers
 
   describe Amber::Testing::RequestHelpers do
+    # Routes are drawn in before_all (not at file load) because the router is
+    # global mutable state: specs that reconfigure the server at runtime wipe
+    # load-time routes, making these specs fail under other spec-file orders.
+    before_all do
+      Amber::Server.router.draw :web do
+        get "/test", TestRequestController, :index
+        get "/test/json", TestRequestController, :json_echo
+        get "/test/redirect", TestRequestController, :redirect_action
+        get "/test/:id", TestRequestController, :show
+        post "/test", TestRequestController, :create
+        put "/test/:id", TestRequestController, :update
+        patch "/test/:id", TestRequestController, :update
+        delete "/test/:id", TestRequestController, :destroy
+      end
+
+      Amber::Server.handler.build(:web) { }
+    end
     describe "#get" do
       it "makes a GET request and returns a TestResponse" do
         response = RequestHelpersSpec.get("/test")
