@@ -9,9 +9,6 @@ _Amber makes building web applications fast, simple, and enjoyable - with fewer 
 
 # Welcome! Introducing Amber
 
-<img src="./hi_amber.png" alt="Amber Framework Demo" width="275" height="auto">
-
-
 **Amber V2 is in active development (pre-release beta).** The `v2-dev` branch is stable enough for experimentation and early adoption but is not yet recommended for production. See [docs/migration-guide.md](docs/migration-guide.md) for a complete list of breaking changes from V1, and [amberframework/amber_cli](https://github.com/amberframework/amber_cli) for the standalone CLI tool that replaces the built-in generator commands.
 
 **Amber** is a web application framework written in [Crystal](https://crystal-lang.org/) inspired by Kemal, Rails, Phoenix, Flutter and other popular application frameworks.
@@ -24,19 +21,24 @@ Amber borrows concepts that have already been battle tested and successful, and 
 
 ## How Complete Is Amber?
 
-An Amber application represents all aspects of a modern (2025 and beyond) web application.
+The goal for V2 is to cover every aspect of a modern web application. Here is where that stands today, honestly:
 
-1. MVC - proven pattern for managing requests and responses
-2. ActiveRecord ORM - proven pattern for managing database records
-3. Background jobs - 2 systems are present to get you started and then grow into as your app is successful
-4. Cloud file storage - upload and store files for users, jobs, etc.
-5. Users & authentication - every app has users and needs authentication
-6. Transactional emails - send emails for important events
-7. Audit logging - because SOC2 demands accountability for our actions
-8. API Documentation Generator - because security demands we maintain knowledge of our code base to test it reguarly
-9. Reactive views - because it's 2025 (or beyond) and we deserve a modern front-end system.
-10. MCP - everyone is going to build AI native apps, welcome to the new future
-11. SBOM - A _S_oftware _B_ill _O_f _M_aterials is necessary for mature certifications, so build with _success_ in mind
+**In this shard now:**
+
+1. MVC - controllers, ECR views, and a router with named routes, constraints, and API versioning
+2. Schema API - type-safe request validation and params handling
+3. Background jobs - built-in work-stealing job system with retries and a dead-letter queue
+4. Transactional emails - built-in mailer with SMTP and memory adapters
+5. WebSockets - channels with presence tracking, message decoders, and connection recovery
+
+**In the wider V2 ecosystem (separate shards):**
+
+6. CLI with generators, dev workflow, and an LSP server - [amberframework/amber_cli](https://github.com/amberframework/amber_cli)
+7. ActiveRecord-style ORM (Grant) and file attachments - in active development, publishing to the amberframework org soon
+
+**On the roadmap (not built yet):**
+
+8. Cloud file storage, users & authentication, audit logging, API documentation generation, reactive views, MCP, and SBOM tooling
 
 
 ## How Amber Is Embracing AI
