@@ -152,6 +152,29 @@ module Amber::Controller
           context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
           context.response.status_code.should eq 403
         end
+
+        # Regression for RFC 7231 Accept parsing: split on "," first, then strip ";<params>".
+        # Before the fix, "application/json; charset=utf-8" was silently dropped because
+        # the code split on ";" first, leaving only the text before the first param.
+        it "responds with html when text/html is first in a complex Accept header" do
+          context.response.status_code = 200
+          expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+          context.request.headers["Accept"] = "text/html,application/json; charset=utf-8; q=0.9,*/*;q=0.8"
+          context.request.path = "/response/1"
+          ResponsesController.new(context).index.should eq expected_result
+          context.response.headers["Content-Type"].should eq "text/html"
+          context.response.status_code.should eq 200
+        end
+
+        it "responds with json when Accept type carries charset parameter (application/json; charset=utf-8)" do
+          context.response.status_code = 200
+          expected_result = %({"type":"json","name":"Amberator"})
+          context.request.headers["Accept"] = "application/json; charset=utf-8, text/javascript, */*; q=0.0"
+          context.request.path = "/response/1"
+          ResponsesController.new(context).index.should eq expected_result
+          context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
+          context.response.status_code.should eq 200
+        end
       end
 
       describe "#proc input" do
