@@ -53,7 +53,7 @@ module Amber::CLI
         spawn show
         process = Process.run(code, shell: true, output: file, error: file)
         sleep 1.millisecond
-        process.exit_status
+        process.exit_code
       end
 
       private def wrap(code)
