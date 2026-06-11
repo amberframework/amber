@@ -65,7 +65,7 @@ module Amber::Controller::Helpers
         if @requested_responses.size != 1 || @requested_responses.includes?("*/*")
           @requested_responses << @available_responses.keys.first
         end
-        
+
         result = @requested_responses.find do |resp|
           @available_responses.keys.find { |r| r.includes?(resp) }
         end
@@ -96,8 +96,10 @@ module Amber::Controller::Helpers
     private def accepts_request_type
       accept = context.request.headers["Accept"]?
       if accept && !accept.empty?
-        accepts = accept.split(";").first?.try(&.split(Content::ACCEPT_SEPARATOR_REGEX))
-        return accepts if !accepts.nil? && !accepts.empty?
+        accepts = accept.split(Content::ACCEPT_SEPARATOR_REGEX).map do |part|
+          part.split(";").first.strip
+        end.reject(&.empty?)
+        return accepts unless accepts.empty?
       end
     end
 

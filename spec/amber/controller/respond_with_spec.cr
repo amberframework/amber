@@ -152,6 +152,16 @@ module Amber::Controller
           context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
           context.response.status_code.should eq 403
         end
+
+        it "responds with json for complex Accept header with parameters" do
+          context.response.status_code = 200
+          expected_result = %({"type":"json","name":"Amberator"})
+          context.request.headers["Accept"] = "application/json; charset=utf-8, text/javascript, */*; q=0.0"
+          context.request.path = "/response/1"
+          ResponsesController.new(context).index.should eq expected_result
+          context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
+          context.response.status_code.should eq 200
+        end
       end
 
       describe "#proc input" do
