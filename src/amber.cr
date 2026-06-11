@@ -7,6 +7,7 @@ require "kilt"
 require "kilt/slang"
 require "redis"
 require "compiled_license"
+require "spawn-bang"
 
 require "./amber/version"
 require "./amber/controller/**"
