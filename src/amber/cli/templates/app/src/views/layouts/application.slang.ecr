@@ -28,8 +28,9 @@ html
 
       .main== content
 
-    script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" 
+    == FRONT_LOADER.render_import_map_tag
 
-    script type="module" src="/js/amber.js"
-    - if Amber.settings.auto_reload?
-      script src="/js/client_reload.js"
+    script type="module"
+      = "import { initialize } from 'amber'";
+      - if Amber.settings.auto_reload?
+        = "import { initializeWebSockets } from 'client_reload'";

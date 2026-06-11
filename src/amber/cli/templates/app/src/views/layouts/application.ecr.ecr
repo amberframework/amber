@@ -38,9 +38,15 @@
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script type="module" src="/js/amber.js"></script>
-    <%="<"%>%- if Amber.settings.auto_reload? -%><script src="/js/client_reload.js"></script><%="<"%>%- end -%>
+    <%= "<"%>%= FRONT_LOADER.render_import_map_tag %>
+    <script type="module">
+      import { initialize } from 'amber'
+      initialize()
+      
+      <%= "<"%>%- if Amber.settings.auto_reload? %>
+      import { initializeWebSockets } from 'client_reload'
+      initializeWebSockets()
+      <%= "<"%>% end %>
+    </script>
   </body>
 </html>
