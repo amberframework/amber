@@ -35,7 +35,7 @@ module Amber::CLI
                       Dir.glob("./tmp/*_console.cr").sort.reverse![options.back.to_i(strict: false) - 1]?
                     end
 
-        system("cp #{_filename} #{@filename}") if _filename
+        Process.run("cp", [_filename, @filename]) if _filename
       end
 
       private def show
@@ -72,7 +72,7 @@ module Amber::CLI
 
         if args.code.blank? || File.exists?(args.code)
           prepare_file
-          system("#{options.editor} #{@filename}")
+          Process.run(options.editor, [@filename], output: Process::Redirect::Inherit, error: Process::Redirect::Inherit)
         else
           File.write(@filename, wrap(args.code))
         end
