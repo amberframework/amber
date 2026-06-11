@@ -2,14 +2,14 @@ require "../../spec_helper"
 
 module Amber
   describe WebSockets::ClientSocket do
-    Spec.after_each do
+    after_each do
       Amber::WebSockets::ClientSockets.client_sockets.keys.size.should eq 0
     end
 
     describe "#channel" do
       it "should add channels" do
         UserSocket.channels[0][:path].should eq "user_room:*"
-        UserSocket.channels[0][:channel].should be_a UserChannel
+        UserSocket.channels[0][:channel_class].should eq UserChannel
       end
     end
 

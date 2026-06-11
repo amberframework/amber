@@ -30,6 +30,15 @@ class HTTP::Server::Context
     @session ||= Amber::Router::Session::Store.new(cookies, Amber.settings.session).build
   end
 
+  # Regenerates the session ID to prevent session fixation attacks.
+  # This should be called after successful authentication or privilege escalation.
+  # Only works with AdapterSessionStore; no-op for CookieStore.
+  def regenerate_session!
+    if (store = @session).is_a?(Amber::Router::Session::AdapterSessionStore)
+      store.regenerate_id
+    end
+  end
+
   def flash
     @flash ||= Amber::Router::Flash.from_session(session.fetch(Amber::Pipe::Flash::PARAM_KEY, "{}"))
   end

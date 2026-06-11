@@ -1,0 +1,42 @@
+[
+  {
+    "tier": "50",
+    "registration_ms": "0.027333",
+    "memory_fixed_bytes": "16",
+    "memory_variable_bytes": "4112",
+    "memory_glob_bytes": "128",
+    "memory_notfound_bytes": "16"
+  },
+  {
+    "tier": "200",
+    "registration_ms": "0.109334",
+    "memory_fixed_bytes": "4160",
+    "memory_variable_bytes": "0",
+    "memory_glob_bytes": "0",
+    "memory_notfound_bytes": "0"
+  },
+  {
+    "tier": "500",
+    "registration_ms": "0.152125",
+    "memory_fixed_bytes": "2752",
+    "memory_variable_bytes": "0",
+    "memory_glob_bytes": "2048",
+    "memory_notfound_bytes": "0"
+  },
+  {
+    "tier": "1000",
+    "registration_ms": "0.319208",
+    "memory_fixed_bytes": "0",
+    "memory_variable_bytes": "0",
+    "memory_glob_bytes": "0",
+    "memory_notfound_bytes": "0"
+  },
+  {
+    "tier": "2000",
+    "registration_ms": "0.845667",
+    "memory_fixed_bytes": "0",
+    "memory_variable_bytes": "0",
+    "memory_glob_bytes": "0",
+    "memory_notfound_bytes": "3456"
+  }
+]

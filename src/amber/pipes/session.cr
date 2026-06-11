@@ -7,8 +7,15 @@ module Amber
       def call(context : HTTP::Server::Context)
         call_next(context)
 
-        if context.session.changed?
-          context.session.set_session
+        session = context.session
+
+        # Sliding expiration: reset the TTL on each request for adapter-based sessions
+        if session.is_a?(Amber::Router::Session::AdapterSessionStore)
+          session.touch
+        end
+
+        if session.changed?
+          session.set_session
           context.cookies.write(context.response.headers)
         end
       end

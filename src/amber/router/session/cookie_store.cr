@@ -72,7 +72,14 @@ module Amber::Router::Session
     end
 
     def set_session
-      store.set(key, session.to_json, expires: expires_at, http_only: true)
+      secure = !Amber.env.development? && !Amber.env.test?
+      samesite = HTTP::Cookie::SameSite::Lax
+
+      store.set(key, session.to_json,
+        expires: expires_at,
+        http_only: true,
+        secure: secure,
+        samesite: samesite)
     end
 
     def expires_at

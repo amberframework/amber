@@ -86,28 +86,28 @@ end
 
 class RenderController < Amber::Controller::Base
   def render_template_page
-    render(path: "spec/support/sample/views", template: "test/test.slang", layout: false)
+    render(path: "spec/support/sample/views", template: "test/test.ecr", layout: false)
   end
 
   def render_partial
-    render(path: "spec/support/sample/views", partial: "test/_test.slang")
+    render(path: "spec/support/sample/views", partial: "test/_test.ecr")
   end
 
   def render_with_layout
-    render("test/test.slang", layout: "layout.slang", path: "spec/support/sample/views", folder: "./")
+    render("test/test.ecr", layout: "layout.ecr", path: "spec/support/sample/views", folder: "./")
   end
 
   def render_multiple_partials_in_layout
-    render("test/test.slang", layout: "layout_with_partials.slang", path: "spec/support/sample/views", folder: "./")
+    render("test/test.ecr", layout: "layout_with_partials.ecr", path: "spec/support/sample/views", folder: "./")
   end
 
   def render_with_csrf
-    render(path: "spec/support/sample/views", partial: "test/_form.slang")
+    render(path: "spec/support/sample/views", partial: "test/_form.ecr")
   end
 
   def render_with_flash
     flash["error"] = "Displays error Message!"
-    render(path: "spec/support/sample/views", template: "test/flash.slang", layout: false)
+    render(path: "spec/support/sample/views", template: "test/flash.ecr", layout: false)
   end
 end
 
@@ -115,7 +115,7 @@ class RenderLayoutFalseController < Amber::Controller::Base
   LAYOUT = false
 
   def render_with_layout
-    render("test/test.slang", layout: "layout.slang", path: "spec/support/sample/views", folder: "./")
+    render("test/test.ecr", layout: "layout.ecr", path: "spec/support/sample/views", folder: "./")
   end
 end
 
@@ -181,28 +181,28 @@ class ResponsesController < Amber::Controller::Base
 
   def proc_html
     respond_with do
-      html ->{ "<html><body><h1>Elorest <3 Amber</h1></body></html>" }
+      html -> { "<html><body><h1>Elorest <3 Amber</h1></body></html>" }
       json type: "json", name: "Amberator"
     end
   end
 
   def proc_redirect
     respond_with do
-      html ->{ redirect_to "/some_path" }
+      html -> { redirect_to "/some_path" }
       json type: "json", name: "Amberator"
     end
   end
 
   def proc_redirect_flash
     respond_with do
-      html ->{ redirect_to "/some_path", flash: {"success" => "amber is the bizness"} }
+      html -> { redirect_to "/some_path", flash: {"success" => "amber is the bizness"} }
       json type: "json", name: "Amberator"
     end
   end
 
   def proc_perm_redirect
     respond_with do
-      html ->{ redirect_to "/some_path", status: 301 }
+      html -> { redirect_to "/some_path", status: 301 }
       json type: "json", name: "Amberator"
     end
   end

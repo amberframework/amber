@@ -2,7 +2,8 @@ require "./scope"
 
 module Amber
   struct Route
-    property :handler, :action, :verb, :resource, :valve, :params, :scope, :controller, :constraints
+    property :handler, :action, :verb, :resource, :valve, :params, :scope, :controller, :constraints, :name
+    property request_constraint : Router::Constraint?
 
     def initialize(@verb : String,
                    @resource : String,
@@ -11,7 +12,10 @@ module Amber
                    @valve : Symbol = :web,
                    @scope : Router::Scope = Router::Scope.new,
                    @controller : String = "",
-                   @constraints : Hash = {} of String => Regex)
+                   @constraints : Hash = {} of String => Regex,
+                   @name : Symbol? = nil,
+                   @request_constraint : Router::Constraint? = nil)
+      @params = {} of String => String
     end
 
     def to_json
@@ -23,6 +27,7 @@ module Amber
           json.field "valve", valve.to_s
           json.field "scope", scope.to_s
           json.field "resource", resource
+          json.field "name", name.to_s if name
           json.field "constraints" do
             json.object do
               constraints.each do |key, value|

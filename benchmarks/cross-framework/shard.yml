@@ -1,0 +1,16 @@
+name: router-benchmarks
+version: 0.1.0
+
+dependencies:
+  amber_router:
+    github: amberframework/amber-router
+    version: ~> 0.4.4
+  radix:
+    github: luislavena/radix
+    version: ~> 0.4.1
+
+# Spider-Gazelle does not have a standalone router shard.
+# Their action-controller framework uses lucky_router internally.
+# See NOTES.md for details.
+
+crystal: ">= 1.0.0"

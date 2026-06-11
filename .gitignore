@@ -1,5 +1,4 @@
 /doc/
-/docs/
 /bin/
 /.shards/
 /.vscode/
@@ -10,7 +9,7 @@ lib/
 /tmp
 shard.lock
 .crystal-version
-package-lock.json
-node_modules
 /myapp
-cli.dwarf
+*.dwarf
+*.bak
+*.png

@@ -1,3 +1,3 @@
-As of 2019-05-30, Amber is graciously supported by:
+As of 2025-07-25, Amber is graciously supported by:
 
-Universal Layer - https://ulayer.net/
+AgentC Consulting - https://agentc.consulting

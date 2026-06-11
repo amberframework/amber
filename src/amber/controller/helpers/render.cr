@@ -1,6 +1,6 @@
 module Amber::Controller::Helpers
   module Render
-    LAYOUT = "application.slang"
+    LAYOUT = "application.ecr"
 
     macro render(template = nil, layout = true, partial = nil, path = "src/views", folder = __FILE__)
       {% if !(template || partial) %}
@@ -31,7 +31,7 @@ module Amber::Controller::Helpers
     end
 
     private macro render_template(filename, path = "src/views")
-      Kilt.render("#{{{path}}}/{{filename.id}}")
+      ECR.render("#{{{path}}}/{{filename.id}}")
     end
   end
 end

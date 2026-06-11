@@ -6,6 +6,20 @@ module WebsocketsHelper
     return ws, client_socket
   end
 
+  def create_user_socket_with_connection_id(connection_id : String)
+    request = HTTP::Request.new("GET", "/")
+    ws = HTTP::WebSocket.new(STDOUT)
+    client_socket = UserSocket.new(ws, create_context(request), connection_id)
+    return ws, client_socket
+  end
+
+  def create_text_decoder_socket
+    request = HTTP::Request.new("GET", "/")
+    ws = HTTP::WebSocket.new(STDOUT)
+    client_socket = TextDecoderSocket.new(ws, create_context(request))
+    return ws, client_socket
+  end
+
   def create_socket_server
     channel = Channel(Int32).new
     http_server = nil

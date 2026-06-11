@@ -1,0 +1,5 @@
+name: v2_minimal_app
+
+server:
+  host: "localhost"
+  port: 3000

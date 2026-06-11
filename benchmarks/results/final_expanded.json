@@ -1,0 +1,98 @@
+[
+  {
+    "tier": "50",
+    "registration_ms": "0.02925",
+    "memory_fixed_bytes": "16",
+    "memory_variable_bytes": "4112",
+    "memory_glob_bytes": "128",
+    "memory_notfound_bytes": "16",
+    "ips_fixed": "3391337.09",
+    "ips_variable": "4830523.56",
+    "ips_glob": "2357239.13",
+    "ips_notfound": "5820628.08"
+  },
+  {
+    "tier": "100",
+    "registration_ms": "0.027541",
+    "memory_fixed_bytes": "4096",
+    "memory_variable_bytes": "0",
+    "memory_glob_bytes": "0",
+    "memory_notfound_bytes": "0",
+    "ips_fixed": "3355379.12",
+    "ips_variable": "4444034.69",
+    "ips_glob": "2323343.81",
+    "ips_notfound": "5659140.8"
+  },
+  {
+    "tier": "200",
+    "registration_ms": "0.047625",
+    "memory_fixed_bytes": "7632",
+    "memory_variable_bytes": "0",
+    "memory_glob_bytes": "3840",
+    "memory_notfound_bytes": "0",
+    "ips_fixed": "3199943.29",
+    "ips_variable": "4324775.23",
+    "ips_glob": "2217242.33",
+    "ips_notfound": "5427331.62"
+  },
+  {
+    "tier": "500",
+    "registration_ms": "0.196333",
+    "memory_fixed_bytes": "0",
+    "memory_variable_bytes": "4096",
+    "memory_glob_bytes": "0",
+    "memory_notfound_bytes": "0",
+    "ips_fixed": "3061312.6",
+    "ips_variable": "4211997.31",
+    "ips_glob": "2155478.05",
+    "ips_notfound": "5299937.17"
+  },
+  {
+    "tier": "1000",
+    "registration_ms": "0.375375",
+    "memory_fixed_bytes": "6336",
+    "memory_variable_bytes": "0",
+    "memory_glob_bytes": "0",
+    "memory_notfound_bytes": "0",
+    "ips_fixed": "2871729.0",
+    "ips_variable": "3948592.92",
+    "ips_glob": "2039651.27",
+    "ips_notfound": "5001599.29"
+  },
+  {
+    "tier": "2000",
+    "registration_ms": "0.667042",
+    "memory_fixed_bytes": "4096",
+    "memory_variable_bytes": "0",
+    "memory_glob_bytes": "624",
+    "memory_notfound_bytes": "0",
+    "ips_fixed": "2517970.97",
+    "ips_variable": "3473443.52",
+    "ips_glob": "1796801.83",
+    "ips_notfound": "4406299.23"
+  },
+  {
+    "tier": "5000",
+    "registration_ms": "2.375292",
+    "memory_fixed_bytes": "0",
+    "memory_variable_bytes": "4096",
+    "memory_glob_bytes": "0",
+    "memory_notfound_bytes": "0",
+    "ips_fixed": "2560189.04",
+    "ips_variable": "3578016.52",
+    "ips_glob": "1844764.45",
+    "ips_notfound": "4559748.42"
+  },
+  {
+    "tier": "10000",
+    "registration_ms": "4.5465",
+    "memory_fixed_bytes": "0",
+    "memory_variable_bytes": "0",
+    "memory_glob_bytes": "0",
+    "memory_notfound_bytes": "0",
+    "ips_fixed": "2408580.46",
+    "ips_variable": "3303381.35",
+    "ips_glob": "1738898.28",
+    "ips_notfound": "4163191.56"
+  }
+]

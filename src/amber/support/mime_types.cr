@@ -651,8 +651,12 @@ module Amber
 
         accept = request.headers[FORMAT_HEADER]?
         if accept && !accept.empty?
-          accept = accept.split(";").first?.try(&.split(ACCEPT_SEPARATOR_REGEX)).try &.first
-          return format(accept) if accept
+          # RFC 7231: split on "," first to get the highest-priority media-range,
+          # then strip quality/extension params (";<params>") from that segment.
+          first_type = accept.split(ACCEPT_SEPARATOR_REGEX).first?.try do |segment|
+            segment.split(";").first.strip
+          end
+          return format(first_type) if first_type && !first_type.empty?
         end
 
         "html"

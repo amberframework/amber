@@ -28,12 +28,13 @@ module Amber
           end
         end
 
-        context "Redis Store" do
+        context "Memory Adapter Store" do
           it "sets session value in controller" do
             Amber.settings.session = {
               "key"     => "session_id",
-              "store"   => "redis",
+              "store"   => "signed_cookie",
               "expires" => 120,
+              "adapter" => "memory",
             }
 
             request1 = HTTP::Request.new("GET", "/")

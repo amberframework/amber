@@ -1,3 +1,5 @@
+require "./schema_router"
+
 module Amber::DSL
   record Pipeline, pipeline : Pipe::Pipeline do
     def plug(pipe)
@@ -5,10 +7,24 @@ module Amber::DSL
     end
   end
 
-  record Router, router : Amber::Router::Router, valve : Symbol, scope : Amber::Router::Scope do
+  # For now, always use the regular Router to maintain compatibility
+  # SchemaRouter can be used explicitly when needed
+  class Router
+    getter router : Amber::Router::Router
+    getter valve : Symbol
+    getter scope : Amber::Router::Scope
+    @_active_constraint : Amber::Router::Constraint? = nil
+
+    def initialize(@router, @valve, @scope)
+    end
+
+    def active_constraint : Amber::Router::Constraint?
+      @_active_constraint
+    end
+
     RESOURCES = [:get, :post, :put, :patch, :delete, :options, :head, :trace, :connect]
 
-    macro route(verb, resource, controller, action, constraints = {} of String => Regex)
+    macro route(verb, resource, controller, action, constraints = {} of String => Regex, route_name = nil)
       %handler = ->(context : HTTP::Server::Context){
         controller = {{controller.id}}.new(context)
         controller.run_before_filter({{action}}) unless context.content
@@ -19,7 +35,9 @@ module Amber::DSL
       }
       %verb = {{verb.upcase.id.stringify}}
       %route = Amber::Route.new(
-        %verb, {{resource}}, %handler, {{action}}, valve, scope, "{{controller.id}}", {{constraints}}
+        %verb, {{resource}}, %handler, {{action}}, valve, scope, "{{controller.id}}", {{constraints}},
+        {% if route_name %}{{route_name}}{% else %}nil{% end %},
+        active_constraint
       )
 
       router.add(%route)
@@ -31,14 +49,41 @@ module Amber::DSL
       scope.pop
     end
 
+    # Scopes all routes defined in the block to require the given constraint.
+    # The constraint object must implement Amber::Router::Constraint.
+    def constraint(constraint_object : Amber::Router::Constraint, &)
+      previous_constraint = @_active_constraint
+      @_active_constraint = constraint_object
+      with self yield
+      @_active_constraint = previous_constraint
+    end
+
+    # API versioning macro - URL-based strategy uses namespace,
+    # header-based and media-type-based strategies use constraints.
+    macro api_version(version, strategy = :url, prefix = "", header = "Api-Version", media_type = "application/vnd.amber")
+      {% if strategy == :url %}
+        namespace "{{prefix.id}}/{{version.id}}" do
+          {{yield}}
+        end
+      {% elsif strategy == :header %}
+        constraint(Amber::Router::Constraints::Header.new({{header}}, {{version}})) do
+          {{yield}}
+        end
+      {% elsif strategy == :media_type %}
+        constraint(Amber::Router::Constraints::Accept.new({{media_type}}, {{version}})) do
+          {{yield}}
+        end
+      {% end %}
+    end
+
     {% for verb in RESOURCES %}
-      macro {{verb.id}}(*args)
-        route {{verb}}, \{{*args}}
+      macro {{verb.id}}(resource, controller, action, constraints = {} of String => Regex, route_name = nil)
+        route {{verb}}, \{{resource}}, \{{controller}}, \{{action}}, \{{constraints}}, \{{route_name}}
         {% if verb == :get %}
-        route :head, \{{*args}}
+        route :head, \{{resource}}, \{{controller}}, \{{action}}, \{{constraints}}
         {% end %}
         {% if ![:trace, :connect, :options, :head].includes? verb %}
-        route :options, \{{*args}}
+        route :options, \{{resource}}, \{{controller}}, \{{action}}, \{{constraints}}
         {% end %}
       end
     {% end %}

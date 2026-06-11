@@ -3,15 +3,15 @@ module CLIFixtures
     <<-CONT
     class AnimalController < ApplicationController
       def add
-        render("add.slang")
+        render("add.ecr")
       end
 
       def list
-        render("list.slang")
+        render("list.ecr")
       end
 
       def remove
-        render("remove.slang")
+        render("remove.ecr")
       end
     end
 

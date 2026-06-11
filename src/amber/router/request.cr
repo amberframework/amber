@@ -21,13 +21,29 @@ class HTTP::Request
   # This is a necessary method that the rest of the Amber server requires to be present
   # TODO: Refactor this into a different approach that doesn't require monkey patching the std lib
   def port
-    uri.port
+    # Try to extract port from the Host header first
+    if host_with_port = headers["Host"]?
+      if match = host_with_port.match(/.*:(\d+)/)
+        return match[1].to_i
+      end
+    end
+
+    # Fall back to parsed_uri for absolute-URI resources
+    parsed_uri.port
   end
 
   # This is a necessary method that the rest of the Amber server requires to be present
   # TODO: Refactor this into a different approach that doesn't require monkey patching the std lib
   def url
-    uri.to_s
+    parsed_uri.to_s
+  end
+
+  private def parsed_uri
+    if resource.starts_with?("http://") || resource.starts_with?("https://")
+      URI.parse(resource)
+    else
+      uri
+    end
   end
 
   # This is a necessary method that the rest of the Amber server requires to be present

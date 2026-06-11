@@ -1,0 +1,62 @@
+name: v2_test_app
+
+server:
+  host: "0.0.0.0"
+  port: 3001
+  port_reuse: true
+  process_count: 2
+  secret_key_base: "ox7cTo_408i4WZkKZ_5OZZtB5plqJYhD4rxrz2hriA4"
+  ssl:
+    key_file: ~
+    cert_file: ~
+
+database:
+  url: "postgres://localhost:5432/v2_test_db"
+
+session:
+  key: "v2_test.session"
+  store: "signed_cookie"
+  expires: 120
+  adapter: "memory"
+
+pubsub:
+  adapter: "memory"
+
+logging:
+  severity: "warn"
+  colorize: true
+  color: "light_cyan"
+  filter:
+    - password
+    - confirm_password
+  skip: []
+
+jobs:
+  adapter: "memory"
+  queues:
+    - default
+    - critical
+  workers: 2
+  work_stealing: false
+  polling_interval_seconds: 1.0
+  scheduler_interval_seconds: 5.0
+  auto_start: false
+
+mailer:
+  adapter: "smtp"
+  default_from: "test@example.com"
+  smtp:
+    host: "smtp.example.com"
+    port: 587
+    username: "user@example.com"
+    password: "secret"
+    use_tls: true
+    helo_domain: "example.com"
+
+static:
+  headers:
+    Cache-Control: "no-store"
+
+secrets:
+  description: "V2 test secrets"
+  api_key: "test-key-123"

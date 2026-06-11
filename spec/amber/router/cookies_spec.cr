@@ -114,19 +114,19 @@ module Amber::Router
         cookies.encrypted["user_name"].should eq "david"
       end
 
-      it "ignores tampered cookie signature" do
+      it "returns nil for tampered cookie signature" do
         cookies = new_cookie_store
         cookie = HTTP::Cookie::Parser.parse_cookies("user_name=LByguEoiSsJqc1iG%2FPrIujkr5ha0yUi%2Fng2fT4XSX3I%3D--tampered; path=/").first
 
         cookies[cookie.name] = cookie
 
-        cookies.encrypted["user_name"].should eq ""
+        cookies.encrypted["user_name"].should be_nil
       end
 
-      it "ignores tampered cookie value" do
+      it "returns nil for tampered cookie value" do
         cookies = new_cookie_store(HTTP::Headers{"Cookie" => "user_name=tampered%3D%3D--cead74d6b7a64512a499fef31483fd21d9e89b85378a3eaa440c7ac7f9cd6b94;"})
 
-        cookies.encrypted["user_name"].should eq ""
+        cookies.encrypted["user_name"].should be_nil
       end
 
       it "ignores unset encrypted cookies" do
@@ -151,28 +151,28 @@ module Amber::Router
         cookies.signed["user_name"].should eq "david"
       end
 
-      it "ignores tampered cookie signature" do
+      it "returns nil for tampered cookie signature" do
         cookies = new_cookie_store
         cookie = HTTP::Cookie::Parser.parse_cookies("user_name=ZGF2aWQ%3D--tampered; path=/").first
 
         cookies[cookie.name] = cookie
 
-        cookies.signed["user_name"].should eq ""
+        cookies.signed["user_name"].should be_nil
       end
 
-      it "ignores tampered cookie value" do
+      it "returns nil for tampered cookie value" do
         cookies = new_cookie_store(HTTP::Headers{"Cookie" => "user_name=tampered%3D%3D--cead74d6b7a64512a499fef31483fd21d9e89b85378a3eaa440c7ac7f9cd6b94;"})
 
-        cookies.signed["user_name"].should eq ""
+        cookies.signed["user_name"].should be_nil
       end
 
-      it "ignores cookie without signature" do
+      it "returns nil for cookie without signature" do
         cookies = new_cookie_store
         cookie = HTTP::Cookie::Parser.parse_cookies("user_name=ZGF2aWQ%3D; path=/").first
 
         cookies[cookie.name] = cookie
 
-        cookies.signed["user_name"].should eq ""
+        cookies.signed["user_name"].should be_nil
       end
 
       it "ignores unset encrypted cookies" do

@@ -1,0 +1,13 @@
+name: v2_color_test
+
+server:
+  host: "localhost"
+  port: 3000
+
+logging:
+  severity: "info"
+  colorize: true
+  color: "red"
+  filter:
+    - password
+  skip: []

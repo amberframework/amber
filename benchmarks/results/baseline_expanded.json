@@ -1,0 +1,41 @@
+[
+  {
+    "tier": "100",
+    "source": "amber_router shard v0.4.4",
+    "registration_ms": "0.038375",
+    "memory_fixed_bytes": "128",
+    "memory_variable_bytes": "128",
+    "memory_glob_bytes": "400",
+    "memory_notfound_bytes": "128",
+    "ips_fixed": "2552480.79",
+    "ips_variable": "3538918.88",
+    "ips_glob": "1643861.16",
+    "ips_notfound": "3055038.52"
+  },
+  {
+    "tier": "5000",
+    "source": "amber_router shard v0.4.4",
+    "registration_ms": "2.839708",
+    "memory_fixed_bytes": "0",
+    "memory_variable_bytes": "0",
+    "memory_glob_bytes": "33920",
+    "memory_notfound_bytes": "0",
+    "ips_fixed": "1820287.98",
+    "ips_variable": "2160601.46",
+    "ips_glob": "67433.43",
+    "ips_notfound": "2446383.37"
+  },
+  {
+    "tier": "10000",
+    "source": "amber_router shard v0.4.4",
+    "registration_ms": "6.0035",
+    "memory_fixed_bytes": "0",
+    "memory_variable_bytes": "0",
+    "memory_glob_bytes": "66624",
+    "memory_notfound_bytes": "0",
+    "ips_fixed": "1509978.3",
+    "ips_variable": "1789543.37",
+    "ips_glob": "31216.64",
+    "ips_notfound": "2370498.34"
+  }
+]

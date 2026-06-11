@@ -1,0 +1,422 @@
+[
+  {
+    "router": "Amber V2",
+    "tier": 50.0,
+    "lookup_type": "fixed",
+    "ips": 3391337.09,
+    "memory_bytes": 16.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 50.0,
+    "lookup_type": "variable",
+    "ips": 4830523.56,
+    "memory_bytes": 4112.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 50.0,
+    "lookup_type": "glob",
+    "ips": 2357239.13,
+    "memory_bytes": 128.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 50.0,
+    "lookup_type": "notfound",
+    "ips": 5820628.08,
+    "memory_bytes": 16.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 100.0,
+    "lookup_type": "fixed",
+    "ips": 3355379.12,
+    "memory_bytes": 4096.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 100.0,
+    "lookup_type": "variable",
+    "ips": 4444034.69,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 100.0,
+    "lookup_type": "glob",
+    "ips": 2323343.81,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 100.0,
+    "lookup_type": "notfound",
+    "ips": 5659140.8,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 500.0,
+    "lookup_type": "fixed",
+    "ips": 3061312.6,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 500.0,
+    "lookup_type": "variable",
+    "ips": 4211997.31,
+    "memory_bytes": 4096.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 500.0,
+    "lookup_type": "glob",
+    "ips": 2155478.05,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 500.0,
+    "lookup_type": "notfound",
+    "ips": 5299937.17,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 1000.0,
+    "lookup_type": "fixed",
+    "ips": 2871729.0,
+    "memory_bytes": 6336.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 1000.0,
+    "lookup_type": "variable",
+    "ips": 3948592.92,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 1000.0,
+    "lookup_type": "glob",
+    "ips": 2039651.27,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 1000.0,
+    "lookup_type": "notfound",
+    "ips": 5001599.29,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 5000.0,
+    "lookup_type": "fixed",
+    "ips": 2560189.04,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 5000.0,
+    "lookup_type": "variable",
+    "ips": 3578016.52,
+    "memory_bytes": 4096.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 5000.0,
+    "lookup_type": "glob",
+    "ips": 1844764.45,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 5000.0,
+    "lookup_type": "notfound",
+    "ips": 4559748.42,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 10000.0,
+    "lookup_type": "fixed",
+    "ips": 2408580.46,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 10000.0,
+    "lookup_type": "variable",
+    "ips": 3303381.35,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 10000.0,
+    "lookup_type": "glob",
+    "ips": 1738898.28,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V2",
+    "tier": 10000.0,
+    "lookup_type": "notfound",
+    "ips": 4163191.56,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V1 (amber_router)",
+    "tier": 100.0,
+    "lookup_type": "fixed",
+    "ips": 2552480.79,
+    "memory_bytes": 128.0
+  },
+  {
+    "router": "Amber V1 (amber_router)",
+    "tier": 100.0,
+    "lookup_type": "variable",
+    "ips": 3538918.88,
+    "memory_bytes": 128.0
+  },
+  {
+    "router": "Amber V1 (amber_router)",
+    "tier": 100.0,
+    "lookup_type": "glob",
+    "ips": 1643861.16,
+    "memory_bytes": 400.0
+  },
+  {
+    "router": "Amber V1 (amber_router)",
+    "tier": 100.0,
+    "lookup_type": "notfound",
+    "ips": 3055038.52,
+    "memory_bytes": 128.0
+  },
+  {
+    "router": "Amber V1 (amber_router)",
+    "tier": 5000.0,
+    "lookup_type": "fixed",
+    "ips": 1820287.98,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V1 (amber_router)",
+    "tier": 5000.0,
+    "lookup_type": "variable",
+    "ips": 2160601.46,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V1 (amber_router)",
+    "tier": 5000.0,
+    "lookup_type": "glob",
+    "ips": 67433.43,
+    "memory_bytes": 33920.0
+  },
+  {
+    "router": "Amber V1 (amber_router)",
+    "tier": 5000.0,
+    "lookup_type": "notfound",
+    "ips": 2446383.37,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V1 (amber_router)",
+    "tier": 10000.0,
+    "lookup_type": "fixed",
+    "ips": 1509978.3,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V1 (amber_router)",
+    "tier": 10000.0,
+    "lookup_type": "variable",
+    "ips": 1789543.37,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "Amber V1 (amber_router)",
+    "tier": 10000.0,
+    "lookup_type": "glob",
+    "ips": 31216.64,
+    "memory_bytes": 66624.0
+  },
+  {
+    "router": "Amber V1 (amber_router)",
+    "tier": 10000.0,
+    "lookup_type": "notfound",
+    "ips": 2370498.34,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 50.0,
+    "lookup_type": "fixed",
+    "ips": 3677383.72,
+    "memory_bytes": 48.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 50.0,
+    "lookup_type": "variable",
+    "ips": 2966294.0,
+    "memory_bytes": 80.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 50.0,
+    "lookup_type": "glob",
+    "ips": 2575014.19,
+    "memory_bytes": 4288.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 50.0,
+    "lookup_type": "notfound",
+    "ips": 31947308.13,
+    "memory_bytes": 48.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 100.0,
+    "lookup_type": "fixed",
+    "ips": 3987789.59,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 100.0,
+    "lookup_type": "variable",
+    "ips": 3001834.92,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 100.0,
+    "lookup_type": "glob",
+    "ips": 2566983.37,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 100.0,
+    "lookup_type": "notfound",
+    "ips": 32405852.44,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 500.0,
+    "lookup_type": "fixed",
+    "ips": 3116856.2,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 500.0,
+    "lookup_type": "variable",
+    "ips": 2565746.66,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 500.0,
+    "lookup_type": "glob",
+    "ips": 2440927.29,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 500.0,
+    "lookup_type": "notfound",
+    "ips": 28624152.43,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 1000.0,
+    "lookup_type": "fixed",
+    "ips": 3169460.6,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 1000.0,
+    "lookup_type": "variable",
+    "ips": 2153287.76,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 1000.0,
+    "lookup_type": "glob",
+    "ips": 2032716.52,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 1000.0,
+    "lookup_type": "notfound",
+    "ips": 15479523.97,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 5000.0,
+    "lookup_type": "fixed",
+    "ips": 1991679.16,
+    "memory_bytes": 4032.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 5000.0,
+    "lookup_type": "variable",
+    "ips": 1699430.32,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 5000.0,
+    "lookup_type": "glob",
+    "ips": 1826799.28,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 5000.0,
+    "lookup_type": "notfound",
+    "ips": 11771372.12,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 10000.0,
+    "lookup_type": "fixed",
+    "ips": 2055326.3,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 10000.0,
+    "lookup_type": "variable",
+    "ips": 1816790.87,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 10000.0,
+    "lookup_type": "glob",
+    "ips": 1975102.57,
+    "memory_bytes": 0.0
+  },
+  {
+    "router": "radix (Kemal)",
+    "tier": 10000.0,
+    "lookup_type": "notfound",
+    "ips": 13953504.6,
+    "memory_bytes": 0.0
+  }
+]

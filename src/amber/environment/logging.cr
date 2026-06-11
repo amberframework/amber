@@ -1,5 +1,9 @@
+require "yaml"
+
 module Amber::Environment
   class Logging
+    include YAML::Serializable
+
     alias OptionsType = Hash(String, String | Bool | Array(String))
 
     COLOR_MAP = {
@@ -29,12 +33,23 @@ module Amber::Environment
       "skip"     => [] of String,
     }
 
-    setter color : String,
-      severity : (String | Symbol)
+    @[YAML::Field(key: "color")]
+    setter color : String = "light_cyan"
 
-    property colorize : Bool,
-      skip : Array(String),
-      filter : Array(String)
+    @[YAML::Field(key: "severity")]
+    setter severity : String = "debug"
+
+    @[YAML::Field(key: "colorize")]
+    property colorize : Bool = true
+
+    @[YAML::Field(key: "skip")]
+    property skip : Array(String) = [] of String
+
+    @[YAML::Field(key: "filter")]
+    property filter : Array(String) = ["password", "confirm_password"]
+
+    def initialize
+    end
 
     def initialize(initial_logging : OptionsType)
       logging = DEFAULTS.merge(initial_logging)

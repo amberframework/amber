@@ -9,7 +9,7 @@ module Amber::Controller
       request = HTTP::Request.new("GET", "")
       context = create_context(request)
 
-      it "renders html from slang template" do
+      it "renders html from ecr template" do
         RenderController.new(context).render_template_page.should eq page_template
       end
 
@@ -21,11 +21,11 @@ module Amber::Controller
         RenderController.new(context).render_with_flash
       end
 
-      it "renders html and layout from slang template" do
+      it "renders html and layout from ecr template" do
         RenderController.new(context).render_multiple_partials_in_layout.should eq layout_with_multiple_partials
       end
 
-      it "renders html and layout from slang template" do
+      it "renders html and layout from ecr template" do
         RenderController.new(context).render_with_layout.should eq layout_with_template
       end
 

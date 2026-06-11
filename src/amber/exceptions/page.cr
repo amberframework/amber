@@ -1,4 +1,4 @@
-require "exception_page"
+require "./exception_page/exception_page"
 
 module Amber::Exceptions
   class Page < ExceptionPage

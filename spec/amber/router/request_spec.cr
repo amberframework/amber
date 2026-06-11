@@ -64,7 +64,7 @@ module Amber::Router
 
         context "when parsing route params" do
           it "parses params from route" do
-            handler = ->(_context : HTTP::Server::Context) {}
+            handler = ->(_context : HTTP::Server::Context) { }
             route = Route.new("GET", "/fake/action/:id/:name", handler, :action, :web, Scope.new, "FakeController")
             Amber::Server.router.add(route)
             request = HTTP::Request.new("GET", "/fake/action/123/john")
@@ -109,6 +109,37 @@ module Amber::Router
         headers["content-type"] = "application/x-www-form-urlencoded"
         request = HTTP::Request.new("HEAD", "/?test=test", headers, "_method=#{method}")
         request.method.should eq "HEAD"
+      end
+    end
+
+    # Regression for absolute-URI resource safety (amberframework/amber#1378 by @renich).
+    # When the request resource is an absolute URI (e.g. a proxy request), port() and url()
+    # must parse from the resource URI rather than falling back to Crystal's origin-form uri.
+    describe "#port and #url with absolute-URI resource" do
+      it "extracts port from an http absolute-URI resource" do
+        request = HTTP::Request.new("GET", "http://example.com:8080/some/path")
+        request.port.should eq 8080
+      end
+
+      it "extracts port from an https absolute-URI resource" do
+        request = HTTP::Request.new("GET", "https://example.com:9443/api/v1")
+        request.port.should eq 9443
+      end
+
+      it "returns nil port when no port is specified in absolute-URI resource" do
+        request = HTTP::Request.new("GET", "http://example.com/path")
+        request.port.should be_nil
+      end
+
+      it "returns a url reflecting the absolute-URI resource" do
+        request = HTTP::Request.new("GET", "http://example.com:8080/some/path?foo=bar")
+        request.url.should eq "http://example.com:8080/some/path?foo=bar"
+      end
+
+      it "leaves origin-form resources unchanged for port" do
+        origin_request = HTTP::Request.new("GET", "/path?foo=bar")
+        # No host header → port should be nil for a plain origin-form request
+        origin_request.port.should be_nil
       end
     end
   end

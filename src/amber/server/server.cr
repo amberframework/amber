@@ -5,8 +5,9 @@ module Amber
   class Server
     Log = ::Log.for(self)
     include Amber::DSL::Server
-    alias WebSocketAdapter = WebSockets::Adapters::RedisAdapter.class | WebSockets::Adapters::MemoryAdapter.class
+    alias WebSocketAdapter = WebSockets::Adapters::MemoryAdapter.class
     property pubsub_adapter : WebSocketAdapter = WebSockets::Adapters::MemoryAdapter
+    property adapter_based_pubsub : Amber::Adapters::PubSubAdapter? = nil
     getter handler = Pipe::Pipeline.new
     getter router = Router::Router.new
 
@@ -24,7 +25,23 @@ module Amber
     end
 
     def self.pubsub_adapter
-      instance.pubsub_adapter.instance
+      # Return adapter-based pub/sub if configured, otherwise fallback to legacy
+      if instance.adapter_based_pubsub
+        instance.adapter_based_pubsub.not_nil!
+      else
+        instance.pubsub_adapter.instance
+      end
+    end
+
+    # Initialize adapters based on configuration
+    def initialize_adapters
+      # Initialize pub/sub adapter based on configuration
+      pubsub_config = settings.pubsub
+      adapter_name = pubsub_config[:adapter]
+
+      if adapter_name && adapter_name != "legacy"
+        @adapter_based_pubsub = Amber::Adapters::AdapterFactory.create_pubsub_adapter(adapter_name)
+      end
     end
 
     def self.router
@@ -35,7 +52,13 @@ module Amber
       instance.handler
     end
 
+    # Returns all registered routes as structured data for introspection.
+    def self.all_routes : Array(Router::RouteInfo)
+      instance.router.all_routes
+    end
+
     def initialize
+      initialize_adapters
     end
 
     def project_name

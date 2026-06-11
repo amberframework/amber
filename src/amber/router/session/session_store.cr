@@ -7,20 +7,14 @@ module Amber::Router::Session
     end
 
     def build : Session::AbstractStore
-      return RedisStore.build(redis_store, cookies, config) if redis?
-      CookieStore.build(cookie_store, config)
+      # Use adapter-based sessions by default
+      adapter_name = config[:adapter]?.try(&.to_s) || "memory"
+      adapter = Amber::Adapters::AdapterFactory.create_session_adapter(adapter_name)
+      AdapterSessionStore.build(adapter, cookies, config)
     end
 
     private def cookie_store
       encrypted_cookie? ? cookies.encrypted : cookies.signed
-    end
-
-    private def redis_store
-      Redis.new(url: ENV["REDIS_URL"]? || Amber.settings.redis_url)
-    end
-
-    private def redis?
-      store == :redis
     end
 
     private def encrypted_cookie?
