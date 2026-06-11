@@ -1,4 +1,3 @@
-
 module Amber
   module Pipe
     # Serves static files from the given public directory. By default, Amber turns off serving a directory listing page.

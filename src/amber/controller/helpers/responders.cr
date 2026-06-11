@@ -67,7 +67,7 @@ module Amber::Controller::Helpers
         end
 
         result = @requested_responses.find do |resp|
-          @available_responses.keys.find { |r| r.includes?(resp) }
+          @available_responses.keys.find(&.includes?(resp))
         end
 
         if result == "application/json"

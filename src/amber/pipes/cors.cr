@@ -32,7 +32,7 @@ module Amber
         @credentials = false,
         @max_age : Int32? = 0,
         @expose_headers : Array(String)? = nil,
-        @vary : String? = nil
+        @vary : String? = nil,
       )
         @origin = Origin.new(origins)
       end
