@@ -26,7 +26,7 @@ module Amber::CLI
 
         if File.exists?(encrypted_file)
           File.write(unencrypted_file, Support::FileEncryptor.read(encrypted_file))
-          system("#{options.editor} #{unencrypted_file}") unless options.noedit?
+          system("#{options.editor} #{Process.quote(unencrypted_file)}") unless options.noedit?
         end
 
         if File.exists?(unencrypted_file)
