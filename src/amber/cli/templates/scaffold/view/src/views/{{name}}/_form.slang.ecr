@@ -9,6 +9,7 @@
   .form-group
   <%- case field.type
      when "text" -%>
+    == label(<%=":#{field.name}"%>)
     == text_area(name: "<%= field.name -%>", content: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control", size: "30x10")
   <%- when "boolean" -%>
       == label(<%=":#{field.name}"%>) do
@@ -17,6 +18,7 @@
     == label(<%=":#{field.name}"%>)
     == select_field(name: "<%= field.name %>_id", collection: <% if config.model == "crecto" %>Repo.all(<%= field.class_name %>)<% else %><%= field.class_name %>.all<% end %>.map{|<%= field.name %>| [<%= field.name %>.id, <%= field.name %>.id]}, selected: <%= @name %>.<%= field.name %>_id, class: "form-control")
   <%- else -%>
+    == label(<%=":#{field.name}"%>)
     == text_field(name: "<%= field.name %>", value: <%= @name %>.<%= field.name %>, placeholder: "<%= field.name.capitalize %>", class: "form-control")
   <%- end -%>
 <%- end -%>

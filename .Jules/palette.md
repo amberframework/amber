@@ -1,0 +1,3 @@
+## 2026-06-13 - Added missing labels to scaffolded form templates
+**Learning:** In Amber framework templates, using string literal interpolation for labels in ECR (like `<%= label(":#{field.name}") %>`) instead of evaluating the field name (like `<%= label(<%=":#{field.name}"%>) %>`) causes a runtime compilation error 'undefined local variable or method "field"' because the string literal passes the literal ruby interpolation into the generated file rather than interpreting it during scaffolding.
+**Action:** Always ensure that when generating variables in scaffold templates, the values are correctly interpolated inside `<%=` tags so that they are evaluated by the generator, not output literally into the resulting file.
