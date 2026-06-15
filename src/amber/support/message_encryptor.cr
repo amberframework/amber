@@ -18,6 +18,10 @@ module Amber::Support
     # Verify and Decrypt a message. We need to verify the message in order to
     # avoid padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
     def verify_and_decrypt(value : Bytes) : Bytes
+      if value.size < @signature_size + @block_size
+        raise Exceptions::InvalidMessage.new("Invalid message size")
+      end
+
       signature = value[value.size - @signature_size, @signature_size]
       data_iv = value[0, value.size - @signature_size]
       if Crypto::Subtle.constant_time_compare(sign_bytes(data_iv), signature)
@@ -48,6 +52,10 @@ module Amber::Support
     end
 
     def decrypt(value : Bytes)
+      if value.size < @block_size
+        raise Exceptions::InvalidMessage.new("Invalid message size")
+      end
+
       cipher = OpenSSL::Cipher.new(@cipher_algorithm)
       data = value[0, value.size - @block_size]
       iv = value[value.size - @block_size, @block_size]
