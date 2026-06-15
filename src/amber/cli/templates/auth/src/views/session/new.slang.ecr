@@ -7,12 +7,11 @@ h1 Sign In
 
 form action="/session" method="post"
   == csrf_tag
-  .form-group
     label for="email" Email
-    input.form-control type="email" name="email" id="email" placeholder="Email"
+    input.form-control type="email" name="email" id="email" placeholder="Email" required="true"
   .form-group
     label for="password" Password
-    input.form-control type="password" name="password" id="password" placeholder="Password"
+    input.form-control type="password" name="password" id="password" placeholder="Password" required="true"
   button.btn.btn-success.btn-sm type="submit" Sign In
 <hr/>
 == link_to("Don't have an account yet?", "/signup")

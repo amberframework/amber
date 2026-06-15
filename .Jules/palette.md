@@ -5,3 +5,7 @@
 ## 2026-06-14 - Scaffolding Needs Accessibility
 **Learning:** The scaffold templates (ECR and Slang) that generate auth views (registration, sign in, and profile edit) lack proper `<label>` elements for their inputs, which degrades accessibility since screen readers rely on labels rather than placeholder text to give context.
 **Action:** Always ensure that generated templates and form scaffolding contain explicit labels associated via the `for`/`id` pattern for maximum accessibility out-of-the-box.
+
+## 2026-06-15 - Improve Auth Scaffold Accessibility
+**Learning:** Adding accessibility attributes (aria-label, required) directly to template generators (like auth forms in Amber) creates a multiplicative accessibility benefit, as every new app generated will have accessible auth forms by default.
+**Action:** Always look for opportunities to bake accessibility into generators, scaffolds, and UI component libraries so downstream consumers get accessible defaults.
