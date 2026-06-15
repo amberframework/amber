@@ -89,8 +89,14 @@ module Amber::Controller::Helpers
     end
 
     private def extension_request_type
-      path_ext = request.path.match(Content::TYPE_EXT_REGEX).try(&.[1])
-      return [Content::TYPE[path_ext]] if path_ext
+      path = request.path
+      if path.includes?('.')
+        ext = ::File.extname(path)
+        if !ext.empty?
+          key = ext[1..-1]
+          return [Content::TYPE[key]] if Content::TYPE.has_key?(key)
+        end
+      end
     end
 
     private def accepts_request_type

@@ -63,7 +63,8 @@ module Amber
 
       def match(http_verb, resource) : RoutedResult(Route)
         if has_content_ext(resource)
-          result = @routes.find build_node(http_verb, resource.sub(PATH_EXT_REGEX, ""))
+          ext_size = ::File.extname(resource).size
+          result = @routes.find build_node(http_verb, resource[0...-ext_size])
           return result if result.found?
         end
         @routes.find build_node(http_verb, resource)
@@ -74,7 +75,21 @@ module Amber
       end
 
       private def has_content_ext(str)
-        str.includes?('.') && str.match PATH_EXT_REGEX
+        if str.includes?('.')
+          ext = ::File.extname(str)
+          if !ext.empty?
+            case ext
+            when ".html", ".json", ".txt", ".text", ".xml", ".js"
+              true
+            else
+              false
+            end
+          else
+            false
+          end
+        else
+          false
+        end
       end
     end
   end

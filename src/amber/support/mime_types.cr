@@ -646,8 +646,14 @@ module Amber
       end
 
       def self.get_request_format(request)
-        path_ext = request.path.match(TYPE_EXT_REGEX).try(&.[1])
-        return path_ext if path_ext
+        path = request.path
+        if path.includes?('.')
+          ext = ::File.extname(path)
+          if !ext.empty?
+            key = ext[1..-1]
+            return key if MIME_TYPES.has_key?(key)
+          end
+        end
 
         accept = request.headers[FORMAT_HEADER]?
         if accept && !accept.empty?
