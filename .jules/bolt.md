@@ -1,0 +1,3 @@
+## 2023-11-20 - Array Allocation on Every Request in Socket Route Checking
+**Learning:** Checking for websocket routes using `@socket_routes.map(&.[:path]).includes?(request.path)` creates an array allocation (`.map`) and iterates through it on every single incoming HTTP request. This is particularly wasteful when socket route counts are small or non-existent, impacting baseline performance for all requests. `any?` significantly reduces processing time for these operations.
+**Action:** Always prefer early-exit enumeration methods like `any?`, `find`, or `includes?` directly on the collection instead of mapping to a temporary array first, especially in hot paths like request routing.

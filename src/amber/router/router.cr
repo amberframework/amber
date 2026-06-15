@@ -49,7 +49,8 @@ module Amber
       end
 
       def socket_route_defined?(request)
-        @socket_routes.map(&.[:path]).includes?(request.path)
+        # ⚡ Bolt: Using any? avoids the allocation of an intermediate array and allows early exit
+        @socket_routes.any? { |route| route[:path] == request.path }
       end
 
       def match_by_request(request)
