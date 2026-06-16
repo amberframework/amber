@@ -1,0 +1,52 @@
+#!/bin/sh
+# Amber pre-push hook: mirror the per-PR CI checks locally before spending CI minutes.
+# Runs (in order): format check, ameba (if built), full spec suite (needs no DB).
+# Does NOT run the granite build spec (it needs a postgres service) — see reminder below.
+# Bypass with: SKIP_HOOKS=1 git push ...
+# Install with: bin/setup-dev  (sets core.hooksPath to .githooks)
+
+if [ "${SKIP_HOOKS:-0}" = "1" ]; then
+  echo "pre-push: SKIP_HOOKS=1 set, skipping local CI checks."
+  exit 0
+fi
+
+status=0
+
+echo "pre-push: running 'crystal tool format --check'..."
+if ! crystal tool format --check; then
+  echo "pre-push: FAILED — code is not formatted. Fix with:  crystal tool format"
+  status=1
+fi
+
+echo
+if [ -x ./bin/ameba ]; then
+  echo "pre-push: running './bin/ameba'..."
+  if ! ./bin/ameba; then
+    echo "pre-push: FAILED — ameba reported issues."
+    status=1
+  fi
+else
+  echo "pre-push: ./bin/ameba not found — run 'shards install' to get bin/ameba. Skipping lint."
+fi
+
+echo
+echo "pre-push: running 'crystal spec' (main suite — no DB required)..."
+if ! crystal spec; then
+  echo "pre-push: FAILED — specs are red."
+  status=1
+fi
+
+echo
+echo "pre-push: reminder — for the FULL CI-matching check (incl. the postgres-backed"
+echo "          granite build spec), run:  bin/amber_spec"
+
+if [ "$status" -ne 0 ]; then
+  echo
+  echo "pre-push: one or more checks failed. Push aborted."
+  echo "  Bypass (not recommended):  SKIP_HOOKS=1 git push ..."
+  exit 1
+fi
+
+echo
+echo "pre-push: all local checks passed."
+exit 0
