@@ -132,12 +132,12 @@ module Amber
       end
 
       private def find_route(http_verb : Symbol | String, resource : String) : RoutedResult(Route)
-        {% if flag?(:amber_router_span_match) %}
-          @routes.find_span(normalize_http_verb(http_verb), resource)
+        {% if flag?(:amber_router_legacy_match) %}
+          @routes.find(build_node(http_verb, resource))
         {% elsif flag?(:amber_router_best_match) %}
           @routes.find_best(normalize_http_verb(http_verb), resource)
         {% else %}
-          @routes.find(build_node(http_verb, resource))
+          @routes.find_span(normalize_http_verb(http_verb), resource)
         {% end %}
       end
 
