@@ -211,6 +211,16 @@ module Amber::Router
       select_best_route(split_path(path)) || RoutedResult(T).new(nil)
     end
 
+    # Selects a fixed root branch without concatenating it onto the request
+    # path. HTTP routers use this to avoid constructing "get/path" per request.
+    def find_best(root_segment : String, path : String) : RoutedResult(T)
+      if fixed = @fixed_segments[root_segment]?
+        fixed.route_set.select_best_route(split_path(path)) || RoutedResult(T).new(nil)
+      else
+        RoutedResult(T).new(nil)
+      end
+    end
+
     # Returns the routes which are compatible with the provided *path*.
     def find_routes(path : String) : Array(RoutedResult(T))
       select_routes split_path path
