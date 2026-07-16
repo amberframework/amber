@@ -15,7 +15,7 @@ module Amber::Router
     MULTIPART_FORM   = "multipart/form-data"
     APPLICATION_JSON = "application/json"
 
-    @files = Types::Files.new
+    @files : Types::Files?
     @multipart : Types::Params?
     @json : Types::Params?
     @form : HTTP::Params?
@@ -34,7 +34,7 @@ module Amber::Router
 
     def files
       multipart unless @multipart
-      @files
+      @files ||= Types::Files.new
     end
 
     # Returns parsed URL-encoded form parameters, reusing the cached body parse.
