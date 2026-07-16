@@ -29,7 +29,7 @@ module Amber::Router
 
     def []?(key : Types::Key)
       _key = key.to_s
-      route[_key]? || override_method?(_key) || json[_key]?
+      route[_key]? || override_method?(_key) || json_value?(_key)
     end
 
     def files
@@ -72,7 +72,8 @@ module Amber::Router
     end
 
     def override_method?(key : Types::Key)
-      query[key]? || form[key]? || multipart[key]?
+      _key = key.to_s
+      query[_key]? || form_value?(_key) || multipart_value?(_key)
     end
 
     def to_h : Types::Params
@@ -100,6 +101,11 @@ module Amber::Router
       @form ||= Parsers::FormData.parse(@request)
     end
 
+    private def form_value?(key : String) : String?
+      return unless content_type?(URL_ENCODED_FORM)
+      (@form ||= Parsers::FormData.parse(@request))[key]?
+    end
+
     private def multipart
       return @multipart.not_nil! if @multipart
       return Types::Params.new unless content_type?(MULTIPART_FORM)
@@ -107,9 +113,19 @@ module Amber::Router
       @multipart.not_nil!
     end
 
+    private def multipart_value?(key : String) : String?
+      return unless content_type?(MULTIPART_FORM)
+      multipart[key]?
+    end
+
     private def json
       return Types::Params.new unless content_type?(APPLICATION_JSON)
       @json ||= Parsers::JSON.parse(@request)
+    end
+
+    private def json_value?(key : String) : String?
+      return unless content_type?(APPLICATION_JSON)
+      json[key]?
     end
 
     private def route
