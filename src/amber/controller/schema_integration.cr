@@ -8,15 +8,16 @@ module Amber::Controller
       # Include the Schema::ControllerIntegration module
       include Amber::Schema::ControllerIntegration
       
-      # Override the params getter to maintain backward compatibility
-      # The original params returns Amber::Validators::Params
-      # We'll keep it but also provide access to validated schema data
-      protected getter original_params : Amber::Validators::Params
+      @original_params : Amber::Validators::Params?
+
+      protected def original_params : Amber::Validators::Params
+        @original_params ||= Amber::Validators::Params.new(context.params)
+      end
       
       # Create an alias for the original params
       {% unless @type.has_method?(:legacy_params) %}
         protected def legacy_params
-          @original_params ||= Amber::Validators::Params.new(context.params)
+          original_params
         end
       {% end %}
       
@@ -28,7 +29,7 @@ module Amber::Controller
           SchemaParamsWrapper.new(@request_data.not_nil!, context.params)
         else
           # Fall back to original params behavior
-          @original_params ||= Amber::Validators::Params.new(context.params)
+          original_params
         end
       end
       
