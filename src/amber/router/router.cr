@@ -132,7 +132,9 @@ module Amber
       end
 
       private def find_route(http_verb : Symbol | String, resource : String) : RoutedResult(Route)
-        {% if flag?(:amber_router_best_match) %}
+        {% if flag?(:amber_router_span_match) %}
+          @routes.find_span(normalize_http_verb(http_verb), resource)
+        {% elsif flag?(:amber_router_best_match) %}
           @routes.find_best(normalize_http_verb(http_verb), resource)
         {% else %}
           @routes.find(build_node(http_verb, resource))
@@ -140,7 +142,18 @@ module Amber
       end
 
       private def normalize_http_verb(http_verb : Symbol) : String
-        http_verb.to_s
+        case http_verb
+        when :GET, :get       then "get"
+        when :POST, :post     then "post"
+        when :PUT, :put       then "put"
+        when :PATCH, :patch   then "patch"
+        when :DELETE, :delete then "delete"
+        when :HEAD, :head     then "head"
+        when :OPTIONS, :options
+          "options"
+        else
+          http_verb.to_s.downcase
+        end
       end
 
       private def normalize_http_verb(http_verb : String) : String

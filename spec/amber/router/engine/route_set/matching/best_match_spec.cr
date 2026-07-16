@@ -3,10 +3,14 @@ require "../../spec_helper"
 private def expect_same_best_match(router, path : String)
   current = router.find(path)
   candidate = router.find_best(path)
+  span_candidate = router.find_span(path)
 
   candidate.found?.should eq(current.found?)
   candidate.payload?.should eq(current.payload?)
   candidate.params.should eq(current.params)
+  span_candidate.found?.should eq(current.found?)
+  span_candidate.payload?.should eq(current.payload?)
+  span_candidate.params.should eq(current.params)
 end
 
 describe "best-match routing" do
@@ -18,6 +22,7 @@ describe "best-match routing" do
       add "/get/products/*path", :products_slug
       add "/get/products/*path/with_name", :products_slug_with_name
       add "/get/books/:id/authors/:author_id", :book_author
+      add "/get/categories/*categories/products/:id", :category_product
     end
 
     %w(
@@ -31,6 +36,8 @@ describe "best-match routing" do
       /get/products/fancy/hairdo/with_name
       /get/books/3/authors/7
       /get/books/3/pages
+      /get/categories/hats/scarfs/mittens/products/88
+      /get/categories/hats//scarfs///mittens/products/88
     ).each { |path| expect_same_best_match(router, path) }
   end
 

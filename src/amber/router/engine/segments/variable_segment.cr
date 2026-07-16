@@ -15,6 +15,12 @@ module Amber::Router
       !!(segment =~ @pattern)
     end
 
+    @[AlwaysInline]
+    def match_span?(path : String, byte_offset : Int32, bytesize : Int32) : Bool
+      return true unless @has_constraint
+      match?(path.byte_slice(byte_offset, bytesize))
+    end
+
     def parametric? : Bool
       true
     end

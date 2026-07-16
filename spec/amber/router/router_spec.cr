@@ -28,6 +28,8 @@ module Amber
           router.match("PATCH", "/hello/1").path.should eq "patch/hello/:id"
           router.match("DELETE", "/hello/1").path.should eq "delete/hello/:id"
           router.match("POST", "/hello").path.should eq "post/hello"
+          router.match(:GET, "/hello").path.should eq "get/hello"
+          router.match(:get, "/hello").path.should eq "get/hello"
         end
 
         context "when specifying constraints" do
