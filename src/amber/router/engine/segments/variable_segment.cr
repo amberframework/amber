@@ -1,9 +1,11 @@
 module Amber::Router
   class VariableSegment(T) < Segment(T)
     @has_constraint : Bool
+    @parameter : String
 
     def initialize(segment, @pattern : Regex? = nil)
       super segment
+      @parameter = segment[1..-1]
       @has_constraint = !@pattern.nil?
     end
 
@@ -18,7 +20,7 @@ module Amber::Router
     end
 
     def parameter : String
-      segment[1..-1]
+      @parameter
     end
   end
 end
