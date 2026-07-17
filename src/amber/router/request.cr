@@ -8,17 +8,34 @@ class HTTP::Request
 
   @matched_route : Amber::Router::RoutedResult(Amber::Route)?
   @requested_method : String?
+  @effective_method : String?
   @params : Amber::Router::Params?
 
   def method
-    case @method
-    when "POST" then requested_method.to_s.upcase
-    else             @method
-    end
+    {% if flag?(:amber_bench_legacy_request_method) %}
+      case @method
+      when "POST" then requested_method.to_s.upcase
+      else             @method
+      end
+    {% else %}
+      return @method unless @method == "POST"
+
+      @effective_method ||= begin
+        requested = requested_method
+        requested == @method ? @method : requested.upcase
+      end
+    {% end %}
   end
 
   def requested_method
-    @requested_method ||= params.override_method?(METHOD) || headers[OVERRIDE_HEADER]? || @method
+    {% if flag?(:amber_bench_legacy_request_method) %}
+      @requested_method ||= params.override_method?(METHOD) || headers[OVERRIDE_HEADER]? || @method
+    {% else %}
+      @requested_method ||= begin
+        override = params.override_method?(METHOD) if method_override_params?
+        override || headers[OVERRIDE_HEADER]? || @method
+      end
+    {% end %}
   end
 
   def params
@@ -67,5 +84,16 @@ class HTTP::Request
 
   private def router
     Amber::Server.router
+  end
+
+  private def method_override_params? : Bool
+    if content_type = headers["Content-Type"]?
+      return true if content_type.starts_with?(Amber::Router::Params::URL_ENCODED_FORM)
+      return true if content_type.starts_with?(Amber::Router::Params::MULTIPART_FORM)
+    end
+
+    return false unless query_start = @resource.index('?')
+    query = @resource.byte_slice(query_start + 1, @resource.bytesize - query_start - 1)
+    query.includes?(METHOD) || query.includes?('%')
   end
 end

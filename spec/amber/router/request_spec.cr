@@ -89,6 +89,27 @@ module Amber::Router
           request = HTTP::Request.new("POST", "/?test=test", headers, "_method=PATCH")
           request.method.should eq "PATCH"
         end
+
+        it "keeps ordinary JSON posts as POST" do
+          headers = HTTP::Headers{"Content-Type" => "application/json"}
+          request = HTTP::Request.new("POST", "/api/orders?include=items", headers, %({"quantity":2}))
+          request.method.should eq "POST"
+          request.method.should eq "POST"
+        end
+
+        it "uses a method override header for JSON posts" do
+          headers = HTTP::Headers{
+            "Content-Type"                 => "application/json",
+            HTTP::Request::OVERRIDE_HEADER => "patch",
+          }
+          request = HTTP::Request.new("POST", "/api/orders", headers, %({"quantity":2}))
+          request.method.should eq "PATCH"
+        end
+
+        it "recognizes percent-encoded query override keys" do
+          request = HTTP::Request.new("POST", "/api/orders?%5Fmethod=delete")
+          request.method.should eq "DELETE"
+        end
       end
 
       it "overrides form request method only by upper case value" do
