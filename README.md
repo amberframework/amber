@@ -84,7 +84,10 @@ Our Philosophy? [Read Amber Philosophy H.R.T.](.github/AMBER_PHILOSOPHY.md)
 
 ## Documentation
 
-Read Amber documentation on https://docs.amberframework.org/amber
+Read the [Amber V2 beta documentation](https://amberframework.org/docs/v2),
+including the published installation, CLI, support-matrix, and migration guides.
+The [Amber 1.4.1 documentation](https://amberframework.org/docs/v1.4.1) remains
+available for the stable V1 release.
 
 ## Benchmarks
 
