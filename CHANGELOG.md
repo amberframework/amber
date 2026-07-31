@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0-beta.2 (2026-07-31)
+
+This release supersedes beta.1 for the supported Amber CLI web-app path.
+
+- Replaced `Process.fork` in the HTTP server cluster launcher with portable
+  process spawning. This restores application compilation and launch with
+  Crystal 1.21's default multithreaded runtime on macOS and Linux.
+- Kept the beta.1 framework API and release-gated surface unchanged.
+
 ## 2.0.0-beta.1 (2026-07-31)
 
 This release represents a major architectural revision of the Amber framework.

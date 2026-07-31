@@ -24,7 +24,7 @@ shards install
 `--type web` is explicit so the command remains reproducible as more app types
 are added. The generated application uses:
 
-- Amber `2.0.0-beta.1` from `amberframework/amber`
+- Amber `2.0.0-beta.2` from `amberframework/amber`
 - ECR templates
 - typed, sectioned environment configuration
 - a static-file pipeline for the generated CSS and JavaScript
@@ -109,7 +109,7 @@ branch:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.1
+    version: 2.0.0-beta.2
 
 crystal: ">= 1.20.0, < 2.0"
 ```
