@@ -1,186 +1,36 @@
 version: 2.1
 
-parameters:
-  pre_release_test_trigger:
-    type: string
-    default: ""
-
 jobs:
-  ameba-test:
+  v2-beta:
     resource_class: medium
     docker:
       - image: crystallang/crystal:latest
-
     working_directory: ~/amber
-    steps:
-      - run:
-          name: Install missing dependencies
-          command: |
-            apt-get update -qq && apt-get install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev curl 
-      - checkout
-      - restore_cache:
-          name: Restore Shards Cache
-          keys: 
-            - shards-cache
-      - run:
-          name: shards install
-          command: shards install
-      - save_cache:
-          key: shards-cache
-          paths:
-            - lib
-      - run:
-          name: Running Ameba
-          command: bin/ameba
-  
-  granite-test:
-    resource_class: medium
-    docker:
-      - image: crystallang/crystal:1.9.2
-      - image: postgres:15.4
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: granite_test
-
-    working_directory: ~/amber
-    steps:
-      - run:
-          name: Install missing dependencies
-          command: |
-            apt-get update -qq && apt-get install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev curl 
-      - checkout
-      - run:
-          name: Create test results folder
-          command: |
-            mkdir ~/amber/test-results
-      - restore_cache:
-          name: Restore Shards Cache
-          keys: 
-            - shards-cache
-      - run:
-          name: shards install
-          command: shards install
-      - save_cache:
-          key: shards-cache
-          paths:
-            - lib
-      - run:
-          name: Running Granite Build Spec1
-          command: crystal spec spec/build_spec_granite.cr --junit_output ~/amber/test-results/granite-build-spec.xml
-
-      - store_test_results:
-          path: ~/amber/test-results
-  
-  amber-specs:
-    resource_class: medium
-    docker:
-      - image: crystallang/crystal:1.9.2
-
-    working_directory: ~/amber
-    steps:
-      - run:
-          name: Install missing dependencies
-          command: |
-            apt-get update -qq && apt-get install -y libpq-dev libsqlite3-dev libmysqlclient-dev libreadline-dev curl 
-      - checkout
-      - run:
-          name: Create test results folder
-          command: |
-            mkdir ~/amber/test-results
-      - restore_cache:
-          name: Restore Shards Cache
-          keys: 
-            - shards-cache
-      - run:
-          name: shards install
-          command: shards install
-      - save_cache:
-          key: shards-cache
-          paths:
-            - lib
-      - run:
-          name: Running Amber specs
-          command: crystal spec --junit_output ~/amber/test-results/amber-specs.xml
-
-      - store_test_results:
-          path: ~/amber/test-results
-
-  osx_tests:
-    resource_class: macos.m1.medium.gen1
-    macos: 
-      # This is arbitrary, but necessary to get the latest version of macOS
-      xcode: 15.0.0 # v15 is a beta release, but it's also the latest version of macOS
-    environment:
-      HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
       - checkout
       - restore_cache:
           keys:
-            - lib-cache
-      - restore_cache:
-          keys:
-            - bin-cache
+            - v2-shards-{{ checksum "shard.yml" }}
+            - v2-shards-
       - run:
-          name: Make directory for test output
-          command: mkdir -p test_output
-      - run:
-          name: Install Crystal & Dependencies
-          command: brew install openssl@3 postgresql@15 sqlite crystal && brew link postgresql@15
-      - run:
-          name: Build the Amber binary & symlink to it
-          command: shards install && crystal build src/amber/cli.cr -o bin/amber && sudo ln -s $PWD/bin/amber /usr/local/bin/amber
+          name: Install dependencies
+          command: shards install
       - save_cache:
-          key: lib-cache
+          key: v2-shards-{{ checksum "shard.yml" }}
           paths:
             - lib
-      - save_cache:
-          key: bin-cache
-          paths:
             - bin
       - run:
-          name: Create A New Amber App with Postgres
-          command: amber new new_pg_app && cd new_pg_app
+          name: Check beta contract
+          command: scripts/check_beta_contract.sh
       - run:
-          name: Create a database object
-          command: amber db create && amber scaffold user name:string email:string
+          name: Run framework specs
+          command: crystal spec
       - run:
-          name: Run the Amber App in the background
-          command: amber watch & echo $! > amber.pid
-      - run:
-          name: Wait for server to start
-          command: sleep 15
-      - run:
-          name: Does the homepage return a 200?
-          command: curl http://localhost:3000/ | grep "Thank you for trying out the Amber Framework."
-      - run:
-          name: Stop the Amber App test for Postgres
-          command: kill -9 $(cat amber.pid)
-      - run:
-          name: Create A New Amber App with SQLite
-          command: cd .. && amber new new_app_sqlite --database sqlite && cd new_app_sqlite
-      - run:
-          name: Create the database
-          command: amber db create && amber db scaffold user name:string email:string && amber db migrate
-      - run:
-          name: Run the Amber App in the background
-          command: amber watch & echo $! > amber.pid
-      - run:
-          name: Wait for server to start
-          command: sleep 15
-      - run:
-          name: The home page is accessible and returns a 200
-          command: curl http://localhost:3000/ | grep "Thank you for trying out the Amber Framework."
-      
+          name: Check Crystal formatting
+          command: crystal tool format --check src spec
 
 workflows:
-  new_changes:
+  v2-beta:
     jobs:
-      - ameba-test
-      - amber-specs
-      - granite-test
-  pre_release_tests:
-    when: << pipeline.parameters.pre_release_test_trigger >>
-    jobs:
-      - osx_tests
-
+      - v2-beta
