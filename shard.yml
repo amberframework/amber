@@ -1,18 +1,19 @@
 name: amber
 
-version: 2.0.0-dev
+version: 2.0.0-beta.1
 
 authors:
   - Amber Team and Contributors <amberframework.org>
 
-crystal: ">= 1.0.0, < 2.0"
+crystal: ">= 1.20.0, < 2.0"
 
 license: MIT
 
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
-    version: ~> 1.5.0
+    # Includes upstream Crystal 1.21+ compatibility pending Ameba 1.7.0.
+    commit: cdd58b34b0d8a9c785d67183a7a8f07541549e55
 
 ai_docs:
   include:

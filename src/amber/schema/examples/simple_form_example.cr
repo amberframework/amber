@@ -119,5 +119,5 @@ module SimpleFormExample
   end
 end
 
-# Run the examples
-SimpleFormExample.run
+# Call `SimpleFormExample.run` explicitly when evaluating this example. Requiring
+# Amber must never execute demonstrations or write to application stdout.

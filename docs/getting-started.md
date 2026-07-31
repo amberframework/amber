@@ -1,203 +1,139 @@
 # Getting Started
 
-This guide walks through creating a minimal Amber V2 application from scratch. By the end, you will have a working web server that responds to HTTP requests with a rendered HTML page.
+This guide creates the supported Amber V2 beta application: a server-rendered
+web app using ECR templates and the standalone Amber CLI.
 
 ## Prerequisites
 
-- [Crystal](https://crystal-lang.org/install/) >= 1.0.0
-- A text editor
+- macOS on Apple Silicon or Linux on x86_64
+- Crystal 1.20 or newer (but earlier than Crystal 2.0)
+- Git and `shards`
+- Amber CLI 2.0.2 or newer
 
-## Create a New Project
+Follow the [beta installation guide](beta-installation.md) if `amber --version`
+does not work yet.
 
-Create a new Crystal project using `crystal init`:
+## Create the application
 
 ```bash
-crystal init app my_app
+amber new my_app --type web
 cd my_app
-```
-
-## Add Amber as a Dependency
-
-Edit `shard.yml` to add the Amber framework:
-
-```yaml
-name: my_app
-version: 0.1.0
-
-dependencies:
-  amber:
-    github: amberframework/amber
-    branch: v2-dev
-
-crystal: ">= 1.0.0"
-```
-
-Install dependencies:
-
-```bash
 shards install
 ```
 
-## Project Structure
+`--type web` is explicit so the command remains reproducible as more app types
+are added. The generated application uses:
 
-Create the following directory structure:
+- Amber `2.0.0-beta.1` from `amberframework/amber`
+- ECR templates
+- typed, sectioned environment configuration
+- a static-file pipeline for the generated CSS and JavaScript
+- no database or ORM dependency by default
 
-```
-my_app/
-  src/
-    my_app.cr
-    controllers/
-      home_controller.cr
-    views/
-      home/
-        index.ecr
-      layouts/
-        application.ecr
-```
+Database selection records generator metadata; it does not add an ORM or a
+database driver to this minimal web template.
 
-Create the directories:
+## Verify before you edit
+
+Run the generated specs and build the application:
 
 ```bash
-mkdir -p src/controllers src/views/home src/views/layouts
+crystal spec
+crystal build src/my_app.cr -o bin/my_app
 ```
 
-## Create a Controller
+Start the development watcher:
 
-Create `src/controllers/home_controller.cr`:
+```bash
+amber watch
+```
+
+Open <http://localhost:3000>. Also load
+<http://localhost:3000/css/app.css> to confirm the static-file pipeline is
+working. Stop the watcher with `Ctrl-C`.
+
+## Add a route
+
+The generated app includes `HomeController`. Add this action to
+`src/controllers/home_controller.cr`:
 
 ```crystal
-require "amber/controller/base"
-
-class HomeController < Amber::Controller::Base
-  def index
-    @title = "Welcome"
-    render("index.ecr")
+def health
+  respond_with 200 do
+    json({status: "ok", amber: Amber::VERSION})
   end
 end
 ```
 
-The `render` macro looks for the template at `src/views/home/index.ecr` based on the controller name. It wraps the template in the default layout at `src/views/layouts/application.ecr`.
-
-## Create Views
-
-Create the layout at `src/views/layouts/application.ecr`:
-
-```ecr
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>My App</title>
-</head>
-<body>
-  <%= content %>
-</body>
-</html>
-```
-
-The `<%= content %>` placeholder is where the action template is inserted.
-
-Create the index template at `src/views/home/index.ecr`:
-
-```ecr
-<h1><%= @title %></h1>
-<p>Hello from Amber V2!</p>
-```
-
-## Configure the Server
-
-Edit `src/my_app.cr` to configure routing and start the server:
+Then add the route inside the generated `routes :web` block:
 
 ```crystal
-require "amber"
-require "./controllers/*"
-
-Amber::Server.configure do
-  pipeline :web do
-    plug Amber::Pipe::Error.new
-    plug Amber::Pipe::Logger.new
-  end
-
-  routes :web do
-    get "/", HomeController, :index
-  end
-end
-
-Amber::Server.start
+get "/health", HomeController, :health
 ```
 
-This configures a `:web` pipeline with error handling and request logging, maps `GET /` to `HomeController#index`, and starts the HTTP server.
-
-## Run the Application
-
-```bash
-crystal run src/my_app.cr
-```
-
-Visit `http://localhost:3000` in your browser to see your page.
+Restart `amber watch` if needed and visit <http://localhost:3000/health>.
 
 ## Configuration
 
-By default, Amber listens on `localhost:3000`. To change the host or port, create a YAML configuration file or use environment variables.
-
-### Environment Variables
-
-```bash
-AMBER_SERVER_HOST=0.0.0.0 AMBER_SERVER_PORT=8080 crystal run src/my_app.cr
-```
-
-### YAML Configuration
-
-Create `config/environments/development.yml`:
+Generated environment files use V2's typed structure:
 
 ```yaml
 name: "my_app"
 
 server:
-  host: "localhost"
+  host: "127.0.0.1"
   port: 3000
-  secret_key_base: "a_random_string_at_least_32_characters_long"
+  secret_key_base: "replace_this_in_production"
 
 logging:
   severity: "debug"
   colorize: true
 ```
 
-See the [Configuration Guide](guides/configuration.md) for all available settings.
+Environment variables override YAML values:
 
-## Adding More Routes
-
-Add additional routes and controllers as your application grows:
-
-```crystal
-Amber::Server.configure do
-  pipeline :web do
-    plug Amber::Pipe::Error.new
-    plug Amber::Pipe::Logger.new
-    plug Amber::Pipe::Session.new
-    plug Amber::Pipe::Flash.new
-    plug Amber::Pipe::CSRF.new
-  end
-
-  routes :web do
-    get "/", HomeController, :index
-    resources "users", UsersController
-    resources "posts", PostsController
-  end
-end
+```bash
+AMBER_SERVER_HOST=0.0.0.0 AMBER_SERVER_PORT=8080 amber watch
 ```
 
-The `resources` macro generates all seven RESTful routes (index, new, create, show, edit, update, destroy) for a given controller.
+See the [configuration guide](guides/configuration.md) for every section and
+override.
 
-## Next Steps
+## Manual framework installation
 
-- [Routing](guides/routing.md) -- Route definitions, resources, namespaces, constraints, and API versioning
-- [Configuration](guides/configuration.md) -- Environment YAML, environment variables, and custom config sections
-- [Action Helpers](guides/action-helpers.md) -- Form helpers, URL helpers, asset tags, and text formatting
-- [Schema API](guides/schema-api.md) -- Type-safe, validated parameter handling
-- [WebSockets](guides/websockets.md) -- Real-time communication with channels and presence tracking
-- [Background Jobs](guides/background-jobs.md) -- Asynchronous job processing
-- [Mailer](guides/mailer.md) -- Email delivery with SMTP and memory adapters
-- [Testing](guides/testing.md) -- Request helpers, assertions, and controller testing
-- [Markdown](guides/markdown.md) -- Markdown rendering with GFM support
-- [Migration Guide](migration-guide.md) -- Migrating from Amber V1 to V2
+The CLI is the supported onboarding path. If you need to add Amber to an
+existing Crystal application, pin the beta rather than the moving development
+branch:
+
+```yaml
+dependencies:
+  amber:
+    github: amberframework/amber
+    version: 2.0.0-beta.1
+
+crystal: ">= 1.20.0, < 2.0"
+```
+
+Then run `shards install` and configure the server as described in the
+[routing](guides/routing.md) and [configuration](guides/configuration.md)
+guides.
+
+## Generator support during the beta
+
+The web application template itself is the release-gated path. Generators that
+depend only on Amber core can be evaluated inside it. Persistence,
+authentication, API-resource, and native-app generators are preview surfaces
+until their external dependencies and platform matrices are released and
+documented. See the CLI's generator support table before relying on one in a
+project.
+
+## Next steps
+
+- [Beta installation and troubleshooting](beta-installation.md)
+- [Routing](guides/routing.md)
+- [Configuration](guides/configuration.md)
+- [Schema API](guides/schema-api.md)
+- [Background jobs](guides/background-jobs.md)
+- [Mailer](guides/mailer.md)
+- [Testing](guides/testing.md)
+- [Migration from Amber V1](migration-guide.md)

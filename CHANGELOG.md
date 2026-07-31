@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-dev (unreleased)
+## 2.0.0-beta.1 (2026-07-31)
 
 This release represents a major architectural revision of the Amber framework.
 The primary goals were to remove all runtime dependencies, modernize the
@@ -60,8 +60,9 @@ configuration structs. Sections: `server`, `database`, `session`, `logging`,
 using the `AMBER_{SECTION}_{KEY}` naming convention (e.g.,
 `AMBER_SERVER_PORT=8080`, `AMBER_DATABASE_URL=postgres://...`).
 
-The `Amber::Server.configure` block no longer accepts a block parameter;
-properties are set directly inside the block.
+`Amber::Server.configure` supports both the V1 block-parameter form and the V2
+DSL form. New applications use the DSL form, while existing applications can
+migrate incrementally without changing every configuration assignment at once.
 
 #### Session defaults changed
 

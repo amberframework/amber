@@ -2,7 +2,8 @@
 
 ## Getting Started
 
-- [Getting Started](getting-started.md) -- Create a minimal Amber V2 application from scratch
+- [Beta Installation and Support](beta-installation.md) -- Supported platforms, install methods, verification, updates, and troubleshooting
+- [Getting Started](getting-started.md) -- Create and run an Amber V2 web application with the standalone CLI
 
 ## Guides
 
