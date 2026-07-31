@@ -35,10 +35,12 @@ git --version
 The tap name contains an underscore:
 
 ```bash
-brew tap amberframework/amber_cli
-brew install amber_cli
+brew install amberframework/amber_cli/amber_cli
 amber --version
 ```
+
+The fully qualified command follows Homebrew's tap-trust model and trusts only
+the `amber_cli` formula. The installed executables are `amber` and `amber-lsp`.
 
 The expected CLI version is `2.0.2` or newer. If another executable is found,
 run `command -v amber` and use the troubleshooting section below.

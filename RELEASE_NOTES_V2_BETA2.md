@@ -17,8 +17,7 @@ It keeps the same public beta surface and fixes application startup on Crystal
 Install Amber CLI 2.0.2 or newer:
 
 ```bash
-brew tap amberframework/amber_cli
-brew install amber_cli
+brew install amberframework/amber_cli/amber_cli
 amber new my_app --type web
 cd my_app
 crystal spec

@@ -7,8 +7,7 @@ test "$shard_version" = "2.0.0-beta.2"
 test "$source_version" = "$shard_version"
 
 files=(README.md docs/README.md docs/getting-started.md docs/beta-installation.md docs/migration-guide.md RELEASE_NOTES_V2_BETA2.md)
-grep -F 'brew tap amberframework/amber_cli' docs/beta-installation.md
-grep -F 'brew install amber_cli' docs/beta-installation.md
+grep -F 'brew install amberframework/amber_cli/amber_cli' docs/beta-installation.md
 grep -F 'version: 2.0.0-beta.2' docs/getting-started.md
 if grep -R -F 'Process.fork' src; then
   echo "Amber V2 must compile with Crystal's default multithreaded runtime" >&2
@@ -19,7 +18,7 @@ fi
 # runtime condition keeps the call reachable to the compiler.
 crystal eval 'require "./src/amber"; Amber::Server.start if ENV["AMBER_COMPILE_SERVER"]?'
 
-if grep -Ein 'crimson-knight/(amber|grant|gemma)|amberframework/amber-cli|brew install amber-cli|branch: v2-dev' "${files[@]}"; then
+if grep -Ein 'crimson-knight/(amber|grant|gemma)|amberframework/amber-cli|brew tap amberframework/amber_cli|brew install amber-cli|brew install amber_cli|branch: v2-dev' "${files[@]}"; then
   echo "Amber beta docs contain a stale install or dependency instruction" >&2
   exit 1
 fi

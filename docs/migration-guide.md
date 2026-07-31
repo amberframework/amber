@@ -36,8 +36,7 @@ amber routes
 **After (V2 beta):**
 
 ```bash
-brew tap amberframework/amber_cli
-brew install amber_cli
+brew install amberframework/amber_cli/amber_cli
 amber new my_app --type web
 cd my_app
 shards install

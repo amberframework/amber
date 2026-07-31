@@ -97,8 +97,7 @@ Read Amber documentation on https://docs.amberframework.org/amber
 Install the standalone CLI with Homebrew on macOS or Linux:
 
 ```bash
-brew tap amberframework/amber_cli
-brew install amber_cli
+brew install amberframework/amber_cli/amber_cli
 amber --version
 ```
 
