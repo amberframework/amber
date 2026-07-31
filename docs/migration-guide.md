@@ -45,7 +45,7 @@ crystal spec
 amber watch
 ```
 
-The generated project pins Amber `2.0.0-beta.1` and uses ECR. See the
+The generated project pins Amber `2.0.0-beta.2` and uses ECR. See the
 [beta installation guide](beta-installation.md) for direct binary installation,
 supported platforms, and the exact verification procedure. Persistence and
 authentication generators remain preview surfaces during this beta, so migrate
@@ -73,7 +73,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.1
+    version: 2.0.0-beta.2
   # No redis dependency needed for default configuration
 ```
 
@@ -337,7 +337,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.1
+    version: 2.0.0-beta.2
   pg:
     github: will/crystal-pg
   granite:
@@ -488,7 +488,7 @@ Review your session configuration and update as needed.
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.1
+    version: 2.0.0-beta.2
 ```
 
 ### Add to shard.yml (as needed)
@@ -506,7 +506,7 @@ dependencies:
 ## Migration Checklist
 
 - [ ] Install Amber CLI 2.0.2 or newer from `amberframework/amber_cli`
-- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.1` and remove bundled dependencies
+- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.2` and remove bundled dependencies
 - [ ] Run `shards install`
 - [ ] Replace `YAML.mapping` with `YAML::Serializable` in all custom types
 - [ ] Rename all `.slang` templates to `.ecr` and convert syntax

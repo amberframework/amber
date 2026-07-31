@@ -12,7 +12,13 @@ module Amber
     end
 
     def self.fork
-      Process.fork { Process.run(PROGRAM_NAME, nil, env_hash, true, false, input: Process::Redirect::Inherit, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit) }
+      Process.new(
+        PROGRAM_NAME,
+        env: env_hash,
+        input: Process::Redirect::Inherit,
+        output: Process::Redirect::Inherit,
+        error: Process::Redirect::Inherit
+      )
     end
 
     def self.master?

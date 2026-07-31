@@ -1,6 +1,6 @@
 # Amber V2 Beta Installation and Support
 
-This is the release contract for Amber `2.0.0-beta.1` and Amber CLI `2.0.2`.
+This is the release contract for Amber `2.0.0-beta.2` and Amber CLI `2.0.2`.
 The goal is a repeatable first run, not a promise that every experimental
 generator is production-ready.
 
@@ -89,7 +89,7 @@ curl --fail http://127.0.0.1:3000/css/app.css
 ```
 
 Both requests must succeed. The generated `shard.yml` must reference
-`amberframework/amber` at `2.0.0-beta.1`; it should not point at a personal
+`amberframework/amber` at `2.0.0-beta.2`; it should not point at a personal
 fork or a moving branch.
 
 ## Update or remove
