@@ -18,7 +18,7 @@ fi
 # runtime condition keeps the call reachable to the compiler.
 crystal eval 'require "./src/amber"; Amber::Server.start if ENV["AMBER_COMPILE_SERVER"]?'
 
-if grep -Ein 'crimson-knight/(amber|grant|gemma)|amberframework/amber-cli|brew tap amberframework/amber_cli|brew install amber-cli|brew install amber_cli|branch: v2-dev' "${files[@]}"; then
+if grep -Ein 'crimson-knight/(amber|grant|gemma)|amberframework/amber-cli|brew tap amberframework/amber_cli|brew install amber-cli|brew install amber_cli|branch: v2-dev|docs\.amberframework\.org/amber' "${files[@]}"; then
   echo "Amber beta docs contain a stale install or dependency instruction" >&2
   exit 1
 fi
