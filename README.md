@@ -9,7 +9,13 @@ _Amber makes building web applications fast, simple, and enjoyable - with fewer 
 
 # Welcome! Introducing Amber
 
-**Amber V2 is in active development (pre-release beta).** The `v2-dev` branch is stable enough for experimentation and early adoption but is not yet recommended for production. See [docs/migration-guide.md](docs/migration-guide.md) for a complete list of breaking changes from V1, and [amberframework/amber_cli](https://github.com/amberframework/amber_cli) for the standalone CLI tool that replaces the built-in generator commands.
+**Amber 2.0.0-beta.1 is available for testing.** It is a pre-release: use it
+for evaluation and new projects that can tolerate breaking changes, not for
+production workloads. The supported beta path is an ECR web application
+created by the standalone [Amber CLI](https://github.com/amberframework/amber_cli).
+See the [beta installation guide](docs/beta-installation.md) for supported
+platforms and an end-to-end verification procedure, or the
+[migration guide](docs/migration-guide.md) when upgrading an Amber 1.x app.
 
 **Amber** is a web application framework written in [Crystal](https://crystal-lang.org/) inspired by Kemal, Rails, Phoenix, Flutter and other popular application frameworks.
 
@@ -31,10 +37,10 @@ The goal for V2 is to cover every aspect of a modern web application. Here is wh
 4. Transactional emails - built-in mailer with SMTP and memory adapters
 5. WebSockets - channels with presence tracking, message decoders, and connection recovery
 
-**In the wider V2 ecosystem (separate shards):**
+**In the wider V2 ecosystem:**
 
 6. CLI with generators, dev workflow, and an LSP server - [amberframework/amber_cli](https://github.com/amberframework/amber_cli)
-7. ActiveRecord-style ORM (Grant) and file attachments - in active development, publishing to the amberframework org soon
+7. Persistence, authentication, and native-app generators are preview surfaces. They are not part of the supported beta web-app path yet.
 
 **On the roadmap (not built yet):**
 
@@ -88,16 +94,35 @@ Read Amber documentation on https://docs.amberframework.org/amber
 
 ## Installation & Usage
 
-Add this to your application's `shard.yml`:
+Install the standalone CLI with Homebrew on macOS or Linux:
+
+```bash
+brew tap amberframework/amber_cli
+brew install amber_cli
+amber --version
+```
+
+Create and verify a web application:
+
+```bash
+amber new my_app --type web
+cd my_app
+shards install
+crystal spec
+amber watch
+```
+
+The generated `shard.yml` pins this framework beta:
 
 ```yaml
 dependencies:
   amber:
     github: amberframework/amber
-    branch: v2-dev
+    version: 2.0.0-beta.1
 ```
 
-[Read Amber quick start guide](https://docs.amberframework.org/amber/getting-started)
+[Read the complete beta installation guide](docs/beta-installation.md),
+including direct-binary installation and troubleshooting.
 
 ## Have an Amber-based Project?
 
@@ -122,7 +147,7 @@ Amber is a community effort and we want You to be part of it. [Join Amber Commun
 
 1. Fork it https://github.com/amberframework/amber/fork
 2. Create your feature branch `git checkout -b my-new-feature`
-3. Write and execute specs and formatting checks `./bin/amber_spec`
+3. Write and execute specs and formatting checks with `crystal spec` and `crystal tool format --check`
 4. Commit your changes `git commit -am 'Add some feature'`
 5. Push to the branch `git push origin my-new-feature`
 6. Create a new Pull Request

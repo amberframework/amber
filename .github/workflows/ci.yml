@@ -1,9 +1,12 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - v2-dev
+    tags:
+      - "v2.*"
   pull_request:
     branches:
       - master
@@ -30,6 +33,9 @@ jobs:
 
       - name: Install dependencies
         run: shards install
+
+      - name: Check Amber V2 beta contract
+        run: scripts/check_beta_contract.sh
 
       - name: Run specs
         # Defined order for now: the suite has pre-existing order-dependent

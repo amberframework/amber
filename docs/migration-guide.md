@@ -16,9 +16,12 @@ This guide covers every breaking change between Amber V1 (1.4.x) and Amber V2, w
 | Configuration restructured | YAML config files | Medium |
 | Session security updated | Session configuration | Low |
 
-## 1. CLI Removed
+## 1. CLI Extracted from the Framework
 
-The `amber` CLI tool (generators, scaffolding, database commands, watch, routes, encrypt, exec) has been completely removed from the framework. Amber V2 is a library, not a CLI tool.
+The `amber` executable is no longer compiled from the framework repository.
+Amber V2 is a library shard, while project creation, generators, the
+development watcher, and the LSP ship from the standalone
+[`amber_cli`](https://github.com/amberframework/amber_cli) repository.
 
 **Before (V1):**
 
@@ -30,36 +33,23 @@ amber watch
 amber routes
 ```
 
-**After (V2):**
+**After (V2 beta):**
 
 ```bash
-# Create a project manually
-mkdir my_app && cd my_app
-
-# Create shard.yml with amber dependency
-cat > shard.yml << 'YAML'
-name: my_app
-version: 0.1.0
-
-dependencies:
-  amber:
-    github: amberframework/amber
-    branch: v2-dev
-
-crystal: ">= 1.0.0, < 2.0"
-YAML
-
-# Create the directory structure
-mkdir -p src/controllers src/views/layouts config/environments
-
+brew tap amberframework/amber_cli
+brew install amber_cli
+amber new my_app --type web
+cd my_app
 shards install
-
-# Build and run directly
-crystal build src/my_app.cr -o bin/my_app
-./bin/my_app
+crystal spec
+amber watch
 ```
 
-A separate CLI tool (`amber_cli`) may be developed as an independent shard for project generation, but it is not part of the Amber framework itself.
+The generated project pins Amber `2.0.0-beta.1` and uses ECR. See the
+[beta installation guide](beta-installation.md) for direct binary installation,
+supported platforms, and the exact verification procedure. Persistence and
+authentication generators remain preview surfaces during this beta, so migrate
+those dependencies explicitly instead of assuming they are bundled.
 
 ## 2. Redis No Longer a Direct Dependency
 
@@ -83,7 +73,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    branch: v2-dev
+    version: 2.0.0-beta.1
   # No redis dependency needed for default configuration
 ```
 
@@ -347,7 +337,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    branch: v2-dev
+    version: 2.0.0-beta.1
   pg:
     github: will/crystal-pg
   granite:
@@ -467,7 +457,9 @@ Amber::Server.configure do
 end
 ```
 
-The configure block no longer takes a block parameter. Properties are set directly.
+The V2 DSL form is recommended for new code. The V1 block-parameter form is
+still accepted, so this change can be made independently from the rest of the
+migration.
 
 ## 9. Session Security Changes
 
@@ -496,7 +488,7 @@ Review your session configuration and update as needed.
 dependencies:
   amber:
     github: amberframework/amber
-    branch: v2-dev  # or version: ~> 2.0.0 once released
+    version: 2.0.0-beta.1
 ```
 
 ### Add to shard.yml (as needed)
@@ -513,7 +505,8 @@ dependencies:
 
 ## Migration Checklist
 
-- [ ] Update `shard.yml` to point to `amberframework/amber` (branch: v2-dev) and remove bundled dependencies
+- [ ] Install Amber CLI 2.0.2 or newer from `amberframework/amber_cli`
+- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.1` and remove bundled dependencies
 - [ ] Run `shards install`
 - [ ] Replace `YAML.mapping` with `YAML::Serializable` in all custom types
 - [ ] Rename all `.slang` templates to `.ecr` and convert syntax
