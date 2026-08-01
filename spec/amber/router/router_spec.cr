@@ -205,6 +205,50 @@ module Amber
           router.match_by_controller_action(:fakecontroller, :another).should eq route_d
         end
       end
+
+      describe "extension routing" do
+        it "does not match trailing slash after extension" do
+          router = Router.new
+          router.draw :web do
+            get "/hello", HelloController, :world
+          end
+          router.match("GET", "/hello.json/").found?.should be_false
+        end
+
+        it "matches leading-dot basename" do
+          router = Router.new
+          router.draw :web do
+            get "/", HelloController, :world
+          end
+          router.match("GET", "/.json").found?.should be_true
+          router.match("GET", "/.json").path.should eq "get/"
+        end
+
+        it "matches multi-dot filename last extension" do
+          router = Router.new
+          router.draw :web do
+            get "/archive.tar", HelloController, :world
+          end
+          router.match("GET", "/archive.tar.json").found?.should be_true
+          router.match("GET", "/archive.tar.json").path.should eq "get/archive.tar"
+        end
+
+        it "does not match case-insensitive extensions" do
+          router = Router.new
+          router.draw :web do
+            get "/hello", HelloController, :world
+          end
+          router.match("GET", "/hello.JSON").found?.should be_false
+        end
+
+        it "does not match unknown extensions" do
+          router = Router.new
+          router.draw :web do
+            get "/hello", HelloController, :world
+          end
+          router.match("GET", "/hello.foobar").found?.should be_false
+        end
+      end
     end
   end
 end

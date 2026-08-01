@@ -1,0 +1,23 @@
+#!/bin/sh
+# Amber pre-commit hook: fast format check only.
+# Keep this fast — no shards install, no ameba, no specs.
+# Bypass with: SKIP_HOOKS=1 git commit ...
+# Install with: bin/setup-dev  (sets core.hooksPath to .githooks)
+
+if [ "${SKIP_HOOKS:-0}" = "1" ]; then
+  echo "pre-commit: SKIP_HOOKS=1 set, skipping format check."
+  exit 0
+fi
+
+echo "pre-commit: running 'crystal tool format --check'..."
+if ! crystal tool format --check; then
+  echo
+  echo "pre-commit: FAILED — code is not formatted."
+  echo "  Fix it with:  crystal tool format"
+  echo "  Then re-stage and commit again."
+  echo "  Bypass (not recommended):  SKIP_HOOKS=1 git commit ..."
+  exit 1
+fi
+
+echo "pre-commit: format OK."
+exit 0

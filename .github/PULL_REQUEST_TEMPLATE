@@ -13,3 +13,35 @@
 ### Possible Drawbacks
 
 <!-- What are the possible side-effects or negative impacts of the code change? -->
+
+### Type of change
+
+<!-- Check all that apply. Pick the type that sets your correctness bar (see the rubric, linked below). -->
+
+- [ ] Bugfix
+- [ ] Security
+- [ ] Performance
+- [ ] Refactor (behavior-preserving)
+- [ ] Feature / default-change
+- [ ] Docs
+
+### Quality checklist
+
+- [ ] Ran `bin/amber_spec` locally and it passed
+- [ ] `crystal tool format --check` is clean
+- [ ] `bin/ameba` is clean
+- [ ] Added tests, including edge cases (dotfiles, empty/trailing segments, malformed input, non-development env)
+- [ ] The PR description above matches what the code actually does
+- [ ] Checked this is not a duplicate of a recently merged/open PR
+
+### If this is a security / performance / feature PR
+
+<!-- Fill in only the block(s) that apply. -->
+
+- **Security:** State the severity using the three levers — reachability (a real attacker-reachable, not-already-mitigated sink), threat model (network-facing vs local dev CLI), and environment gating (prod vs development-only). Include an **adversarial spec** that sends the malicious input and asserts it is neutralized, not just that the happy path still works.
+- **Performance:** Prove behavior is **identical** with a differential edge-case table (normal path, dotfile, trailing slash, empty segment) showing old and new agree. Green happy-path specs are not proof — add the divergent-input specs.
+- **Feature / default change:** Link the issue or discussion where this was agreed to belong in core. Risky defaults (new default middleware, on-by-default headers, changed pipeline) must be **opt-in** and ship in the CLI app template, not bolted onto existing apps — and note the semver bump (minor at minimum, major if it can break existing apps).
+
+---
+
+See [`.github/contributing/REVIEW_RUBRIC.md`](contributing/REVIEW_RUBRIC.md) for the severity framework and per-type bars, and run the pre-review skill ([`.github/contributing/skills/pre-review/SKILL.md`](contributing/skills/pre-review/SKILL.md)) before you open this PR.

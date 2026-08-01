@@ -26,5 +26,22 @@ module Amber::CLI
       File.read(".encryption_key").size.should eq 44
       cleanup
     end
+
+    it "does not execute shell metacharacters in the editor option" do
+      scaffold_app(TESTING_APP)
+      # Create an encrypted file to trigger the edit step
+      MainCommand.run ["encrypt", "test"]
+
+      marker = "amber_encrypt_editor_pwned"
+      File.delete(marker) if File.exists?(marker)
+
+      expect_raises(Exception) do
+        # Use an editor with command injection
+        MainCommand.run ["encrypt", "test", "-e", "sh -c 'touch #{marker}' #"]
+      end
+
+      File.exists?(marker).should be_false
+      cleanup
+    end
   end
 end

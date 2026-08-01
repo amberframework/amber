@@ -1,5 +1,6 @@
 require "./base"
 require "../exceptions/page"
+require "html"
 
 module Amber::Controller
   class Error < Base
@@ -48,7 +49,7 @@ module Amber::Controller
         if Amber.env.development?
           Amber::Exceptions::Page.new(context, @ex)
         else
-          "<html><body><pre>#{@ex.message}</pre></body></html>"
+          "<html><body><pre>#{HTML.escape(@ex.message || "")}</pre></body></html>"
         end
       end
     end
