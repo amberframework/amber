@@ -26,7 +26,7 @@ module Amber::CLI
 
         if File.exists?(encrypted_file)
           File.write(unencrypted_file, Support::FileEncryptor.read(encrypted_file))
-          system("#{options.editor} #{unencrypted_file}") unless options.noedit?
+          Process.run(options.editor, [unencrypted_file], output: Process::Redirect::Inherit, error: Process::Redirect::Inherit) unless options.noedit?
         end
 
         if File.exists?(unencrypted_file)
@@ -34,7 +34,11 @@ module Amber::CLI
           File.delete(unencrypted_file)
         end
       rescue e : Exception
-        exit! e.message, error: true
+        if ENV["AMBER_ENV"]? == "test" || ENV["CRYSTAL_CLI_ENV"]? == "test"
+          raise e
+        else
+          exit! e.message, error: true
+        end
       end
     end
   end
