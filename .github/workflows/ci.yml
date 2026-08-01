@@ -12,17 +12,20 @@ on:
       - master
 
 jobs:
-  specs:
-    name: Specs — Crystal ${{ matrix.crystal }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+  specs-linux:
+    name: Specs — Crystal ${{ matrix.crystal }} on Linux
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
         crystal: ["1.20.3", "latest"]
-        include:
-          - os: macos-latest
-            crystal: "latest"
+    services:
+      # The suite needs a local redis: the redis session store and pubsub
+      # specs connect at load time.
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,6 +44,28 @@ jobs:
       - name: Run specs
         run: crystal spec
 
+  specs-macos:
+    name: Specs — Crystal latest on macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Service containers are Linux-only; start redis directly.
+      - name: Start redis
+        run: |
+          brew install redis
+          redis-server --daemonize yes
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+
+      - name: Install dependencies
+        run: shards install
+
+      - name: Run specs
+        run: crystal spec
+
   granite:
     name: Granite build spec — Crystal latest
     runs-on: ubuntu-latest
@@ -48,9 +73,10 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: granite_test
+          # Trust auth: the generated app's database.yml connects as the
+          # postgres user without a password, and `amber db` creates its own
+          # databases.
+          POSTGRES_HOST_AUTH_METHOD: trust
         ports:
           - 5432:5432
         options: >-
@@ -58,6 +84,10 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,5 +100,3 @@ jobs:
 
       - name: Run granite build spec
         run: crystal spec spec/build_spec_granite.cr
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/granite_test
