@@ -123,3 +123,19 @@ Both issue lists are sorted by total number of comments. While not perfect, numb
 * Include thoughtfully-worded, well-structured Crystal specs in the `./spec` folder.
 * Treat `describe` as a noun or situation.
 * Treat `it` as a statement about state or how an operation changes state.
+
+## Code review & quality bar
+
+A wave of AI-authored PRs taught us that the same failure shapes recur: reflected XSS, "vulnerabilities" with no reachable sink, incomplete fixes, inert dead code, and perf changes that quietly alter behavior while happy-path specs stay green. To catch these up front we maintain a shared rubric, a list of intentional design trade-offs, and two skills that walk you through self-review and maintainer review.
+
+* **[contributing/REVIEW_RUBRIC.md](./contributing/REVIEW_RUBRIC.md)** — the source of truth: the severity framework, per-change-type quality bars, and how we value enhancements vs. new features. Read this before opening or reviewing a PR.
+* **[contributing/DESIGN_DECISIONS.md](./contributing/DESIGN_DECISIONS.md)** — deliberate trade-offs reviewers should DISCOUNT (so you don't re-litigate settled decisions or flag them as bugs).
+* **[contributing/skills/pre-review/SKILL.md](./contributing/skills/pre-review/SKILL.md)** — contributor skill: self-review your own change against the rubric before you push.
+* **[contributing/skills/review/SKILL.md](./contributing/skills/review/SKILL.md)** — maintainer skill: review an incoming PR against the rubric.
+
+See **[contributing/README.md](./contributing/README.md)** for how to load the skills and run the checks.
+
+**Before you push:**
+
+* Run `bin/setup-dev` once. It installs the local git hooks and links the skills into your `.claude/` so your assistant can load them.
+* Run `bin/amber_spec` to match CI. It runs `bin/ameba`, `crystal tool format --check`, `crystal spec`, and `crystal spec ./spec/build_spec_granite.cr` — the same checks CircleCI runs (the Granite build spec needs a local PostgreSQL; CI pins Crystal 1.9.2).

@@ -1,0 +1,62 @@
+#!/bin/sh
+# Amber one-shot dev setup. Idempotent — safe to re-run.
+# Activates the local git hooks and makes the contributor/maintainer skills
+# loadable by Claude Code from .claude/skills/ (which is gitignored).
+#
+# Usage (from anywhere in the repo):  bin/setup-dev
+
+set -e
+
+# Run from the repo top level so all paths below are repo-relative.
+ROOT=$(git rev-parse --show-toplevel)
+cd "$ROOT"
+
+echo "==> Setting git hooks path to .githooks"
+git config core.hooksPath .githooks
+
+echo "==> Making hooks executable"
+for hook in .githooks/*; do
+  [ -f "$hook" ] && chmod +x "$hook"
+done
+
+echo "==> Linking skills into .claude/skills/ (relative symlinks)"
+mkdir -p .claude/skills
+# Each skill lives under .github/contributing/skills/<name>; symlink it into
+# .claude/skills/<name> using a relative target so the link survives moves/clones.
+for skill in pre-review review; do
+  src=".github/contributing/skills/$skill"
+  dst=".claude/skills/$skill"
+  if [ ! -d "$src" ]; then
+    echo "    note: $src does not exist yet — skipping (author it, then re-run bin/setup-dev)."
+    continue
+  fi
+  # Refresh the link idempotently: drop any existing link/dir, then recreate.
+  rm -rf "$dst"
+  ln -s "../../$src" "$dst"
+  echo "    linked $dst -> ../../$src"
+done
+
+echo
+echo "============================================================"
+echo " Dev setup complete."
+echo "============================================================"
+echo
+echo "Git hooks are now ACTIVE (core.hooksPath = .githooks):"
+echo "  - pre-commit : fast 'crystal tool format --check'"
+echo "  - pre-push   : format check + bin/ameba + 'crystal spec'"
+echo "  Bypass any hook with:  SKIP_HOOKS=1 git <commit|push> ..."
+echo
+echo "Skills are now loadable by Claude Code from .claude/skills/"
+echo "(.claude/ is gitignored, so this is local-only — not committed):"
+echo "  - pre-review : contributor self-review before opening a PR"
+echo "  - review     : maintainer review pass"
+echo
+echo "Run the checks that match per-PR CI:"
+echo "  crystal tool format --check   # formatting (CI: ameba-test/specs)"
+echo "  bin/ameba                     # lint        (CI: ameba-test)"
+echo "  crystal spec                  # full suite, no DB (CI: amber-specs)"
+echo
+echo "Full CI-matching check (incl. the postgres-backed granite build spec):"
+echo "  bin/amber_spec"
+echo
+echo "Tip: if bin/ameba is missing, run 'shards install' first."
