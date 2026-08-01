@@ -2,3 +2,7 @@
 **Vulnerability:** Reflected Cross-Site Scripting (XSS) in default HTML error response.
 **Learning:** The default error controller generated raw HTML incorporating the unescaped Exception message. In Crystal, `Exception#message` can be `nil` (`String?`), so safely interpolating it into HTML requires `HTML.escape(@ex.message || "")` and explicitly requiring the `"html"` module.
 **Prevention:** Always escape user-controllable or dynamic string data, including exception messages, before interpolating it into an HTML template or string.
+## 2026-06-16 - Unhandled IndexError Hardening in Cryptography Routines
+**Vulnerability:** Amber's `MessageVerifier` and `MessageEncryptor` attempted to slice arrays and decrypt payloads before checking the bounds of the provided data (`IndexError` due to missing `split` size check and negative offsets in slices). While top-level middleware rescues and returns a 500 status code, these classes should gracefully reject malformed payloads themselves with custom exceptions.
+**Learning:** Crystal's array slicing and destructuring raise `IndexError` when bounds are not met, which propagates to an uncaught exception instead of a graceful rejection. Always check payload sizes before executing cryptography functions.
+**Prevention:** Always validate size and structure before extracting signatures, IVs, or payload data from untrusted inputs in cryptography routines. Add `size` bounds checks and safely handle destructuring, raising typed exceptions like `InvalidSignature` and `InvalidMessage`.
