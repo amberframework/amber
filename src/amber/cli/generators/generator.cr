@@ -19,12 +19,23 @@ module Amber::CLI
     property table_name : String?
     property timestamp : String
 
+    # Migration versions must be unique: micrate keys migrations by version,
+    # so two generators stamped in the same millisecond silently drop one.
+    @@last_timestamp : Int64 = 0_i64
+
+    def self.next_timestamp : String
+      stamp = Time.utc.to_s("%Y%m%d%H%M%S%L").to_i64
+      stamp = @@last_timestamp + 1 if stamp <= @@last_timestamp
+      @@last_timestamp = stamp
+      stamp.to_s
+    end
+
     def initialize(@name, params)
       @config = CLI.config
       @table_name ||= name_plural
       @fields = parse_fields(params)
       @fields_hash = parse_fields_hash
-      @timestamp = Time.utc.to_s("%Y%m%d%H%M%S%L")
+      @timestamp = Generator.next_timestamp
     end
 
     def filter(entries)
