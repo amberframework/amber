@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    tags:
+      - "v1.*"
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  specs:
+    name: Specs — Crystal ${{ matrix.crystal }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        crystal: ["1.20.3", "latest"]
+        include:
+          - os: macos-latest
+            crystal: "latest"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: ${{ matrix.crystal }}
+
+      - name: Install dependencies
+        run: shards install
+
+      - name: Check formatting
+        run: crystal tool format --check src spec
+
+      - name: Run specs
+        run: crystal spec
+
+  granite:
+    name: Granite build spec — Crystal latest
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: granite_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+
+      - name: Install dependencies
+        run: shards install
+
+      - name: Run granite build spec
+        run: crystal spec spec/build_spec_granite.cr
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/granite_test

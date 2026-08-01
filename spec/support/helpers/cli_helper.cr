@@ -91,7 +91,11 @@ module CLIHelper
   def prepare_yaml(path)
     if File.exists?("#{path}/shard.yml")
       shard = File.read("#{path}/shard.yml")
-      shard = shard.gsub(/github\:\samberframework\/amber\n.*(?=\n)/, "path: ../../../amber")
+      # Point the generated app at the framework checkout under test. An absolute
+      # path keeps this working from git worktrees and CI checkouts whose
+      # directory is not named "amber".
+      amber_root = File.expand_path("../..", path)
+      shard = shard.gsub(/github\:\samberframework\/amber\n.*(?=\n)/, "path: #{amber_root}")
       File.write("#{path}/shard.yml", shard)
     end
   end
