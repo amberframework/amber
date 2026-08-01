@@ -19,6 +19,7 @@ module Amber::CLI
 
       web_default_plugs = %w(
         Citrine::I18n::Handler
+        Amber::Pipe::SecureHeaders
         Amber::Pipe::Error
         Amber::Pipe::Logger
         Amber::Pipe::Session

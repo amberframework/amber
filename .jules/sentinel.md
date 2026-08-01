@@ -1,3 +1,7 @@
+## 2026-05-24 - [Missing Default Security Headers]
+**Vulnerability:** Newly generated Amber framework apps omit foundational HTTP security headers (e.g., XSS Protection, Content-Type Options).
+**Learning:** The pipeline configuration in `routes.cr.ecr` lacked a dedicated middleware pipe to enforce baseline security headers for web routes.
+**Prevention:** Always include a SecureHeaders middleware in the default web pipeline to ensure a defense-in-depth posture out of the box.
 ## 2026-06-11 - [XSS in Default Error Handler]
 **Vulnerability:** Reflected Cross-Site Scripting (XSS) in default HTML error response.
 **Learning:** The default error controller generated raw HTML incorporating the unescaped Exception message. In Crystal, `Exception#message` can be `nil` (`String?`), so safely interpolating it into HTML requires `HTML.escape(@ex.message || "")` and explicitly requiring the `"html"` module.
