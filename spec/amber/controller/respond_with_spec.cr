@@ -162,6 +162,46 @@ module Amber::Controller
           context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
           context.response.status_code.should eq 200
         end
+
+        it "does not match trailing slash after extension (e.g. /response/1.json/)" do
+          expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+          context.request.path = "/response/1.json/"
+          context.request.headers["Accept"] = "text/html"
+          ResponsesController.new(context).index.should eq expected_result
+          context.response.headers["Content-Type"].should eq "text/html"
+        end
+
+        it "matches leading-dot basename (e.g. /.json)" do
+          expected_result = %({"type":"json","name":"Amberator"})
+          context.request.path = "/.json"
+          context.request.headers["Accept"] = "text/html"
+          ResponsesController.new(context).index.should eq expected_result
+          context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
+        end
+
+        it "matches multi-dot filename last extension (e.g. /archive.tar.json)" do
+          expected_result = %({"type":"json","name":"Amberator"})
+          context.request.path = "/archive.tar.json"
+          context.request.headers["Accept"] = "text/html"
+          ResponsesController.new(context).index.should eq expected_result
+          context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
+        end
+
+        it "does not match case-insensitive extensions (e.g. /response/1.JSON)" do
+          expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+          context.request.path = "/response/1.JSON"
+          context.request.headers["Accept"] = "text/html"
+          ResponsesController.new(context).index.should eq expected_result
+          context.response.headers["Content-Type"].should eq "text/html"
+        end
+
+        it "does not match unknown extensions (e.g. /response/1.foobar)" do
+          expected_result = "<html><body><h1>Elorest <3 Amber</h1></body></html>"
+          context.request.path = "/response/1.foobar"
+          context.request.headers["Accept"] = "text/html"
+          ResponsesController.new(context).index.should eq expected_result
+          context.response.headers["Content-Type"].should eq "text/html"
+        end
       end
 
       describe "#proc input" do
