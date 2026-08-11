@@ -501,10 +501,12 @@ dependencies:
   pg:
     github: will/crystal-pg
 
-  # ORM used by the Amber V2 default web template
-  grant:
-    github: crimson-knight/grant
 ```
+
+Do not copy a moving Grant branch into an existing application. Amber CLI
+2.0.4 writes the tested, immutable Grant revision into new web applications;
+use that generated manifest as the reference until Grant's coordinated release
+is published.
 
 ## Migration Checklist
 
