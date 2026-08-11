@@ -79,6 +79,23 @@ module Amber::Controller
           context.response.status_code.should eq 200
         end
 
+        it "responds with markdown from the Accept header" do
+          context.response.status_code = 200
+          context.request.headers["Accept"] = "text/markdown"
+          expected_result = "# Amber\n"
+          ResponsesController.new(context).markdown_response.should eq expected_result
+          context.response.headers["Content-Type"].should eq "text/markdown; charset=utf-8"
+        end
+
+        it "responds with markdown for a .md path" do
+          context.response.status_code = 200
+          context.request.headers["Accept"] = ""
+          context.request.path = "/response/1.md"
+          expected_result = "# Amber\n"
+          ResponsesController.new(context).markdown_response.should eq expected_result
+          context.response.headers["Content-Type"].should eq "text/markdown; charset=utf-8"
+        end
+
         it "responds with json for path.json" do
           expected_result = %({"type":"json","name":"Amberator"})
           context.request.path = "/response/1.json"

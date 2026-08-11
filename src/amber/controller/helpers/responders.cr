@@ -6,12 +6,14 @@ module Amber::Controller::Helpers
 
     class Content
       TYPE = {
-        html: "text/html",
-        json: "application/json; charset=utf-8",
-        txt:  "text/plain",
-        text: "text/plain",
-        xml:  "application/xml",
-        js:   "text/javascript",
+        html:     "text/html",
+        json:     "application/json; charset=utf-8",
+        txt:      "text/plain",
+        text:     "text/plain",
+        xml:      "application/xml",
+        js:       "text/javascript",
+        md:       "text/markdown; charset=utf-8",
+        markdown: "text/markdown; charset=utf-8",
       }
 
       TYPE_EXT_REGEX         = /\.(#{TYPE.keys.join("|")})$/
@@ -25,7 +27,7 @@ module Amber::Controller::Helpers
       def initialize(@requested_responses)
       end
 
-      {% for type in %w(html xml js json text) %}
+      {% for type in %w(html xml js json text markdown) %}
         def {{type.id}}(value : String | ProcType)
           @available_responses[TYPE[:{{type.id}}]] = value
           self
@@ -35,6 +37,15 @@ module Amber::Controller::Helpers
           {{type.id}}(block)
         end
       {% end %}
+
+      # Short alias for Markdown response blocks.
+      def md(value : String | ProcType)
+        markdown(value)
+      end
+
+      def md(&block : -> _)
+        markdown(block)
+      end
 
       def json(value : Hash(Symbol | String, String))
         json(value.to_json)
@@ -66,15 +77,13 @@ module Amber::Controller::Helpers
           @requested_responses << @available_responses.keys.first
         end
 
-        result = @requested_responses.find do |resp|
-          @available_responses.keys.find { |r| r.includes?(resp) }
+        @requested_responses.each do |requested_type|
+          if available_type = @available_responses.keys.find { |candidate| candidate.includes?(requested_type) }
+            return available_type
+          end
         end
 
-        if result == "application/json"
-          result = "application/json; charset=utf-8"
-        end
-
-        result
+        nil
       end
     end
 

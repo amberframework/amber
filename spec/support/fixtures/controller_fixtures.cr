@@ -137,6 +137,13 @@ class ResponsesController < Amber::Controller::Base
     end
   end
 
+  def markdown_response
+    respond_with do
+      html { "<h1>Amber</h1>" }
+      markdown "# Amber\n"
+    end
+  end
+
   def custom_status_code
     respond_with(403) do
       json type: "json", error: "Unauthorized"

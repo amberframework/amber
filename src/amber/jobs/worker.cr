@@ -39,6 +39,29 @@ module Amber::Jobs
     class_property pending_request_count : Int64 = 0_i64
     class_property pending_request_mutex : Mutex = Mutex.new
 
+    # Records one active HTTP request for idle-only workers. WebSocket
+    # connections are intentionally excluded after their HTTP upgrade so a
+    # long-lived socket does not make the server look permanently busy.
+    def self.begin_request : Nil
+      @@pending_request_mutex.synchronize do
+        @@pending_request_count += 1
+      end
+    end
+
+    # Releases one active HTTP request and guards against a negative counter
+    # if an application handler exits through an exception.
+    def self.end_request : Nil
+      @@pending_request_mutex.synchronize do
+        @@pending_request_count = Math.max(0_i64, @@pending_request_count - 1)
+      end
+    end
+
+    def self.server_idle? : Bool
+      @@pending_request_mutex.synchronize do
+        @@pending_request_count == 0
+      end
+    end
+
     def initialize(
       @adapter : QueueAdapter,
       @list_of_queues : Array(String) = ["default"],
@@ -155,15 +178,12 @@ module Amber::Jobs
     # Attempts to use the job class's custom backoff strategy if available,
     # falling back to the default exponential backoff (2^attempts seconds).
     private def calculate_backoff(envelope : JobEnvelope) : Time::Span
-      # Default exponential backoff: 2^attempts seconds
-      (2 ** envelope.attempts).seconds
+      Amber::Jobs.retry_backoff(envelope.job_class, envelope.attempts)
     end
 
     # Returns true if the HTTP server has no pending requests.
     private def is_server_idle? : Bool
-      @@pending_request_mutex.synchronize do
-        @@pending_request_count <= 0
-      end
+      self.class.server_idle?
     end
   end
 end

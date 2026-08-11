@@ -13,6 +13,9 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
+        track_pending_request = !context.websocket?
+        Amber::Jobs::Worker.begin_request if track_pending_request
+
         raise Amber::Exceptions::RouteNotFound.new(context.request) unless context.valid_route?
 
         # Check request-level constraint if the matched route has one
@@ -32,6 +35,8 @@ module Amber
         end
       rescue e : Amber::Exceptions::Base
         Amber::Pipe::Error.new.call(context)
+      ensure
+        Amber::Jobs::Worker.end_request if track_pending_request
       end
 
       # Connects pipes to a pipeline to process requests

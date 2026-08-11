@@ -4,6 +4,11 @@ Amber::Jobs provides in-process background job processing for tasks that should 
 
 ## Quick Start
 
+The paths below are relative to the application root—the directory containing
+`shard.yml`.
+
+**File: `src/jobs/send_welcome_email.cr` — create this file.**
+
 ```crystal
 # Define a job
 class SendWelcomeEmail < Amber::Jobs::Job
@@ -25,7 +30,20 @@ end
 
 # Register the job class (required for deserialization)
 Amber::Jobs.register(SendWelcomeEmail)
+```
 
+**File: `src/my_app.cr` — require all jobs before `config/routes`. Replace
+`my_app` with the generated application filename.**
+
+```crystal
+require "./jobs/**"
+require "../config/routes"
+```
+
+**File: `src/controllers/users_controller.cr` — enqueue after the user has
+been validated and saved.**
+
+```crystal
 # Enqueue a job
 SendWelcomeEmail.new(user_id: 42_i64).enqueue
 ```
@@ -60,6 +78,9 @@ Amber::Jobs.register(SendWelcomeEmail)
 ```
 
 Registration is typically done at application startup, before any jobs are enqueued or workers are started.
+The `require "./jobs/**"` entry in `src/my_app.cr` is the normal application
+placement; the registration line stays beside the job class so it cannot be
+loaded without registering its deserializer and retry policy.
 
 ### Customizing Queue and Retry Behavior
 
@@ -209,7 +230,16 @@ Amber::Jobs.configure do |config|
 end
 ```
 
-The work-stealing worker monitors `Worker.pending_request_count` (a class-level atomic counter) and only dequeues jobs when this count is zero.
+The work-stealing worker monitors `Worker.pending_request_count` behind a mutex
+and only dequeues jobs when this count is zero. Ordinary HTTP requests are
+counted by Amber's outer request pipeline and decremented in an `ensure` block.
+Upgraded WebSocket connections are excluded after the handshake, so persistent
+connections do not leave the server permanently non-idle.
+
+This signal means “no request handler is active”; it is not CPU or memory
+telemetry. A job that has started is not preempted if a request arrives. Measure
+job duration and request tail latency before enabling this on a production web
+process.
 
 ## Scheduler
 
@@ -234,6 +264,13 @@ The built-in `MemoryQueueAdapter` stores jobs in memory using Mutex-protected da
 Suitable for: development, testing, and single-instance applications.
 
 Limitations: job data is lost when the application restarts.
+
+The memory adapter is process-local and unbounded: Amber does not impose queue,
+payload, completed-history, or dead-history memory caps. It cannot share work
+between application processes. Use it for development, tests, and deliberately
+small single-process deployments where lost jobs and application-memory growth
+are acceptable. A durable adapter must define its own payload-size, queue-size,
+retention, timeout, and retry limits.
 
 ### Writing a Custom Adapter
 
