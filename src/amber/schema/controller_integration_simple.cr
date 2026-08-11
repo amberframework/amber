@@ -129,6 +129,10 @@ module Amber::Schema
     private def merge_request_data : Hash(String, JSON::Any)
       data = {} of String => JSON::Any
 
+      # Parse the body before route matching. Resolving the request method may
+      # inspect form parameters for `_method`, which consumes the request body.
+      body_data = parse_request_body
+
       # Start with path parameters from request.params (which includes route params)
       begin
         if request.valid_route?
@@ -148,8 +152,7 @@ module Amber::Schema
         data[key] = JSON::Any.new(value)
       end
 
-      # Parse and merge body data
-      body_data = parse_request_body
+      # Body values take precedence over query and route values.
       data.merge!(body_data)
 
       data
@@ -157,25 +160,7 @@ module Amber::Schema
 
     # Parse request body based on content type
     private def parse_request_body : Hash(String, JSON::Any)
-      content_type = request.headers["Content-Type"]?
-
-      begin
-        # For now, just parse as JSON
-        if request.body
-          body_string = request.body.not_nil!.gets_to_end
-          if !body_string.empty?
-            JSON.parse(body_string).as_h
-          else
-            {} of String => JSON::Any
-          end
-        else
-          {} of String => JSON::Any
-        end
-      rescue ex
-        # Log parsing error and return empty hash
-        # TODO: Add proper logging when available
-        {} of String => JSON::Any
-      end
+      Amber::Schema::Parser::ParserRegistry.parse_request(request)
     end
 
     # Get current action name from the context

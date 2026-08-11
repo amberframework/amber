@@ -55,6 +55,23 @@ describe "Amber::Controller Schema Integration" do
       merged_data["body"]?.should_not be_nil
       merged_data["body"].as_s.should eq "data"
     end
+
+    it "merges standard browser form data" do
+      request = HTTP::Request.new("POST", "/pets?source=guide")
+      request.headers["Content-Type"] = "application/x-www-form-urlencoded"
+      request.body = IO::Memory.new("name=Ruby&species=Dog&adopted=true")
+
+      response = HTTP::Server::Response.new(IO::Memory.new)
+      context = HTTP::Server::Context.new(request, response)
+      controller = TestController.new(context)
+
+      merged_data = controller.merge_request_data
+
+      merged_data["source"].as_s.should eq "guide"
+      merged_data["name"].as_s.should eq "Ruby"
+      merged_data["species"].as_s.should eq "Dog"
+      merged_data["adopted"].as_bool.should be_true
+    end
   end
 end
 
