@@ -61,6 +61,10 @@ describe "Amber::Controller Schema Integration" do
       request.headers["Content-Type"] = "application/x-www-form-urlencoded"
       request.body = IO::Memory.new("name=Ruby&species=Dog&adopted=true")
 
+      # Route matching checks form parameters for `_method` before the
+      # controller runs, consuming the raw body and caching the parsed fields.
+      request.params.override_method?(HTTP::Request::METHOD)
+
       response = HTTP::Server::Response.new(IO::Memory.new)
       context = HTTP::Server::Context.new(request, response)
       controller = TestController.new(context)
