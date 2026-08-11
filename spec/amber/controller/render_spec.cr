@@ -13,6 +13,10 @@ module Amber::Controller
         RenderController.new(context).render_template_page.should eq page_template
       end
 
+      it "renders a controller-relative template from a Windows source path" do
+        RenderController.new(context).render_template_from_windows_controller_path.should eq page_template
+      end
+
       it "renders partial without layout" do
         RenderController.new(context).render_partial.should eq partial_only
       end

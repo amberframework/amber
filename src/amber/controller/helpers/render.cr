@@ -13,7 +13,10 @@ module Amber::Controller::Helpers
       {% if filename.id.split("/").size > 1 %}
         %content = render_template("#{{{filename}}}", {{path}})
       {% else %}
-        {{ short_path = folder.gsub(/^.+?(?:controllers|views)\//, "") }}
+        # Compiler paths use the host platform's separator. Normalize before
+        # deriving a view folder so generated controllers compile on Windows.
+        {{ normalized_folder = folder.gsub(/\\/, "/") }}
+        {{ short_path = normalized_folder.gsub(/^.+?(?:controllers|views)\//, "") }}
         {% if folder.id.ends_with?(".ecr") %}
           %content = render_template("#{{{short_path.gsub(/\/[^\.\/]+\.ecr/, "")}}}/#{{{filename}}}", {{path}})
         {% else %}

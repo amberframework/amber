@@ -89,6 +89,15 @@ class RenderController < Amber::Controller::Base
     render(path: "spec/support/sample/views", template: "test/test.ecr", layout: false)
   end
 
+  def render_template_from_windows_controller_path
+    render(
+      path: "spec/support/sample/views",
+      template: "test.ecr",
+      layout: false,
+      folder: "C:\\app\\src\\controllers\\test_controller.cr"
+    )
+  end
+
   def render_partial
     render(path: "spec/support/sample/views", partial: "test/_test.ecr")
   end
