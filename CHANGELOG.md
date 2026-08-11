@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0-beta.3 (2026-08-11)
+
+This release completes the framework side of the database-backed default web
+application introduced by Amber CLI 2.0.4.
+
+- Parse URL-encoded and multipart form bodies in schema controllers, including
+  requests whose bodies were already read by routing or CSRF protection.
+- Repair background-job work stealing so idle workers can claim queued work
+  without corrupting the request activity count.
+- Normalize rendered view paths on Windows.
+- Document `respond_with` HTML and JSON negotiation with executable examples.
+
 ## 2.0.0-beta.2 (2026-07-31)
 
 This release supersedes beta.1 for the supported Amber CLI web-app path.

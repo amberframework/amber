@@ -44,11 +44,11 @@ crystal spec
 amber watch
 ```
 
-The generated project pins Amber `2.0.0-beta.2` and uses ECR. See the
+The generated project pins Amber `2.0.0-beta.3` and uses ECR. See the
 [beta installation guide](beta-installation.md) for direct binary installation,
-supported platforms, and the exact verification procedure. Persistence and
-authentication generators remain preview surfaces during this beta, so migrate
-those dependencies explicitly instead of assuming they are bundled.
+supported platforms, and the exact verification procedure. New web apps use
+Grant with SQLite and Micrate migrations by default. Authentication generators
+remain preview surfaces during this beta.
 
 ## 2. Redis No Longer a Direct Dependency
 
@@ -72,7 +72,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.2
+    version: 2.0.0-beta.3
   # No redis dependency needed for default configuration
 ```
 
@@ -321,6 +321,10 @@ The V1 `params["key"]` interface continues to work unchanged. The Schema API is 
 
 Amber V1 bundled `pg`, `mysql`, and `sqlite3` as direct dependencies. V2 does not. Add only the database driver you need to your application's shard.yml.
 
+Existing V1 applications can keep their current ORM while upgrading the
+framework. The example below keeps Granite deliberately; new CLI-generated V2
+applications use Grant instead.
+
 **Before (V1) -- shard.yml:**
 
 ```yaml
@@ -336,7 +340,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.2
+    version: 2.0.0-beta.3
   pg:
     github: will/crystal-pg
   granite:
@@ -487,7 +491,7 @@ Review your session configuration and update as needed.
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.2
+    version: 2.0.0-beta.3
 ```
 
 ### Add to shard.yml (as needed)
@@ -497,15 +501,17 @@ dependencies:
   pg:
     github: will/crystal-pg
 
-  # ORM - pick one
-  granite:
-    github: amberframework/granite
 ```
+
+Do not copy a moving Grant branch into an existing application. Amber CLI
+2.0.4 writes the tested, immutable Grant revision into new web applications;
+use that generated manifest as the reference until Grant's coordinated release
+is published.
 
 ## Migration Checklist
 
-- [ ] Install Amber CLI 2.0.2 or newer from `amberframework/amber_cli`
-- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.2` and remove bundled dependencies
+- [ ] Install Amber CLI 2.0.4 or newer from `amberframework/amber_cli`
+- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.3` and remove bundled dependencies
 - [ ] Run `shards install`
 - [ ] Replace `YAML.mapping` with `YAML::Serializable` in all custom types
 - [ ] Rename all `.slang` templates to `.ecr` and convert syntax

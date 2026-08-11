@@ -5,10 +5,10 @@ web app using ECR templates and the standalone Amber CLI.
 
 ## Prerequisites
 
-- macOS on Apple Silicon or Linux on x86_64
+- A platform and installation method listed in the beta support guide
 - Crystal 1.20 or newer (but earlier than Crystal 2.0)
 - Git and `shards`
-- Amber CLI 2.0.2 or newer
+- Amber CLI 2.0.4 or newer
 
 Follow the [beta installation guide](beta-installation.md) if `amber --version`
 does not work yet.
@@ -24,14 +24,16 @@ shards install
 `--type web` is explicit so the command remains reproducible as more app types
 are added. The generated application uses:
 
-- Amber `2.0.0-beta.2` from `amberframework/amber`
+- Amber `2.0.0-beta.3` from `amberframework/amber`
 - ECR templates
 - typed, sectioned environment configuration
 - a static-file pipeline for the generated CSS and JavaScript
-- no database or ORM dependency by default
+- Grant models with SQLite as the zero-configuration development database
+- Micrate-powered migrations through `amber database`
 
-Database selection records generator metadata; it does not add an ORM or a
-database driver to this minimal web template.
+Choose `--database pg` or `--database mysql` when creating the app if you need
+a server database. The generator writes the matching driver, connection, and
+environment configuration into the new project.
 
 ## Verify before you edit
 
@@ -73,6 +75,20 @@ get "/health", HomeController, :health
 
 Restart `amber watch` if needed and visit <http://localhost:3000/health>.
 
+## Add a database-backed resource
+
+Generate the model, migration, controller, schema, views, route, and specs:
+
+```bash
+amber generate scaffold Pet name:string:required species:string:required adopted:bool
+amber database migrate
+crystal spec
+```
+
+The model is written to `src/models/pet.cr`, its SQL migration to
+`db/migrations/`, and its form partial to `src/views/pet/_form.ecr`. Start the
+app and open <http://localhost:3000/pets>.
+
 ## Configuration
 
 Generated environment files use V2's typed structure:
@@ -109,7 +125,7 @@ branch:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.2
+    version: 2.0.0-beta.3
 
 crystal: ">= 1.20.0, < 2.0"
 ```
@@ -120,12 +136,10 @@ guides.
 
 ## Generator support during the beta
 
-The web application template itself is the release-gated path. Generators that
-depend only on Amber core can be evaluated inside it. Persistence,
-authentication, API-resource, and native-app generators are preview surfaces
-until their external dependencies and platform matrices are released and
-documented. See the CLI's generator support table before relying on one in a
-project.
+The web application template, Grant models, SQLite migrations, and resource
+scaffolds are release-gated together. Authentication, API-only resource, and
+native-app generators remain preview surfaces. See the CLI's generator support
+table before relying on a preview surface in a project.
 
 ## Next steps
 

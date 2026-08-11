@@ -9,7 +9,7 @@ _Amber makes building web applications fast, simple, and enjoyable - with fewer 
 
 # Welcome! Introducing Amber
 
-**Amber 2.0.0-beta.2 is available for testing.** It is a pre-release: use it
+**Amber 2.0.0-beta.3 is available for testing.** It is a pre-release: use it
 for evaluation and new projects that can tolerate breaking changes, not for
 production workloads. The supported beta path is an ECR web application
 created by the standalone [Amber CLI](https://github.com/amberframework/amber_cli).
@@ -40,11 +40,13 @@ The goal for V2 is to cover every aspect of a modern web application. Here is wh
 **In the wider V2 ecosystem:**
 
 6. CLI with generators, dev workflow, and an LSP server - [amberframework/amber_cli](https://github.com/amberframework/amber_cli)
-7. Persistence, authentication, and native-app generators are preview surfaces. They are not part of the supported beta web-app path yet.
+7. Database-backed web applications use Grant, SQLite, and Micrate through the
+   standalone CLI's supported default template and resource generators.
+8. Authentication and native-app generators remain preview surfaces.
 
 **On the roadmap (not built yet):**
 
-8. Cloud file storage, users & authentication, audit logging, API documentation generation, reactive views, MCP, and SBOM tooling
+9. Cloud file storage, users & authentication, audit logging, API documentation generation, reactive views, MCP, and SBOM tooling
 
 
 ## How Amber Is Embracing AI
@@ -110,6 +112,8 @@ Create and verify a web application:
 amber new my_app --type web
 cd my_app
 shards install
+amber generate scaffold Pet name:string:required species:string:required
+amber database migrate
 crystal spec
 amber watch
 ```
@@ -120,7 +124,7 @@ The generated `shard.yml` pins this framework beta:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.2
+    version: 2.0.0-beta.3
 ```
 
 [Read the complete beta installation guide](docs/beta-installation.md),
