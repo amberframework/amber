@@ -9,7 +9,7 @@ module Amber::WebSockets::Adapters
 
     # On *message* publish, just call all listeners procs
     def publish(topic_path, client_socket, message)
-      spawn do
+      spawn! do
         @listeners.select { |l| l[:path] == topic_path }.each { |l| l[:listener].call(client_socket.id, message) }
       end
     end

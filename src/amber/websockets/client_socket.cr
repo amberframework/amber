@@ -70,8 +70,11 @@ module Amber
         @raw_params = @context.params
         @params = Amber::Validators::Params.new(@raw_params)
         @socket.on_pong do
+          # Log.info { "Pong received" }
           @pongs.push(Time.utc)
           @pongs.delete_at(0) if @pongs.size > 3
+          Fiber.yield
+          check_alive!
         end
       end
 
@@ -93,13 +96,16 @@ module Amber
 
       # Sends ping opcode to client : https://tools.ietf.org/html/rfc6455#section-5.5.2
       protected def beat
-        @socket.send("ping")
-        @socket.ping
-        @pings.push(Time.utc)
-        @pings.delete_at(0) if @pings.size > 3
-        check_alive!
-      rescue ex : IO::Error
-        disconnect!
+        begin
+          @socket.send("ping")
+          @socket.ping
+          @pings.push(Time.utc)
+          @pings.delete_at(0) if @pings.size > 3
+        rescue ex : IO::Error
+          disconnect!
+        rescue ex : OpenSSL::SSL::Error
+          disconnect!
+        end
       end
 
       protected def subscribed_to_topic?(topic)
@@ -133,7 +139,10 @@ module Amber
 
         # disconnect if no pongs have been received
         #  or no pongs have been received beyond the threshold time
+        # puts "pongs empty #{@pongs.empty?}"
+        # puts "socket over max idle time #{(@pings.last - @pongs.first) > MAX_SOCKET_IDLE_TIME}"
         if @pongs.empty? || (@pings.last - @pongs.first) > MAX_SOCKET_IDLE_TIME
+          Log.info { "Disconnected websocket because pings empty or socket idle too long" }
           disconnect!
         end
       end
