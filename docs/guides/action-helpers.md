@@ -4,6 +4,47 @@ Amber V2 includes a comprehensive set of view helpers that are available in all 
 
 All helpers are included automatically via `Amber::Controller::Base`.
 
+## Content negotiation with `respond_with`
+
+**File: `src/controllers/articles_controller.cr` — put the response block in
+the controller action that owns the resource.**
+
+```crystal
+class ArticlesController < ApplicationController
+  def show
+    article = Article.find!(params[:id])
+
+    respond_with do
+      html render("show.ecr")
+      json article.to_json
+      markdown "# #{article.title}\n\n#{article.body}"
+    end
+  end
+end
+```
+
+**File: `src/views/articles/show.ecr` — put only the HTML representation in
+the ECR template.**
+
+```ecr
+<article>
+  <h1><%= article.title %></h1>
+  <%= article.body %>
+</article>
+```
+
+Register `/articles/:id` in `config/routes.cr`. Amber chooses a declared
+representation from the URL extension (`.json` or `.md`) or the request's
+`Accept` header. `markdown` and its short alias `md` return
+`text/markdown; charset=utf-8`; `json` returns
+`application/json; charset=utf-8`. A requested format that the action did not
+declare receives `406 Response Not Acceptable`.
+
+Keep format-specific rendering close to its normal source: ECR in `src/views/`,
+short JSON or Markdown serialization in the controller, and reusable document
+builders in `src/services/`. Do not copy an entire ECR page into a controller
+string.
+
 ## FormHelpers
 
 Generate HTML form elements with automatic CSRF token inclusion and method override support.

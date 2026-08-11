@@ -48,6 +48,10 @@ class FailingTestJob < Amber::Jobs::Job
   def self.max_retries : Int32
     2
   end
+
+  def self.retry_backoff(attempt : Int32) : Time::Span
+    (attempt * 17).seconds
+  end
 end
 
 Amber::Jobs.register(WorkerTestJob)
@@ -143,6 +147,20 @@ describe Amber::Jobs::Worker do
       adapter.scheduled_size.should eq(1)
     end
 
+    it "uses the registered job class's custom retry backoff" do
+      adapter = Amber::Jobs::MemoryQueueAdapter.new
+      Amber::Jobs.adapter = adapter
+      worker = Amber::Jobs::Worker.new(adapter: adapter)
+
+      before = Time.utc
+      FailingTestJob.new(error_message: "custom backoff").enqueue
+      worker.process_next_job
+
+      scheduled = adapter.all_jobs.first
+      scheduled.attempts.should eq(1)
+      scheduled.scheduled_at.should be_close(before + 17.seconds, 1.second)
+    end
+
     it "marks jobs as dead when max retries are exceeded" do
       adapter = Amber::Jobs::MemoryQueueAdapter.new
       Amber::Jobs.adapter = adapter
@@ -169,6 +187,19 @@ describe Amber::Jobs::Worker do
   end
 
   describe "work stealing mode" do
+    it "tracks active requests without allowing the count to go negative" do
+      Amber::Jobs::Worker.pending_request_count = 0_i64
+
+      Amber::Jobs::Worker.begin_request
+      Amber::Jobs::Worker.server_idle?.should be_false
+      Amber::Jobs::Worker.pending_request_count.should eq(1_i64)
+
+      Amber::Jobs::Worker.end_request
+      Amber::Jobs::Worker.server_idle?.should be_true
+      Amber::Jobs::Worker.end_request
+      Amber::Jobs::Worker.pending_request_count.should eq(0_i64)
+    end
+
     it "skips processing when idle_only is true and requests are pending" do
       adapter = Amber::Jobs::MemoryQueueAdapter.new
       Amber::Jobs.adapter = adapter

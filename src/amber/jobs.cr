@@ -13,6 +13,10 @@ module Amber::Jobs
   # Jobs register themselves using the `Amber::Jobs.register` macro.
   @@job_registry = Hash(String, Proc(String, Job)).new
 
+  # Retry policies are registered beside deserializers so a worker can honor
+  # the concrete job class's `retry_backoff` after reading an envelope.
+  @@retry_backoff_registry = Hash(String, Proc(Int32, Time::Span)).new
+
   # The singleton queue adapter instance.
   @@adapter : QueueAdapter?
 
@@ -64,12 +68,31 @@ module Amber::Jobs
     Amber::Jobs.register_job({{job_class.stringify}}) do |payload|
       {{job_class}}.from_json(payload).as(Amber::Jobs::Job)
     end
+
+    Amber::Jobs.register_retry_backoff({{job_class.stringify}}) do |attempt|
+      {{job_class}}.retry_backoff(attempt)
+    end
   end
 
   # Registers a job class with a deserialization proc.
   # This is the runtime method called by the `register` macro.
   def self.register_job(class_name : String, &block : String -> Job)
     @@job_registry[class_name] = block
+  end
+
+  # Registers the retry policy for a job class. This is called by `register`.
+  def self.register_retry_backoff(class_name : String, &block : Int32 -> Time::Span)
+    @@retry_backoff_registry[class_name] = block
+  end
+
+  # Returns a registered job's retry delay, or Amber's exponential default
+  # when an older/manual registry entry did not register a policy.
+  def self.retry_backoff(class_name : String, attempt : Int32) : Time::Span
+    if policy = @@retry_backoff_registry[class_name]?
+      policy.call(attempt)
+    else
+      (2 ** attempt).seconds
+    end
   end
 
   # Deserializes a job from its class name and JSON payload.
@@ -143,6 +166,7 @@ module Amber::Jobs
     @@adapter = nil
     @@configuration = nil
     @@job_registry.clear
+    @@retry_backoff_registry.clear
   end
 
   # Creates the appropriate adapter based on the current configuration.
