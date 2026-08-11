@@ -153,5 +153,25 @@ module Amber::Schema::Parser
 
       result
     end
+
+    # Builds schema data from the router's cached multipart parse. This keeps
+    # file uploads available after routing and CSRF have inspected the request.
+    def self.parse_router_params(params : Amber::Router::Types::Params, files : Amber::Router::Types::Files) : Hash(String, JSON::Any)
+      result = QueryParser.parse_params_to_nested(params)
+
+      files.each do |name, upload|
+        content = ::File.read(upload.file.path)
+        file_info = FileInfo.new(
+          filename: upload.filename,
+          content_type: upload.headers["Content-Type"]?,
+          size: upload.size || content.bytesize.to_u64,
+          content: content,
+          headers: upload.headers
+        )
+        QueryParser.set_nested_value(result, name, file_info.to_json_any)
+      end
+
+      result
+    end
   end
 end

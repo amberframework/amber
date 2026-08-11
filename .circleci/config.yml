@@ -8,11 +8,12 @@ jobs:
     working_directory: ~/amber
     steps:
       # The legacy CircleCI project SSH key is no longer accepted by GitHub.
-      # This is a public repository, so check out the exact build SHA over HTTPS.
+      # Clone the public repository that owns the build SHA so fork PR commits
+      # remain available instead of always cloning amberframework/amber.
       - run:
           name: Checkout code over HTTPS
           command: |
-            git clone https://github.com/amberframework/amber.git .
+            git clone "https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git" .
             git checkout "$CIRCLE_SHA1"
       - restore_cache:
           keys:

@@ -37,6 +37,17 @@ module Amber::Router
       @files
     end
 
+    # Returns parsed URL-encoded form parameters, reusing the cached body parse.
+    # Schema request parsing uses this after routing has inspected `_method`.
+    def form_params : HTTP::Params
+      form
+    end
+
+    # Returns parsed multipart fields, reusing the cached body parse.
+    def multipart_params : Types::Params
+      multipart
+    end
+
     def []=(key : Types::Key, value)
       query[key.to_s] = value
     end
