@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.0.0-beta.4 (2026-08-11)
+
+This release adds the framework side of Amber V2's production static-asset
+contract while preserving the database-backed web path from beta.3.
+
+- Resolve logical asset names through a strict, reloadable manifest and expose
+  ECR helpers for stylesheets, modules, import maps, images, and favicons.
+- Emit Subresource Integrity metadata for stylesheets, JavaScript modules, and
+  module preloads.
+- Serve fingerprinted files with immutable caching, correct portable MIME
+  types, configured static headers, conditional requests, byte ranges, and
+  precompressed gzip variants.
+- Prefer `AMBER_DATABASE_URL` while accepting the conventional `DATABASE_URL`
+  fallback used by many hosting providers.
+- Reject malformed or inconsistent asset manifests at startup instead of
+  silently emitting broken public URLs.
+
 ## 2.0.0-beta.3 (2026-08-11)
 
 This release completes the framework side of the database-backed default web
