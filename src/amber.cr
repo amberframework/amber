@@ -6,6 +6,7 @@ require "random/secure"
 require "ecr"
 
 require "./amber/version"
+require "./amber/assets"
 require "./amber/support/inflector"
 require "./amber/adapters"
 require "./amber/controller/**"
