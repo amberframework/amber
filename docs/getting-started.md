@@ -8,7 +8,7 @@ web app using ECR templates and the standalone Amber CLI.
 - A platform and installation method listed in the beta support guide
 - Crystal 1.20 or newer (but earlier than Crystal 2.0)
 - Git and `shards`
-- Amber CLI 2.0.4 or newer
+- Amber CLI 2.0.5 or newer
 
 Follow the [beta installation guide](beta-installation.md) if `amber --version`
 does not work yet.
@@ -24,10 +24,11 @@ shards install
 `--type web` is explicit so the command remains reproducible as more app types
 are added. The generated application uses:
 
-- Amber `2.0.0-beta.3` from `amberframework/amber`
+- Amber `2.0.0-beta.4` from `amberframework/amber`
 - ECR templates
 - typed, sectioned environment configuration
-- a static-file pipeline for the generated CSS and JavaScript
+- a manifest-backed static-asset pipeline for CSS, JavaScript, images, fonts,
+  and other browser files
 - Grant models with SQLite as the zero-configuration development database
 - Micrate-powered migrations through `amber database`
 
@@ -41,6 +42,7 @@ Run the generated specs and build the application:
 
 ```bash
 crystal spec
+amber assets check
 crystal build src/my_app.cr -o bin/my_app
 ```
 
@@ -50,9 +52,10 @@ Start the development watcher:
 amber watch
 ```
 
-Open <http://localhost:3000>. Also load
-<http://localhost:3000/css/app.css> to confirm the static-file pipeline is
-working. Stop the watcher with `Ctrl-C`.
+Open <http://localhost:3000>. View the page source and follow its fingerprinted
+`/assets/stylesheets/app-....css` URL to confirm that the manifest, helper, and
+static server agree. The stylesheet and JavaScript module tags include
+`integrity="sha256-..."`. Stop the watcher with `Ctrl-C`.
 
 ## Add a route
 
@@ -125,7 +128,7 @@ branch:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.3
+    version: 2.0.0-beta.4
 
 crystal: ">= 1.20.0, < 2.0"
 ```
