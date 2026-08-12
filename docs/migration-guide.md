@@ -430,7 +430,7 @@ Every configuration property can be overridden with an environment variable foll
 ```bash
 AMBER_SERVER_PORT=8080
 AMBER_SERVER_SECRET_KEY_BASE=my_secret
-AMBER_DATABASE_URL=postgres://prod-host/my_app
+DATABASE_URL=postgres://prod-host/my_app
 AMBER_SESSION_ADAPTER=redis
 AMBER_MAILER_ADAPTER=smtp
 AMBER_MAILER_SMTP_HOST=smtp.example.com

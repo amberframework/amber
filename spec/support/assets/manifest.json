@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "public_path": "/assets",
+  "assets": {
+    "fonts/amber.woff2": {
+      "path": "/assets/fonts/amber-abcdef0123456789abcdef0123456789.woff2",
+      "digest": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+      "integrity": "sha256-q83vASNFZ4mrze8BI0VniavN7wEjRWeJq83vASNFZ4k=",
+      "content_type": "font/woff2",
+      "bytes": 128
+    },
+    "images/amber-crystal.svg": {
+      "path": "/assets/images/amber-crystal-0123456789abcdef0123456789abcdef.svg",
+      "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "integrity": "sha256-ASNFZ4mrze8BI0VniavN7wEjRWeJq83vASNFZ4mrze8=",
+      "content_type": "image/svg+xml",
+      "bytes": 256
+    },
+    "javascript/app.js": {
+      "path": "/assets/javascript/app-fedcba9876543210fedcba9876543210.js",
+      "digest": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "integrity": "sha256-/ty6mHZUMhD+3LqYdlQyEP7cuph2VDIQ/ty6mHZUMhA=",
+      "content_type": "text/javascript; charset=utf-8",
+      "bytes": 64
+    },
+    "stylesheets/app.css": {
+      "path": "/assets/stylesheets/app-11112222333344441111222233334444.css",
+      "digest": "1111222233334444111122223333444411112222333344441111222233334444",
+      "integrity": "sha256-EREiIjMzREQRESIiMzNERBERIiIzM0REEREiIjMzREQ=",
+      "content_type": "text/css; charset=utf-8",
+      "bytes": 512
+    }
+  }
+}

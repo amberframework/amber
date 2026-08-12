@@ -72,6 +72,11 @@ module Amber::Configuration
     private def self.apply_database(config : DatabaseConfig) : Nil
       if v = ENV["AMBER_DATABASE_URL"]?
         config.url = v
+      elsif v = ENV["DATABASE_URL"]?
+        # DATABASE_URL is the ecosystem convention used by Grant, Micrate,
+        # managed databases, and the generated Amber V2 application. Keep the
+        # Amber-prefixed form as the explicit higher-priority override.
+        config.url = v
       end
     end
 
