@@ -88,11 +88,16 @@ module Amber
         server.bind_tcp Amber.settings.host, Amber.settings.port, settings.port_reuse
       end
 
-      Signal::INT.trap do
-        Signal::INT.reset
-        Log.info { "Shutting down Amber" }
-        server.close
-      end
+      # Crystal does not implement Signal#trap on Windows. Windows services and
+      # console processes are stopped by their host, so only install Amber's
+      # graceful Ctrl-C handler on platforms where the runtime supports it.
+      {% unless flag?(:win32) %}
+        Signal::INT.trap do
+          Signal::INT.reset
+          Log.info { "Shutting down Amber" }
+          server.close
+        end
+      {% end %}
 
       loop do
         begin
