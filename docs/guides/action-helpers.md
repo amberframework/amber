@@ -222,36 +222,54 @@ link_back(text: "Go Back", class: "btn")
 
 ## AssetHelpers
 
-Generate HTML tags for images, stylesheets, and JavaScript files.
+Generate HTML tags for images, stylesheets, and JavaScript files. In a
+manifest-enabled application, put build-authored files under `app/assets/` and
+pass the path relative to that directory. The helpers resolve the content hash
+and integrity metadata from `public/assets/manifest.json`.
+
+Root-relative and external URLs remain unchanged. Use those for runtime uploads
+or third-party assets; never run user uploads through the authored-asset build.
+
+### asset_path
+
+```crystal
+asset_path("images/logo.png")
+# => /assets/images/logo-0123456789abcdef0123456789abcdef.png
+```
+
+The exact digest is produced by `amber assets build`. A missing logical asset
+raises an error instead of silently emitting a production 404.
 
 ### image_tag
 
 ```crystal
-image_tag("/images/logo.png")
-# => <img src="/images/logo.png" />
+image_tag("images/logo.png")
+# => <img src="/assets/images/logo-0123456789abcdef0123456789abcdef.png" />
 
-image_tag("/images/logo.png", alt: "Logo", width: "200")
-# => <img src="/images/logo.png" alt="Logo" width="200" />
+image_tag("images/logo.png", alt: "Logo", width: "200")
+# => <img src="/assets/images/logo-0123456789abcdef0123456789abcdef.png" alt="Logo" width="200" />
 ```
 
 ### stylesheet_link_tag
 
 ```crystal
-stylesheet_link_tag("/css/app.css")
-# => <link rel="stylesheet" href="/css/app.css" media="screen" />
+stylesheet_link_tag("stylesheets/app.css")
+# => <link rel="stylesheet" href="/assets/stylesheets/app-11112222333344441111222233334444.css"
+#      integrity="sha256-EREiIjMzREQRESIiMzNERBERIiIzM0REEREiIjMzREQ="
+#      crossorigin="anonymous" media="screen" />
 
-stylesheet_link_tag("/css/print.css", media: "print")
-# => <link rel="stylesheet" href="/css/print.css" media="print" />
+stylesheet_link_tag("stylesheets/print.css", media: "print")
 ```
 
 ### javascript_include_tag
 
 ```crystal
-javascript_include_tag("/js/app.js")
-# => <script src="/js/app.js"></script>
+javascript_include_tag("javascript/app.js", type: "module")
+# => <script src="/assets/javascript/app-fedcba9876543210fedcba9876543210.js"
+#      integrity="sha256-/ty6mHZUMhD+3LqYdlQyEP7cuph2VDIQ/ty6mHZUMhA="
+#      crossorigin="anonymous" type="module"></script>
 
-javascript_include_tag("/js/app.js", defer: true)
-# => <script src="/js/app.js" defer></script>
+javascript_include_tag("javascript/app.js", defer: true)
 ```
 
 ### favicon_tag
@@ -260,8 +278,30 @@ javascript_include_tag("/js/app.js", defer: true)
 favicon_tag
 # => <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 
-favicon_tag("/images/icon.png")
-# => <link rel="icon" type="image/x-icon" href="/images/icon.png" />
+favicon_tag("images/icon.svg")
+# => <link rel="icon" type="image/svg+xml" href="/assets/images/icon-0123456789abcdef0123456789abcdef.svg" />
+```
+
+### javascript_importmap_tag
+
+```crystal
+javascript_importmap_tag(
+  {"app" => "javascript/app.js"},
+  preload: ["javascript/app.js"]
+)
+```
+
+Local entries and module preloads resolve through the manifest. HTTP(S) values
+remain external URLs. The import-map JSON and HTML attributes are escaped.
+
+### Configure the manifest
+
+**File: `config/assets.cr`**
+
+```crystal
+Amber::Assets.configure(
+  manifest_path: "public/assets/manifest.json"
+)
 ```
 
 ## TagHelpers

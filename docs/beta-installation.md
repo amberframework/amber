@@ -1,6 +1,6 @@
 # Amber V2 Beta Installation and Support
 
-This is the release contract for Amber `2.0.0-beta.3` and Amber CLI `2.0.4`.
+This is the release contract for Amber `2.0.0-beta.4` and Amber CLI `2.0.5`.
 The goal is a repeatable first run, not a promise that every experimental
 generator is production-ready.
 
@@ -10,10 +10,10 @@ generator is production-ready.
 |---|---|
 | macOS on Apple Silicon | Supported and release-gated |
 | Linux on x86_64 | Supported and release-gated |
-| Linux on ARM64 | Generated web app is compile-gated in CI |
+| Linux on ARM64 | Supported and release-gated |
 | Windows on x86_64 | Generated web app, migrations, specs, and build are release-gated in CI |
 | Homebrew on Apple Silicon macOS and x86_64 Linux | Supported |
-| Release archives for Apple Silicon macOS and x86_64 Linux | Supported |
+| Release archives for Apple Silicon macOS, x86_64 Linux, and ARM64 Linux | Supported |
 | `amber new APP --type web` with ECR | Supported |
 | Grant models, SQLite, Micrate migrations, and resource scaffolds | Supported |
 | Build, specs, server launch, homepage, static assets, and database CRUD | Release-gated |
@@ -45,7 +45,7 @@ amber --version
 The fully qualified command follows Homebrew's tap-trust model and trusts only
 the `amber_cli` formula. The installed executables are `amber` and `amber-lsp`.
 
-The expected CLI version is `2.0.4` or newer. If another executable is found,
+The expected CLI version is `2.0.5` or newer. If another executable is found,
 run `command -v amber` and use the troubleshooting section below.
 
 ## Install a release archive
@@ -54,12 +54,13 @@ Choose the archive that matches the supported machine:
 
 - Apple Silicon macOS: `amber_cli-darwin-arm64.tar.gz`
 - x86_64 Linux: `amber_cli-linux-x86_64.tar.gz`
+- ARM64 Linux: `amber_cli-linux-arm64.tar.gz`
 
-The following example installs CLI `v2.0.4`. On Linux, replace the two
-`darwin-arm64` occurrences with `linux-x86_64`.
+The following example installs CLI `v2.0.5`. On Linux, replace the two
+`darwin-arm64` occurrences with `linux-x86_64` or `linux-arm64`.
 
 ```bash
-version=v2.0.4
+version=v2.0.5
 asset=amber_cli-darwin-arm64.tar.gz
 curl -fLO "https://github.com/amberframework/amber_cli/releases/download/${version}/${asset}"
 curl -fLO "https://github.com/amberframework/amber_cli/releases/download/${version}/${asset}.sha256"
@@ -73,29 +74,20 @@ Linux users may use `sha256sum -c` instead of `shasum -a 256 -c`. If
 `/usr/local/bin` requires elevated privileges, prefix only the `install`
 command with `sudo`.
 
-## Build the CLI on Linux ARM64 or Windows
+## Build the CLI on Windows
 
-Linux ARM64 and Windows web applications are compile-gated even though CLI
-release archives are not published for them yet. Clone the CLI and install its
-exact dependencies:
+Windows web applications are release-gated even though a standalone Windows
+CLI archive is not published yet. Clone the CLI and install its exact
+dependencies in PowerShell:
 
 ```bash
 git clone https://github.com/amberframework/amber_cli.git
 cd amber_cli
-git checkout v2.0.4
+git checkout v2.0.5
 shards install
 ```
 
-On Linux ARM64, build both executables:
-
-```bash
-crystal build src/amber_cli.cr -o amber --release
-crystal build src/amber_lsp.cr -o amber-lsp --release
-./amber --version
-```
-
-In PowerShell on Windows, build the CLI and verify it before adding its
-directory to `PATH`:
+Build the CLI and verify it before adding its directory to `PATH`:
 
 ```powershell
 crystal build src/amber_cli.cr -o amber.exe --release
@@ -110,6 +102,7 @@ Use a new directory name, then run every command below:
 amber new amber_beta_smoke --type web
 cd amber_beta_smoke
 shards install
+amber assets check
 amber generate scaffold Pet name:string:required species:string:required adopted:bool
 amber database migrate
 crystal spec
@@ -121,11 +114,12 @@ In another terminal:
 
 ```bash
 curl --fail http://127.0.0.1:3000/
-curl --fail http://127.0.0.1:3000/css/app.css
 ```
 
-Both requests must succeed. The generated `shard.yml` must reference
-`amberframework/amber` at `2.0.0-beta.3`; it should not point at a personal
+The request and `amber assets check` must succeed. Inspecting the page source
+must show fingerprinted `/assets/...` URLs with `integrity="sha256-..."` on
+the stylesheet and JavaScript module. The generated `shard.yml` must reference
+`amberframework/amber` at `2.0.0-beta.4`; it should not point at a personal
 fork or a moving branch.
 
 ## Update or remove
@@ -172,10 +166,10 @@ libraries and must not require `openssl@1.1`. Include the output of
 
 ### The requested platform has no archive
 
-Release archives are published for Apple Silicon macOS and x86_64 Linux.
-Linux ARM64 and Windows are application compile gates in CI, but do not yet
-have standalone CLI archives. Build the CLI from source on those systems while
-the packaging work is completed.
+Release archives are published for Apple Silicon macOS, x86_64 Linux, and ARM64
+Linux. Windows is an application compile-and-run gate in CI but does not yet
+have a standalone CLI archive; build the CLI from source there while the
+packaging work is completed.
 
 ### An authentication or native preview needs another shard
 

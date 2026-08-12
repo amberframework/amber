@@ -130,8 +130,20 @@ pubsub:
 
 ```yaml
 static:
-  # Static file serving configuration
+  headers:
+    Cache-Control: "public, max-age=3600"
 ```
+
+`Amber::Pipe::Static` applies these headers to existing static files. A
+fingerprinted filename such as
+`app-0123456789abcdef0123456789abcdef.css` always receives
+`Cache-Control: public, max-age=31536000, immutable`; an unfingerprinted file
+uses the configured policy, or `no-cache` when no policy is configured. Amber
+also returns `X-Content-Type-Options: nosniff` and `Vary: Accept-Encoding`.
+
+Put build-authored CSS, JavaScript, images, fonts, and downloads under
+`app/assets/`, compile them to `public/assets/`, and resolve them through the
+asset manifest. Keep user uploads on a separate persistent-storage lifecycle.
 
 ## Environment Variable Overrides
 
@@ -149,7 +161,7 @@ The naming convention is `AMBER_{SECTION}_{KEY}`:
 | `AMBER_SERVER_SECRET_KEY_BASE` | `server.secret_key_base` |
 | `AMBER_SERVER_SSL_KEY_FILE` | `server.ssl.key_file` |
 | `AMBER_SERVER_SSL_CERT_FILE` | `server.ssl.cert_file` |
-| `AMBER_DATABASE_URL` | `database.url` |
+| `AMBER_DATABASE_URL` or `DATABASE_URL` | `database.url` |
 | `AMBER_SESSION_KEY` | `session.key` |
 | `AMBER_SESSION_STORE` | `session.store` |
 | `AMBER_SESSION_EXPIRES` | `session.expires` |

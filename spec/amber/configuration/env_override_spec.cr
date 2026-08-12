@@ -61,6 +61,25 @@ module Amber::Configuration
         end
       end
 
+      it "supports the ecosystem-standard DATABASE_URL" do
+        with_env({"DATABASE_URL" => "postgres://platform:5432/app"}) do
+          config = AppConfig.new
+          result = EnvOverride.apply_all(config)
+          result.database.url.should eq("postgres://platform:5432/app")
+        end
+      end
+
+      it "prefers AMBER_DATABASE_URL when both database variables are set" do
+        with_env({
+          "DATABASE_URL"       => "postgres://platform:5432/app",
+          "AMBER_DATABASE_URL" => "postgres://amber:5432/app",
+        }) do
+          config = AppConfig.new
+          result = EnvOverride.apply_all(config)
+          result.database.url.should eq("postgres://amber:5432/app")
+        end
+      end
+
       it "overrides session.store from AMBER_SESSION_STORE" do
         with_env({"AMBER_SESSION_STORE" => "encrypted_cookie"}) do
           config = AppConfig.new

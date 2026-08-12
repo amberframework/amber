@@ -44,7 +44,7 @@ crystal spec
 amber watch
 ```
 
-The generated project pins Amber `2.0.0-beta.3` and uses ECR. See the
+The generated project pins Amber `2.0.0-beta.4` and uses ECR. See the
 [beta installation guide](beta-installation.md) for direct binary installation,
 supported platforms, and the exact verification procedure. New web apps use
 Grant with SQLite and Micrate migrations by default. Authentication generators
@@ -72,7 +72,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.3
+    version: 2.0.0-beta.4
   # No redis dependency needed for default configuration
 ```
 
@@ -340,7 +340,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.3
+    version: 2.0.0-beta.4
   pg:
     github: will/crystal-pg
   granite:
@@ -430,7 +430,7 @@ Every configuration property can be overridden with an environment variable foll
 ```bash
 AMBER_SERVER_PORT=8080
 AMBER_SERVER_SECRET_KEY_BASE=my_secret
-AMBER_DATABASE_URL=postgres://prod-host/my_app
+DATABASE_URL=postgres://prod-host/my_app
 AMBER_SESSION_ADAPTER=redis
 AMBER_MAILER_ADAPTER=smtp
 AMBER_MAILER_SMTP_HOST=smtp.example.com
@@ -491,7 +491,7 @@ Review your session configuration and update as needed.
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.3
+    version: 2.0.0-beta.4
 ```
 
 ### Add to shard.yml (as needed)
@@ -504,14 +504,14 @@ dependencies:
 ```
 
 Do not copy a moving Grant branch into an existing application. Amber CLI
-2.0.4 writes the tested, immutable Grant revision into new web applications;
+2.0.5 writes the tested, immutable Grant revision into new web applications;
 use that generated manifest as the reference until Grant's coordinated release
 is published.
 
 ## Migration Checklist
 
-- [ ] Install Amber CLI 2.0.4 or newer from `amberframework/amber_cli`
-- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.3` and remove bundled dependencies
+- [ ] Install Amber CLI 2.0.5 or newer from `amberframework/amber_cli`
+- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.4` and remove bundled dependencies
 - [ ] Run `shards install`
 - [ ] Replace `YAML.mapping` with `YAML::Serializable` in all custom types
 - [ ] Rename all `.slang` templates to `.ecr` and convert syntax
