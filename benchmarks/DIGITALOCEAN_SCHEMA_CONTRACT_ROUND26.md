@@ -1,5 +1,7 @@
 # Amber V2 schema, CBOR, and COSE: DigitalOcean round 26
 
+> Historical baseline: Round 27 reran this workload after integrating the optimized Amber V2 request path. Use `benchmarks/DIGITALOCEAN_SCHEMA_CONTRACT_ROUND27.md` for the release-candidate result and the controlled before/after comparison.
+
 Status: **VALIDATED for the measured workload.** These results measure a full HTTP endpoint on an exact $4 DigitalOcean target. They are not router-lookup numbers and they are not a production application capacity promise.
 
 ## Result

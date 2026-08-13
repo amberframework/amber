@@ -1,0 +1,88 @@
+{
+  "generated_at_utc": "2026-08-13T15:38:27Z",
+  "status": "VALIDATED",
+  "source_commit": "36bbceac51ee641082c1955c547caa941b93ff28",
+  "base_commit": "a2128cdb4fef07025e0cc1c1578d4c807ae6c274",
+  "scope": "Full HTTP/1.1 request parse, optimized route dispatch through a 1002-route table, body decode or decrypt, schema validation, controller action, response validation, and response encode or encrypt",
+  "target": "DigitalOcean s-1vcpu-512mb-10gb: 1 vCPU, 512 MB advertised, 10 GB disk, $4/month at test time",
+  "load_generator": "DigitalOcean c-4: 4 dedicated vCPUs and 8 GB memory",
+  "method": {
+    "measured_repetitions_per_scenario": 7,
+    "warmup_seconds_per_scenario": 3,
+    "measurement_seconds_per_repetition": 15,
+    "connections": 16,
+    "load_tool": "oha 1.14.0",
+    "scenario_order": "Rotated by repetition; all raw runs retained",
+    "successful_http_requests": 7974608,
+    "success_rate": 1.0,
+    "unexpected_error_kinds": 0
+  },
+  "payload_bytes": {
+    "json": 257,
+    "cbor": 223,
+    "cose_encrypt0": 282
+  },
+  "scenarios": {
+    "json_decode_only": {
+      "description": "Generic JSON parse and acknowledgement response without schema enforcement",
+      "requests_per_second": [21394.28891756204, 22617.853559301606, 19018.941264864494, 19328.16359312665, 20728.42319238687, 21729.713911320567, 20131.58527026114],
+      "median_requests_per_second": 20728.42319238687,
+      "range_requests_per_second": [19018.941264864494, 22617.853559301606],
+      "median_p50_seconds": 0.000688302,
+      "median_p99_seconds": 0.002813414,
+      "successful_requests": 2174830
+    },
+    "validated_json": {
+      "description": "JSON decode, eight-field schema validation, typed controller input, response-schema validation, and JSON response",
+      "requests_per_second": [18572.747511915048, 22236.37117641559, 19487.98071148698, 19458.00940386732, 18817.25839991345, 20259.685737982083, 19509.083776648225],
+      "median_requests_per_second": 19487.98071148698,
+      "range_requests_per_second": [18572.747511915048, 22236.37117641559],
+      "median_p50_seconds": 0.000721187,
+      "median_p99_seconds": 0.003184838,
+      "successful_requests": 2075687
+    },
+    "validated_cbor": {
+      "description": "Bounded deterministic CBOR decode, the same schema and controller work, response-schema validation, and deterministic CBOR response",
+      "requests_per_second": [22137.11019023926, 21775.430483416763, 23256.097846053613, 19904.272525676464, 20147.682185179565, 21742.26396332984, 21272.87589942752],
+      "median_requests_per_second": 21742.26396332984,
+      "range_requests_per_second": [19904.272525676464, 23256.097846053613],
+      "median_p50_seconds": 0.000646371,
+      "median_p99_seconds": 0.002921374,
+      "successful_requests": 2254175
+    },
+    "validated_cose": {
+      "description": "COSE Encrypt0 authentication/decryption, CBOR decode, the same schema and controller work, response validation, CBOR encode, and fresh-nonce COSE encryption",
+      "requests_per_second": [14822.538408577735, 15159.594478304922, 10961.802703230826, 14443.2104773448, 13676.191986306587, 14719.812504835189, 14187.952997125542],
+      "median_requests_per_second": 14443.2104773448,
+      "range_requests_per_second": [10961.802703230826, 15159.594478304922],
+      "median_p50_seconds": 0.001006325,
+      "median_p99_seconds": 0.003612,
+      "successful_requests": 1469916
+    }
+  },
+  "comparisons_percent": {
+    "validated_json_vs_json_decode_only": -5.984258760962957,
+    "validated_cbor_vs_validated_json": 11.567556871164664,
+    "validated_cose_vs_validated_cbor": -33.57080706174622,
+    "validated_cose_vs_validated_json": -25.886572389558005
+  },
+  "round26_to_round27_percent": {
+    "json_decode_only": 49.24624386359599,
+    "validated_json": 50.061806793390495,
+    "validated_cbor": 46.05846908924705,
+    "validated_cose": 39.13421367223977
+  },
+  "target_process": {
+    "memory_peak_bytes": 17395712,
+    "memory_current_bytes_at_collection": 14778368,
+    "cpu_usage_nanoseconds": 426759363000,
+    "tasks_current": 2
+  },
+  "qualifiers": [
+    "This is a synthetic in-memory acknowledgement endpoint. It does not include a database, external services, TLS, HTML rendering, logging middleware, or public-internet latency.",
+    "The COSE scenario performs authenticated encryption in both directions. It is not comparable to a benchmark that only serializes CBOR or only encrypts the response.",
+    "The generic JSON baseline verifies decode and field use but intentionally does not enforce the schema. The validated JSON delta is the release-relevant schema cost for this payload and endpoint.",
+    "Round 26 and Round 27 used separate ephemeral droplets on the same exact plans, region, reported CPU models, route table, load tool, and test method. Cloud-host variability cannot be eliminated, and the before-after delta covers the complete integrated performance patch set rather than the router alone.",
+    "Absolute throughput varied during the run. The report uses medians and publishes every raw result rather than deleting slower observations."
+  ]
+}

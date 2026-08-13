@@ -1,0 +1,33 @@
+{
+  "created_at_utc": "2026-08-13T15:22:08Z",
+  "cleanup_verified_at_utc": "2026-08-13T15:38:27Z",
+  "region": "nyc1",
+  "vpc": {
+    "name": "amber-schema-r27-vpc",
+    "id": "66b53ff4-bffd-4145-b05b-f1adf698f8c1",
+    "ip_range": "10.144.0.0/20"
+  },
+  "target": {
+    "name": "amber-schema-r27-target",
+    "id": 592165292,
+    "size": "s-1vcpu-512mb-10gb",
+    "memory_mb": 512,
+    "vcpus": 1,
+    "disk_gb": 10,
+    "price_monthly_usd_at_test_time": 4.0,
+    "price_hourly_usd_at_test_time": 0.00595,
+    "created_at_utc": "2026-08-13T15:22:33Z"
+  },
+  "load_generator": {
+    "name": "amber-schema-r27-loadgen",
+    "id": 592165312,
+    "size": "c-4",
+    "memory_mb": 8192,
+    "vcpus": 4,
+    "created_at_utc": "2026-08-13T15:22:38Z"
+  },
+  "network": "The target listened only on its private VPC address. The separate load generator sent all measured traffic over that private network.",
+  "cleanup_verified": true,
+  "droplets_remaining": 0,
+  "vpcs_remaining": 0
+}
