@@ -93,7 +93,9 @@ module Amber::Controller::Helpers
           end
         when Array
           requested.each do |response|
-            return available_type if available_type = available_type_for(response)
+            if available_type = available_type_for(response)
+              return available_type
+            end
           end
           if requested.size != 1 || requested.includes?("*/*")
             first_available_type
