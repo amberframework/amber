@@ -44,7 +44,7 @@ crystal spec
 amber watch
 ```
 
-The generated project pins Amber `2.0.0-beta.4` and uses ECR. See the
+The generated project pins Amber `2.0.0-beta.5` and uses ECR. See the
 [beta installation guide](beta-installation.md) for direct binary installation,
 supported platforms, and the exact verification procedure. New web apps use
 Grant with SQLite and Micrate migrations by default. Authentication generators
@@ -72,7 +72,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.4
+    version: 2.0.0-beta.5
   # No redis dependency needed for default configuration
 ```
 
@@ -267,55 +267,70 @@ end
 
 ## 5. Schema API for Type-Safe Params
 
-The Schema API is **additive and backward compatible**. Existing `params["key"]` usage continues to work via the `SchemaParamsWrapper`. The Schema API provides opt-in type safety and validation for new code.
+The V2 Schema API is additive. Existing `params["key"]` reads and `params.validation` blocks continue to run after the framework upgrade. The old validator is deprecated, not removed: Amber plans to retain it throughout the initial V2 compatibility window and remove it no earlier than a later minor release such as 2.5. The exact removal release will be announced separately.
 
-**Before (V1) -- raw params:**
+Upgrade first, verify the existing application, and then migrate one controller action at a time.
+
+**Before (V1) -- `src/controllers/users_controller.cr`:**
 
 ```crystal
 def create
-  name = params["name"].to_s
-  age = params["age"].to_s.to_i  # Crashes on invalid input
-  email = params["email"].to_s
+  validation = params.validation do
+    required(:name) { |value| !value.empty? }
+    required(:age) { |value| value.to_i? }
+    required(:email) { |value| value.email? }
+  end
 
-  # Manual validation
-  if name.empty?
-    flash[:error] = "Name is required"
+  unless validation.valid?
+    flash[:error] = validation.errors.join(", ")
     return redirect_to "/users/new"
   end
 
-  user = User.create!(name: name, age: age, email: email)
+  user = User.create!(
+    name: params["name"],
+    age: params["age"].to_i,
+    email: params["email"]
+  )
   redirect_to "/users/#{user.id}"
 end
 ```
 
-**After (V2) -- Schema API:**
+**After (V2) -- create `src/schemas/create_user_schema.cr`:**
 
 ```crystal
 class CreateUserSchema < Amber::Schema::Definition
+  additional_properties false
+
   field :name, String, required: true
   field :age, Int32, required: true, min: 0, max: 150
   field :email, String, required: true, format: "email"
 end
+```
 
-def create
-  schema = CreateUserSchema.new(context.params.to_h)
-  result = schema.validate
+**Then update `src/controllers/users_controller.cr`:**
 
-  if result.success?
+```crystal
+require "../schemas/create_user_schema"
+
+class UsersController < ApplicationController
+  schema :create, CreateUserSchema
+
+  def create
+    input = validated_as(CreateUserSchema)
+
     user = User.create!(
-      name: schema.name.not_nil!,
-      age: schema.age.not_nil!,
-      email: schema.email.not_nil!
+      name: input.name.not_nil!,
+      age: input.age.not_nil!,
+      email: input.email.not_nil!
     )
     redirect_to "/users/#{user.id}"
-  else
-    flash[:error] = result.error_messages.join(", ")
-    redirect_to "/users/new"
   end
 end
 ```
 
-The V1 `params["key"]` interface continues to work unchanged. The Schema API is opt-in per controller action. See the [Schema API Guide](guides/schema-api.md) for full documentation.
+The declared schema is enforced automatically before `create`; no extra validation callback is required. Valid input is normalized once and exposed through typed getters. Invalid input stops the action with a structured HTTP 400, 415, or 422 response.
+
+After successful validation, the controller's `params` wrapper prioritizes normalized schema values and falls back to raw params for undeclared keys. This preserves mixed controllers while the migration is in progress. See the [request and response schema guide](guides/schema-api.md) for response contracts, exact file locations, source mapping, OpenAPI generation, and JSON/CBOR/COSE support.
 
 ## 6. Database Drivers No Longer Bundled
 
@@ -340,7 +355,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.4
+    version: 2.0.0-beta.5
   pg:
     github: will/crystal-pg
   granite:
@@ -491,7 +506,7 @@ Review your session configuration and update as needed.
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.4
+    version: 2.0.0-beta.5
 ```
 
 ### Add to shard.yml (as needed)
@@ -504,14 +519,14 @@ dependencies:
 ```
 
 Do not copy a moving Grant branch into an existing application. Amber CLI
-2.0.5 writes the tested, immutable Grant revision into new web applications;
+2.0.6 writes the tested, immutable Grant revision into new web applications;
 use that generated manifest as the reference until Grant's coordinated release
 is published.
 
 ## Migration Checklist
 
-- [ ] Install Amber CLI 2.0.5 or newer from `amberframework/amber_cli`
-- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.4` and remove bundled dependencies
+- [ ] Install Amber CLI 2.0.6 or newer from `amberframework/amber_cli`
+- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.5` and remove bundled dependencies
 - [ ] Run `shards install`
 - [ ] Replace `YAML.mapping` with `YAML::Serializable` in all custom types
 - [ ] Rename all `.slang` templates to `.ecr` and convert syntax

@@ -1,4 +1,5 @@
 require "uri"
+require "./segment_view"
 
 module Amber::Router
   # A tree which stores and navigates routes associated with a web application.
@@ -28,6 +29,7 @@ module Amber::Router
   class RouteSet(T)
     @trunk : RouteSet(T)?
     @route : T?
+    @min_priority : Int32
 
     # Split segment storage by type for faster lookups.
     # Fixed segments use a Hash for O(1) lookup (the common case).
@@ -35,12 +37,18 @@ module Amber::Router
     # At most one glob segment per node.
     # Terminal segments stored separately.
     @fixed_segments = Hash(String, FixedSegment(T)).new
+    @fixed_span_segments = Hash(SegmentView, FixedSegment(T)).new
     @variable_segments = Array(VariableSegment(T)).new(initial_capacity: 2)
     @glob_segment : GlobSegment(T)? = nil
     @terminal_segments = Array(TerminalSegment(T)).new
 
     def initialize(@root = true)
       @insert_count = 0
+      @min_priority = Int32::MAX
+    end
+
+    def min_priority : Int32
+      @min_priority
     end
 
     # Look for or create a subtree matching a given segment.
@@ -58,6 +66,7 @@ module Amber::Router
         else
           new_segment = FixedSegment(T).new(segment)
           @fixed_segments[segment] = new_segment
+          @fixed_span_segments[SegmentView.new(segment)] = new_segment
         end
 
         new_segment
@@ -199,9 +208,218 @@ module Amber::Router
       end
     end
 
+    # Finds only the insertion-order winner and prunes subtrees that cannot
+    # improve it. Kept separate from #find while the strategy is benchmarked.
+    def find_best(path : String) : RoutedResult(T)
+      select_best_route(split_path(path)) || RoutedResult(T).new(nil)
+    end
+
+    # Selects a fixed root branch without concatenating it onto the request
+    # path. HTTP routers use this to avoid constructing "get/path" per request.
+    def find_best(root_segment : String, path : String) : RoutedResult(T)
+      if fixed = @fixed_segments[root_segment]?
+        fixed.route_set.select_best_route(split_path(path)) || RoutedResult(T).new(nil)
+      else
+        RoutedResult(T).new(nil)
+      end
+    end
+
+    # Matches directly against byte spans in the source path. This avoids the
+    # Array(String) and substring allocations made by #split_path.
+    def find_span(path : String) : RoutedResult(T)
+      select_best_span(path) || RoutedResult(T).new(nil)
+    end
+
+    # Selects an already-normalized fixed root before scanning the path.
+    def find_span(root_segment : String, path : String) : RoutedResult(T)
+      if fixed = @fixed_segments[root_segment]?
+        fixed.route_set.select_best_span(path) || RoutedResult(T).new(nil)
+      else
+        RoutedResult(T).new(nil)
+      end
+    end
+
     # Returns the routes which are compatible with the provided *path*.
     def find_routes(path : String) : Array(RoutedResult(T))
       select_routes split_path path
+    end
+
+    protected def select_best_route(path : Array(String), path_offset = 0) : RoutedResult(T)?
+      best : RoutedResult(T)? = nil
+
+      if path_offset == path.size
+        @terminal_segments.each do |terminal|
+          best = pick_better_route(best, RoutedResult(T).new(terminal))
+        end
+      end
+
+      if path_offset < path.size
+        current_segment = path[path_offset]
+
+        if fixed = @fixed_segments[current_segment]?
+          if branch_can_beat?(best, fixed.route_set.min_priority)
+            if candidate = fixed.route_set.select_best_route(path, path_offset + 1)
+              best = pick_better_route(best, candidate)
+            end
+          end
+        end
+
+        @variable_segments.each do |segment|
+          next unless segment.match?(current_segment)
+          next unless branch_can_beat?(best, segment.route_set.min_priority)
+
+          if candidate = segment.route_set.select_best_route(path, path_offset + 1)
+            candidate[segment.parameter] = decode_if_escaped(current_segment)
+            best = pick_better_route(best, candidate)
+          end
+        end
+
+        if glob = @glob_segment
+          if branch_can_beat?(best, glob.route_set.min_priority)
+            if glob_match = glob.route_set.reverse_select_best_route(path)
+              if glob.parametric?
+                glob_match.routed_result[glob.parameter] = decode_joined_path(path, path_offset, glob_match.match_position)
+              end
+              best = pick_better_route(best, glob_match.routed_result)
+            end
+          end
+        end
+      end
+
+      best
+    end
+
+    protected def reverse_select_best_route(path : Array(String)) : GlobMatch(T)?
+      best : GlobMatch(T)? = nil
+
+      @terminal_segments.each do |terminal|
+        best = pick_better_glob_match(best, GlobMatch(T).new(terminal, path))
+      end
+
+      @fixed_segments.each_value do |segment|
+        next unless branch_can_beat_glob?(best, segment.route_set.min_priority)
+
+        if glob_match = segment.route_set.reverse_select_best_route(path)
+          if segment.match?(glob_match.current_segment)
+            glob_match.match_position -= 1
+            best = pick_better_glob_match(best, glob_match)
+          end
+        end
+      end
+
+      @variable_segments.each do |segment|
+        next unless branch_can_beat_glob?(best, segment.route_set.min_priority)
+
+        if glob_match = segment.route_set.reverse_select_best_route(path)
+          if segment.match?(glob_match.current_segment)
+            if segment.parametric?
+              glob_match.routed_result[segment.parameter] = glob_match.current_segment
+            end
+            glob_match.match_position -= 1
+            best = pick_better_glob_match(best, glob_match)
+          end
+        end
+      end
+
+      best
+    end
+
+    protected def select_best_span(path : String, path_offset = 0) : RoutedResult(T)?
+      current = next_segment(path, path_offset)
+      best : RoutedResult(T)? = nil
+
+      unless current
+        @terminal_segments.each do |terminal|
+          best = pick_better_route(best, RoutedResult(T).new(terminal))
+        end
+        return best
+      end
+
+      current_segment, next_offset = current
+
+      if fixed = @fixed_span_segments[current_segment]?
+        if branch_can_beat?(best, fixed.route_set.min_priority)
+          if candidate = fixed.route_set.select_best_span(path, next_offset)
+            best = pick_better_route(best, candidate)
+          end
+        end
+      end
+
+      @variable_segments.each do |segment|
+        next unless segment.match_span?(path, current_segment.byte_offset, current_segment.bytesize)
+        next unless branch_can_beat?(best, segment.route_set.min_priority)
+
+        if candidate = segment.route_set.select_best_span(path, next_offset)
+          candidate.capture(segment.parameter, path, current_segment.byte_offset, current_segment.bytesize)
+          best = pick_better_route(best, candidate)
+        end
+      end
+
+      if glob = @glob_segment
+        if branch_can_beat?(best, glob.route_set.min_priority)
+          if glob_match = glob.route_set.reverse_select_best_span(path, path.bytesize)
+            glob_end = trim_separators(path, glob_match.match_end, current_segment.byte_offset)
+
+            if glob_end > current_segment.byte_offset
+              if glob.parametric?
+                glob_match.routed_result.capture(
+                  glob.parameter,
+                  path,
+                  current_segment.byte_offset,
+                  glob_end - current_segment.byte_offset,
+                  collapse_slashes: true
+                )
+              end
+              best = pick_better_route(best, glob_match.routed_result)
+            end
+          end
+        end
+      end
+
+      best
+    end
+
+    protected def reverse_select_best_span(path : String, path_end : Int32) : SpanGlobMatch(T)?
+      best : SpanGlobMatch(T)? = nil
+
+      @terminal_segments.each do |terminal|
+        candidate = SpanGlobMatch(T).new(RoutedResult(T).new(terminal), path_end)
+        best = pick_better_span_glob(best, candidate)
+      end
+
+      @fixed_segments.each_value do |segment|
+        next unless branch_can_beat_span_glob?(best, segment.route_set.min_priority)
+
+        if candidate = segment.route_set.reverse_select_best_span(path, path_end)
+          if current_segment = previous_segment(path, candidate.match_end)
+            if current_segment == SegmentView.new(segment.segment)
+              matched = SpanGlobMatch(T).new(candidate.routed_result, current_segment.byte_offset)
+              best = pick_better_span_glob(best, matched)
+            end
+          end
+        end
+      end
+
+      @variable_segments.each do |segment|
+        next unless branch_can_beat_span_glob?(best, segment.route_set.min_priority)
+
+        if candidate = segment.route_set.reverse_select_best_span(path, path_end)
+          if current_segment = previous_segment(path, candidate.match_end)
+            if segment.match_span?(path, current_segment.byte_offset, current_segment.bytesize)
+              candidate.routed_result.capture(
+                segment.parameter,
+                path,
+                current_segment.byte_offset,
+                current_segment.bytesize
+              )
+              matched = SpanGlobMatch(T).new(candidate.routed_result, current_segment.byte_offset)
+              best = pick_better_span_glob(best, matched)
+            end
+          end
+        end
+      end
+
+      best
     end
 
     # Produces a readable, indented rendering of the tree.
@@ -231,6 +449,70 @@ module Amber::Router
       Parsers::OptionalSegmentResolver.resolve path
     end
 
+    private def pick_better_route(current : RoutedResult(T)?, candidate : RoutedResult(T)) : RoutedResult(T)
+      return candidate unless current
+      candidate.priority < current.priority ? candidate : current
+    end
+
+    private def pick_better_glob_match(current : GlobMatch(T)?, candidate : GlobMatch(T)) : GlobMatch(T)
+      return candidate unless current
+      candidate.routed_result.priority < current.routed_result.priority ? candidate : current
+    end
+
+    private def pick_better_span_glob(current : SpanGlobMatch(T)?, candidate : SpanGlobMatch(T)) : SpanGlobMatch(T)
+      return candidate unless current
+      candidate.routed_result.priority < current.routed_result.priority ? candidate : current
+    end
+
+    private def branch_can_beat?(current : RoutedResult(T)?, branch_min_priority : Int32) : Bool
+      current.nil? || branch_min_priority < current.priority
+    end
+
+    private def branch_can_beat_glob?(current : GlobMatch(T)?, branch_min_priority : Int32) : Bool
+      current.nil? || branch_min_priority < current.routed_result.priority
+    end
+
+    private def branch_can_beat_span_glob?(current : SpanGlobMatch(T)?, branch_min_priority : Int32) : Bool
+      current.nil? || branch_min_priority < current.routed_result.priority
+    end
+
+    private def next_segment(path : String, path_offset : Int32) : {SegmentView, Int32}?
+      offset = path_offset
+      path_size = path.bytesize
+      while offset < path_size && path.byte_at(offset) == '/'.ord
+        offset += 1
+      end
+      return nil if offset >= path_size
+
+      segment_start = offset
+      while offset < path_size && path.byte_at(offset) != '/'.ord
+        offset += 1
+      end
+      {SegmentView.new(path, segment_start, offset - segment_start), offset}
+    end
+
+    private def previous_segment(path : String, path_end : Int32) : SegmentView?
+      offset = path_end
+      while offset > 0 && path.byte_at(offset - 1) == '/'.ord
+        offset -= 1
+      end
+      return nil if offset <= 0
+
+      segment_end = offset
+      while offset > 0 && path.byte_at(offset - 1) != '/'.ord
+        offset -= 1
+      end
+      SegmentView.new(path, offset, segment_end - offset)
+    end
+
+    private def trim_separators(path : String, path_end : Int32, lower_bound : Int32) : Int32
+      offset = path_end
+      while offset > lower_bound && path.byte_at(offset - 1) == '/'.ord
+        offset -= 1
+      end
+      offset
+    end
+
     private def add_route(path, payload : T, constraints : Hash(String, Regex)) : Nil
       if path.includes?('(') || path.includes?(')')
         paths = parse_subpaths path
@@ -255,9 +537,19 @@ module Amber::Router
       add_route path, payload, constraints.to_h.transform_keys(&.to_s)
     end
 
+    private def decode_if_escaped(value : String) : String
+      value.includes?('%') ? URI.decode(value) : value
+    end
+
+    private def decode_joined_path(path : Array(String), start_index : Int32, end_index : Int32) : String
+      decode_if_escaped(path[start_index..end_index].join('/'))
+    end
+
     # Recursively find or create subtrees matching a given path, and store the
     # application route at the leaf. Uses an index to avoid O(n) Array#shift.
     protected def add(url_segments : Array(String), route : T, full_path : String, constraints : Hash(String, Regex), priority : Int32 = 0, index : Int32 = 0) : Nil
+      @min_priority = priority if priority < @min_priority
+
       if index >= url_segments.size
         segment = TerminalSegment(T).new(route, full_path, priority)
         @terminal_segments.push segment

@@ -1,0 +1,3 @@
+bc5d563816dc54394bb74cec6e80dcb96ae8ebea689a7273ba45acff9035c1f5  /opt/amber-schema/payloads/request.cbor
+e21d2b9eb970c64528ca4482e6f8a2f0b9ea8e10120371bf27286e20246d393e  /opt/amber-schema/payloads/request.cose
+1648ff84e9b6a88ee5ae337204e8d00274863f849f1a9756e5e09280da5835f6  /opt/amber-schema/payloads/request.json

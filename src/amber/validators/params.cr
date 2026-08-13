@@ -81,11 +81,23 @@ module Amber::Validators
 
   class Params
     getter raw_params : Amber::Router::Params
-    getter rules = [] of BaseRule
-    getter params = {} of String => String?
-    getter errors = [] of Error
+    @rules : Array(BaseRule)?
+    @params : Hash(String, String?)?
+    @errors : Array(Error)?
 
     def initialize(@raw_params); end
+
+    def rules : Array(BaseRule)
+      @rules ||= [] of BaseRule
+    end
+
+    def params : Hash(String, String?)
+      @params ||= {} of String => String?
+    end
+
+    def errors : Array(Error)
+      @errors ||= [] of Error
+    end
 
     # This will allow params to respond to HTTP::Params methods.
     # For example: [], []?, add, delete, each, fetch, etc.
@@ -99,6 +111,7 @@ module Amber::Validators
     #   required(:age, UInt32)
     # end
     # ```
+    @[Deprecated("Use Amber::Schema controller contracts; legacy params validation remains available for V2 migration compatibility")]
     def validation(&)
       with ValidationBuilder.new(self) yield
       self
@@ -125,18 +138,20 @@ module Amber::Validators
     # end
     # ```
     def valid?
-      @errors.clear
-      @params.clear
+      validation_errors = errors
+      validated_params = params
+      validation_errors.clear
+      validated_params.clear
 
-      @rules.each do |rule|
+      rules.each do |rule|
         unless rule.apply(raw_params)
-          @errors << rule.error
+          validation_errors << rule.error
         end
 
-        @params[rule.field] = rule.value if rule.present
+        validated_params[rule.field] = rule.value if rule.present
       end
 
-      errors.empty?
+      validation_errors.empty?
     end
 
     # Validates each field with a given set of predicates returns true if the
@@ -146,11 +161,11 @@ module Amber::Validators
     # required(:email) { |p| p.email? & p.size.between? 1..10 }
     # ```
     def add_rule(rule : BaseRule)
-      @rules << rule
+      rules << rule
     end
 
     def to_h
-      @params
+      params
     end
 
     def to_unsafe_h

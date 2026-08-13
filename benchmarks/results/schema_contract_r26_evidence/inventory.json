@@ -1,0 +1,26 @@
+{
+  "created_at_utc": "2026-08-13T14:53:19Z",
+  "destroyed_at_utc": "2026-08-13T15:06:17Z",
+  "region": "nyc1",
+  "vpc": {
+    "name": "amber-schema-r26-vpc",
+    "ip_range": "10.144.0.0/20"
+  },
+  "target": {
+    "name": "amber-schema-r26-target",
+    "size": "s-1vcpu-512mb-10gb",
+    "memory_mb": 512,
+    "vcpus": 1,
+    "disk_gb": 10,
+    "price_monthly_usd_at_test_time": 4.0,
+    "price_hourly_usd_at_test_time": 0.00595
+  },
+  "load_generator": {
+    "name": "amber-schema-r26-loadgen",
+    "size": "c-4",
+    "memory_mb": 8192,
+    "vcpus": 4
+  },
+  "network": "The target listened only on its private VPC address. The separate load generator sent all measured traffic over that private network.",
+  "cleanup_verified": true
+}

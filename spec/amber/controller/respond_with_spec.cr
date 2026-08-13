@@ -1,6 +1,18 @@
 require "../../spec_helper"
 
 module Amber::Controller
+  describe Helpers::Responders::Content do
+    it "preserves first declaration order when a response type is overwritten" do
+      content = Helpers::Responders::Content.new("*/*")
+      content.json("first")
+      content.html("fallback")
+      content.json("last")
+
+      content.type.should eq "application/json; charset=utf-8"
+      content.body.should eq "last"
+    end
+  end
+
   describe Base do
     describe "#respond_with" do
       request = HTTP::Request.new("GET", "")

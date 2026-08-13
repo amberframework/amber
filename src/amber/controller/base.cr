@@ -48,9 +48,7 @@ module Amber::Controller
       to: context
 
     def initialize(@context : HTTP::Server::Context)
-      # Initialize original_params for backward compatibility
-      # The SchemaIntegration module handles params through its override
-      @original_params = Amber::Validators::Params.new(context.params)
+      @original_params = nil
     end
 
     # Named route path helper - generates a path string for the given named route.

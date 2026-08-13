@@ -1,6 +1,6 @@
 # Amber V2 Beta Installation and Support
 
-This is the release contract for Amber `2.0.0-beta.4` and Amber CLI `2.0.5`.
+This is the release contract for Amber `2.0.0-beta.5` and Amber CLI `2.0.6`.
 The goal is a repeatable first run, not a promise that every experimental
 generator is production-ready.
 
@@ -45,7 +45,7 @@ amber --version
 The fully qualified command follows Homebrew's tap-trust model and trusts only
 the `amber_cli` formula. The installed executables are `amber` and `amber-lsp`.
 
-The expected CLI version is `2.0.5` or newer. If another executable is found,
+The expected CLI version is `2.0.6` or newer. If another executable is found,
 run `command -v amber` and use the troubleshooting section below.
 
 ## Install a release archive
@@ -56,11 +56,11 @@ Choose the archive that matches the supported machine:
 - x86_64 Linux: `amber_cli-linux-x86_64.tar.gz`
 - ARM64 Linux: `amber_cli-linux-arm64.tar.gz`
 
-The following example installs CLI `v2.0.5`. On Linux, replace the two
+The following example installs CLI `v2.0.6`. On Linux, replace the two
 `darwin-arm64` occurrences with `linux-x86_64` or `linux-arm64`.
 
 ```bash
-version=v2.0.5
+version=v2.0.6
 asset=amber_cli-darwin-arm64.tar.gz
 curl -fLO "https://github.com/amberframework/amber_cli/releases/download/${version}/${asset}"
 curl -fLO "https://github.com/amberframework/amber_cli/releases/download/${version}/${asset}.sha256"
@@ -83,7 +83,7 @@ dependencies in PowerShell:
 ```bash
 git clone https://github.com/amberframework/amber_cli.git
 cd amber_cli
-git checkout v2.0.5
+git checkout v2.0.6
 shards install
 ```
 
@@ -119,7 +119,7 @@ curl --fail http://127.0.0.1:3000/
 The request and `amber assets check` must succeed. Inspecting the page source
 must show fingerprinted `/assets/...` URLs with `integrity="sha256-..."` on
 the stylesheet and JavaScript module. The generated `shard.yml` must reference
-`amberframework/amber` at `2.0.0-beta.4`; it should not point at a personal
+`amberframework/amber` at `2.0.0-beta.5`; it should not point at a personal
 fork or a moving branch.
 
 ## Update or remove

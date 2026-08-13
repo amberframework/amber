@@ -1,5 +1,11 @@
 require "../../spec_helper"
 
+class HTTP::Server::Context
+  def finalize_response_for_spec!
+    finalize_response!
+  end
+end
+
 describe HTTP::Server::Context do
   {% for request_method in HTTP::Server::Context::METHODS %}
   describe "{{request_method.id}}" do
@@ -57,4 +63,17 @@ describe HTTP::Server::Context do
       end
     end
   end
+
+  {% unless flag?(:amber_bench_legacy_keep_alive_headers) %}
+    describe "#finalize_response!" do
+      it "leaves connection persistence to the HTTP server" do
+        context = create_context(HTTP::Request.new("GET", "/"))
+        context.content = "ok"
+        context.finalize_response_for_spec!
+
+        context.response.headers["Connection"]?.should be_nil
+        context.response.headers["Keep-Alive"]?.should be_nil
+      end
+    end
+  {% end %}
 end

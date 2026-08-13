@@ -19,11 +19,9 @@ module Amber
         raise Amber::Exceptions::RouteNotFound.new(context.request) unless context.valid_route?
 
         # Check request-level constraint if the matched route has one
-        if context.request.valid_route?
-          if constraint = context.request.route.request_constraint
-            unless constraint.matches?(context.request)
-              raise Amber::Exceptions::RouteNotFound.new(context.request)
-            end
+        if constraint = context.request.route.request_constraint
+          unless constraint.matches?(context.request)
+            raise Amber::Exceptions::RouteNotFound.new(context.request)
           end
         end
 

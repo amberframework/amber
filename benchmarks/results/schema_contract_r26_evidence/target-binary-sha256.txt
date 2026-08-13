@@ -1,0 +1,1 @@
+811df9eb899faeecb8b9c43543962d065016fa6e1c18e340a5dcb20725a93cfd  /opt/amber-router/bin/schema_contract_http_server

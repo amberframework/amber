@@ -848,7 +848,7 @@ module Amber::Schema
         schema.name.should eq("")
       end
 
-      it "handles deeply nested nil values" do
+      it "rejects nil values inside typed nested hashes" do
         data = {
           "metadata" => JSON::Any.new({
             "key" => JSON::Any.new(nil),
@@ -858,7 +858,8 @@ module Amber::Schema
         schema = SchemaWithHashes.new(data)
         result = schema.validate
 
-        result.success?.should be_true
+        result.failure?.should be_true
+        result.errors.any? { |error| error.field == "metadata" }.should be_true
       end
 
       it "handles mixed type arrays with coercion" do
