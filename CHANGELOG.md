@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.0.0-beta.5 (2026-08-13)
+
+This release makes Amber V2 schemas executable request and response contracts,
+keeps the deprecated V1 validator working for incremental upgrades, and moves
+the optimized router and request path into the V2 release line.
+
+- Enforce declared controller request schemas before actions and expose
+  request-local typed values through `validated_as`.
+- Validate response status, content type, and shape before sending a declared
+  API response.
+- Generate OpenAPI 3.1 operations from the same enforced request and response
+  contracts.
+- Parse JSON, XML, URL-encoded forms, multipart forms, bounded CBOR, and
+  authenticated COSE Encrypt0 requests.
+- Negotiate JSON, CBOR, and COSE responses with explicit contract errors for
+  malformed, unsupported, invalid, or unavailable request paths.
+- Let server-rendered controllers override schema-failure rendering so ECR
+  forms can return field errors with the correct HTTP status.
+- Make the allocation-light span router the V2 default and reduce request,
+  params, pipeline, and responder allocations.
+- Preserve `params.validation` as a functional deprecated compatibility bridge;
+  applications may upgrade first and migrate one action at a time.
+
 ## 2.0.0-beta.4 (2026-08-11)
 
 This release adds the framework side of Amber V2's production static-asset

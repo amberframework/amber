@@ -44,7 +44,7 @@ crystal spec
 amber watch
 ```
 
-The generated project pins Amber `2.0.0-beta.4` and uses ECR. See the
+The generated project pins Amber `2.0.0-beta.5` and uses ECR. See the
 [beta installation guide](beta-installation.md) for direct binary installation,
 supported platforms, and the exact verification procedure. New web apps use
 Grant with SQLite and Micrate migrations by default. Authentication generators
@@ -72,7 +72,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.4
+    version: 2.0.0-beta.5
   # No redis dependency needed for default configuration
 ```
 
@@ -355,7 +355,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.4
+    version: 2.0.0-beta.5
   pg:
     github: will/crystal-pg
   granite:
@@ -506,7 +506,7 @@ Review your session configuration and update as needed.
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.4
+    version: 2.0.0-beta.5
 ```
 
 ### Add to shard.yml (as needed)
@@ -519,14 +519,14 @@ dependencies:
 ```
 
 Do not copy a moving Grant branch into an existing application. Amber CLI
-2.0.5 writes the tested, immutable Grant revision into new web applications;
+2.0.6 writes the tested, immutable Grant revision into new web applications;
 use that generated manifest as the reference until Grant's coordinated release
 is published.
 
 ## Migration Checklist
 
-- [ ] Install Amber CLI 2.0.5 or newer from `amberframework/amber_cli`
-- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.4` and remove bundled dependencies
+- [ ] Install Amber CLI 2.0.6 or newer from `amberframework/amber_cli`
+- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.5` and remove bundled dependencies
 - [ ] Run `shards install`
 - [ ] Replace `YAML.mapping` with `YAML::Serializable` in all custom types
 - [ ] Rename all `.slang` templates to `.ecr` and convert syntax
