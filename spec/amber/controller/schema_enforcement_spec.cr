@@ -55,6 +55,25 @@ class InlineSchemaController < Amber::Controller::Base
   end
 end
 
+class HTMLSchemaFailureController < Amber::Controller::Base
+  schema :create, EnforcedCreateSchema
+
+  getter handled_action : Symbol?
+  getter handled_errors = [] of Amber::Schema::Error
+
+  protected def handle_schema_validation_failure(action : Symbol, result : Amber::Schema::LegacyResult) : Nil
+    @handled_action = action
+    @handled_errors = result.errors
+    response.status_code = 422
+    response.content_type = "text/html"
+    context.content = "<p>Correct the form</p>"
+  end
+
+  def create
+    raise "invalid requests must not reach the action"
+  end
+end
+
 private def schema_context(body : String | Bytes, content_type = "application/json", accept = "application/json", path = "/users")
   request = HTTP::Request.new("POST", path, HTTP::Headers{
     "Content-Type" => content_type,
@@ -97,6 +116,19 @@ describe "enforced controller schemas" do
     context.response.close
     output.to_s.should contain("invalid_format")
     output.to_s.should contain("out_of_range")
+  end
+
+  it "lets an HTML controller render its own schema failure without running the action" do
+    context, _output = schema_context(%({"email":"not-an-email","age":17}))
+    controller = HTMLSchemaFailureController.new(context)
+
+    controller.run_before_filter(:create)
+
+    controller.handled_action.should eq(:create)
+    controller.handled_errors.should_not be_empty
+    context.response.status_code.should eq(422)
+    context.response.content_type.should eq("text/html")
+    context.content.should eq("<p>Correct the form</p>")
   end
 
   it "coerces once and exposes typed schema getters to a successful action" do

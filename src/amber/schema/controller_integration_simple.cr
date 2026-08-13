@@ -135,6 +135,13 @@ module Amber::Schema
         return
       end
 
+      handle_schema_validation_failure(action, result)
+    end
+
+    # Applications with an HTML form flow can override this hook to render the
+    # form with `result.errors`. The default remains a machine-readable
+    # contract response so API controllers fail closed without extra setup.
+    protected def handle_schema_validation_failure(action : Symbol, result : Amber::Schema::LegacyResult) : Nil
       error = result.errors.first?
       response.status_code = error.is_a?(Amber::Schema::RequestParseError) ? error.http_status : 422
       response.content_type = "application/json"

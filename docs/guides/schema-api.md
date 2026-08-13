@@ -77,6 +77,44 @@ Amber parses and validates the request before `create` runs. `validated_as` retu
 
 `respond_with` checks the response object and HTTP status before writing any bytes. A response that violates `PetResponseSchema` becomes an HTTP 500 contract error instead of silently returning an undocumented shape.
 
+### Render an HTML form on failure
+
+The default schema failure is JSON because a schema contract is commonly an
+API boundary. A server-rendered controller can override the failure hook and
+keep the same automatic enforcement:
+
+```crystal
+# src/controllers/pets_controller.cr -- inside PetsController
+protected def handle_schema_validation_failure(
+  action : Symbol,
+  result : Amber::Schema::LegacyResult
+) : Nil
+  @errors = result.errors
+  error = result.errors.first?
+  response.status_code = error.is_a?(Amber::Schema::RequestParseError) ? error.http_status : 422
+  response.content_type = "text/html"
+
+  case action
+  when :create
+    @pet = Pet.new
+    context.content = render("new.ecr")
+  when :update
+    if pet = Pet.find(params[:id])
+      @pet = pet
+      context.content = render("edit.ecr")
+    else
+      redirect_to "/pets"
+    end
+  else
+    super
+  end
+end
+```
+
+Setting `context.content` stops the action and gives Amber the already-rendered
+response. The standalone CLI uses this hook in generated HTML scaffolds so
+invalid forms remain pages rather than unexpectedly becoming JSON.
+
 ### 3. Add the route
 
 Add this route inside the router block in `config/routes.cr`:
