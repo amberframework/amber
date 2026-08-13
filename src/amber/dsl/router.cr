@@ -41,6 +41,12 @@ module Amber::DSL
       )
 
       router.add(%route)
+      Amber::Schema::RouteRegistry.add_route({
+        controller: {{controller.id.stringify}},
+        action:     {{action.id.stringify}},
+        verb:       %verb,
+        path:       {{resource}},
+      })
     end
 
     macro namespace(scoped_namespace)

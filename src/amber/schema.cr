@@ -10,6 +10,10 @@ require "./schema/validator"
 require "./schema/parser"
 require "./schema/response_builder"
 require "./schema/type_coercion"
+require "./schema/registry"
+require "./schema/cbor"
+require "./schema/cose"
+require "./schema/open_api"
 
 # Include subdirectories
 require "./schema/validators/*"

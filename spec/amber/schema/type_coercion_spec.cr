@@ -236,14 +236,10 @@ module Amber::Schema
           array[0].as_i.should eq 42
         end
 
-        it "skips elements that can't be coerced" do
+        it "rejects the entire array when an element cannot be coerced" do
           value = JSON::Any.new([JSON::Any.new("1"), JSON::Any.new("invalid"), JSON::Any.new("3")])
           result = TypeCoercion.coerce(value, "Array(Int32)")
-          result.should_not be_nil
-          array = result.not_nil!.as_a
-          array.size.should eq 2
-          array[0].as_i.should eq 1
-          array[1].as_i.should eq 3
+          result.should be_nil
         end
       end
 
@@ -266,13 +262,10 @@ module Amber::Schema
           hash.size.should eq 2
         end
 
-        it "skips values that can't be coerced" do
+        it "rejects the entire hash when a value cannot be coerced" do
           value = JSON::Any.new({"a" => JSON::Any.new("1"), "b" => JSON::Any.new("invalid"), "c" => JSON::Any.new("3")})
           result = TypeCoercion.coerce(value, "Hash(String, Int32)")
-          result.should_not be_nil
-          hash = result.not_nil!.as_h
-          hash.size.should eq 2
-          hash.has_key?("b").should be_false
+          result.should be_nil
         end
       end
 
@@ -282,6 +275,20 @@ module Amber::Schema
           TypeCoercion.coerce(value, "String").should be_nil
           TypeCoercion.coerce(value, "Int32").should be_nil
           TypeCoercion.coerce(value, "Bool").should be_nil
+        end
+      end
+
+      context "fail-closed scalar coercion" do
+        it "does not stringify structured objects" do
+          TypeCoercion.coerce(
+            JSON::Any.new({"admin" => JSON::Any.new(true)}),
+            "String"
+          ).should be_nil
+        end
+
+        it "rejects non-finite floating-point strings" do
+          TypeCoercion.coerce(JSON::Any.new("NaN"), "Float64").should be_nil
+          TypeCoercion.coerce(JSON::Any.new("Infinity"), "Float64").should be_nil
         end
       end
     end

@@ -67,8 +67,9 @@ module Amber::Schema
         value_type = $1
         coerce_to_hash(value, value_type)
       else
-        # Try to handle as-is for unknown types
-        value
+        # Unknown types require an explicitly registered coercion. Silently
+        # accepting them would make a declared schema appear stricter than it is.
+        nil
       end
     rescue
       nil
@@ -95,7 +96,7 @@ module Amber::Schema
       when Bool
         JSON::Any.new(raw.to_s)
       else
-        JSON::Any.new(value.to_s)
+        nil
       end
     end
 
@@ -162,18 +163,20 @@ module Amber::Schema
     private def self.coerce_to_float32(value : JSON::Any) : JSON::Any?
       case raw = value.raw
       when Float32
-        value
+        raw.finite? ? value : nil
       when Float64
-        JSON::Any.new(raw.to_f32)
+        converted = raw.to_f32
+        converted.finite? ? JSON::Any.new(converted) : nil
       when Int32, Int64
-        JSON::Any.new(raw.to_f32)
+        converted = raw.to_f32
+        converted.finite? ? JSON::Any.new(converted) : nil
       when String
         # Handle empty string
         return nil if raw.empty?
 
         # Try to parse
         if float_value = raw.to_f32?
-          JSON::Any.new(float_value)
+          float_value.finite? ? JSON::Any.new(float_value) : nil
         else
           nil
         end
@@ -185,9 +188,9 @@ module Amber::Schema
     private def self.coerce_to_float64(value : JSON::Any) : JSON::Any?
       case raw = value.raw
       when Float64
-        value
+        raw.finite? ? value : nil
       when Float32
-        JSON::Any.new(raw.to_f64)
+        raw.finite? ? JSON::Any.new(raw.to_f64) : nil
       when Int32, Int64
         JSON::Any.new(raw.to_f64)
       when String
@@ -196,7 +199,7 @@ module Amber::Schema
 
         # Try to parse
         if float_value = raw.to_f64?
-          JSON::Any.new(float_value)
+          float_value.finite? ? JSON::Any.new(float_value) : nil
         else
           nil
         end
@@ -329,6 +332,8 @@ module Amber::Schema
         raw.each do |element|
           if coerced = coerce(element, element_type)
             coerced_elements << coerced
+          else
+            return nil
           end
         end
 
@@ -356,6 +361,8 @@ module Amber::Schema
             elements.each do |elem|
               if coerced = coerce(JSON::Any.new(elem), element_type)
                 coerced_elements << coerced
+              else
+                return nil
               end
             end
             JSON::Any.new(coerced_elements)
@@ -364,12 +371,7 @@ module Amber::Schema
           end
         end
       else
-        # Single value, try to coerce and wrap in array
-        if coerced = coerce(value, element_type)
-          JSON::Any.new([coerced])
-        else
-          nil
-        end
+        nil
       end
     end
 
@@ -386,6 +388,8 @@ module Amber::Schema
             coerced_hash[key_str] = val.is_a?(JSON::Any) ? val : JSON::Any.new(val)
           elsif coerced = coerce(val, value_type)
             coerced_hash[key_str] = coerced
+          else
+            return nil
           end
         end
 

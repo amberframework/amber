@@ -99,6 +99,7 @@ module Amber::Validators
     #   required(:age, UInt32)
     # end
     # ```
+    @[Deprecated("Use Amber::Schema controller contracts; legacy params validation remains available for V2 migration compatibility")]
     def validation(&)
       with ValidationBuilder.new(self) yield
       self

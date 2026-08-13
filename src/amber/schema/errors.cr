@@ -35,6 +35,12 @@ module Amber::Schema
     end
   end
 
+  class UnexpectedFieldError < Error
+    def initialize(field : String)
+      super(field, "Field '#{field}' is not declared by this schema", "unexpected_field")
+    end
+  end
+
   class TypeMismatchError < Error
     def initialize(field : String, expected_type : String, actual_type : String)
       super(
@@ -106,6 +112,22 @@ module Amber::Schema
   class CustomValidationError < Error
     def initialize(field : String, message : String, code : String = "custom_validation_failed")
       super(field, message, code)
+    end
+  end
+
+  # A request could not be decoded. These errors are reported as HTTP 400,
+  # separately from structurally valid input that fails a schema (HTTP 422).
+  class RequestParseError < Error
+    getter http_status : Int32
+
+    def initialize(message : String, code : String = "invalid_request_body", @http_status : Int32 = 400)
+      super("body", message, code)
+    end
+  end
+
+  class UnsupportedMediaTypeError < RequestParseError
+    def initialize(content_type : String)
+      super("Unsupported request Content-Type '#{content_type}'", "unsupported_media_type", 415)
     end
   end
 

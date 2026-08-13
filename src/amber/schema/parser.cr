@@ -25,7 +25,7 @@ module Amber::Schema
       end
 
       # Parse request based on content type
-      def self.parse_request(request : HTTP::Request) : Hash(String, JSON::Any)
+      def self.parse_request(request : HTTP::Request, schema_class : Definition.class | Nil = nil) : Hash(String, JSON::Any)
         content_type = request.headers["Content-Type"]?
         parser_name = get(content_type)
 
@@ -36,8 +36,25 @@ module Amber::Schema
           parse_query_request(request)
         when "xml"
           parse_xml_request(request)
+        when "cbor"
+          CBOR.decode_object(request.body || IO::Memory.new)
+        when "cose"
+          provider = COSE.key_provider || raise RequestParseError.new(
+            "COSE request handling is not configured",
+            "cose_not_configured",
+            503
+          )
+          plaintext = COSE.decrypt0(request.body || IO::Memory.new, provider)
+          CBOR.decode_object(IO::Memory.new(plaintext))
         else
-          # Try to detect format from content
+          return {} of String => JSON::Any unless request.body
+          if schema_class
+            media_type = normalize_content_type(content_type || "")
+            raise UnsupportedMediaTypeError.new(media_type.empty? ? "missing" : media_type)
+          end
+
+          # Backward-compatible standalone parser behavior. Controller-bound
+          # schemas enforce declared media types before reaching this fallback.
           body = request.body.try(&.gets_to_end) || ""
           if body.starts_with?("{") || body.starts_with?("[")
             parse_json_body(body)
@@ -47,6 +64,10 @@ module Amber::Schema
             {} of String => JSON::Any
           end
         end
+      rescue ex : RequestParseError
+        raise ex
+      rescue ex : SchemaDefinitionError
+        raise ex
       rescue ex
         raise SchemaDefinitionError.new("Failed to parse request: #{ex.message}")
       end
@@ -107,6 +128,8 @@ module Amber::Schema
     ParserRegistry.register("application/xml", "xml")
     ParserRegistry.register("text/xml", "xml")
     ParserRegistry.register("application/xhtml+xml", "xml")
+    ParserRegistry.register("application/cbor", "cbor")
+    ParserRegistry.register("application/cose", "cose")
 
     # Parser context with access to full data and schema
     class Context

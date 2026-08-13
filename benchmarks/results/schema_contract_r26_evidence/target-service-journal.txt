@@ -1,0 +1,2 @@
+Aug 13 14:55:40 amber-schema-r26-target systemd[1]: Started amber-schema-r26.service - /opt/amber-router/bin/schema_contract_http_server --host=10.144.0.2 --port=41019 --filler-routes=1000.
+Aug 13 14:55:40 amber-schema-r26-target schema_contract_http_server[7821]: READY 10.144.0.2:41019 filler_routes=1000 scope=full_http_schema_contract

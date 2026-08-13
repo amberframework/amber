@@ -38,6 +38,52 @@ module Amber::Schema
       end
     end
 
+    # Metaclass interface used by controller registries. Subclasses generated
+    # by the schema DSL override these methods with their immutable metadata.
+    def self.fields : Hash(String, FieldDef)
+      {} of String => FieldDef
+    end
+
+    def self.required_fields : Array(String)
+      [] of String
+    end
+
+    def self.validators : Array(Validator::Base)
+      [] of Validator::Base
+    end
+
+    def self.conditional_groups : Array(ConditionalGroup)
+      [] of ConditionalGroup
+    end
+
+    def self.source_blocks : Array(SourceBlock)
+      [] of SourceBlock
+    end
+
+    def self.content_types : Array(String)
+      [] of String
+    end
+
+    def self.additional_properties? : Bool
+      true
+    end
+
+    def self.nested_schemas : Hash(String, Definition.class)
+      {} of String => Definition.class
+    end
+
+    def self.nested_array_schemas : Hash(String, Definition.class)
+      {} of String => Definition.class
+    end
+
+    def self.requires_together_groups : Array(Array(String))
+      [] of Array(String)
+    end
+
+    def self.requires_one_of_groups : Array(Array(String))
+      [] of Array(String)
+    end
+
     # Class-level storage for schema metadata
     # These need to be initialized per subclass
     macro inherited
@@ -49,6 +95,11 @@ module Amber::Schema
       @@success_type : String? = nil
       @@failure_type : String? = nil
       @@content_types = [] of String
+      @@additional_properties = true
+      @@nested_schemas = {} of String => ::Amber::Schema::Definition.class
+      @@nested_array_schemas = {} of String => ::Amber::Schema::Definition.class
+      @@requires_together_groups = [] of Array(String)
+      @@requires_one_of_groups = [] of Array(String)
 
       def self.fields
         @@fields
@@ -81,11 +132,33 @@ module Amber::Schema
       def self.content_types
         @@content_types
       end
+
+      def self.additional_properties?
+        @@additional_properties
+      end
+
+      def self.nested_schemas
+        @@nested_schemas
+      end
+
+      def self.nested_array_schemas
+        @@nested_array_schemas
+      end
+
+      def self.requires_together_groups
+        @@requires_together_groups
+      end
+
+      def self.requires_one_of_groups
+        @@requires_one_of_groups
+      end
     end
 
     # Instance variables
     getter raw_data : Hash(String, JSON::Any)
     getter errors = [] of Error
+    getter validated_data : Hash(String, JSON::Any)? = nil
+    @validation_data = {} of String => JSON::Any
     # Storage for validated nested schema instances
     @nested_schemas = {} of String => Definition
 
@@ -94,25 +167,24 @@ module Amber::Schema
 
     # Main validation method - returns legacy Result for backward compatibility
     def validate : LegacyResult
-      # Clear any previous errors
       @errors.clear
+      @nested_schemas.clear
+      @validated_data = nil
+      @validation_data = {} of String => JSON::Any
 
-      # Validate required fields
+      validate_additional_properties
       validate_required_fields
+      @validation_data = build_validation_data
 
-      # Validate field types and constraints
       validate_fields
-
-      # Run custom validators
       run_validators
-
-      # Check conditional requirements
       validate_conditionals
 
-      # Return result based on errors
       if @errors.empty?
-        LegacyResult.success(@raw_data)
+        @validated_data = @validation_data
+        LegacyResult.success(@validated_data.not_nil!)
       else
+        @validated_data = nil
         LegacyResult.failure(@errors, @raw_data)
       end
     end
@@ -163,6 +235,12 @@ module Amber::Schema
               hash_value[{{k.stringify}}] = JSON::Any.new({{v}})
             {% end %}
             @@fields[{{field_name}}].options[{{key.stringify}}] = JSON::Any.new(hash_value)
+          {% elsif value.is_a?(ArrayLiteral) || value.is_a?(TupleLiteral) %}
+            @@fields[{{field_name}}].options[{{key.stringify}}] = JSON::Any.new([
+              {% for item in value %}
+                JSON::Any.new({{item}}),
+              {% end %}
+            ] of JSON::Any)
           {% else %}
             @@fields[{{field_name}}].options[{{key.stringify}}] = JSON::Any.new({{value}})
           {% end %}
@@ -171,6 +249,55 @@ module Amber::Schema
       
       # Create getter for the field
       def {{name.id}} : {{type}}?
+        if validated = @validated_data
+          if value = validated[{{field_name}}]?
+            return nil if value.raw.nil?
+            {% if type.stringify == "String" %}
+              return value.as_s
+            {% elsif type.stringify == "Int32" %}
+              return value.as_i
+            {% elsif type.stringify == "Int64" %}
+              return value.as_i64
+            {% elsif type.stringify == "Float32" %}
+              return value.as_f32
+            {% elsif type.stringify == "Float64" %}
+              return value.as_f
+            {% elsif type.stringify == "Bool" %}
+              return value.as_bool
+            {% elsif type.stringify.starts_with?("Array(") %}
+              {% element_type = type.stringify[6..-2] %}
+              return value.as_a.map do |item|
+                {% if element_type == "String" %}
+                  item.as_s
+                {% elsif element_type == "Int32" %}
+                  item.as_i
+                {% elsif element_type == "Int64" %}
+                  item.as_i64
+                {% elsif element_type == "Float32" %}
+                  item.as_f32
+                {% elsif element_type == "Float64" %}
+                  item.as_f
+                {% elsif element_type == "Bool" %}
+                  item.as_bool
+                {% elsif element_type == "Hash(String, JSON::Any)" %}
+                  item.as_h
+                {% else %}
+                  item.raw.as({{element_type}})
+                {% end %}
+              end
+            {% elsif type.stringify.starts_with?("Hash(") %}
+              return value.as_h
+            {% elsif type.stringify == "Time" %}
+              return Time.parse_iso8601(value.as_s)
+            {% elsif type.stringify == "UUID" %}
+              return ::UUID.new(value.as_s)
+            {% else %}
+              return value.raw.as({{type}})
+            {% end %}
+          end
+          return nil
+        end
+
         if value = @raw_data[{{field_name}}]?
           # Use type coercion system
           if coerced = ::Amber::Schema::TypeCoercion.coerce(value, {{type_name}})
@@ -300,10 +427,11 @@ module Amber::Schema
     end
 
     # Define a nested schema field
-    macro nested(name, schema_class)
+    macro nested(name, schema_class, **options)
       {% field_name = name.id.stringify %}
       
-      field {{name}}, Hash(String, JSON::Any)
+      field {{name}}, Hash(String, JSON::Any){% for key, value in options %}, {{key.id}}: {{value}}{% end %}
+      @@nested_schemas[{{field_name}}] = {{schema_class}}
       
       # Create typed getter for nested schema
       def {{name.id}}_schema : {{schema_class}}?
@@ -339,8 +467,9 @@ module Amber::Schema
 
     # Helper macro for defining multiple fields that must be present together
     macro requires_together(*fields)
+      @@requires_together_groups << {{fields.map { |field| field.id.stringify }}}.to_a
       @@validators << ::Amber::Schema::Validator::Custom.new do |context|
-        field_names = {{fields.map(&.stringify)}}
+        field_names = {{fields.map { |field| field.id.stringify }}}.to_a
         present_fields = field_names.select { |f| context.field_exists?(f) }
         
         if present_fields.size > 0 && present_fields.size < field_names.size
@@ -356,8 +485,9 @@ module Amber::Schema
 
     # Helper macro for requiring exactly one of a set of fields
     macro requires_one_of(*fields)
+      @@requires_one_of_groups << {{fields.map { |field| field.id.stringify }}}.to_a
       @@validators << ::Amber::Schema::Validator::Custom.new do |context|
-        field_names = {{fields.map(&.stringify)}}
+        field_names = {{fields.map { |field| field.id.stringify }}}.to_a
         present_fields = field_names.select { |f| context.field_exists?(f) }
         
         if present_fields.size == 0
@@ -389,101 +519,54 @@ module Amber::Schema
       {% end %}
     end
 
-    # Define conditional field requirements
-    macro when_field(field, value)
-      {% field_name = field.stringify %}
-      
-      # Store current conditional context
-      %current_conditional = ConditionalGroup.new({{field_name}}, JSON::Any.new({{value}}))
-      
-      # Process the block in conditional context
-      macro field(name, type, **options)
-        {% field_name = name.id.stringify %}
-        {% type_name = type.stringify %}
-        {% required = options[:required] || false %}
-        
-        field_def = FieldDef.new(
-          \{{field_name}},
-          \{{type_name}},
-          \{{required}}
-        )
-        
-        # Add options
-        {% for key, value in options %}
-          {% unless key == :required || key == :default || key == :source %}
-            {% if value.is_a?(HashLiteral) %}
-              # Convert hash literals to JSON-compatible format
-              hash_value = {} of String => JSON::Any
-              {% for k, v in value %}
-                hash_value[\{{k.stringify}}] = JSON::Any.new(\{{v}})
-              {% end %}
-              field_def.options[\{{key.stringify}}] = JSON::Any.new(hash_value)
-            {% else %}
-              field_def.options[\{{key.stringify}}] = JSON::Any.new(\{{value}})
-            {% end %}
-          {% end %}
+    # Keep additional input fields for compatibility by default. API contracts
+    # can opt into a closed object with `additional_properties false`.
+    macro additional_properties(allowed)
+      @@additional_properties = {{allowed}}
+    end
+
+    # Define conditional field requirements. Conditional fields are regular
+    # introspectable schema fields, but their `required` flag is moved out of
+    # the global required set and into the matching conditional group.
+    macro when_field(field, value, &block)
+      {% condition_field = field.id.stringify %}
+      {% expressions = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+      %current_conditional = ConditionalGroup.new({{condition_field}}, JSON::Any.new({{value}}))
+      {% for expression in expressions %}
+        {% unless expression.is_a?(Call) && expression.name == "field" %}
+          {% raise "when_field blocks only support field declarations" %}
         {% end %}
-        
-        %current_conditional.fields << field_def
-        
+        {{expression}}
+        {% conditional_name = expression.args[0].id.stringify %}
+        {% required_argument = expression.named_args.find { |argument| argument.name == "required" } %}
+        {% required = required_argument ? required_argument.value : false %}
+        @@required_fields.delete({{conditional_name}})
+        %current_conditional.fields << @@fields[{{conditional_name}}]
         {% if required %}
-          %current_conditional.required_fields << \{{field_name}}
+          %current_conditional.required_fields << {{conditional_name}}
         {% end %}
-      end
-      
-      # Process nested block
-      {{yield}}
-      
-      # Add conditional group to schema
+      {% end %}
       @@conditional_groups << %current_conditional
     end
 
-    # Define fields that must be present together
-    macro when_present(field)
-      {% field_name = field.stringify %}
-      
-      # Store current conditional context
-      %current_conditional = ConditionalGroup.new({{field_name}}, JSON::Any.new("__present__"))
-      
-      # Process the block in conditional context - reuse when_field macro logic
-      macro field(name, type, **options)
-        {% field_name = name.id.stringify %}
-        {% type_name = type.stringify %}
-        {% required = options[:required] || false %}
-        
-        field_def = FieldDef.new(
-          \{{field_name}},
-          \{{type_name}},
-          \{{required}}
-        )
-        
-        # Add options
-        {% for key, value in options %}
-          {% unless key == :required || key == :default || key == :source %}
-            {% if value.is_a?(HashLiteral) %}
-              # Convert hash literals to JSON-compatible format
-              hash_value = {} of String => JSON::Any
-              {% for k, v in value %}
-                hash_value[\{{k.stringify}}] = JSON::Any.new(\{{v}})
-              {% end %}
-              field_def.options[\{{key.stringify}}] = JSON::Any.new(hash_value)
-            {% else %}
-              field_def.options[\{{key.stringify}}] = JSON::Any.new(\{{value}})
-            {% end %}
-          {% end %}
+    macro when_present(field, &block)
+      {% condition_field = field.id.stringify %}
+      {% expressions = block.body.is_a?(Expressions) ? block.body.expressions : [block.body] %}
+      %current_conditional = ConditionalGroup.new({{condition_field}}, JSON::Any.new("__present__"))
+      {% for expression in expressions %}
+        {% unless expression.is_a?(Call) && expression.name == "field" %}
+          {% raise "when_present blocks only support field declarations" %}
         {% end %}
-        
-        %current_conditional.fields << field_def
-        
+        {{expression}}
+        {% conditional_name = expression.args[0].id.stringify %}
+        {% required_argument = expression.named_args.find { |argument| argument.name == "required" } %}
+        {% required = required_argument ? required_argument.value : false %}
+        @@required_fields.delete({{conditional_name}})
+        %current_conditional.fields << @@fields[{{conditional_name}}]
         {% if required %}
-          %current_conditional.required_fields << \{{field_name}}
+          %current_conditional.required_fields << {{conditional_name}}
         {% end %}
-      end
-      
-      # Process nested block
-      {{yield}}
-      
-      # Add conditional group to schema
+      {% end %}
       @@conditional_groups << %current_conditional
     end
 
@@ -617,23 +700,56 @@ module Amber::Schema
       end
     end
 
-    private def validate_fields
-      self.class.fields.each do |field_name, field_def|
-        if value = @raw_data[field_name]?
-          validate_field_type(field_name, field_def, value)
-          validate_field_constraints(field_name, field_def, value)
+    private def validate_additional_properties
+      return if self.class.additional_properties?
+
+      @raw_data.each_key do |field_name|
+        unless self.class.fields.has_key?(field_name)
+          @errors << ::Amber::Schema::UnexpectedFieldError.new(field_name)
         end
       end
     end
 
-    private def validate_field_type(field_name : String, field_def : FieldDef, value : JSON::Any)
-      # Allow nil values for optional fields
-      return if value.raw.nil? && !field_def.required
+    # Normalize source values once. Constraints, custom validators, result data,
+    # and typed getters all consume this request-local representation.
+    private def build_validation_data : Hash(String, JSON::Any)
+      data = {} of String => JSON::Any
+      if self.class.additional_properties?
+        @raw_data.each do |field_name, value|
+          data[field_name] = value unless self.class.fields.has_key?(field_name)
+        end
+      end
+      self.class.fields.each do |field_name, field_def|
+        if value = @raw_data[field_name]?
+          if value.raw.nil?
+            data[field_name] = value
+            if field_def.required
+              error_info = ::Amber::Schema::TypeCoercion.coercion_error(field_name, value, field_def.type)
+              @errors << ::Amber::Schema::TypeMismatchError.new(field_name, field_def.type, error_info.source_type)
+            end
+          elsif coerced = ::Amber::Schema::TypeCoercion.coerce(value, field_def.type)
+            data[field_name] = coerced
+          else
+            error_info = ::Amber::Schema::TypeCoercion.coercion_error(field_name, value, field_def.type)
+            @errors << ::Amber::Schema::TypeMismatchError.new(field_name, field_def.type, error_info.source_type)
+          end
+        elsif default = field_def.default
+          if coerced = ::Amber::Schema::TypeCoercion.coerce(default, field_def.type)
+            data[field_name] = coerced
+          else
+            error_info = ::Amber::Schema::TypeCoercion.coercion_error(field_name, default, field_def.type)
+            @errors << ::Amber::Schema::TypeMismatchError.new(field_name, field_def.type, error_info.source_type)
+          end
+        end
+      end
+      data
+    end
 
-      # Use type coercion system for validation
-      unless ::Amber::Schema::TypeCoercion.can_coerce?(value, field_def.type)
-        error_info = ::Amber::Schema::TypeCoercion.coercion_error(field_name, value, field_def.type)
-        @errors << ::Amber::Schema::TypeMismatchError.new(field_name, field_def.type, error_info.source_type)
+    private def validate_fields
+      self.class.fields.each do |field_name, field_def|
+        if value = @validation_data[field_name]?
+          validate_field_constraints(field_name, field_def, value)
+        end
       end
     end
 
@@ -727,8 +843,9 @@ module Amber::Schema
       # Enum validation
       if enum_values = options["enum"]?
         if enum_array = enum_values.as_a?
-          value_str = value.to_s
-          unless enum_array.any? { |v| v.to_s == value_str }
+          coerced_value = ::Amber::Schema::TypeCoercion.coerce(value, field_def.type)
+          coerced_enum = enum_array.compact_map { |candidate| ::Amber::Schema::TypeCoercion.coerce(candidate, field_def.type) }
+          unless coerced_value && coerced_enum.includes?(coerced_value)
             @errors << ::Amber::Schema::CustomValidationError.new(
               field_name,
               "Value must be one of: #{enum_array.map(&.to_s).join(", ")}",
@@ -763,7 +880,7 @@ module Amber::Schema
     end
 
     private def validate_format(field_name : String, value : JSON::Any, format : String)
-      string_value = value.as_s? || return
+      string_value = value.as_s? || ::Amber::Schema::TypeCoercion.coerce(value, "String").try(&.as_s?) || return
 
       case format
       when "email"
@@ -793,11 +910,16 @@ module Amber::Schema
           @errors << ::Amber::Schema::InvalidFormatError.new(field_name, "ISO8601 datetime", string_value)
         end
       when "date"
-        unless string_value.matches?(/\A\d{4}-\d{2}-\d{2}\z/)
+        begin
+          Time.parse(string_value, "%F", Time::Location::UTC)
+        rescue
           @errors << ::Amber::Schema::InvalidFormatError.new(field_name, "date (YYYY-MM-DD)", string_value)
         end
       when "time"
-        unless string_value.matches?(/\A\d{2}:\d{2}(:\d{2})?\z/)
+        begin
+          time_format = string_value.size == 5 ? "%H:%M" : "%H:%M:%S"
+          Time.parse(string_value, time_format, Time::Location::UTC)
+        rescue
           @errors << ::Amber::Schema::InvalidFormatError.new(field_name, "time (HH:MM[:SS])", string_value)
         end
       when "ipv4"
@@ -827,9 +949,8 @@ module Amber::Schema
     end
 
     private def run_validators
-      # Create a temporary result to collect errors from validators
-      temp_result = LegacyResult.success(@raw_data)
-      context = Validator::Context.new(@raw_data, temp_result, self)
+      temp_result = LegacyResult.success(@validation_data)
+      context = Validator::Context.new(@validation_data, temp_result, self)
 
       self.class.validators.each do |validator|
         validator.validate(context)
@@ -852,15 +973,8 @@ module Amber::Schema
             end
           end
 
-          # Validate fields defined in this group
-          group.fields.each do |field_def|
-            if value = @raw_data[field_def.name]?
-              validate_field_type(field_def.name, field_def, value)
-              validate_field_constraints(field_def.name, field_def, value)
-            elsif field_def.required
-              @errors << RequiredFieldError.new(field_def.name)
-            end
-          end
+          # Conditional fields were normalized and constrained by the common
+          # field pass. This block owns only conditional requiredness.
         end
       end
     end
@@ -871,7 +985,7 @@ module Amber::Schema
         @raw_data.has_key?(group.condition_field)
       else
         # Check if field value matches condition
-        if value = @raw_data[group.condition_field]?
+        if value = @validation_data[group.condition_field]?
           value == group.condition_value
         else
           false
@@ -915,7 +1029,7 @@ module Amber::Schema
 
     # Convert validated data to hash
     def to_h : Hash(String, JSON::Any)
-      @raw_data
+      @validated_data || @raw_data
     end
 
     # Check if schema has conditionals

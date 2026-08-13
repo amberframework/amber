@@ -1,0 +1,12 @@
+{
+  "generated_at_utc": "2026-08-13T14:54:14Z",
+  "host": "Linux amber-schema-r26-loadgen 6.8.0-124-generic #124-Ubuntu SMP PREEMPT_DYNAMIC Tue May 26 13:00:45 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux",
+  "binaries": [
+    {
+      "name": "schema_contract_http_server",
+      "bytes": 2790424,
+      "sha256": "811df9eb899faeecb8b9c43543962d065016fa6e1c18e340a5dcb20725a93cfd",
+      "ldd": "\tlinux-vdso.so.1 (0x00007ffc48ffc000)\n\tlibyaml-0.so.2 => /lib/x86_64-linux-gnu/libyaml-0.so.2 (0x00007e04a9745000)\n\tlibxml2.so.2 => /lib/x86_64-linux-gnu/libxml2.so.2 (0x00007e04a921e000)\n\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007e04a9729000)\n\tlibssl.so.3 => /lib/x86_64-linux-gnu/libssl.so.3 (0x00007e04a967f000)\n\tlibcrypto.so.3 => /lib/x86_64-linux-gnu/libcrypto.so.3 (0x00007e04a8c00000)\n\tlibpcre2-8.so.0 => /lib/x86_64-linux-gnu/libpcre2-8.so.0 (0x00007e04a9184000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007e04a8b17000)\n\tlibgc.so.1 => /lib/x86_64-linux-gnu/libgc.so.1 (0x00007e04a9119000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007e04a8ae9000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007e04a8800000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007e04a976f000)\n\tlibicuuc.so.74 => /lib/x86_64-linux-gnu/libicuuc.so.74 (0x00007e04a8400000)\n\tliblzma.so.5 => /lib/x86_64-linux-gnu/liblzma.so.5 (0x00007e04a8ab7000)\n\tlibicudata.so.74 => /lib/x86_64-linux-gnu/libicudata.so.74 (0x00007e04a6600000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007e04a6200000)\n"
+    }
+  ]
+}

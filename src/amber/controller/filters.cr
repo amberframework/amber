@@ -8,6 +8,11 @@ module Amber::Controller
 
       # TODO: Find a way to make these protected again.
       def run_before_filter(action)
+        # A declared request schema is a contract, not documentation-only
+        # metadata. Validate it before application callbacks or the action.
+        run_schema_validation(action) if responds_to?(:run_schema_validation)
+        return if context.content
+
         if self.responds_to? :before_filters
           self.before_filters
           @filters.run(:before, :all)

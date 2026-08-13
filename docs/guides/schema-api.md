@@ -1,417 +1,287 @@
-# Schema API
+# Request and response schemas
 
-The Schema API provides type-safe, validated parameter handling for Amber controllers. It replaces manual `params["key"]` access with declarative schema definitions that include type coercion, validation, and structured error reporting. The Schema API is opt-in and backward compatible -- existing `params` usage continues to work.
+Amber V2 schemas are executable controller contracts. One declaration controls request parsing, validation, typed values, response validation, content negotiation, and OpenAPI output. A declared controller schema runs automatically before the action; it cannot become documentation that the application forgets to enforce.
 
-## Quick Start
+The V1 params validator remains available, but it is deprecated. Amber plans to keep it throughout the initial V2 compatibility window and remove it no earlier than a later minor release such as 2.5. The exact removal release will be announced separately. You can therefore upgrade the framework first and migrate one action at a time.
+
+## Build a complete JSON endpoint
+
+This example creates a pet through `POST /pets`. Every code sample names the file where it belongs.
+
+### 1. Define the contracts
+
+Create `src/schemas/pet_schemas.cr`:
 
 ```crystal
-class CreateUserSchema < Amber::Schema::Definition
+class CreatePetSchema < Amber::Schema::Definition
+  content_type "application/json"
+  additional_properties false
+
+  field :name, String, required: true, min_length: 1, max_length: 80
+  field :species, String, required: true, enum: ["cat", "dog", "other"]
+  field :age, Int32, min: 0, max: 50
+  field :request_id, String,
+    required: true,
+    source: Amber::Schema::ParamSource::Header,
+    source_name: "X-Request-ID"
+end
+
+class PetResponseSchema < Amber::Schema::Definition
+  content_type "application/json"
+  additional_properties false
+
+  field :id, Int64, required: true
   field :name, String, required: true
-  field :email, String, required: true, format: "email"
-  field :age, Int32, required: true, min: 0, max: 150
-end
-
-# In a controller action
-def create
-  schema = CreateUserSchema.new(context.params.to_h)
-  result = schema.validate
-
-  if result.success?
-    name = schema.name.not_nil!
-    email = schema.email.not_nil!
-    age = schema.age.not_nil!
-    # Create the user...
-  else
-    flash[:error] = result.error_messages.join(", ")
-    redirect_to "/users/new"
-  end
+  field :species, String, required: true
+  field :age, Int32
 end
 ```
 
-## Defining Schemas
+`additional_properties false` makes the object a closed contract. An undeclared body or response field then produces a validation error. Omit that line when an existing API must continue accepting and carrying additional fields.
 
-Schemas are defined by inheriting from `Amber::Schema::Definition` and using the `field` macro.
+### 2. Bind the contracts to the action
 
-### Field Types
-
-| DSL Macro | Crystal Type | Description |
-|-----------|-------------|-------------|
-| `field :name, String` | `String` | String values |
-| `field :age, Int32` | `Int32` | 32-bit integers |
-| `field :count, Int64` | `Int64` | 64-bit integers |
-| `field :price, Float64` | `Float64` | 64-bit floats |
-| `field :active, Bool` | `Bool` | Boolean values |
-| `field :tags, Array(String)` | `Array(String)` | Arrays with typed elements |
-| `field :metadata, Hash(String, JSON::Any)` | `Hash` | Hash/object fields |
-| `field :created_at, Time` | `Time` | ISO8601 time values |
-
-### DSL Shorthand (via Amber::Schema::DSL)
-
-When you include `Amber::Schema::DSL` in your schema, you get shorthand macros:
+Create or update `src/controllers/pets_controller.cr`:
 
 ```crystal
-class UserSchema < Amber::Schema::Definition
-  include Amber::Schema::DSL
-
-  string :name, required: true
-  string :email, required: true
-  integer :age
-  float :score
-  boolean :active
-  array :tags, of: String
-  datetime :created_at
-end
-```
-
-### Required Fields
-
-```crystal
-field :name, String, required: true
-# Validation will fail if "name" is missing from the input data
-```
-
-### Default Values
-
-```crystal
-field :role, String, default: "user"
-field :active, Bool, default: true
-```
-
-### Field Options
-
-Fields support inline constraint options:
-
-```crystal
-# Range constraints (numeric fields)
-field :age, Int32, min: 0, max: 150
-field :price, Float64, min: 0.0
-
-# Length constraints (string fields)
-field :name, String, min_length: 1, max_length: 100
-field :bio, String, max_length: 500
-
-# Format validation
-field :email, String, format: "email"
-field :website, String, format: "url"
-field :uuid, String, format: "uuid"
-
-# Enum validation
-field :status, String, enum: ["active", "inactive", "pending"]
-
-# Pattern validation (regex)
-field :phone, String, pattern: "^\\+?[1-9]\\d{1,14}$"
-```
-
-### Built-in Format Validators
-
-| Format | Description |
-|--------|-------------|
-| `"email"` | Standard email address pattern |
-| `"url"` / `"uri"` | Valid URL with scheme and host |
-| `"uuid"` | UUID format |
-| `"iso8601"` / `"datetime"` | ISO8601 datetime string |
-| `"date"` | Date in YYYY-MM-DD format |
-| `"time"` | Time in HH:MM or HH:MM:SS format |
-| `"ipv4"` | IPv4 address |
-| `"ipv6"` | IPv6 address |
-| `"hostname"` | Valid hostname |
-
-## Validation
-
-### Running Validation
-
-```crystal
-schema = CreateUserSchema.new(data)
-
-# Legacy result API
-result = schema.validate
-if result.success?
-  # Access validated data
-  puts result.data  # => Hash(String, JSON::Any)
-else
-  puts result.error_messages  # => Array(String)
-  puts result.errors_by_field # => Hash(String, Array(Error))
-end
-
-# Typed result API
-typed_result = schema.validate_typed
-case typed_result
-when Amber::Schema::Success
-  data = typed_result.value
-when Amber::Schema::Failure
-  errors = typed_result.error.errors
-end
-```
-
-### Accessing Typed Fields
-
-After creating a schema instance, fields are accessible as typed getter methods:
-
-```crystal
-schema = CreateUserSchema.new(data)
-result = schema.validate
-
-if result.success?
-  name = schema.name    # => String?
-  age = schema.age      # => Int32?
-  email = schema.email  # => String?
-end
-```
-
-### Custom Validators
-
-Add custom validation logic using the `validate` macro:
-
-```crystal
-class PasswordChangeSchema < Amber::Schema::Definition
-  field :password, String, required: true, min_length: 8
-  field :password_confirmation, String, required: true
-
-  validate do |context|
-    password = context.field_value("password")
-    confirmation = context.field_value("password_confirmation")
-
-    if password && confirmation && password != confirmation
-      context.add_error(
-        Amber::Schema::CustomValidationError.new(
-          "password_confirmation",
-          "Password confirmation does not match"
-        )
-      )
-    end
-  end
-end
-```
-
-### Conditional Validation
-
-Use `requires_together` and `requires_one_of` for cross-field constraints:
-
-```crystal
-class AddressSchema < Amber::Schema::Definition
-  field :street, String
-  field :city, String
-  field :state, String
-  field :zip, String
-
-  # All address fields must be present together
-  requires_together :street, :city, :state, :zip
-end
-
-class AuthSchema < Amber::Schema::Definition
-  field :email, String
-  field :phone, String
-  field :oauth_token, String
-
-  # Exactly one authentication method required
-  requires_one_of :email, :phone, :oauth_token
-end
-```
-
-### Nested Schemas
-
-Validate nested objects using the `nested` macro:
-
-```crystal
-class AddressSchema < Amber::Schema::Definition
-  field :street, String, required: true
-  field :city, String, required: true
-  field :zip, String, required: true
-end
-
-class OrderSchema < Amber::Schema::Definition
-  field :product_id, Int64, required: true
-  field :quantity, Int32, required: true, min: 1
-
-  nested :shipping_address, AddressSchema
-end
-```
-
-Nested schema errors are prefixed with the parent field name (e.g., `"shipping_address.city"`).
-
-## Type Coercion
-
-The Schema API automatically coerces values from their source types to the declared field types. This is particularly useful when dealing with form data (where everything is a string) or JSON payloads.
-
-### Coercion Rules
-
-| Source | Target | Behavior |
-|--------|--------|----------|
-| String `"42"` | Int32 | Parsed to `42` |
-| String `"3.14"` | Float64 | Parsed to `3.14` |
-| String `"true"` | Bool | Coerced to `true` |
-| Int `42` | String | Converted to `"42"` |
-| String (ISO8601) | Time | Parsed to Time |
-| String (UUID) | UUID | Parsed and validated |
-| String `"a,b,c"` | Array(String) | Split on commas |
-
-### Boolean Coercion
-
-The following string values are recognized as `true`: `"true"`, `"1"`, `"yes"`, `"y"`, `"on"`, `"t"`, `"enabled"`, `"active"`.
-
-The following are recognized as `false`: `"false"`, `"0"`, `"no"`, `"n"`, `"off"`, `"f"`, `"disabled"`, `"inactive"`.
-
-### Custom Type Coercion
-
-Register custom coercion functions for application-specific types:
-
-```crystal
-Amber::Schema::TypeCoercion.register("Money") do |value|
-  if str = value.as_s?
-    # Parse "$1,234.56" to cents
-    cents = str.gsub(/[$,]/, "").to_f64 * 100
-    JSON::Any.new(cents.to_i64)
-  end
-end
-```
-
-## Parsers
-
-The Schema API includes parsers for multiple content types:
-
-| Content Type | Parser |
-|-------------|--------|
-| `application/json` | JSONParser |
-| `application/x-www-form-urlencoded` | QueryParser |
-| `multipart/form-data` | MultipartParser |
-| `application/xml`, `text/xml` | XMLParser |
-
-### Content-Type Based Parsing
-
-The `Parser::ParserRegistry` automatically selects the correct parser based on the request's Content-Type header:
-
-```crystal
-data = Amber::Schema::Parser::ParserRegistry.parse_request(context.request)
-schema = MySchema.new(data)
-```
-
-## Error Types
-
-| Error Class | Code | Description |
-|------------|------|-------------|
-| `RequiredFieldError` | `required_field_missing` | Required field not present |
-| `TypeMismatchError` | `type_mismatch` | Value cannot be coerced to declared type |
-| `InvalidFormatError` | `invalid_format` | Value does not match format constraint |
-| `RangeError` | `out_of_range` | Numeric value outside min/max bounds |
-| `LengthError` | `invalid_length` | String length outside min_length/max_length |
-| `CustomValidationError` | (custom) | Application-defined validation failure |
-
-### Error Structure
-
-Each error contains:
-
-```crystal
-error.field    # => "email"
-error.message  # => "Field 'email' has invalid format. Expected email"
-error.code     # => "invalid_format"
-error.details  # => Hash with additional context (optional)
-error.to_h     # => Hash for JSON serialization
-```
-
-## Result Types
-
-### LegacyResult (Backward Compatible)
-
-```crystal
-result = schema.validate
-result.success?          # => Bool
-result.failure?          # => Bool
-result.data              # => Hash(String, JSON::Any)?
-result.errors            # => Array(Error)
-result.warnings          # => Array(Warning)
-result.error_messages    # => Array(String)
-result.errors_by_field   # => Hash(String, Array(Error))
-result.to_h              # => Hash for JSON serialization
-```
-
-### Typed Result (Monadic)
-
-```crystal
-result = schema.validate_typed
-
-# Pattern matching
-result
-  .on_success { |data| puts "Valid: #{data}" }
-  .on_failure { |error| puts "Invalid: #{error.messages}" }
-
-# Functor map
-result.map { |data| transform(data) }
-
-# Monadic bind
-result.flat_map { |data| further_validate(data) }
-```
-
-## Controller Integration
-
-### Using with Request Params
-
-```crystal
-def create
-  # Convert Amber params to a Hash(String, JSON::Any)
-  data = {} of String => JSON::Any
-  context.params.each do |key, value|
-    data[key] = JSON::Any.new(value)
-  end
-
-  schema = CreateUserSchema.new(data)
-  result = schema.validate
-
-  if result.success?
-    # Use typed accessors
-    user = User.create!(
-      name: schema.name.not_nil!,
-      email: schema.email.not_nil!
+require "../schemas/pet_schemas"
+
+class PetsController < ApplicationController
+  schema :create, CreatePetSchema
+  response_schema :create,
+    PetResponseSchema,
+    status: 201,
+    description: "Pet created"
+
+  def create
+    input = validated_as(CreatePetSchema)
+    pet = Pet.create!(
+      name: input.name.not_nil!,
+      species: input.species.not_nil!,
+      age: input.age
     )
-    redirect_to "/users/#{user.id}"
-  else
-    flash[:error] = result.error_messages.join(", ")
-    redirect_to "/users/new"
+
+    payload = {
+      "id"      => JSON::Any.new(pet.id),
+      "name"    => JSON::Any.new(pet.name),
+      "species" => JSON::Any.new(pet.species),
+    }
+    payload["age"] = JSON::Any.new(pet.age.not_nil!) if pet.age
+
+    respond_with(payload, status: 201)
   end
 end
 ```
 
-### JSON API Pattern
+Amber parses and validates the request before `create` runs. `validated_as` returns the request-local schema instance and its typed getters. `validated_params` is also available when a `Hash(String, JSON::Any)` is more convenient.
+
+`respond_with` checks the response object and HTTP status before writing any bytes. A response that violates `PetResponseSchema` becomes an HTTP 500 contract error instead of silently returning an undocumented shape.
+
+### 3. Add the route
+
+Add this route inside the router block in `config/routes.cr`:
 
 ```crystal
-def create
-  data = Amber::Schema::Parser::ParserRegistry.parse_request(context.request)
-  schema = CreateUserSchema.new(data)
-  result = schema.validate
+post "/pets", PetsController, :create
+```
 
-  if result.success?
-    user = User.create!(name: schema.name.not_nil!, email: schema.email.not_nil!)
-    respond_with { json({id: user.id, name: user.name}) }
-  else
-    context.response.status_code = 422
-    respond_with { json(result.to_h) }
+### 4. Exercise the contract
+
+Run this from the application root while `amber watch` is running:
+
+```bash
+curl --fail-with-body \
+  --request POST \
+  --header 'Content-Type: application/json' \
+  --header 'Accept: application/json' \
+  --header 'X-Request-ID: guide-1' \
+  --data '{"name":"Mochi","species":"cat","age":3}' \
+  http://127.0.0.1:3000/pets
+```
+
+The automatic failure statuses are:
+
+| Status | Meaning |
+|---|---|
+| `400` | The body is malformed JSON, CBOR, or COSE. |
+| `406` | The requested response media type is not declared by the response schema. |
+| `415` | The request `Content-Type` is not declared by the request schema. |
+| `422` | The document parsed, but its values do not satisfy the schema. |
+| `500` | Application code produced a response shape or status outside its declared contract. |
+| `503` | A COSE request arrived before a key provider was configured. |
+
+Actions without a declared schema retain their existing params behavior.
+
+## Field types and constraints
+
+The built-in field types are `String`, `Int32`, `Int64`, `Float32`, `Float64`, `Bool`, `Time`, `UUID`, typed `Array(T)`, and `Hash(String, T)`. An unknown type is rejected unless the application registers an explicit coercion for it.
+
+```crystal
+field :email, String, required: true, format: "email"
+field :role, String, default: "member", enum: ["member", "admin"]
+field :score, Float64, min: 0.0, max: 1.0
+field :nickname, String, min_length: 2, max_length: 30
+field :slug, String, pattern: "^[a-z0-9-]+$"
+field :tags, Array(String)
+field :scores, Hash(String, Int32)
+```
+
+Validation fails when any member of a typed collection cannot be coerced. Amber never drops an invalid member and then reports the shortened collection as valid.
+
+Supported formats include `email`, `url` or `uri`, `uuid`, `iso8601` or `datetime`, `date`, `time`, `ipv4`, `ipv6`, and `hostname`.
+
+## Body, path, query, and header values
+
+The default source is the request body. Set `source` when a value belongs elsewhere. Use `source_name` when the wire name is not a valid or idiomatic Crystal method name.
+
+Put this schema in `src/schemas/show_pet_schema.cr`:
+
+```crystal
+class ShowPetSchema < Amber::Schema::Definition
+  field :id, Int64,
+    required: true,
+    source: Amber::Schema::ParamSource::Path
+
+  field :include_visits, Bool,
+    default: false,
+    source: Amber::Schema::ParamSource::Query,
+    source_name: "include_visits"
+
+  field :request_id, String,
+    source: Amber::Schema::ParamSource::Header,
+    source_name: "X-Request-ID"
+end
+```
+
+Then bind it in `src/controllers/pets_controller.cr` and declare the matching path in `config/routes.cr`:
+
+```crystal
+# src/controllers/pets_controller.cr
+schema :show, ShowPetSchema
+
+def show
+  input = validated_as(ShowPetSchema)
+  pet = Pet.find!(input.id.not_nil!)
+  # Render the pet...
+end
+```
+
+```crystal
+# config/routes.cr
+get "/pets/:id", PetsController, :show
+```
+
+## Conditional and nested contracts
+
+`when_field` and `when_present` make fields required only when their condition applies:
+
+```crystal
+class AccountSchema < Amber::Schema::Definition
+  field :kind, String, required: true, enum: ["person", "business"]
+
+  when_field :kind, "person" do
+    field :first_name, String, required: true
+    field :last_name, String, required: true
+  end
+
+  when_field :kind, "business" do
+    field :company_name, String, required: true
+    field :tax_id, String, required: true
   end
 end
 ```
 
-## Schema Introspection
+Use `requires_together :latitude, :longitude` when all named fields must appear together. Use `requires_one_of :email, :phone` when exactly one must appear. Use `nested :address, AddressSchema` to validate an object with another schema; nested error paths are prefixed, such as `address.city`.
 
-Schemas support compile-time and runtime introspection:
+## JSON, CBOR, and encrypted COSE
+
+Declare every request and response representation the action actually supports:
 
 ```crystal
-CreateUserSchema.field_names          # => ["name", "email", "age"]
-CreateUserSchema.required_field_names # => ["name", "email", "age"]
-CreateUserSchema.has_field?("name")   # => true
-CreateUserSchema.has_conditionals?    # => false
+content_type "application/json", "application/cbor", "application/cose"
 ```
 
-## Source Files
+- `application/json` uses the same object contract as ordinary Amber JSON APIs.
+- `application/cbor` carries the JSON-compatible contract as deterministic CBOR.
+- `application/cose` carries that CBOR document in a tagged COSE Encrypt0 envelope using ChaCha20-Poly1305.
 
-- `src/amber/schema.cr` -- Module entry point
-- `src/amber/schema/definition.cr` -- Base Definition class with field macro and validation
-- `src/amber/schema/dsl.cr` -- DSL shorthand macros (string, integer, float, etc.)
-- `src/amber/schema/request_schema.cr` -- RequestSchema for request validation
-- `src/amber/schema/result.cr` -- LegacyResult, Success/Failure, ValidationFailure
-- `src/amber/schema/errors.cr` -- Error type hierarchy
-- `src/amber/schema/validator.cr` -- Validator base classes (Context, Custom, Composite, Conditional)
-- `src/amber/schema/type_coercion.cr` -- Type coercion system
-- `src/amber/schema/parser.cr` -- Parser base, ParserRegistry, TypeCoercion parser
-- `src/amber/schema/parsers/json_parser.cr` -- JSON content parser
-- `src/amber/schema/parsers/query_parser.cr` -- URL-encoded form parser
-- `src/amber/schema/parsers/multipart_parser.cr` -- Multipart form data parser
-- `src/amber/schema/parsers/xml_parser.cr` -- XML content parser
-- `src/amber/schema/validators/` -- Built-in validators (required, type, format, length, range, enum, pattern)
+CBOR decoding is bounded to a 1 MiB document, 32 levels of nesting, and 16,384 collection items. It rejects indefinite lengths, duplicate map keys, invalid UTF-8, trailing bytes, byte strings where a JSON-compatible value is required, and non-finite numbers.
+
+COSE authenticates both inbound and outbound messages. Amber generates a fresh 96-bit nonce for every response, selects keys by COSE key ID, and supports a grace key during rotation. There is no built-in development key.
+
+Generate a 32-byte key from the application root:
+
+```bash
+openssl rand -base64 32
+```
+
+Store the result in the deployment secret manager as `AMBER_WIRE_KEY`, and store a non-empty key ID such as `2026-08` as `AMBER_WIRE_KEY_ID`. Do not commit either value.
+
+Create `config/wire_format.cr`:
+
+```crystal
+Amber::Schema::COSE.configure(
+  Amber::Schema::COSE::KeyProvider.from_env!
+)
+```
+
+Require it after `require "amber"` and before the controller glob in `config/application.cr`:
+
+```crystal
+require "amber"
+require "./wire_format"
+require "../src/controllers/application_controller"
+require "../src/controllers/**"
+require "./routes"
+```
+
+Clients send COSE Encrypt0 with algorithm `24` and receive the same interoperable envelope. The `X-Amber-Wire-Format` response header describes Amber's selected profile; it is informational and is not a substitute for verifying the authenticated COSE message.
+
+## Generate OpenAPI from the same contract
+
+The ordinary Amber router records route metadata. `Amber::Schema::OpenAPI.generate` combines it with the registered request and response schemas, including path/query/header parameters, body fields, supported media types, response status, constraints, and automatic error responses.
+
+Create `src/controllers/open_api_controller.cr`:
+
+```crystal
+class OpenAPIController < ApplicationController
+  def show
+    response.content_type = "application/json"
+    Amber::Schema::OpenAPI.generate(
+      title: "Pet Tracker API",
+      version: "2.0.0",
+      description: "The executable contract for the Pet Tracker API",
+      server_url: ENV["PUBLIC_URL"]? || "http://127.0.0.1:3000"
+    )
+  end
+end
+```
+
+Add the endpoint in `config/routes.cr`:
+
+```crystal
+get "/openapi.json", OpenAPIController, :show
+```
+
+Request-body components contain only body fields. Path, query, header, and cookie fields are emitted as OpenAPI parameters, so the generated document does not incorrectly require a header field inside the JSON body.
+
+## Migrate the deprecated validator gradually
+
+Existing V1-style code continues to compile and run in Amber V2:
+
+```crystal
+validation = params.validation do
+  required(:email) { |value| value.email? }
+end
+```
+
+The compiler emits a deprecation warning because new code should use a controller schema. This warning is not a removal in V2.0. A safe application migration is:
+
+1. Upgrade Amber and verify the existing application without rewriting validation.
+2. Define a schema for one action.
+3. Bind it with `schema :action, SchemaClass`.
+4. Replace reads with `validated_as(SchemaClass)` or `validated_params`.
+5. Add a response schema for API actions.
+6. Repeat per action.
+
+After a schema succeeds, `params` prioritizes its normalized values and falls back to the existing raw params wrapper for undeclared keys. This is the compatibility bridge that lets a controller move incrementally instead of requiring an application-wide conversion.

@@ -89,6 +89,7 @@ module Amber::Controller
     end
 
     # Provide access to validation methods for migration
+    @[Deprecated("Use Amber::Schema controller contracts; legacy params validation remains available for V2 migration compatibility")]
     def validation(&)
       # Create a temporary Amber::Validators::Params for validation
       validator = Amber::Validators::Params.new(raw_params)
