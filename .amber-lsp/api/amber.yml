@@ -1,0 +1,88 @@
+card_version: 1
+library: amber
+applies_to: "= 2.0.0-dev"
+docs_flags:
+  - without_mt
+docs_entries:
+  - src/amber.cr
+  - src/amber/testing/testing.cr
+notes:
+  - symbol: Amber::Testing::RequestHelpers#get
+    text: "Amber V2 test request helpers such as `get`, `post`, and `patch` return `Amber::Testing::TestResponse`, which exposes the status, body, headers, JSON, and response-classification methods."
+  - symbol: Amber::Testing::TestResponse
+    text: "`Amber::Testing::TestResponse` wraps an HTTP response with `status_code : Int32`, `body : String`, and `headers : HTTP::Headers`; `json : JSON::Any` parses the body. Test helpers that consume a request response should accept this wrapper type."
+  - symbol: Amber::Testing::ContextBuilder#build
+    text: "`Amber::Testing::ContextBuilder#build` returns `HTTP::Server::Context`; its chainable `method`, `path`, `header`, `body`, `json_body`, `query_param`, and `params` methods return the builder."
+  - symbol: Amber::Testing::ControllerHelpers#build_test_context
+    text: "`build_test_context(method : String = \"GET\", path : String = \"/\", headers : HTTP::Headers = HTTP::Headers.new, params : Hash(String, String) = {} of String => String) : HTTP::Server::Context` builds a controller request context."
+  - symbol: Amber::Controller::SchemaIntegration#legacy_params
+    text: "`legacy_params` is a protected controller method returning `Amber::Validators::Params`; call it from a controller subclass for the validator API."
+  - symbol: Amber::Controller::SchemaIntegration#params
+    text: "The schema-integrated controller `params` method has type `Amber::Controller::SchemaParamsWrapper | Amber::Validators::Params`; `legacy_params` always selects the validator object."
+  - symbol: Amber::Controller::SchemaIntegration#raw_params
+    text: "`raw_params` is a protected controller method returning `Amber::Router::Params`."
+  - symbol: Amber::Controller::SchemaParamsWrapper#validation
+    text: "`SchemaParamsWrapper#validation` takes a block and returns `Amber::Validators::Params`; define rules in the block and call `validate!` on the returned validator."
+  - symbol: Amber::Validators::Params#validation
+    text: "`Amber::Validators::Params#validation(&)` takes a rule-building block and returns the same validator. It has no positional Definition argument."
+  - symbol: Amber::Validators::Params#validate!
+    text: "`validate!` returns `Hash(String, String?)` when all rules pass and raises `Amber::Exceptions::Validator::ValidationFailed` when validation fails."
+  - symbol: Amber::Validators::Params#valid?
+    text: "`valid?` runs the configured rules and returns `Bool`; validated values are available from `params : Hash(String, String?)`."
+  - symbol: Amber::Validators::Params#to_h
+    text: "`Amber::Validators::Params#to_h` returns validated values as `Hash(String, String?)`; `to_unsafe_h` returns the raw `Hash(String, String)`."
+  - symbol: Amber::Validators::ValidationBuilder#required
+    text: "`required` adds a rule and returns the validator's `Array(Amber::Validators::BaseRule)`; it accepts an optional message, `allow_blank`, and an optional `String -> Bool` block."
+  - symbol: Amber::Jobs::Job#enqueue
+    text: "`job.enqueue(queue : String? = nil, delay : Time::Span? = nil) : Amber::Jobs::JobEnvelope` accepts queue and delay when scheduling; `JobEnvelope` has no `delay` method."
+  - symbol: Amber::DSL::Server#pipeline
+    text: "Configure named Amber middleware pipelines with `pipeline` inside `Amber::Server.configure`; the DSL provides `pipeline`, not `session`."
+  - symbol: described_class
+    text: "Crystal's standard `Spec` DSL does not define `described_class`; use the fully qualified type name in the example."
+  - symbol: contain
+    text: "Crystal's `contain` matcher calls `includes?` on the actual value. For an optional value that may be `nil`, use a nil matcher such as `be_nil`."
+  - symbol: Log::EntriesChecker#check
+    text: "`Log.capture` yields `Log::EntriesChecker`, which verifies log entries through `check(level, message_or_regex)` and `next`; it does not expose an `entries` array."
+error_hints:
+  - pattern: "undefined method 'validation' for Amber::Router::Params"
+    hint: "Build validator rules with the block form of `validation`; in a controller, use `legacy_params` when accessing the validator directly."
+    example: |-
+      params.validation do
+        required(:name) { |value| !value.empty? }
+      end
+      validated = params.validate!
+  - pattern: "method [A-Za-z_][A-Za-z0-9_:.]* must return HTTP::Client::Response but it is returning Amber::Testing::TestResponse"
+    hint: "Type this test helper with Amber's test response, or let the return type infer from `get`/`post`."
+    example: |-
+      def get_response
+        get("/items")
+      end
+  - pattern: "expected argument #[0-9]+ to '[^']*' to be HTTP::Client::Response, not Amber::Testing::TestResponse"
+    hint: "Accept `Amber::Testing::TestResponse` in helpers that consume a response from Amber's test request helpers."
+    example: |-
+      def merge_cookie_jar(cookie_jar : String, response : Amber::Testing::TestResponse)
+        response
+      end
+  - pattern: "undefined method 'delay' for Amber::Jobs::JobEnvelope"
+    hint: "Pass the delay to the job's `enqueue` call."
+    example: "job.enqueue(queue: \"import-data\", delay: 5.minutes)"
+  - pattern: "undefined method 'session' for Amber::DSL::Pipeline"
+    hint: "Declare middleware with the `pipeline` DSL inside `Amber::Server.configure`."
+    example: |-
+      Amber::Server.configure do
+        pipeline :auth_token do
+        end
+      end
+  - pattern: "undefined local variable or method 'described_class' for top-level"
+    hint: "Name the type explicitly; Crystal Spec does not provide `described_class`."
+    example: "APICardNamedSpecSubject.value.should eq(\"ok\")"
+  - pattern: "undefined method 'includes\\?' for Nil"
+    hint: "The `contain` matcher calls `includes?`; use a nil expectation for a nil actual value."
+    example: "nil_value = nil.as(String?)\nnil_value.should be_nil"
+  - pattern: "undefined method 'entries' for Log::EntriesChecker"
+    hint: "Use `Log::EntriesChecker#check` or `#next` to assert captured log entries."
+    example: |-
+      Log.capture do |logs|
+        Log.info { "API card probe" }
+        logs.check(:info, /API card probe/)
+      end
