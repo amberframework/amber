@@ -62,19 +62,19 @@ module Amber::Validators
   end
 
   record ValidationBuilder, _validator : Params do
-    def required(param : String | Symbol, msg : String? = nil, allow_blank = false)
+    def required(param : String | Symbol, msg : String? = nil, allow_blank = false) : Array(BaseRule)
       _validator.add_rule RequiredRule.new(param, msg, allow_blank)
     end
 
-    def required(param : String | Symbol, msg : String? = nil, allow_blank = false, &b : String -> Bool)
+    def required(param : String | Symbol, msg : String? = nil, allow_blank = false, &b : String -> Bool) : Array(BaseRule)
       _validator.add_rule RequiredRule.new(param, msg, allow_blank, &b)
     end
 
-    def optional(param : String | Symbol, msg : String? = nil, allow_blank = true)
+    def optional(param : String | Symbol, msg : String? = nil, allow_blank = true) : Array(BaseRule)
       _validator.add_rule OptionalRule.new(param, msg, allow_blank)
     end
 
-    def optional(param : String | Symbol, msg : String? = nil, allow_blank = true, &b : String -> Bool)
+    def optional(param : String | Symbol, msg : String? = nil, allow_blank = true, &b : String -> Bool) : Array(BaseRule)
       _validator.add_rule OptionalRule.new(param, msg, allow_blank, &b)
     end
   end
@@ -112,7 +112,7 @@ module Amber::Validators
     # end
     # ```
     @[Deprecated("Use Amber::Schema controller contracts; legacy params validation remains available for V2 migration compatibility")]
-    def validation(&)
+    def validation(&) : Amber::Validators::Params
       with ValidationBuilder.new(self) yield
       self
     end
@@ -124,7 +124,7 @@ module Amber::Validators
     # ```
     # user = User.new params.validate!
     # ```
-    def validate!
+    def validate! : Hash(String, String?)
       return params if valid?
       raise Amber::Exceptions::Validator::ValidationFailed.new errors
     end
@@ -137,7 +137,7 @@ module Amber::Validators
     #   response.status_code 400
     # end
     # ```
-    def valid?
+    def valid? : Bool
       validation_errors = errors
       validated_params = params
       validation_errors.clear
@@ -160,15 +160,15 @@ module Amber::Validators
     # ```
     # required(:email) { |p| p.email? & p.size.between? 1..10 }
     # ```
-    def add_rule(rule : BaseRule)
+    def add_rule(rule : BaseRule) : Array(BaseRule)
       rules << rule
     end
 
-    def to_h
+    def to_h : Hash(String, String?)
       params
     end
 
-    def to_unsafe_h
+    def to_unsafe_h : Hash(String, String)
       @raw_params.to_h
     end
   end

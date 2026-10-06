@@ -50,7 +50,7 @@ module Amber::Controller
     end
 
     # Delegate array-like access to validated data first, then raw params
-    def [](key : String | Symbol)
+    def [](key : String | Symbol) : String
       key_str = key.to_s
       if validated_data.has_key?(key_str)
         # Convert JSON::Any to string for backward compatibility
@@ -74,7 +74,7 @@ module Amber::Controller
       end
     end
 
-    def []?(key : String | Symbol)
+    def []?(key : String | Symbol) : String?
       key_str = key.to_s
       if validated_data.has_key?(key_str)
         self[key_str]
@@ -91,7 +91,7 @@ module Amber::Controller
 
     # Provide access to validation methods for migration
     @[Deprecated("Use Amber::Schema controller contracts; legacy params validation remains available for V2 migration compatibility")]
-    def validation(&)
+    def validation(&) : Amber::Validators::Params
       # Create a temporary Amber::Validators::Params for validation
       validator = Amber::Validators::Params.new(raw_params)
       with Amber::Validators::ValidationBuilder.new(validator) yield
@@ -99,7 +99,7 @@ module Amber::Controller
     end
 
     # Convert to hash combining validated and raw data
-    def to_h
+    def to_h : Hash(String, String?)
       result = {} of String => String?
 
       # Start with raw params
@@ -129,7 +129,7 @@ module Amber::Controller
     end
 
     # Access to raw unvalidated params
-    def to_unsafe_h
+    def to_unsafe_h : Hash(String, String)
       raw_params.to_h
     end
 

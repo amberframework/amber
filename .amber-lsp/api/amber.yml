@@ -1,6 +1,6 @@
 card_version: 1
 library: amber
-applies_to: "= 2.0.0-dev"
+applies_to: ">= 2.0.0-beta.9, < 2.1.0"
 docs_flags:
   - without_mt
 docs_entries:
