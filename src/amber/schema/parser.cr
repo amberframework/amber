@@ -10,11 +10,34 @@ module Amber::Schema
 
     # Registry for content-type based parser selection
     class ParserRegistry
+      # An application-supplied parser for one request media type. It reads
+      # the raw request body and returns the fields the schema validates.
+      alias RequestBodyParser = Proc(IO, Hash(String, JSON::Any))
+
       class_property parsers = {} of String => String
+      class_getter request_body_parsers = {} of String => RequestBodyParser
 
       # Register a parser for a content type
       def self.register(content_type : String, parser_name : String)
         parsers[normalize_content_type(content_type)] = parser_name
+      end
+
+      # Opts an application into parsing a request media type that Amber does
+      # not parse by default, such as XML. Call it once at boot, for example
+      # in `config/initializers/request_body_parsers.cr`:
+      #
+      # ```
+      # Amber::Schema::Parser::ParserRegistry.register_body_parser("application/xml") do |body|
+      #   MyXMLReader.read_fields(body) # => Hash(String, JSON::Any)
+      # end
+      # ```
+      #
+      # The schema for the action must also list the media type in its
+      # `content_type` declaration. A parser that raises answers the request
+      # with 400 `invalid_request_body`. Media types without a registered
+      # parser keep their default answer; XML types are answered with 415.
+      def self.register_body_parser(content_type : String, &parser : IO -> Hash(String, JSON::Any)) : Nil
+        request_body_parsers[normalize_content_type(content_type)] = parser
       end
 
       # Get parser name for content type
@@ -27,6 +50,15 @@ module Amber::Schema
       # Parse request based on content type
       def self.parse_request(request : HTTP::Request, schema_class : Definition.class | Nil = nil) : Hash(String, JSON::Any)
         content_type = request.headers["Content-Type"]?
+        media_type = normalize_content_type(content_type || "")
+        if request_body_parser = request_body_parsers[media_type]?
+          return parse_with_registered_parser(request, request_body_parser)
+        end
+
+        if request.body && xml_media_type?(media_type)
+          raise UnsupportedMediaTypeError.new(media_type)
+        end
+
         parser_name = get(content_type)
 
         case parser_name
@@ -34,8 +66,6 @@ module Amber::Schema
           parse_json_request(request)
         when "query"
           parse_query_request(request)
-        when "xml"
-          parse_xml_request(request)
         when "cbor"
           CBOR.decode_object(request.body || IO::Memory.new)
         when "cose"
@@ -49,7 +79,6 @@ module Amber::Schema
         else
           return {} of String => JSON::Any unless request.body
           if schema_class
-            media_type = normalize_content_type(content_type || "")
             raise UnsupportedMediaTypeError.new(media_type.empty? ? "missing" : media_type)
           end
 
@@ -58,8 +87,6 @@ module Amber::Schema
           body = request.body.try(&.gets_to_end) || ""
           if body.starts_with?("{") || body.starts_with?("[")
             parse_json_body(body)
-          elsif body.starts_with?("<")
-            parse_xml_body(body)
           else
             {} of String => JSON::Any
           end
@@ -101,15 +128,28 @@ module Amber::Schema
         end
       end
 
-      # Parse XML request
-      private def self.parse_xml_request(request : HTTP::Request) : Hash(String, JSON::Any)
-        body = request.body.try(&.gets_to_end) || ""
-        parse_xml_body(body)
+      # Runs an application-registered parser, reporting its failure as a
+      # malformed request body rather than a server error.
+      private def self.parse_with_registered_parser(request : HTTP::Request, request_body_parser : RequestBodyParser) : Hash(String, JSON::Any)
+        request_body = request.body
+        return {} of String => JSON::Any unless request_body
+
+        request_body_parser.call(request_body)
+      rescue ex : RequestParseError
+        raise ex
+      rescue ex
+        raise RequestParseError.new("Malformed request body: #{ex.message}")
       end
 
-      # Parse XML body string
-      private def self.parse_xml_body(body : String) : Hash(String, JSON::Any)
-        XMLParser.parse_string(body)
+      # Amber V2 parses request bodies as JSON and form data. By default XML
+      # bodies (`application/xml`, `text/xml`, and any `+xml` suffix type)
+      # are answered with 415 Unsupported Media Type, so no XML parser is
+      # linked into applications. An application opts in to XML with
+      # `register_body_parser`.
+      def self.xml_media_type?(media_type : String) : Bool
+        media_type == "application/xml" ||
+          media_type == "text/xml" ||
+          media_type.ends_with?("+xml")
       end
 
       # Normalize content type (remove charset, etc)
@@ -125,9 +165,6 @@ module Amber::Schema
     ParserRegistry.register("text/json", "json")
     ParserRegistry.register("application/x-www-form-urlencoded", "query")
     ParserRegistry.register("multipart/form-data", "query")
-    ParserRegistry.register("application/xml", "xml")
-    ParserRegistry.register("text/xml", "xml")
-    ParserRegistry.register("application/xhtml+xml", "xml")
     ParserRegistry.register("application/cbor", "cbor")
     ParserRegistry.register("application/cose", "cose")
 
@@ -337,4 +374,3 @@ module Amber::Schema
 end
 
 require "./parsers/multipart_parser"
-require "./parsers/xml_parser"

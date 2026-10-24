@@ -43,7 +43,7 @@ crystal docs                   # Generate API docs → docs/
 
 6. **Configuration** (`src/amber/configuration/`): Typed configuration structs with YAML loading, environment variable overrides (`AMBER_` prefix), validation, and custom registry
 
-7. **Schema API** (`src/amber/schema/`): Request validation and type coercion. Define schemas with field types, validators (required, length, format, range, pattern, enum), and parsers (JSON, multipart, query, XML)
+7. **Schema API** (`src/amber/schema/`): Request validation and type coercion. Define schemas with field types, validators (required, length, format, range, pattern, enum), and parsers (JSON, URL-encoded and multipart forms, query, CBOR, COSE); XML bodies are answered with 415
 
 8. **Jobs** (`src/amber/jobs/`): Background job processing with work-stealing pattern — idle web instances pick up queued jobs. Retry logic, queue adapters
 
@@ -95,8 +95,13 @@ puts Amber.env  # => "development"
 ### External Dependencies
 
 - **Grant ORM**: Separate shard — ActiveRecord-style ORM for V2 (publishing to the amberframework org soon)
+- **Micrate**: Separate shard (`amberframework/micrate`) — SQL migrations that Amber CLI runs as `amber database migrate`, `rollback`, and `status`
+- **Gemma**: Separate shard — file attachments, storage, and delivery; an ecosystem preview, not part of the web release gate
+- **Mica**: Separate project, in development and not yet released — a pure-Crystal parsing library that reads and verifies untrusted input exactly as published standards define it. Today it is an XML 1.0 and Namespaces 1.0 parser (streaming reader, DOM, builder, XPath 1.0) with no C library and no network or disk access while parsing. It is the planned XML parser for `ParserRegistry.register_body_parser`; other formats are planned, not built. Amber has no dependency on it.
 - **CLI**: Separate project (`amber_cli`) — not part of this repo
 - **Asset Pipeline**: Separate project (`amberframework/asset_pipeline`) — not part of this repo
+
+The website's crew pages give each boundary a character: Amber (framework), Grant (records), Gemma (files), and Mica (parsing): https://amberframework.org/characters
 
 ## Key File Paths
 
