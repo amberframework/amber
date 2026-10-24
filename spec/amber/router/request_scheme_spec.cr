@@ -13,7 +13,8 @@ end
 private def scheme_of(request : HTTP::Request,
                       list_of_trusted_proxies = LOOPBACK_ONLY,
                       server_terminates_tls : Bool = false) : String
-  Amber::Router::RequestScheme.resolve(request, list_of_trusted_proxies, server_terminates_tls)
+  trusted_proxies = Amber::Support::TrustedProxies.new(list_of_trusted_proxies, trusts_unix_socket_peers: false)
+  Amber::Router::RequestScheme.resolve(request, trusted_proxies, server_terminates_tls)
 end
 
 module Amber::Router

@@ -56,8 +56,9 @@ server:
     key_file: "config/ssl/key.pem"   # SSL private key path
     cert_file: "config/ssl/cert.pem" # SSL certificate path
   trusted_proxies:             # Proxies allowed to report the client's scheme
-    - "127.0.0.0/8"            # (default: loopback only)
+    - "127.0.0.0/8"            # and address (default: loopback only)
     - "::1"
+  unix_socket: null            # Listen on this UNIX socket path instead of host/port
 ```
 
 #### Running behind a TLS-terminating proxy
@@ -90,6 +91,23 @@ Entries are IP addresses or CIDR blocks. Pick the list for your deployment:
 | Platform router that is the only route to the app (e.g. DigitalOcean App Platform) | the platform's internal range, or `"0.0.0.0/0"` and `"::/0"` when the app port is unreachable any other way |
 | Cloudflare in front of a proxy on the host | default; let the local proxy pass Cloudflare's scheme through |
 
+The same rule decides the client's IP address, `request.client_ip` (which
+the `Amber::Pipe::ClientIp` pipe stores in `context.client_ip`). From an
+untrusted peer it is the peer's own address, and forwarding headers are
+ignored. From a trusted proxy Amber reads the hops in `Forwarded: for=` (or,
+without that header, `X-Forwarded-For`) from the right, skips every hop that
+is itself a trusted proxy, and returns the first one that is not; a spoofed
+leftmost entry is never reached. A hop that is not an IP address ends the
+walk, and the nearest verified address is used. `ClientIp.new(["CF-Connecting-IP"])`
+reads a named header instead, under the same rule.
+
+To put the proxy on a UNIX socket instead of loopback TCP, set
+`server.unix_socket` (for Caddy, `reverse_proxy unix//run/app.sock`). While
+it is set, every UNIX socket peer counts as a trusted proxy: the connection
+is local by construction and the socket file's permissions decide who may
+open it. A leftover socket file from a previous run is replaced at boot. It
+cannot be combined with `server.ssl` or a `process_count` above 1.
+
 Set the list in YAML, in `config/settings.cr`
 (`settings.server.trusted_proxies = ["127.0.0.1", "10.0.0.0/8"]`), or with
 the comma-separated `AMBER_SERVER_TRUSTED_PROXIES` environment variable. An
@@ -102,6 +120,7 @@ Validation rules:
 - `secret_key_base` should be at least 32 characters when set
 - SSL files must exist when SSL is enabled
 - every `trusted_proxies` entry must be an IP address or CIDR block
+- `unix_socket` cannot be combined with `ssl` or a `process_count` above 1
 
 ### SessionConfig
 
@@ -201,6 +220,7 @@ The naming convention is `AMBER_{SECTION}_{KEY}`:
 | `AMBER_SERVER_SSL_KEY_FILE` | `server.ssl.key_file` |
 | `AMBER_SERVER_SSL_CERT_FILE` | `server.ssl.cert_file` |
 | `AMBER_SERVER_TRUSTED_PROXIES` | `server.trusted_proxies` (comma-separated) |
+| `AMBER_SERVER_UNIX_SOCKET` | `server.unix_socket` |
 | `AMBER_DATABASE_URL` or `DATABASE_URL` | `database.url` |
 | `AMBER_SESSION_KEY` | `session.key` |
 | `AMBER_SESSION_STORE` | `session.store` |

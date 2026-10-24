@@ -62,6 +62,9 @@ module Amber::Configuration
         # Comma-separated; an empty value trusts no proxy at all.
         config.trusted_proxies = v.split(',').map(&.strip).reject(&.empty?)
       end
+      if v = ENV["AMBER_SERVER_UNIX_SOCKET"]?
+        config.unix_socket = v.empty? ? nil : v
+      end
     end
 
     private def self.apply_server_ssl(config : SSLConfig) : Nil

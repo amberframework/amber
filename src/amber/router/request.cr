@@ -2,6 +2,7 @@ require "./params"
 require "./router"
 require "./route"
 require "./request_scheme"
+require "./client_address"
 
 class HTTP::Request
   METHOD          = "_method"
@@ -65,22 +66,35 @@ class HTTP::Request
   # Behind a TLS-terminating reverse proxy the connection Amber sees is plain
   # HTTP, so the scheme the proxy reports (`Forwarded: proto=`,
   # `X-Forwarded-Proto`, or `HTTPS: on`) is believed only when the immediate
-  # peer matches `server.trusted_proxies`. See `Amber::Router::RequestScheme`.
+  # peer is a trusted proxy (`server.trusted_proxies`). See
+  # `Amber::Router::RequestScheme`.
   def scheme : String
-    server_settings = Amber.settings
-    server_terminates_tls = !server_settings.ssl_key_file.nil? && !server_settings.ssl_cert_file.nil?
-
-    Amber::Router::RequestScheme.resolve(
-      self,
-      server_settings.server.trusted_proxy_networks,
-      server_terminates_tls
-    )
+    Amber::Router::RequestScheme.resolve(self, trusted_proxies, Amber.settings.server_terminates_tls?)
   end
 
   # Returns `true` when the client reached the application over HTTPS. This
   # is the one place Amber answers that question; see `#scheme`.
   def https? : Bool
     scheme == Amber::Router::RequestScheme::HTTPS
+  end
+
+  # Returns the IP address of the client, or `nil` when none is known.
+  #
+  # From an untrusted peer this is the peer's own address. From a trusted
+  # proxy it is the nearest untrusted hop in `Forwarded: for=` or
+  # `X-Forwarded-For`, read from the right. See `Amber::Router::ClientAddress`.
+  def client_ip : Socket::IPAddress?
+    Amber::Router::ClientAddress.resolve(self, trusted_proxies)
+  end
+
+  # The proxies this application trusts, from `server.trusted_proxies` and
+  # `server.unix_socket`.
+  def trusted_proxies : Amber::Support::TrustedProxies
+    server_config = Amber.settings.server
+    Amber::Support::TrustedProxies.new(
+      server_config.trusted_proxy_networks,
+      trusts_unix_socket_peers: server_config.listens_on_unix_socket?
+    )
   end
 
   private def parsed_uri

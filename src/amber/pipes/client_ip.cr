@@ -1,28 +1,33 @@
 module Amber
   module Pipe
-    # Handler to determine real client IP address when Amber is behind
-    # trusted reverse proxy or proxies, and save it to context.client_ip.
+    # Saves the real client IP address to `context.client_ip`.
     #
-    # Reverse proxy should pass client IP in a header such as "X-Forwarded-For".
-    # In case of multiple values in a header, the leftmost one is used.
+    # By default it uses `HTTP::Request#client_ip`: the peer's own address
+    # for an untrusted peer, and for a trusted proxy (`server.trusted_proxies`)
+    # the nearest untrusted hop in `Forwarded: for=` or `X-Forwarded-For`,
+    # read from the right. See `Amber::Router::ClientAddress`.
     #
-    # For this functionality to not cause security concerns, all trusted,
-    # public-facing reverse proxies should delete the header if request is
-    # coming from an untrusted client before appending their own, valid value.
+    # Given header names, it reads the first of those headers that is present
+    # instead (for example `CF-Connecting-IP`), with the same rule: the header
+    # is believed only from a trusted proxy, and walked from the right.
     class ClientIp < Base
-      def initialize(header : String = "X-Forwarded-For")
-        @headers = [header]
+      @list_of_header_names : Array(String)?
+
+      def initialize
+        @list_of_header_names = nil
       end
 
-      def initialize(@headers : Array(String))
+      def initialize(header : String)
+        @list_of_header_names = [header]
+      end
+
+      def initialize(list_of_header_names : Array(String))
+        @list_of_header_names = list_of_header_names
       end
 
       def call(context : HTTP::Server::Context)
-        @headers.each do |header|
-          if addresses = context.request.headers.get?(header)
-            context.client_ip = Socket::IPAddress.new(addresses[0], 0)
-          end
-        end
+        request = context.request
+        context.client_ip = Amber::Router::ClientAddress.resolve(request, request.trusted_proxies, @list_of_header_names)
         call_next(context)
       end
     end

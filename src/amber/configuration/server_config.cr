@@ -46,6 +46,13 @@ module Amber::Configuration
     # ```
     property trusted_proxies : Array(String) = DEFAULT_TRUSTED_PROXIES.dup
 
+    # Path of a UNIX socket to listen on instead of `host` and `port`, for a
+    # reverse proxy on the same machine (`reverse_proxy unix//run/app.sock`
+    # in Caddy). While it is set, every UNIX socket peer counts as a trusted
+    # proxy: such a connection is local by construction, and the socket
+    # file's permissions decide who may open it.
+    property unix_socket : String? = nil
+
     # The parsed form of `trusted_proxies` together with the list it was
     # parsed from. It is a class so that replacing the cache is a single
     # reference write, which a concurrent reader can never observe half done.
@@ -76,6 +83,30 @@ module Amber::Configuration
       list_of_networks = list_of_notations.map { |notation| Amber::Support::TrustedProxyNetwork.parse(notation) }
       @parsed_trusted_proxies = ParsedTrustedProxies.new(list_of_notations, list_of_networks)
       list_of_networks
+    end
+
+    # Returns `true` when the server listens on `unix_socket` rather than TCP.
+    def listens_on_unix_socket? : Bool
+      socket_path = unix_socket
+      !socket_path.nil? && !socket_path.empty?
+    end
+
+    # Raises `Amber::Exceptions::ConfigurationError` when `unix_socket` is
+    # combined with settings that only work over TCP.
+    private def validate_unix_socket! : Nil
+      return unless listens_on_unix_socket?
+
+      if ssl.is_enabled?
+        raise Amber::Exceptions::ConfigurationError.new(
+          "server.unix_socket cannot be combined with server.ssl; terminate TLS at the proxy"
+        )
+      end
+
+      unless @process_count == 1
+        raise Amber::Exceptions::ConfigurationError.new(
+          "server.unix_socket requires server.process_count 1, got #{@process_count}"
+        )
+      end
     end
 
     # Raises `Amber::Exceptions::ConfigurationError` naming the first
@@ -114,6 +145,7 @@ module Amber::Configuration
       end
 
       validate_trusted_proxies!
+      validate_unix_socket!
 
       if ssl.is_enabled?
         if ssl.key_file && !File.exists?(ssl.key_file.not_nil!)

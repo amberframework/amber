@@ -37,6 +37,36 @@ module Amber::Configuration
         config.trusted_proxy_networks.any?(&.includes?(peer)).should be_true
       end
 
+      it "rejects server.unix_socket together with server.ssl" do
+        config = ServerConfig.new
+        config.unix_socket = "/run/app.sock"
+        config.ssl.key_file = __FILE__
+        config.ssl.cert_file = __FILE__
+
+        expect_raises(Amber::Exceptions::ConfigurationError, /unix_socket/) do
+          config.validate!
+        end
+      end
+
+      it "rejects server.unix_socket with more than one process" do
+        config = ServerConfig.new
+        config.unix_socket = "/run/app.sock"
+        config.process_count = 2
+
+        expect_raises(Amber::Exceptions::ConfigurationError, /unix_socket/) do
+          config.validate!
+        end
+      end
+
+      it "listens on a UNIX socket only when a path is set" do
+        config = ServerConfig.new
+        config.listens_on_unix_socket?.should be_false
+        config.unix_socket = ""
+        config.listens_on_unix_socket?.should be_false
+        config.unix_socket = "/run/app.sock"
+        config.listens_on_unix_socket?.should be_true
+      end
+
       it "rejects an entry that is not an address in #validate!" do
         config = ServerConfig.new
         config.trusted_proxies = ["proxy.internal"]

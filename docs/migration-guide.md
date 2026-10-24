@@ -528,6 +528,16 @@ What to change:
    framework now reads the proxy's own header, and a pipe that writes the
    flag for every request would mark plain-HTTP requests as HTTPS.
 
+The same setting decides the client's IP address. `request.client_ip` and
+the `ClientIp` pipe now return the peer's own address for an untrusted peer,
+and for a trusted proxy the nearest untrusted hop in `Forwarded: for=` or
+`X-Forwarded-For`, read from the right. Earlier versions took the leftmost
+`X-Forwarded-For` entry from any peer, which a client controls; if your app
+logged or rate-limited on that value, expect the real address now.
+
+A proxy can also reach Amber over a UNIX socket: set `server.unix_socket`,
+and UNIX socket peers are trusted while it is set.
+
 One behavior changes: `HTTPS: on` is now believed only from a trusted peer.
 A workaround pipe that sets it still works while the proxy's address is in
 `trusted_proxies`, so you can upgrade first and delete the pipe afterward.

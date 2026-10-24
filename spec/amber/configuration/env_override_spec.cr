@@ -37,6 +37,14 @@ module Amber::Configuration
         end
       end
 
+      it "overrides server.unix_socket from AMBER_SERVER_UNIX_SOCKET" do
+        with_env({"AMBER_SERVER_UNIX_SOCKET" => "/run/app.sock"}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.server.unix_socket.should eq "/run/app.sock"
+        end
+      end
+
       it "overrides server.port from AMBER_SERVER_PORT" do
         with_env({"AMBER_SERVER_PORT" => "8080"}) do
           config = AppConfig.new
