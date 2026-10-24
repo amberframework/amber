@@ -19,6 +19,7 @@ module Amber::Router
     @multipart : Types::Params?
     @json : Types::Params?
     @form : HTTP::Params?
+    @body_error : Amber::Exceptions::BadRequest?
 
     def initialize(@request : HTTP::Request)
     end
@@ -108,21 +109,27 @@ module Amber::Router
       @request.query_params
     end
 
-    private def form
+    private def form : HTTP::Params
       return HTTP::Params.parse("") unless content_type?(URL_ENCODED_FORM)
-      @form ||= Parsers::FormData.parse(@request)
+      if parsed = @form
+        return parsed
+      end
+      @form = parse_body { Parsers::FormData.parse(@request) }
     end
 
     private def form_value?(key : String) : String?
       return unless content_type?(URL_ENCODED_FORM)
-      (@form ||= Parsers::FormData.parse(@request))[key]?
+      form[key]?
     end
 
-    private def multipart
-      return @multipart.not_nil! if @multipart
+    private def multipart : Types::Params
+      if parsed = @multipart
+        return parsed
+      end
       return Types::Params.new unless content_type?(MULTIPART_FORM)
-      @multipart, @files = Parsers::Multipart.parse(@request)
-      @multipart.not_nil!
+
+      fields, @files = parse_body { Parsers::Multipart.parse(@request) }
+      @multipart = fields
     end
 
     private def multipart_value?(key : String) : String?
@@ -130,9 +137,28 @@ module Amber::Router
       multipart[key]?
     end
 
-    private def json
+    private def json : Types::Params
       return Types::Params.new unless content_type?(APPLICATION_JSON)
-      @json ||= Parsers::JSON.parse(@request)
+      if parsed = @json
+        return parsed
+      end
+      @json = parse_body { Parsers::JSON.parse(@request) }
+    end
+
+    # Parses the body once. A rejected body consumed part of the stream, so
+    # the rejection is kept and raised again on every later read: a caller
+    # that catches it never sees a parse of the bytes that remain.
+    private def parse_body(& : -> T) : T forall T
+      if error = @body_error
+        raise error
+      end
+
+      begin
+        yield
+      rescue ex : Amber::Exceptions::BadRequest
+        @body_error = ex
+        raise ex
+      end
     end
 
     private def json_value?(key : String) : String?

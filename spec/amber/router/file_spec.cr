@@ -118,6 +118,32 @@ module Amber::Router
       FileUtils.rm_rf(directory)
     end
 
+    it "deletes a discarded file even when closing it fails" do
+      file = ::File.tempfile("amber-discard-spec")
+      file.print "unflushed"
+      # Closing the descriptor underneath makes the File's own close fail.
+      LibC.close(file.fd)
+
+      File.discard(file)
+
+      ::File.exists?(file.path).should be_false
+    end
+
+    it "uses a new private directory when the shared one is not private" do
+      shared = File::UPLOAD_DIRECTORY
+      File.upload_directory
+      ::File.chmod(shared, 0o755)
+      begin
+        fallback = File.upload_directory
+        fallback.should_not eq shared
+        info = ::File.info(fallback, follow_symlinks: false)
+        (info.permissions.value & 0o077).should eq 0
+        File.upload_directory.should eq fallback
+      ensure
+        ::File.chmod(shared, 0o700)
+      end
+    end
+
     it "keeps a retained upload at its path for later use" do
       attachment = build_upload("for a job")
       path = attachment.retain!

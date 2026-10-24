@@ -14,6 +14,7 @@ module Amber::Configuration
         config.max_key_bytes.should eq 1_024
         config.max_value_bytes.should eq 1_048_576
         config.max_form_body_bytes.should eq 8_388_608
+        config.max_document_nodes.should eq 100_000
       end
     end
 

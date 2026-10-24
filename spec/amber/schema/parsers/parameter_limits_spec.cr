@@ -268,6 +268,33 @@ describe Amber::Schema::Parser::XMLParser do
       end
     end
 
+    it "copies stripped text once, charging what it keeps" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_value_bytes = 8 * 1024 * 1024
+      text = "x" * (2 * 1024 * 1024)
+      xml = "#{"<a>" * 4}  #{text}  #{"</a>" * 4}"
+      result = {} of String => JSON::Any
+
+      allocated = bytes_allocated_by do
+        result = Amber::Schema::Parser::XMLParser.parse_string(xml, config)
+      end
+
+      result["a#text"].as_s.bytesize.should eq text.bytesize
+      result["a.a.a.a"].as_s.bytesize.should eq text.bytesize
+      # Four kept values plus one cached read of the text node and the parse;
+      # stripping each value after building it would add four more copies.
+      allocated.should be < 8_u64 * text.bytesize
+    end
+
+    it "rejects a document with more than max_document_nodes nodes before extracting" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_document_nodes = 1_000
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_document_nodes/) do
+        Amber::Schema::Parser::XMLParser.parse_string("<r>#{"<a/>" * 1_000}</r>", config)
+      end
+      Amber::Schema::Parser::XMLParser.parse_string("<r>#{"<a/>" * 998}</r>", config).should_not be_empty
+    end
+
     it "checks the generated element#text key against max_key_bytes" do
       config = Amber::Configuration::ParamsConfig.new
       config.max_key_bytes = 8
