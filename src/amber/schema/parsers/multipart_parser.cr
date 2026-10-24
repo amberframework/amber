@@ -126,16 +126,20 @@ module Amber::Schema::Parser
     end
 
     # Parse multipart form data, handling both files and regular fields
-    def self.parse_multipart_request(request : HTTP::Request) : Hash(String, JSON::Any)
+    def self.parse_multipart_request(request : HTTP::Request, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
       result = {} of String => JSON::Any
+      budget = Amber::Router::Parsers::ParamBudget.new(limits)
 
       HTTP::FormData.parse(request) do |upload|
         next unless upload
 
+        budget.admit!(upload.name)
         filename = upload.filename
-        content = upload.body.gets_to_end
 
         if filename.is_a?(String) && !filename.empty?
+          # File contents follow the application's upload handling; only
+          # field values are bounded by the parameter limits.
+          content = upload.body.gets_to_end
           # This is a file upload
           file_info = FileInfo.new(
             filename: filename,
@@ -144,10 +148,11 @@ module Amber::Schema::Parser
             content: content,
             headers: upload.headers
           )
-          QueryParser.set_nested_value(result, upload.name, file_info.to_json_any)
+          QueryParser.set_nested_value(result, upload.name, file_info.to_json_any, budget)
         else
           # This is a regular form field
-          QueryParser.set_nested_value(result, upload.name, QueryParser.parse_value(content))
+          content = budget.read_value(upload.body)
+          QueryParser.set_nested_value(result, upload.name, QueryParser.parse_value(content), budget)
         end
       end
 
@@ -156,10 +161,12 @@ module Amber::Schema::Parser
 
     # Builds schema data from the router's cached multipart parse. This keeps
     # file uploads available after routing and CSRF have inspected the request.
-    def self.parse_router_params(params : Amber::Router::Types::Params, files : Amber::Router::Types::Files) : Hash(String, JSON::Any)
-      result = QueryParser.parse_params_to_nested(params)
+    def self.parse_router_params(params : Amber::Router::Types::Params, files : Amber::Router::Types::Files, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
+      result = QueryParser.parse_params_to_nested(params, limits)
+      budget = Amber::Router::Parsers::ParamBudget.new(limits)
 
       files.each do |name, upload|
+        budget.admit!(name)
         content = ::File.read(upload.file.path)
         file_info = FileInfo.new(
           filename: upload.filename,
@@ -168,7 +175,7 @@ module Amber::Schema::Parser
           content: content,
           headers: upload.headers
         )
-        QueryParser.set_nested_value(result, name, file_info.to_json_any)
+        QueryParser.set_nested_value(result, name, file_info.to_json_any, budget)
       end
 
       result

@@ -11,48 +11,50 @@ module Amber::Schema::Parser
     end
 
     # Parse query string into nested hash structure
-    def self.parse_query_string(query_string : String) : Hash(String, JSON::Any)
+    def self.parse_query_string(query_string : String, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
       params = HTTP::Params.parse(query_string)
-      parse_params_to_nested(params)
+      parse_params_to_nested(params, limits)
     end
 
-    # Convert flat params to nested structure
-    def self.parse_params_to_nested(params : HTTP::Params | Hash(String, String)) : Hash(String, JSON::Any)
+    # Convert flat params to nested structure.
+    #
+    # Raises `Amber::Exceptions::ParameterLimitExceeded` when the params
+    # exceed *limits*; see `Amber::Configuration::ParamsConfig`.
+    def self.parse_params_to_nested(params : HTTP::Params | Hash(String, String), limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
       result = {} of String => JSON::Any
+      budget = Amber::Router::Parsers::ParamBudget.new(limits)
 
-      case params
-      when HTTP::Params
-        params.each do |key, value|
-          set_nested_value_internal(result, key, parse_value(value))
-        end
-      when Hash(String, String)
-        params.each do |key, value|
-          set_nested_value_internal(result, key, parse_value(value))
-        end
+      params.each do |key, value|
+        budget.admit!(key, value)
+        set_nested_value_internal(result, key, parse_value(value), budget)
       end
 
       result
     end
 
-    # Handle nested parameter keys like user[profile][name]
-    def self.set_nested_value(hash : Hash(String, JSON::Any), key : String, value : String | JSON::Any)
+    # Handle nested parameter keys like user[profile][name].
+    #
+    # Pass the same *budget* for every parameter of one request so that its
+    # cumulative limits apply.
+    def self.set_nested_value(hash : Hash(String, JSON::Any), key : String, value : String | JSON::Any, budget : Amber::Router::Parsers::ParamBudget = Amber::Router::Parsers::ParamBudget.new)
       # Convert string values to JSON::Any
       json_value = value.is_a?(String) ? parse_value(value) : value
-      set_nested_value_internal(hash, key, json_value)
+      set_nested_value_internal(hash, key, json_value, budget)
     end
 
     # Internal implementation for nested value setting
-    private def self.set_nested_value_internal(hash : Hash(String, JSON::Any), key : String, value : JSON::Any)
+    private def self.set_nested_value_internal(hash : Hash(String, JSON::Any), key : String, value : JSON::Any, budget : Amber::Router::Parsers::ParamBudget)
+      budget.check_key!(key)
+      parts = parse_nested_key(key)
+      budget.check_depth!(parts.size)
+      parts.each { |part| budget.check_segment!(part) }
+
       # Handle array notation with indices: tags[0], tags[1]
       if match = key.match(/^(.+)\[(\d+)\]$/)
         base_key = match[1]
-        index = match[2].to_i
         hash[base_key] ||= JSON::Any.new([] of JSON::Any)
         if array = hash[base_key].as_a?
-          # Extend array if necessary
-          while array.size <= index
-            array << JSON::Any.new(nil)
-          end
+          index = budget.reserve_array_slot!(array, match[2])
           array[index] = value
         end
         return
@@ -69,8 +71,6 @@ module Amber::Schema::Parser
       end
 
       # Handle nested object notation: user[profile][name]
-      parts = parse_nested_key(key)
-
       if parts.size == 1
         # Simple key
         hash[key] = value

@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased
+
+### Security
+
+- Bound request parameter parsing. A bracket index such as `items[N]` is now
+  converted with a checked conversion and must be at most
+  `params.max_array_index` (default 100) and at most
+  `params.max_array_index_gap` (default 32) past the end of its array; the
+  empty entries added to fill gaps are capped per request by
+  `params.max_array_padding` (default 1,000). Previously a single request
+  could make Amber pad an array to the index it named, or raise an overflow
+  error that surfaced as a 500.
+- Add explicit defaults for the number of parameters (`max_params`, 1,000),
+  key nesting depth (`max_nesting_depth`, 32), key length (`max_key_bytes`,
+  1 KiB), field value length (`max_value_bytes`, 1 MiB), and URL-encoded body
+  size (`max_form_body_bytes`, 8 MiB). They apply to query strings,
+  URL-encoded and multipart forms in both the router and the schema parsers.
+- A request beyond any limit is answered with `400 Bad Request` (schema
+  contracts report the `parameter_limit_exceeded` code). Configure the limits
+  in the new `params:` section of `config/environments/<env>.yml` or with
+  `AMBER_PARAMS_<KEY>` environment variables.
+- The WebSocket binary decoder rejects a length prefix or field count larger
+  than the message instead of allocating the declared size.
+
 ## 2.0.0-beta.5 (2026-08-13)
 
 This release makes Amber V2 schemas executable request and response contracts,

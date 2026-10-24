@@ -32,6 +32,9 @@ module Amber
           io = IO::Memory.new(bytes)
 
           field_count = read_uint32(io)
+          # Each field needs at least two 4-byte length prefixes.
+          remaining = io.size - io.pos
+          raise IO::EOFError.new("field count #{field_count} exceeds the message size") if field_count > remaining // 8
           result = Hash(String, JSON::Any).new
 
           field_count.times do
@@ -70,7 +73,7 @@ module Amber
           "application/octet-stream"
         end
 
-        private def read_uint32(io : IO) : UInt32
+        private def read_uint32(io : IO::Memory) : UInt32
           bytes = Bytes.new(4)
           io.read_fully(bytes)
           IO::ByteFormat::BigEndian.decode(UInt32, bytes)
@@ -82,8 +85,11 @@ module Amber
           io.write(bytes)
         end
 
-        private def read_length_prefixed_string(io : IO) : String
+        private def read_length_prefixed_string(io : IO::Memory) : String
           length = read_uint32(io)
+          # The prefix is untrusted: never allocate more than the message holds.
+          remaining = io.size - io.pos
+          raise IO::EOFError.new("length prefix #{length} exceeds the #{remaining} bytes remaining") if length > remaining
           bytes = Bytes.new(length)
           io.read_fully(bytes)
           String.new(bytes)

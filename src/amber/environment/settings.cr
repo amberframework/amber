@@ -165,6 +165,11 @@ module Amber::Environment
       to_app_config.static
     end
 
+    # Returns the typed request parameter limits.
+    def params : Amber::Configuration::ParamsConfig
+      to_app_config.params
+    end
+
     # Returns the full AppConfig, building it from V1 properties if needed.
     def to_app_config : Amber::Configuration::AppConfig
       @_app_config ||= build_app_config_from_v1
