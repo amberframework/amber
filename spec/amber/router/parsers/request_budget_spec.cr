@@ -223,7 +223,36 @@ module Amber::Router::Parsers
     end
   end
 
+  describe "a rejected body" do
+    it "stays rejected for params after a schema read rejects it" do
+      body = "#{" " * 70_000}{\"role\":\"admin\"}"
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/json"}, body)
+      request.param_budget = ParamBudget.new(limits_with(&.max_document_body_bytes = 16))
+
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_document_body_bytes/) do
+        Amber::Schema::Parser::JSONParser.parse_request(request)
+      end
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_document_body_bytes/) do
+        request.params["role"]?
+      end
+    end
+  end
+
   describe Amber::Router::File do
+    it "deletes every upload even when closing one handle fails" do
+      body = multipart_body("AmberBudgetBoundary", [{"a", "a.txt", "first"}, {"b", "b.txt", "second"}])
+      request = multipart_post(body)
+      files = request.params.files
+      handle = files["a"].file
+      # Closing the descriptor underneath makes the handle's own close fail.
+      LibC.close(handle.fd)
+
+      request.delete_uploaded_files
+
+      ::File.exists?(files["a"].path).should be_false
+      ::File.exists?(files["b"].path).should be_false
+    end
+
     it "holds no open handle until the action calls file" do
       body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
       _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))

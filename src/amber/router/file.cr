@@ -22,6 +22,8 @@ module Amber::Router
   # Each method transfers ownership once: after `move_to` or `retain!`,
   # Amber's cleanup leaves the path alone.
   struct File
+    Log = ::Log.for(self)
+
     # The preferred upload directory: one per user, which every worker and
     # every restart of the app reuses, so directories never pile up.
     UPLOAD_DIRECTORY = ::File.join(Dir.tempdir, upload_directory_name)
@@ -280,9 +282,15 @@ module Amber::Router
     # the file it put there; the private upload directory keeps every other
     # user out. To keep an upload, transfer it with `move_to` or `retain!`,
     # which stop this cleanup entirely.
+    #
+    # A handle that fails to close does not stop the deletion.
     def delete_tempfile : Nil
       tempfile = @tempfile
-      close_handle(tempfile)
+      begin
+        close_handle(tempfile)
+      rescue ex : IO::Error
+        Log.warn(exception: ex) { "Could not close the upload handle for #{tempfile.path}" }
+      end
       return unless tempfile.owned_by_amber?
 
       tempfile.owned_by_amber = false
@@ -308,8 +316,8 @@ module Amber::Router
 
     private def close_handle(tempfile : Tempfile) : Nil
       if handle = tempfile.handle
-        handle.close
         tempfile.handle = nil
+        handle.close
       end
     end
   end

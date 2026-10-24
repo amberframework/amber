@@ -37,14 +37,14 @@ module Amber::Schema
         when "xml"
           parse_xml_request(request)
         when "cbor"
-          CBOR.decode_object(request.body || IO::Memory.new)
+          request.guard_body_read { CBOR.decode_object(request.body || IO::Memory.new) }
         when "cose"
           provider = COSE.key_provider || raise RequestParseError.new(
             "COSE request handling is not configured",
             "cose_not_configured",
             503
           )
-          plaintext = COSE.decrypt0(request.body || IO::Memory.new, provider)
+          plaintext = request.guard_body_read { COSE.decrypt0(request.body || IO::Memory.new, provider) }
           CBOR.decode_object(IO::Memory.new(plaintext))
         else
           return {} of String => JSON::Any unless request.body
@@ -55,7 +55,7 @@ module Amber::Schema
 
           # Backward-compatible standalone parser behavior. Controller-bound
           # schemas enforce declared media types before reaching this fallback.
-          body = request.param_budget.read_document(request.body)
+          body = request.read_document_body
           if body.starts_with?("{") || body.starts_with?("[")
             parse_json_body(body)
           elsif body.starts_with?("<")
@@ -82,7 +82,7 @@ module Amber::Schema
 
       # Parse JSON request
       private def self.parse_json_request(request : HTTP::Request) : Hash(String, JSON::Any)
-        body = request.param_budget.read_document(request.body)
+        body = request.read_document_body
         parse_json_body(body)
       end
 
@@ -112,7 +112,7 @@ module Amber::Schema
       # Parse XML request
       private def self.parse_xml_request(request : HTTP::Request) : Hash(String, JSON::Any)
         budget = request.param_budget
-        body = budget.read_document(request.body)
+        body = request.read_document_body
         parse_xml_body(body, budget.limits)
       end
 

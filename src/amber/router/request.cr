@@ -13,6 +13,7 @@ class HTTP::Request
   @effective_method : String?
   @params : Amber::Router::Params?
   @param_budget : Amber::Router::Parsers::ParamBudget?
+  @body_rejection : Amber::Exceptions::BadRequest?
 
   def method
     {% if flag?(:amber_bench_legacy_request_method) %}
@@ -68,6 +69,30 @@ class HTTP::Request
 
     param_budget.each_form_pair(raw_query_io) { }
     previous_def
+  end
+
+  # Runs one read of the request body. A read that is rejected with
+  # `Amber::Exceptions::BadRequest` has consumed part of the stream, so the
+  # rejection is remembered and every later guarded read (`params`,
+  # `form_params`, schema contracts) raises it again: a caller that catches
+  # it never sees a parse of the bytes that remain.
+  def guard_body_read(& : -> T) : T forall T
+    if rejection = @body_rejection
+      raise rejection
+    end
+
+    begin
+      yield
+    rescue ex : Amber::Exceptions::BadRequest
+      @body_rejection ||= ex
+      raise ex
+    end
+  end
+
+  # Reads a JSON, XML, or other document body through `guard_body_read`,
+  # bounded by `max_document_body_bytes`.
+  def read_document_body : String
+    guard_body_read { param_budget.read_document(body) }
   end
 
   # Returns the URL-encoded form fields of the body, for any request
