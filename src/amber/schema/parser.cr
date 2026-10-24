@@ -66,6 +66,8 @@ module Amber::Schema
         end
       rescue ex : RequestParseError
         raise ex
+      rescue ex : Amber::Exceptions::ParameterLimitExceeded
+        raise RequestParseError.new(ex.message || "Request parameters exceed a configured limit", "parameter_limit_exceeded", 400)
       rescue ex : SchemaDefinitionError
         raise ex
       rescue ex

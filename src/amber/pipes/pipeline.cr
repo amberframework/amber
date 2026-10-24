@@ -31,6 +31,11 @@ module Amber
           @drain[context.valve].call(context)
           context.finalize_response!
         end
+      rescue e : Amber::Exceptions::ParameterLimitExceeded
+        # Answer directly: routing reads the body to resolve `_method`, so the
+        # Error pipe would hit the same limit while re-resolving the route.
+        context.response.status_code = 400
+        context.response.print(Amber::Controller::Error.new(context, e).bad_request)
       rescue e : Amber::Exceptions::Base
         Amber::Pipe::Error.new.call(context)
       ensure

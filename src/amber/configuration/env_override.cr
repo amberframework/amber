@@ -39,6 +39,9 @@ module Amber::Configuration
       # Mailer SMTP sub-section
       apply_mailer_smtp(config.mailer.smtp)
 
+      # Request parameter limits
+      apply_params(config.params)
+
       config
     end
 
@@ -161,6 +164,33 @@ module Amber::Configuration
       end
       if v = ENV["AMBER_MAILER_SMTP_HELO_DOMAIN"]?
         config.helo_domain = v
+      end
+    end
+
+    private def self.apply_params(config : ParamsConfig) : Nil
+      if v = ENV["AMBER_PARAMS_MAX_ARRAY_INDEX"]?
+        config.max_array_index = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_ARRAY_INDEX_GAP"]?
+        config.max_array_index_gap = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_ARRAY_PADDING"]?
+        config.max_array_padding = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_PARAMS"]?
+        config.max_params = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_NESTING_DEPTH"]?
+        config.max_nesting_depth = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_KEY_BYTES"]?
+        config.max_key_bytes = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_VALUE_BYTES"]?
+        config.max_value_bytes = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_FORM_BODY_BYTES"]?
+        config.max_form_body_bytes = v.to_i
       end
     end
 

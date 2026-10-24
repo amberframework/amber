@@ -67,6 +67,30 @@ module Amber
       end
     end
 
+    describe "#decode with hostile length prefixes" do
+      it "rejects a length prefix larger than the message without allocating it" do
+        decoder = WebSockets::Decoders::BinaryDecoder.new
+        # One field whose key claims 4 GiB - 1 bytes but carries none.
+        hostile = Base64.strict_encode(Bytes[0, 0, 0, 1, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0, 0, 0])
+
+        allocated = bytes_allocated_by do
+          expect_raises(WebSockets::Decoders::DecoderError, /length prefix/) do
+            decoder.decode(hostile)
+          end
+        end
+        allocated.should be < 1_048_576_u64
+      end
+
+      it "rejects a field count the message cannot hold" do
+        decoder = WebSockets::Decoders::BinaryDecoder.new
+        hostile = Base64.strict_encode(Bytes[0xFF, 0xFF, 0xFF, 0xFF])
+
+        expect_raises(WebSockets::Decoders::DecoderError, /field count/) do
+          decoder.decode(hostile)
+        end
+      end
+    end
+
     describe "#encode with JSON::Any" do
       it "encodes a JSON::Any object" do
         decoder = WebSockets::Decoders::BinaryDecoder.new
