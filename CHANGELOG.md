@@ -79,8 +79,8 @@
   `Connection`), and a route that only has a socket handler no longer
   raises `NilAssertionError`: an upgrade reaches the handler, and a plain
   request is answered with 404.
-- The WebSocket binary decoder caps each frame (`max_frame_bytes:`, default
-  1 MiB) before Base64 decoding, rejects a length prefix or field count
+- The WebSocket binary decoder caps each frame (`max_frame_bytes:`, by
+  default `max_websocket_message_bytes`) before Base64 decoding, rejects a length prefix or field count
   larger than the message, and rejects bytes after the declared fields.
 - Indexed nested keys such as `items[0][name]=alice` now build
   `[{"name" => "alice"}]` in `JSONParser` instead of a null entry.
