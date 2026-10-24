@@ -81,7 +81,10 @@ module Amber
       handler.prepare_pipelines
       server = HTTP::Server.new(handler)
 
-      if ssl_enabled?
+      if socket_path = unix_socket_path
+        remove_stale_unix_socket(socket_path)
+        server.bind_unix(socket_path)
+      elsif ssl_enabled?
         ssl_config = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls
         server.bind_tls Amber.settings.host, Amber.settings.port, ssl_config, settings.port_reuse
       else
@@ -107,7 +110,7 @@ module Amber
           break
         rescue e : IO::Error
           Log.error(exception: e) { "Restarting server..." }
-          sleep 1
+          sleep 1.second
         end
       end
     end
@@ -117,7 +120,28 @@ module Amber
     end
 
     def host_url
-      "#{scheme}://#{settings.host}:#{settings.port}"
+      if socket_path = unix_socket_path
+        "unix://#{socket_path}"
+      else
+        "#{scheme}://#{settings.host}:#{settings.port}"
+      end
+    end
+
+    # The `server.unix_socket` path, when the server listens on one.
+    private def unix_socket_path : String?
+      server_config = settings.server
+      server_config.unix_socket if server_config.listens_on_unix_socket?
+    end
+
+    # A previous run leaves its socket file behind, and binding over it fails.
+    # Only a socket is removed; any other file at the path is left alone so
+    # that the bind reports the conflict.
+    private def remove_stale_unix_socket(socket_path : String) : Nil
+      socket_info = File.info?(socket_path, follow_symlinks: false)
+      return unless socket_info
+      return unless socket_info.type.socket?
+
+      File.delete(socket_path)
     end
 
     def ssl_enabled?

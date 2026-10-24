@@ -1,5 +1,11 @@
 require "../../spec_helper"
 
+private def request_through_proxy(peer : String, headers : HTTP::Headers) : HTTP::Request
+  request = HTTP::Request.new("GET", "/client_ip_address", headers)
+  request.remote_address = Socket::IPAddress.new(peer, 54_321)
+  request
+end
+
 module Amber
   module Pipe
     describe ClientIp do
@@ -10,21 +16,34 @@ module Amber
           end
         end
 
-        it "gets first client IP from default header" do
+        it "takes the nearest untrusted X-Forwarded-For hop from a trusted proxy" do
           pipeline = Pipeline.new
           pipeline.build :web do
             plug ClientIp.new
           end
           pipeline.prepare_pipelines
 
-          client_ip_address = "102.168.35.88"
-          proxy_1_ip_address = "102.168.35.99"
-          proxy_2_ip_address = "102.168.35.100"
+          spoofed_ip_address = "102.168.35.88"
+          client_ip_address = "102.168.35.99"
           headers = HTTP::Headers.new
-          headers["X-Forwarded-For"] = [client_ip_address, proxy_1_ip_address, proxy_2_ip_address]
-          request = HTTP::Request.new("GET", "/client_ip_address", headers)
+          headers["X-Forwarded-For"] = [spoofed_ip_address, client_ip_address]
+          request = request_through_proxy("127.0.0.1", headers)
           response = create_request_and_return_io(pipeline, request)
           response.body.should contain client_ip_address
+          response.body.should_not contain spoofed_ip_address
+        end
+
+        it "uses the peer address when the peer is not a trusted proxy" do
+          pipeline = Pipeline.new
+          pipeline.build :web do
+            plug ClientIp.new
+          end
+          pipeline.prepare_pipelines
+
+          headers = HTTP::Headers{"X-Forwarded-For" => "102.168.35.88"}
+          request = request_through_proxy("203.0.113.9", headers)
+          response = create_request_and_return_io(pipeline, request)
+          response.body.should contain "203.0.113.9"
         end
 
         it "gets client IP from first custom header found" do
@@ -39,7 +58,7 @@ module Amber
           headers = HTTP::Headers.new
           headers["X-Forwarded-For"] = spoofed_ip_address
           headers["X-Client-IP"] = client_ip_address
-          request = HTTP::Request.new("GET", "/client_ip_address", headers)
+          request = request_through_proxy("127.0.0.1", headers)
           response = create_request_and_return_io(pipeline, request)
           response.body.should contain client_ip_address
         end
