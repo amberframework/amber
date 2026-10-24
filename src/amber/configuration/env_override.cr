@@ -210,6 +210,9 @@ module Amber::Configuration
       if v = ENV["AMBER_PARAMS_MAX_WEBSOCKET_MESSAGE_BYTES"]?
         config.max_websocket_message_bytes = v.to_i
       end
+      if v = ENV["AMBER_PARAMS_MAX_DOCUMENT_BODY_BYTES"]?
+        config.max_document_body_bytes = v.to_i
+      end
     end
 
     # Parse a string value as a boolean.

@@ -16,6 +16,7 @@ module Amber::Router::Parsers
   # list_of_items[index] = JSON::Any.new("x")
   # ```
   class ParamBudget
+    private SCRATCH_BYTES = 65_536
     private OPEN_BRACKET  = '['.ord.to_u8
     private CLOSE_BRACKET = ']'.ord.to_u8
 
@@ -89,13 +90,30 @@ module Amber::Router::Parsers
     end
 
     # Reads at most *max_bytes* from *io*, raising when more remain.
+    #
+    # Each block is read into a fixed scratch buffer and checked against the
+    # remaining allowance before it is kept, so an over-limit body never
+    # grows the result past the limit.
     def read_bounded(io : IO, max_bytes : Int, limit_name : String) : String
       # A String holds at most Int32::MAX bytes.
       cap = Math.min(max_bytes.to_i64, Int32::MAX.to_i64 - 1)
-      buffer = IO::Memory.new
-      copied = IO.copy(io, buffer, cap + 1)
-      exceed!(limit_name, max_bytes) if copied > cap
-      buffer.to_s
+      scratch = Bytes.new(SCRATCH_BYTES)
+      kept = IO::Memory.new
+      total = 0_i64
+
+      while (count = io.read(scratch)) > 0
+        total += count
+        exceed!(limit_name, max_bytes) if total > cap
+        kept.write(scratch[0, count])
+      end
+      kept.to_s
+    end
+
+    # Reads a JSON, XML, or other document body, bounded by
+    # `max_document_body_bytes`.
+    def read_document(io : IO?) : String
+      return "" unless io
+      read_bounded(io, limits.max_document_body_bytes, "max_document_body_bytes")
     end
 
     # Reads one field value, bounded by `max_value_bytes`.

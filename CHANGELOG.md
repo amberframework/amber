@@ -22,7 +22,9 @@
   scanned byte by byte (`&` and `;` both separate pairs), with key, value and
   body sizes enforced as the bytes arrive; the query is read from the raw
   request target before the URI is parsed. Multipart bodies, headers and
-  files are counted while they stream.
+  files are counted while they stream, and bounded reads keep no more than
+  their limit. JSON, XML and other document bodies read for schemas or
+  `params` are bounded by `max_document_body_bytes` (8 MiB).
 - Each request has one parameter budget (`HTTP::Request#param_budget`)
   shared by its query string, body, and schema conversion, so counts and
   array padding are cumulative. `HTTP::Request#query_params` checks the query
@@ -43,7 +45,13 @@
 - WebSocket routes read each connection through
   `Amber::WebSockets::BoundedProtocol`, which caps a message across its
   frames and fragments as they arrive (`max_websocket_message_bytes`,
-  2 MiB) and closes the connection with code 1009 when it is exceeded.
+  2 MiB) and closes the connection with code 1009 when it is exceeded. The
+  handshake's query string is checked before the 101 response.
+  `BinaryDecoder` defaults its frame limit to the ingress limit, and a
+  smaller decoder limit also closes the socket with 1009.
+- Upload tempfiles live in a per-process directory with mode 0700, and
+  cleanup removes a tempfile only while its path still names the file Amber
+  created.
 - The WebSocket binary decoder caps each frame (`max_frame_bytes:`, default
   1 MiB) before Base64 decoding, rejects a length prefix or field count
   larger than the message, and rejects bytes after the declared fields.

@@ -128,7 +128,7 @@ module Amber::Schema::Parser
 
     # Parse HTTP request body
     def self.parse_request(request : HTTP::Request) : Hash(String, JSON::Any)
-      body = request.body.try(&.gets_to_end) || ""
+      body = request.param_budget.read_document(request.body)
       parse_string(body)
     end
 

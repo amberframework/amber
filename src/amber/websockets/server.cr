@@ -74,6 +74,10 @@ module Amber
             return
           end
 
+          # Check the query before switching protocols, so an oversized query
+          # is answered with 400 rather than after the 101 response.
+          context.request.query_params
+
           response.status = :switching_protocols
           response.headers["Upgrade"] = "websocket"
           response.headers["Connection"] = "Upgrade"
