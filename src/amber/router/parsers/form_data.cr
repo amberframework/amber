@@ -1,25 +1,21 @@
 module Amber::Router::Parsers
   module FormData
-    # Parses a URL-encoded request body within `Amber.settings.params`.
+    # Parses a URL-encoded request body within `Amber.settings.params`,
+    # checking each pair as it streams.
     def self.parse(request : HTTP::Request, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : HTTP::Params
-      budget = ParamBudget.new(limits)
-      body = request.body
-      text = body ? budget.read_bounded(body, limits.max_form_body_bytes, "max_form_body_bytes") : ""
-      params = HTTP::Params.parse(text)
-      params.each { |key, value| budget.admit!(key, value) }
-      params
+      parse_part(request.body, limits)
     end
 
     def self.parse_part(input : IO, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : HTTP::Params
-      HTTP::Params.parse(ParamBudget.new(limits).read_bounded(input, limits.max_form_body_bytes, "max_form_body_bytes"))
+      ParamBudget.new(limits).parse_form(input)
     end
 
-    def self.parse_part(input : String) : HTTP::Params
-      HTTP::Params.parse(input)
+    def self.parse_part(input : String, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : HTTP::Params
+      parse_part(IO::Memory.new(input), limits)
     end
 
-    def self.parse_part(input : Nil) : HTTP::Params
-      HTTP::Params.parse("")
+    def self.parse_part(input : Nil, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : HTTP::Params
+      HTTP::Params.new
     end
   end
 end

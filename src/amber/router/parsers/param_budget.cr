@@ -25,8 +25,9 @@ module Amber::Router::Parsers
 
     # Records one parameter and checks the length of its name and value.
     def admit!(key : String, value : String? = nil) : Nil
+      # Compare before incrementing so the count can never overflow.
+      exceed!("max_params", limits.max_params) if @param_count >= limits.max_params
       @param_count += 1
-      exceed!("max_params", limits.max_params) if @param_count > limits.max_params
       check_key!(key)
       check_value!(value) if value
     end
@@ -59,13 +60,15 @@ module Amber::Router::Parsers
       index = parse_index(digits)
       invalid_index! unless index
 
-      gap = limits.max_array_index_gap
-      exceed!("max_array_index_gap", gap) if index > array.size + gap
-
+      # Subtraction keeps every comparison inside Int32 for any setting.
       padding = index - array.size
       if padding > 0
+        gap = limits.max_array_index_gap
+        exceed!("max_array_index_gap", gap) if padding > gap
+
+        padding_left = limits.max_array_padding - @padding_used
+        exceed!("max_array_padding", limits.max_array_padding) if padding > padding_left
         @padding_used += padding
-        exceed!("max_array_padding", limits.max_array_padding) if @padding_used > limits.max_array_padding
       end
 
       while array.size <= index
@@ -75,10 +78,12 @@ module Amber::Router::Parsers
     end
 
     # Reads at most *max_bytes* from *io*, raising when more remain.
-    def read_bounded(io : IO, max_bytes : Int32, limit_name : String) : String
+    def read_bounded(io : IO, max_bytes : Int, limit_name : String) : String
+      # A String holds at most Int32::MAX bytes.
+      cap = Math.min(max_bytes.to_i64, Int32::MAX.to_i64 - 1)
       buffer = IO::Memory.new
-      copied = IO.copy(io, buffer, max_bytes.to_i64 + 1)
-      exceed!(limit_name, max_bytes) if copied > max_bytes
+      copied = IO.copy(io, buffer, cap + 1)
+      exceed!(limit_name, max_bytes) if copied > cap
       buffer.to_s
     end
 
@@ -87,15 +92,56 @@ module Amber::Router::Parsers
       read_bounded(io, limits.max_value_bytes, "max_value_bytes")
     end
 
+    # Reads one uploaded file into memory, bounded by `max_file_bytes`.
+    def read_file(io : IO) : String
+      read_bounded(io, limits.max_file_bytes, "max_file_bytes")
+    end
+
+    # Yields each decoded pair of a URL-encoded stream after admitting it.
+    #
+    # The stream is read one pair at a time, so the count, key, value and
+    # total-size limits reject a hostile body before it is held in memory.
+    def each_form_pair(io : IO, & : String, String ->) : Nil
+      raw_pair_limit = encoded_pair_limit
+      max_body = limits.max_form_body_bytes.to_i64
+      bytes_read = 0_i64
+
+      while chunk = io.gets('&', limit: raw_pair_limit + 1)
+        bytes_read += chunk.bytesize
+        exceed!("max_form_body_bytes", limits.max_form_body_bytes) if bytes_read > max_body
+        # A pair longer than any admissible encoded key and value.
+        exceed!("max_value_bytes", limits.max_value_bytes) if chunk.bytesize > raw_pair_limit
+
+        HTTP::Params.parse(chunk) do |key, value|
+          admit!(key, value)
+          yield key, value
+        end
+      end
+    end
+
+    # Decodes a URL-encoded stream into `HTTP::Params`, checking every pair.
+    def parse_form(io : IO) : HTTP::Params
+      params = HTTP::Params.new
+      each_form_pair(io) { |key, value| params.add(key, value) }
+      params
+    end
+
+    # The longest encoded `key=value&` that can decode within the limits:
+    # percent-encoding uses at most three bytes per decoded byte.
+    private def encoded_pair_limit : Int32
+      longest = 3_i64 * (limits.max_key_bytes.to_i64 + limits.max_value_bytes.to_i64) + 2
+      Math.min(longest, Int32::MAX.to_i64 - 1).to_i32
+    end
+
     # Returns the index written in *digits*, or nil when it is not a plain
     # decimal number from 0 to `max_array_index`. Overflow yields nil.
     private def parse_index(digits : String) : Int32?
-      return nil if digits.empty? || digits.bytesize > 10
-      return nil unless digits.each_byte.all?(&.unsafe_chr.ascii_number?)
+      return if digits.empty? || digits.bytesize > 10
+      return unless digits.each_byte.all?(&.unsafe_chr.ascii_number?)
 
       index = digits.to_i?
-      return nil unless index
-      return nil if index > limits.max_array_index
+      return unless index
+      return if index > limits.max_array_index
       index
     end
 
@@ -112,7 +158,7 @@ module Amber::Router::Parsers
       )
     end
 
-    private def exceed!(limit_name : String, limit_value : Int32) : NoReturn
+    private def exceed!(limit_name : String, limit_value : Int) : NoReturn
       raise Amber::Exceptions::ParameterLimitExceeded.new(limit_name, limit_value)
     end
   end

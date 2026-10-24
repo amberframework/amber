@@ -130,16 +130,14 @@ module Amber::Schema::Parser
       result = {} of String => JSON::Any
       budget = Amber::Router::Parsers::ParamBudget.new(limits)
 
-      HTTP::FormData.parse(request) do |upload|
-        next unless upload
-
+      Amber::Router::Parsers::Multipart.each_part(request, limits) do |upload|
         budget.admit!(upload.name)
         filename = upload.filename
 
         if filename.is_a?(String) && !filename.empty?
-          # File contents follow the application's upload handling; only
-          # field values are bounded by the parameter limits.
-          content = upload.body.gets_to_end
+          # Held in memory, so bounded by `max_file_bytes`; the whole body is
+          # bounded by `max_multipart_body_bytes`.
+          content = budget.read_file(upload.body)
           # This is a file upload
           file_info = FileInfo.new(
             filename: filename,
@@ -162,12 +160,13 @@ module Amber::Schema::Parser
     # Builds schema data from the router's cached multipart parse. This keeps
     # file uploads available after routing and CSRF have inspected the request.
     def self.parse_router_params(params : Amber::Router::Types::Params, files : Amber::Router::Types::Files, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
-      result = QueryParser.parse_params_to_nested(params, limits)
+      # One budget covers fields and files so padding and counts stay cumulative.
       budget = Amber::Router::Parsers::ParamBudget.new(limits)
+      result = QueryParser.parse_params_to_nested(params, budget)
 
       files.each do |name, upload|
         budget.admit!(name)
-        content = ::File.read(upload.file.path)
+        content = ::File.open(upload.file.path) { |file| budget.read_file(file) }
         file_info = FileInfo.new(
           filename: upload.filename,
           content_type: upload.headers["Content-Type"]?,

@@ -100,3 +100,76 @@ describe Amber::Schema::Parser::MultipartParser do
     end
   end
 end
+
+describe "schema parsers sharing one budget per request" do
+  it "charges field and file padding against one max_array_padding" do
+    boundary = "AmberLimitBoundary"
+    body = String.build do |io|
+      31.times do |i|
+        io << "--#{boundary}\r\nContent-Disposition: form-data; name=\"a#{i}[32]\"\r\n\r\nx\r\n"
+        io << "--#{boundary}\r\nContent-Disposition: form-data; name=\"f#{i}[32]\"; filename=\"f.txt\"\r\n\r\nx\r\n"
+      end
+      io << "--#{boundary}--\r\n"
+    end
+    request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"}, body)
+    fields, files = Amber::Router::Parsers::Multipart.parse(request)
+
+    error = expect_raises(Amber::Exceptions::ParameterLimitExceeded) do
+      Amber::Schema::Parser::MultipartParser.parse_router_params(fields, files)
+    end
+    error.limit_name.should eq "max_array_padding"
+  end
+
+  it "bounds uploads the schema multipart parser reads into memory" do
+    config = Amber::Configuration::ParamsConfig.new
+    config.max_file_bytes = 1_024_i64
+    boundary = "AmberLimitBoundary"
+    body = "--#{boundary}\r\nContent-Disposition: form-data; name=\"doc\"; filename=\"d.txt\"\r\n\r\n#{"x" * 4_096}\r\n--#{boundary}--\r\n"
+    request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"}, body)
+
+    expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_file_bytes/) do
+      Amber::Schema::Parser::MultipartParser.parse_multipart_request(request, config)
+    end
+  end
+end
+
+describe Amber::Schema::Parser::JSONParser do
+  it "builds objects inside indexed arrays" do
+    result = Amber::Schema::Parser::JSONParser.parse_params(HTTP::Params.parse("items[1][name]=bob&items[0][name]=alice"))
+    result["items"].as_a.map(&.["name"].as_s).should eq ["alice", "bob"]
+  end
+
+  it "builds [{\"name\" => \"alice\"}] from items[0][name]=alice" do
+    result = Amber::Schema::Parser::JSONParser.parse_params(HTTP::Params.parse("items[0][name]=alice"))
+    result["items"].should eq JSON.parse(%([{"name":"alice"}]))
+  end
+
+  it "counts and size-checks every element of an array value in parse_multipart" do
+    config = Amber::Configuration::ParamsConfig.new
+    config.max_params = 1
+    params = {"tags[]" => ["x"] * 100} of String => String | Array(String)
+
+    expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
+      Amber::Schema::Parser::JSONParser.parse_multipart(params, config)
+    end
+
+    config = Amber::Configuration::ParamsConfig.new
+    config.max_value_bytes = 4
+    params = {"tags[]" => ["ok", "too long"]} of String => String | Array(String)
+    expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_value_bytes/) do
+      Amber::Schema::Parser::JSONParser.parse_multipart(params, config)
+    end
+  end
+
+  it "checks parse_query_string pair by pair as it decodes" do
+    config = Amber::Configuration::ParamsConfig.new
+    query = "a=1&" * 2_000_000
+
+    allocated = bytes_allocated_by do
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
+        Amber::Schema::Parser::QueryParser.parse_query_string(query, config)
+      end
+    end
+    allocated.should be < MAX_REJECTION_BYTES
+  end
+end

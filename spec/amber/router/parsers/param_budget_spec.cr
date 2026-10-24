@@ -145,3 +145,173 @@ module Amber::Router::Parsers
     end
   end
 end
+
+private def multipart_request(boundary : String, list_of_parts : Array(Tuple(String, String?, String))) : HTTP::Request
+  body = String.build do |io|
+    list_of_parts.each do |name, filename, content|
+      io << "--" << boundary << "\r\n"
+      io << %(Content-Disposition: form-data; name="#{name}")
+      io << %(; filename="#{filename}") if filename
+      io << "\r\n\r\n" << content << "\r\n"
+    end
+    io << "--" << boundary << "--\r\n"
+  end
+  HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"}, body)
+end
+
+private def form_request(body : String) : HTTP::Request
+  HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}, body)
+end
+
+module Amber::Router::Parsers
+  describe FormData do
+    context "at the 8 MiB body boundary" do
+      it "rejects a body of a million empty pairs after max_params pairs, without holding the body" do
+        config = Amber::Configuration::ParamsConfig.new
+        request = form_request("a=&" * 2_800_000)
+
+        allocated = bytes_allocated_by do
+          expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
+            FormData.parse(request, config)
+          end
+        end
+        allocated.should be < MAX_REJECTION_BYTES
+      end
+
+      it "rejects the first byte past max_form_body_bytes with allocation bounded by the cap" do
+        config = Amber::Configuration::ParamsConfig.new
+        config.max_params = 1_000_000
+        value = "x" * 9_000
+        pair_count = config.max_form_body_bytes // (value.bytesize + 4) + 1
+        request = form_request(Array.new(pair_count, "f=#{value}").join("&"))
+
+        allocated = bytes_allocated_by do
+          expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_form_body_bytes/) do
+            FormData.parse(request, config)
+          end
+        end
+        # Total bytes handed out, garbage included: each admitted pair is read,
+        # decoded, and stored once, so the total stays a small multiple of the
+        # cap no matter how large the body is.
+        allocated.should be < 8_u64 * config.max_form_body_bytes
+      end
+
+      it "accepts a body of exactly max_form_body_bytes and rejects one byte more" do
+        config = Amber::Configuration::ParamsConfig.new
+        config.max_form_body_bytes = 100
+
+        FormData.parse(form_request("a=" + "x" * 98), config)["a"].bytesize.should eq 98
+        expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_form_body_bytes/) do
+          FormData.parse(form_request("a=" + "x" * 99), config)
+        end
+      end
+    end
+
+    it "checks both parse_part overloads pair by pair" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_params = 1
+
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
+        FormData.parse_part(IO::Memory.new("a=1&b=2"), config)
+      end
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
+        FormData.parse_part("a=1&b=2", config)
+      end
+    end
+  end
+
+  describe Multipart do
+    it "rejects a body past max_multipart_body_bytes while it streams" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_multipart_body_bytes = 1_024
+      request = multipart_request("AmberLimitBoundary", [
+        {"first", "a.txt", "x" * 600},
+        {"second", "b.txt", "x" * 600},
+      ])
+
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_multipart_body_bytes/) do
+        Multipart.parse(request, config)
+      end
+    end
+
+    it "rejects a file past max_file_bytes without holding it in memory" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_file_bytes = 1_048_576_i64
+      request = multipart_request("AmberLimitBoundary", [{"upload", "big.bin", "x" * 20_000_000}])
+
+      allocated = bytes_allocated_by do
+        expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_file_bytes/) do
+          Multipart.parse(request, config)
+        end
+      end
+      allocated.should be < MAX_REJECTION_BYTES
+    end
+
+    it "counts files and fields together toward max_params" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_params = 2
+      request = multipart_request("AmberLimitBoundary", [
+        {"note", nil, "x"},
+        {"upload", "a.txt", "x"},
+        {"other", nil, "x"},
+      ])
+
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
+        Multipart.parse(request, config)
+      end
+    end
+  end
+
+  describe Amber::Router::Params do
+    it "checks ordinary query access against max_params" do
+      query = (0..1_000).map { "a=1" }.join("&")
+      params = Amber::Router::Params.new(HTTP::Request.new("GET", "/?#{query}"))
+
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
+        params.fetch_all("a")
+      end
+    end
+
+    it "keeps ordinary query access working within the limits" do
+      params = Amber::Router::Params.new(HTTP::Request.new("GET", "/?a=1&a=2"))
+      params.fetch_all("a").should eq ["1", "2"]
+    end
+  end
+
+  describe "extreme configuration values" do
+    it "returns limit errors, never overflow, with every limit at its type maximum" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_array_index = Int32::MAX
+      config.max_array_index_gap = Int32::MAX
+      config.max_array_padding = Int32::MAX
+      config.max_params = Int32::MAX
+      config.max_nesting_depth = Int32::MAX
+      config.max_key_bytes = Int32::MAX
+      config.max_value_bytes = Int32::MAX
+      config.max_form_body_bytes = Int32::MAX
+      config.max_multipart_body_bytes = Int64::MAX
+      config.max_file_bytes = Int64::MAX
+
+      result = Amber::Schema::Parser::QueryParser.parse_query_string("items[0]=a&items[1]=b", config)
+      result["items"].as_a.map(&.as_s).should eq ["a", "b"]
+
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /array indices/) do
+        Amber::Schema::Parser::QueryParser.parse_query_string("items[99999999999]=x", config)
+      end
+      FormData.parse_part("a=1", config)["a"].should eq "1"
+    end
+
+    it "returns a limit error with the gap and padding limits at zero" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_array_index_gap = 0
+      config.max_array_padding = 0
+      budget = ParamBudget.new(config)
+      list_of_items = [] of ::JSON::Any
+
+      budget.reserve_array_slot!(list_of_items, "0").should eq 0
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_array_index_gap/) do
+        budget.reserve_array_slot!(list_of_items, "2")
+      end
+    end
+  end
+end

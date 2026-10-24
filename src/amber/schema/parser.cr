@@ -67,11 +67,16 @@ module Amber::Schema
       rescue ex : RequestParseError
         raise ex
       rescue ex : Amber::Exceptions::ParameterLimitExceeded
-        raise RequestParseError.new(ex.message || "Request parameters exceed a configured limit", "parameter_limit_exceeded", 400)
+        raise parameter_limit_error(ex)
       rescue ex : SchemaDefinitionError
         raise ex
       rescue ex
         raise SchemaDefinitionError.new("Failed to parse request: #{ex.message}")
+      end
+
+      private def self.parameter_limit_error(ex : Amber::Exceptions::ParameterLimitExceeded) : RequestParseError
+        message = ex.message || "Request parameters exceed the #{ex.limit_name} limit"
+        RequestParseError.new(message, "parameter_limit_exceeded", 400)
       end
 
       # Parse JSON request

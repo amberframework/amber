@@ -10,10 +10,15 @@ module Amber::Schema::Parser
       value.as_h?
     end
 
-    # Parse query string into nested hash structure
+    # Parse query string into nested hash structure. Each pair is checked
+    # against *limits* as it is decoded.
     def self.parse_query_string(query_string : String, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
-      params = HTTP::Params.parse(query_string)
-      parse_params_to_nested(params, limits)
+      budget = Amber::Router::Parsers::ParamBudget.new(limits)
+      result = {} of String => JSON::Any
+      budget.each_form_pair(IO::Memory.new(query_string)) do |key, value|
+        set_nested_value_internal(result, key, parse_value(value), budget)
+      end
+      result
     end
 
     # Convert flat params to nested structure.
@@ -21,8 +26,13 @@ module Amber::Schema::Parser
     # Raises `Amber::Exceptions::ParameterLimitExceeded` when the params
     # exceed *limits*; see `Amber::Configuration::ParamsConfig`.
     def self.parse_params_to_nested(params : HTTP::Params | Hash(String, String), limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
+      parse_params_to_nested(params, Amber::Router::Parsers::ParamBudget.new(limits))
+    end
+
+    # Convert flat params to nested structure, charging *budget*. Pass the
+    # same budget to later steps of one request so its limits stay cumulative.
+    def self.parse_params_to_nested(params : HTTP::Params | Hash(String, String), budget : Amber::Router::Parsers::ParamBudget) : Hash(String, JSON::Any)
       result = {} of String => JSON::Any
-      budget = Amber::Router::Parsers::ParamBudget.new(limits)
 
       params.each do |key, value|
         budget.admit!(key, value)

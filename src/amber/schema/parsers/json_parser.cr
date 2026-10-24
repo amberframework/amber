@@ -67,7 +67,11 @@ module Amber::Schema::Parser
           budget.check_value!(value)
           set_nested_value(result, key, value, budget)
         when Array(String)
-          # Handle array parameters
+          # The key was admitted once above; every further element counts too.
+          value.each_with_index do |element, index|
+            budget.admit!(key) if index > 0
+            budget.check_value!(element)
+          end
           if key.ends_with?("[]")
             base_key = key[0..-3]
             result[base_key] = JSON::Any.new(value.map { |v| parse_value(v) })
@@ -225,7 +229,7 @@ module Amber::Schema::Parser
               if next_part = parts[index + 1]?
                 if is_numeric?(next_part)
                   # Next is also numeric, create nested array
-                  current_array[array_index] ||= JSON::Any.new([] of JSON::Any)
+                  container_slot(current_array, array_index, JSON::Any.new([] of JSON::Any))
                   if nested_array = current_array[array_index].as_a?
                     current_array = nested_array
                   else
@@ -233,7 +237,7 @@ module Amber::Schema::Parser
                   end
                 else
                   # Next is object key, create nested object
-                  current_array[array_index] ||= JSON::Any.new({} of String => JSON::Any)
+                  container_slot(current_array, array_index, JSON::Any.new({} of String => JSON::Any))
                   if nested_obj = current_array[array_index].as_h?
                     current_hash = nested_obj
                     current_array = nil
@@ -288,6 +292,14 @@ module Amber::Schema::Parser
         # Setting object property
         ch[final_part] = parse_value(value)
       end
+    end
+
+    # Returns the container at *index*, replacing the null that padding put
+    # there, so `items[0][name]=alice` builds `[{"name" => "alice"}]`.
+    private def self.container_slot(array : Array(JSON::Any), index : Int32, empty : JSON::Any) : JSON::Any
+      slot = array[index]
+      return slot unless slot.raw.nil?
+      array[index] = empty
     end
 
     # Helper method to check if a string represents a number

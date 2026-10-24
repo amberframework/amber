@@ -16,6 +16,12 @@ class ParameterLimitsController < Amber::Controller::Base
     self.class.action_calls += 1
     "created"
   end
+
+  def index
+    count = params.fetch_all("a").size
+    self.class.action_calls += 1
+    count.to_s
+  end
 end
 
 # Sends a URL-encoded POST through routing, the CSRF pipe, and the schema
@@ -45,6 +51,7 @@ describe "request parameter limits on the request path" do
     pipeline = Amber::Pipe::Pipeline.new
     Amber::Server.router.draw :web do
       post "/parameter-limits", ParameterLimitsController, :create
+      get "/parameter-limits", ParameterLimitsController, :index
     end
     pipeline.build :web do
       plug Amber::Pipe::CSRF.new
@@ -91,5 +98,21 @@ describe "request parameter limits on the request path" do
     response.body.should contain("max_params")
     ParameterLimitsController.action_calls.should eq 0
     allocated.should be < MAX_REJECTION_BYTES
+  end
+
+  it "answers 400 when a controller reads an oversized query string" do
+    query = (0..1_000).map { "a=1" }.join("&")
+    response = create_request_and_return_io(pipeline, HTTP::Request.new("GET", "/parameter-limits?#{query}", HTTP::Headers{"Accept" => "application/json"}))
+
+    response.status_code.should eq 400
+    response.body.should contain("max_params")
+    ParameterLimitsController.action_calls.should eq 0
+  end
+
+  it "serves an ordinary query string" do
+    response = create_request_and_return_io(pipeline, HTTP::Request.new("GET", "/parameter-limits?a=1&a=2"))
+
+    response.status_code.should eq 200
+    response.body.should eq "2"
   end
 end

@@ -32,6 +32,10 @@ module Amber::Environment
 
     private def load_v1_settings(content : String) : Settings
       settings = Settings.from_yaml(content)
+      # V1 files keep their flat format, but request parameter limits are a
+      # security boundary: apply the same overrides and validation as V2.
+      Amber::Configuration::EnvOverride.apply_params(settings.params_config)
+      settings.params_config.validate!
       settings
     end
 
@@ -40,6 +44,9 @@ module Amber::Environment
 
       # Apply environment variable overrides
       Amber::Configuration::EnvOverride.apply_all(app_config)
+
+      # Reject unusable parameter limits at boot rather than on the first request.
+      app_config.params.validate!
 
       # Load any registered custom configs from the YAML
       load_custom_configs(content, app_config)

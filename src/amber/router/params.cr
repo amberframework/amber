@@ -19,6 +19,7 @@ module Amber::Router
     @multipart : Types::Params?
     @json : Types::Params?
     @form : HTTP::Params?
+    @query_checked = false
 
     def initialize(@request : HTTP::Request)
     end
@@ -93,7 +94,17 @@ module Amber::Router
     end
 
     private def query
+      check_query_limits unless @query_checked
       @request.query_params
+    end
+
+    # Checks the raw query string pair by pair against `Amber.settings.params`
+    # once per request, before Crystal's own parse is used.
+    private def check_query_limits : Nil
+      @query_checked = true
+      if raw_query = @request.query
+        Parsers::ParamBudget.new.each_form_pair(IO::Memory.new(raw_query)) { }
+      end
     end
 
     private def form

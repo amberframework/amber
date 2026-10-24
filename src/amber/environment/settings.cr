@@ -71,6 +71,10 @@ module Amber::Environment
 
     property smtp : SMTPSettings = SMTPSettings.new
 
+    # Request parameter limits from a V1-format file's `params:` mapping.
+    @[YAML::Field(key: "params")]
+    property params_config : Amber::Configuration::ParamsConfig = Amber::Configuration::ParamsConfig.new
+
     property pipes : Hash(String, Hash(String, Hash(String, String | Int32 | Bool | Nil))) = {"static" => {"headers" => {} of String => SettingValue}}
 
     # The backing AppConfig for V2 subsection accessors.
@@ -189,6 +193,7 @@ module Amber::Environment
     private def build_app_config_from_v1 : Amber::Configuration::AppConfig
       config = Amber::Configuration::AppConfig.new
       config.name = @name
+      config.params = @params_config
 
       config.server.host = @host
       config.server.port = @port
