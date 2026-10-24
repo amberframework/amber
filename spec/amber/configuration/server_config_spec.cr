@@ -11,6 +11,40 @@ module Amber::Configuration
         config.process_count.should eq 1
         config.secret_key_base.should eq ""
       end
+
+      it "trusts only loopback proxies" do
+        ServerConfig.new.trusted_proxies.should eq ["127.0.0.0/8", "::1"]
+      end
+    end
+
+    describe "#trusted_proxies" do
+      it "deserializes a list of addresses and CIDR blocks" do
+        yaml = <<-YAML
+        trusted_proxies:
+          - "127.0.0.1"
+          - "10.0.0.0/8"
+        YAML
+
+        ServerConfig.from_yaml(yaml).trusted_proxies.should eq ["127.0.0.1", "10.0.0.0/8"]
+      end
+
+      it "reparses the networks when the list changes" do
+        config = ServerConfig.new
+        peer = Socket::IPAddress.new("10.0.0.5", 0)
+        config.trusted_proxy_networks.any?(&.includes?(peer)).should be_false
+
+        config.trusted_proxies << "10.0.0.0/8"
+        config.trusted_proxy_networks.any?(&.includes?(peer)).should be_true
+      end
+
+      it "rejects an entry that is not an address in #validate!" do
+        config = ServerConfig.new
+        config.trusted_proxies = ["proxy.internal"]
+
+        expect_raises(Amber::Exceptions::ConfigurationError, /trusted_proxies/) do
+          config.validate!
+        end
+      end
     end
 
     describe "YAML deserialization" do
