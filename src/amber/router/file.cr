@@ -22,29 +22,55 @@ module Amber::Router
   # Each method transfers ownership once: after `move_to` or `retain!`,
   # Amber's cleanup leaves the path alone.
   struct File
-    # A directory only this user can enter, so no other local user can
-    # create or replace files in it. Every worker and every restart of the
-    # app reuses it, so it is created once and never piles up.
+    # The preferred upload directory: one per user, which every worker and
+    # every restart of the app reuses, so directories never pile up.
     UPLOAD_DIRECTORY = ::File.join(Dir.tempdir, upload_directory_name)
 
-    # Returns `UPLOAD_DIRECTORY`, creating it with mode 0700 when it does not
-    # exist, after checking that it is a real directory, owned by this user
-    # and closed to everyone else.
+    private UPLOAD_DIRECTORY_LOCK = Mutex.new
+    private FALLBACK_ATTEMPTS     = 10
+
+    @@fallback_upload_directory : String?
+
+    # Returns a directory only this user can enter, so no other local user
+    # can create or replace files in it: a real directory, owned by this
+    # user, with mode 0700.
+    #
+    # It is `UPLOAD_DIRECTORY`, created when missing. If another user has
+    # claimed that path in a shared temporary directory, this process uses a
+    # new directory with an unpredictable name instead, and keeps using it.
     def self.upload_directory : String
-      path = UPLOAD_DIRECTORY
+      UPLOAD_DIRECTORY_LOCK.synchronize do
+        preferred = @@fallback_upload_directory || UPLOAD_DIRECTORY
+        return preferred if prepare_private_directory?(preferred)
+
+        FALLBACK_ATTEMPTS.times do
+          fallback = ::File.tempname(upload_directory_name, nil)
+          if prepare_private_directory?(fallback)
+            @@fallback_upload_directory = fallback
+            return fallback
+          end
+        end
+        raise IO::Error.new("Could not create a private upload directory in #{Dir.tempdir}")
+      end
+    end
+
+    # Creates *path* with mode 0700 when it does not exist, then reports
+    # whether it is a real directory owned by this user and closed to
+    # everyone else.
+    private def self.prepare_private_directory?(path : String) : Bool
       begin
         Dir.mkdir(path, 0o700)
       rescue ::File::AlreadyExistsError
-        # Created by an earlier run, another worker, or this process.
+        # Created by an earlier run, another worker, or someone else.
       end
 
-      directory_info = ::File.info(path, follow_symlinks: false)
-      private_directory = directory_info.directory? && (directory_info.permissions.value & 0o077) == 0
+      directory_info = ::File.info?(path, follow_symlinks: false)
+      return false unless directory_info
+      return false unless directory_info.directory? && (directory_info.permissions.value & 0o077) == 0
       if user_id = current_user_id
-        private_directory &&= directory_info.owner_id == user_id
+        return false unless directory_info.owner_id == user_id
       end
-      raise IO::Error.new("The upload directory #{path} is not a private directory owned by this user") unless private_directory
-      path
+      true
     end
 
     private def self.upload_directory_name : String
@@ -99,13 +125,13 @@ module Amber::Router
         if max_bytes && bytes_copied > max_bytes
           raise Amber::Exceptions::ParameterLimitExceeded.new("max_file_bytes", max_bytes)
         end
-        {bytes_copied, created.info}
-      rescue ex
+        created_identity = created.info
         created.close
-        created.delete
+        {bytes_copied, created_identity}
+      rescue ex
+        self.class.discard(created)
         raise ex
       end
-      created.close
       @tempfile = Tempfile.new(created.path, identity)
 
       @headers = upload.headers
@@ -157,7 +183,9 @@ module Amber::Router
     # still owns the tempfile.
     def move_to(destination : String | Path) : String
       tempfile = @tempfile
-      raise IO::Error.new("The upload was already moved or retained") unless tempfile.owned_by_amber?
+      if tempfile.moved? || !tempfile.owned_by_amber?
+        raise IO::Error.new("The upload was already moved or retained")
+      end
 
       close_handle(tempfile)
       verify_identity!(tempfile)
@@ -167,7 +195,15 @@ module Amber::Router
       rescue ex : ::File::Error
         raise ex unless ex.os_error == Errno::EXDEV
         open_tempfile { |source| self.class.copy_into_place(source, target) }
-        ::File.delete(tempfile.path)
+        # The upload is now complete at *target*.
+        tempfile.moved = true
+        begin
+          ::File.delete(tempfile.path)
+        rescue ::File::Error
+          # The move succeeded. Amber still owns the leftover tempfile and
+          # removes it when the request finishes.
+          return target
+        end
       end
       tempfile.owned_by_amber = false
       tempfile.moved = true
@@ -188,10 +224,21 @@ module Amber::Router
         staging.close
         ::File.rename(staging.path, target)
       rescue ex
-        staging.close unless staging.closed?
-        ::File.delete?(staging.path)
+        discard(staging)
         raise ex
       end
+    end
+
+    # :nodoc:
+    # Closes *file* and deletes its path, even when closing fails (for
+    # example while flushing onto a full disk). Callers re-raise their
+    # original error.
+    def self.discard(file : ::File) : Nil
+      file.close unless file.closed?
+    rescue IO::Error
+      # The caller's original error is the one to report.
+    ensure
+      ::File.delete?(file.path)
     end
 
     # Keeps the tempfile at `path` after the request and returns that path.
@@ -199,7 +246,9 @@ module Amber::Router
     # the handle that `file` opened.
     def retain! : String
       tempfile = @tempfile
-      raise IO::Error.new("The upload was already moved or retained") unless tempfile.owned_by_amber?
+      if tempfile.moved? || !tempfile.owned_by_amber?
+        raise IO::Error.new("The upload was already moved or retained")
+      end
 
       tempfile.owned_by_amber = false
       tempfile.path

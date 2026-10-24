@@ -213,6 +213,9 @@ module Amber::Configuration
       if v = ENV["AMBER_PARAMS_MAX_DOCUMENT_BODY_BYTES"]?
         config.max_document_body_bytes = v.to_i
       end
+      if v = ENV["AMBER_PARAMS_MAX_DOCUMENT_NODES"]?
+        config.max_document_nodes = v.to_i
+      end
     end
 
     # Parse a string value as a boolean.

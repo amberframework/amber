@@ -65,6 +65,11 @@ module Amber::Configuration
     # reads for schema validation or `params`, in bytes.
     property max_document_body_bytes : Int32 = 8_388_608
 
+    # The number of nodes (elements, attributes, text, and other nodes) one
+    # XML request body may hold. Amber counts the parsed document before it
+    # extracts any field, so extraction's own bookkeeping stays bounded.
+    property max_document_nodes : Int32 = 100_000
+
     # The size of one incoming WebSocket message, in bytes, counted across
     # its frames and fragments as they arrive.
     property max_websocket_message_bytes : Int32 = 2_097_152
@@ -83,6 +88,7 @@ module Amber::Configuration
       "max_part_header_bytes"       => 1..1_048_576,
       "max_websocket_message_bytes" => 125..1_073_741_824,
       "max_document_body_bytes"     => 1..1_073_741_824,
+      "max_document_nodes"          => 1..10_000_000,
     }
 
     INT64_RANGES = {
@@ -108,6 +114,7 @@ module Amber::Configuration
         "max_part_header_bytes"       => @max_part_header_bytes,
         "max_websocket_message_bytes" => @max_websocket_message_bytes,
         "max_document_body_bytes"     => @max_document_body_bytes,
+        "max_document_nodes"          => @max_document_nodes,
       }.each do |name, value|
         range = INT32_RANGES[name]
         list_of_errors << range_error(name, value, range) unless range.includes?(value)

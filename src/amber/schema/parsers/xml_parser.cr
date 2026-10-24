@@ -194,26 +194,27 @@ module Amber::Schema::Parser
       end
 
       # Returns *node*'s text and its descendants' text, stripped, as
-      # `XML::Node#content` would give it. The stripped size is checked
-      # against `max_value_bytes`, and the bytes copied are charged, before
-      # the string is built.
+      # `XML::Node#content.strip` would give it. The stripped size is checked
+      # against `max_value_bytes` and charged before the string is built, and
+      # the stripped text is written straight into a string of that size, so
+      # it is copied once.
       def text_of(node : XML::Node) : String
         span = span_of(node)
         return "" if span.blank?
 
+        stripped_bytesize = span.stripped_bytesize
         max_value_bytes = @limits.max_value_bytes
-        if span.stripped_bytesize > max_value_bytes
+        if stripped_bytesize > max_value_bytes
           raise Amber::Exceptions::ParameterLimitExceeded.new("max_value_bytes", max_value_bytes)
         end
-        charge!(span.bytesize)
-        # Written straight into a string of the measured size, so the text
-        # is copied once.
-        capacity = span.bytesize.to_i32
-        text = String.new(capacity) do |buffer|
-          written = append_text(node, buffer, 0, capacity)
-          {written, 0}
+        charge!(stripped_bytesize)
+
+        capacity = stripped_bytesize.to_i32
+        String.new(capacity) do |buffer|
+          writer = StrippedTextWriter.new(buffer, capacity, span.leading)
+          append_text(node, writer)
+          {writer.offset, 0}
         end
-        text.strip
       end
 
       private def span_of(node : XML::Node) : TextSpan
@@ -232,22 +233,42 @@ module Amber::Schema::Parser
         @spans_by_node[address] = span
       end
 
-      # Copies the text of *node* into *buffer* at *offset*, never past
-      # *capacity*, and returns the new offset.
-      private def append_text(node : XML::Node, buffer : Pointer(UInt8), offset : Int32, capacity : Int32) : Int32
+      # Writes text pieces into a string buffer, dropping the first *skip*
+      # bytes (the leading whitespace) and anything past *capacity* (the
+      # trailing whitespace).
+      private class StrippedTextWriter
+        getter offset : Int32 = 0
+
+        def initialize(@buffer : Pointer(UInt8), @capacity : Int32, skip : Int64)
+          @skip = skip
+        end
+
+        def write(piece : String) : Nil
+          bytes = piece.to_slice
+          if @skip > 0
+            dropped = Math.min(@skip, bytes.size.to_i64).to_i32
+            bytes += dropped
+            @skip -= dropped
+          end
+          count = Math.min(bytes.size, @capacity - @offset)
+          return if count <= 0
+
+          (@buffer + @offset).copy_from(bytes.to_unsafe, count)
+          @offset += count
+        end
+      end
+
+      private def append_text(node : XML::Node, writer : StrippedTextWriter) : Nil
         if text_piece?(node)
-          piece = piece_text(node)
-          count = Math.min(piece.bytesize, capacity - offset)
-          buffer.+(offset).copy_from(piece.to_unsafe, count)
-          return offset + count
+          writer.write(piece_text(node))
+          return
         end
 
         node.children.each do |child|
           if text_piece?(child) || (child.element? && !span_of(child).bytesize.zero?)
-            offset = append_text(child, buffer, offset, capacity)
+            append_text(child, writer)
           end
         end
-        offset
       end
 
       # The content of one text piece, read from libxml once and reused, so
@@ -283,7 +304,7 @@ module Amber::Schema::Parser
       return {} of String => JSON::Any if xml_string.empty?
 
       # Parse XML document
-      document = XML.parse(xml_string)
+      document = parse_document(xml_string, limits)
 
       # Convert to flat structure suitable for schema validation
       extract_default_fields(document, ExtractionAllowance.new(limits))
@@ -302,7 +323,7 @@ module Amber::Schema::Parser
     def self.extract_fields_with_schema(xml_string : String, schema : Definition, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
       return {} of String => JSON::Any if xml_string.empty?
 
-      document = XML.parse(xml_string)
+      document = parse_document(xml_string, limits)
       result = {} of String => JSON::Any
       allowance = ExtractionAllowance.new(limits)
 
@@ -322,6 +343,31 @@ module Amber::Schema::Parser
       result
     rescue ex : XML::Error
       raise SchemaDefinitionError.new("Invalid XML: #{ex.message}")
+    end
+
+    # Parses *xml_string* and checks that the document has at most
+    # `max_document_nodes` nodes before any field is extracted.
+    private def self.parse_document(xml_string : String, limits : Amber::Configuration::ParamsConfig) : XML::Node
+      document = XML.parse(xml_string)
+      max_nodes = limits.max_document_nodes
+      if count_nodes(document, max_nodes) > max_nodes
+        raise Amber::Exceptions::ParameterLimitExceeded.new("max_document_nodes", max_nodes)
+      end
+      document
+    end
+
+    # Counts *node* and its attributes and descendants, stopping once the
+    # count passes *stop_after*, so the walk is bounded by the limit.
+    private def self.count_nodes(node : XML::Node, stop_after : Int32) : Int32
+      count = 1
+      if node.element?
+        count += node.attributes.size
+      end
+      node.children.each do |child|
+        count += count_nodes(child, stop_after - count)
+        return count if count > stop_after
+      end
+      count
     end
 
     # Extract default fields from XML document (without schema)
@@ -470,7 +516,7 @@ module Amber::Schema::Parser
       errors = [] of Error
 
       begin
-        document = XML.parse(xml_string)
+        document = parse_document(xml_string, Amber.settings.params)
 
         # Create XPath context for validation
         namespaces = extract_schema_namespaces(schema)
@@ -531,7 +577,7 @@ module Amber::Schema::Parser
     def self.parse_with_namespaces(xml_string : String, explicit_namespaces : Hash(String, String) = {} of String => String) : Hash(String, JSON::Any)
       return {} of String => JSON::Any if xml_string.empty?
 
-      document = XML.parse(xml_string)
+      document = parse_document(xml_string, Amber.settings.params)
 
       # Merge explicit namespaces with those found in document
       all_namespaces = explicit_namespaces.dup

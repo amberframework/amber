@@ -70,12 +70,21 @@
   `<tmpdir>/amber-uploads-<uid>`, created with mode 0700 and checked to be
   owned by that user, which every worker and restart reuses. Cleanup removes
   a tempfile only when Amber still owns it and its path, when checked, still
-  names the file Amber created.
+  names the file Amber created. If another local user has claimed that
+  directory in a shared temporary directory, the process uses a new
+  private directory with an unpredictable name instead. A move across file
+  systems copies to a file beside the destination and renames it into
+  place, so a failed copy leaves both files as they were.
 - XML extraction measures each node's text once, before copying it, and
   checks every extracted key and value against the request's limits (key
   length and depth, value length, and at most four times
   `max_document_body_bytes` in all, XPath fields included), so nested
-  elements cannot multiply the text copied out of a document.
+  elements cannot multiply the text copied out of a document. A parsed XML
+  document may hold at most `params.max_document_nodes` nodes (default
+  100,000), checked before any field is extracted.
+- A rejected request body is remembered: every later read of `params` or
+  `form_params` for that request raises the same error, so a caller that
+  catches it never sees a parse of the bytes left in the stream.
 - The pipeline detects a WebSocket upgrade the way the WebSocket handler
   does (`Upgrade: websocket` in any letter case, with `Upgrade` in
   `Connection`), and a route that only has a socket handler no longer

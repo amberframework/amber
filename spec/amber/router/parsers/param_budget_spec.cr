@@ -355,6 +355,22 @@ module Amber::Router::Parsers
       Amber::Router::Params.new(multipart).multipart_params["title"]?.should eq "hello"
     end
 
+    it "raises a body rejection again on every later read" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_form_body_bytes = 8
+      request = HTTP::Request.new("PUT", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}, "123456789&x=y")
+      request.param_budget = ParamBudget.new(config)
+
+      2.times do
+        expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_form_body_bytes/) do
+          request.form_params
+        end
+      end
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_form_body_bytes/) do
+        request.params.form_params
+      end
+    end
+
     it "keeps ordinary query access working within the limits" do
       params = Amber::Router::Params.new(HTTP::Request.new("GET", "/?a=1&a=2"))
       params.fetch_all("a").should eq ["1", "2"]
