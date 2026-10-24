@@ -1,6 +1,7 @@
 require "./params"
 require "./router"
 require "./route"
+require "./request_scheme"
 
 class HTTP::Request
   METHOD          = "_method"
@@ -56,6 +57,30 @@ class HTTP::Request
 
   def url
     parsed_uri.to_s
+  end
+
+  # Returns the scheme the client used to reach the application, `"https"` or
+  # `"http"`.
+  #
+  # Behind a TLS-terminating reverse proxy the connection Amber sees is plain
+  # HTTP, so the scheme the proxy reports (`Forwarded: proto=`,
+  # `X-Forwarded-Proto`, or `HTTPS: on`) is believed only when the immediate
+  # peer matches `server.trusted_proxies`. See `Amber::Router::RequestScheme`.
+  def scheme : String
+    server_settings = Amber.settings
+    server_terminates_tls = !server_settings.ssl_key_file.nil? && !server_settings.ssl_cert_file.nil?
+
+    Amber::Router::RequestScheme.resolve(
+      self,
+      server_settings.server.trusted_proxy_networks,
+      server_terminates_tls
+    )
+  end
+
+  # Returns `true` when the client reached the application over HTTPS. This
+  # is the one place Amber answers that question; see `#scheme`.
+  def https? : Bool
+    scheme == Amber::Router::RequestScheme::HTTPS
   end
 
   private def parsed_uri

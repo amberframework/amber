@@ -15,6 +15,7 @@ This guide covers every breaking change between Amber V1 (1.4.x) and Amber V2, w
 | Import paths changed | Require statements | Low |
 | Configuration restructured | YAML config files | Medium |
 | Session security updated | Session configuration | Low |
+| HTTPS decided by trusted proxies | Apps behind a TLS-terminating proxy | Low |
 
 ## 1. CLI Extracted from the Framework
 
@@ -489,6 +490,51 @@ V2 updates the default session configuration for improved security:
 
 Review your session configuration and update as needed.
 
+## 10. HTTPS Behind a Reverse Proxy
+
+Production sessions use `Secure` cookies, and Amber emits a `Secure` cookie
+only on a request it considers HTTPS. Earlier V2 betas considered a request
+HTTPS only when it carried the header `HTTPS: on`, which TLS-terminating
+proxies (Caddy, nginx, DigitalOcean App Platform, Cloudflare) do not send.
+They send `X-Forwarded-Proto: https` or `Forwarded: proto=https`. Behind such
+a proxy the session cookie never arrived, so login and CSRF failed.
+
+Amber now answers "is this request HTTPS" in one place, `request.https?`,
+using the new `server.trusted_proxies` setting: a list of IP addresses and
+CIDR blocks, loopback only by default. When the immediate peer is in the
+list, Amber believes the scheme that proxy appended to `Forwarded`,
+`X-Forwarded-Proto`, or `HTTPS: on`. Requests from any other peer keep their
+real scheme.
+
+What to change:
+
+1. **Proxy on the same host** (Caddy or nginx forwarding to `127.0.0.1`):
+   nothing to configure; the default trusts loopback.
+2. **Proxy elsewhere** (App Platform, a load balancer, a proxy container):
+   list its addresses.
+
+   ```yaml
+   # config/environments/production.yml
+   server:
+     trusted_proxies:
+       - "10.0.0.0/8"
+   ```
+
+   or set `AMBER_SERVER_TRUSTED_PROXIES=10.0.0.0/8` in the deployment. When
+   the platform router is the only route to the app's port, `"0.0.0.0/0"`
+   and `"::/0"` are acceptable.
+3. **Delete any workaround pipe** that writes `HTTPS: on` into the request
+   (for example one that sets it unconditionally in production). The
+   framework now reads the proxy's own header, and a pipe that writes the
+   flag for every request would mark plain-HTTP requests as HTTPS.
+
+One behavior changes: `HTTPS: on` is now believed only from a trusted peer.
+A workaround pipe that sets it still works while the proxy's address is in
+`trusted_proxies`, so you can upgrade first and delete the pipe afterward.
+
+See the [configuration guide](guides/configuration.md#running-behind-a-tls-terminating-proxy)
+for the full rules.
+
 ## Dependency Changes Summary
 
 ### Remove from shard.yml
@@ -536,5 +582,6 @@ is published.
 - [ ] Update session configuration to use adapter pattern
 - [ ] Remove any direct `require "redis"`, `require "amber_router"`, or `require "kilt"` statements
 - [ ] Add database drivers explicitly to shard.yml if needed
+- [ ] Behind a TLS-terminating proxy, set `server.trusted_proxies` to the proxy's addresses and delete any pipe that writes `HTTPS: on`
 - [ ] Test all routes and templates
 - [ ] (Optional) Start migrating controller actions to use Schema API
