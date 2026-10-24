@@ -79,12 +79,18 @@
   checks every extracted key and value against the request's limits (key
   length and depth, value length, and at most four times
   `max_document_body_bytes` in all, XPath fields included), so nested
-  elements cannot multiply the text copied out of a document. A parsed XML
-  document may hold at most `params.max_document_nodes` nodes (default
-  100,000), checked before any field is extracted.
-- A rejected request body is remembered: every later read of `params` or
-  `form_params` for that request raises the same error, so a caller that
-  catches it never sees a parse of the bytes left in the stream.
+  elements cannot multiply the text copied out of a document. Text and
+  attribute values are measured in libxml's buffers before they are copied.
+  An XML document may hold at most `params.max_document_nodes` nodes
+  (default 100,000): a well-formed document is counted while it streams,
+  before its tree is built, and a recovered malformed one is counted
+  before any field is extracted.
+- A rejected request body is remembered on the request
+  (`HTTP::Request#guard_body_read`): every later read of `params`,
+  `form_params`, or a schema contract for that request raises the same
+  error, so a caller that catches it never sees a parse of the bytes left
+  in the stream. Upload cleanup continues past a file that fails to close
+  or delete.
 - The pipeline detects a WebSocket upgrade the way the WebSocket handler
   does (`Upgrade: websocket` in any letter case, with `Upgrade` in
   `Connection`), and a route that only has a socket handler no longer

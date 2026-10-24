@@ -106,34 +106,22 @@ module Amber::Schema::Parser
     # may be at most `EXTRACTED_BYTES_FACTOR` times
     # `max_document_body_bytes`.
     #
-    # Text values are measured before they are built (`text_of`), so an
-    # over-limit value is rejected without being copied. Each text node is
-    # measured once, and each element's measurement is reused by its
-    # ancestors.
+    # Text is measured in libxml's own buffers, walking the tree by pointer,
+    # before any of it is copied: an over-limit value is rejected without
+    # being built, each text node is measured once, and each element's
+    # measurement is reused by its ancestors.
     class ExtractionAllowance
       EXTRACTED_BYTES_FACTOR = 4
 
       # The byte size of a run of text, and of the whitespace that
       # `String#strip` would remove from each end.
       private record TextSpan, bytesize : Int64, leading : Int64, trailing : Int64 do
-        def self.of(text : String) : TextSpan
-          leading = 0_i64
-          text.each_char do |char|
-            break unless char.whitespace?
-            leading += char.bytesize
-          end
-          size = text.bytesize.to_i64
+        def self.of(bytes : Bytes) : TextSpan
+          size = bytes.size.to_i64
+          leading = leading_whitespace(bytes)
           return new(size, size, size) if leading == size
 
-          # The text has a character that is not whitespace, so this stops
-          # before the start.
-          trailing = 0_i64
-          reader = Char::Reader.new(at_end: text)
-          while reader.current_char.whitespace?
-            trailing += reader.current_char.bytesize
-            reader.previous_char
-          end
-          new(size, leading, trailing)
+          new(size, leading, trailing_whitespace(bytes))
         end
 
         def blank? : Bool
@@ -151,6 +139,63 @@ module Amber::Schema::Parser
             other.blank? ? other.bytesize + trailing : other.trailing
           )
         end
+
+        # Bytes of whitespace (`Char#whitespace?`) at the start of *bytes*.
+        private def self.leading_whitespace(bytes : Bytes) : Int64
+          position = 0
+          while position < bytes.size
+            width = sequence_width(bytes[position])
+            break if position + width > bytes.size
+            break unless whitespace_at?(bytes, position, width)
+            position += width
+          end
+          position.to_i64
+        end
+
+        # Bytes of whitespace at the end of *bytes*, which holds at least one
+        # character that is not whitespace.
+        private def self.trailing_whitespace(bytes : Bytes) : Int64
+          finish = bytes.size
+          while finish > 0
+            start = finish - 1
+            # Step back over UTF-8 continuation bytes to the character's start.
+            while start > 0 && finish - start < 4 && (bytes[start] & 0xC0) == 0x80
+              start -= 1
+            end
+            width = finish - start
+            break unless sequence_width(bytes[start]) == width && whitespace_at?(bytes, start, width)
+            finish = start
+          end
+          (bytes.size - finish).to_i64
+        end
+
+        private def self.sequence_width(lead : UInt8) : Int32
+          if lead < 0x80
+            1
+          elsif lead >= 0xF0
+            4
+          elsif lead >= 0xE0
+            3
+          else
+            2
+          end
+        end
+
+        # Decodes the UTF-8 sequence at *position* without allocating and
+        # tests it with `Char#whitespace?`.
+        private def self.whitespace_at?(bytes : Bytes, position : Int32, width : Int32) : Bool
+          lead = bytes[position].to_i32
+          return lead.unsafe_chr.whitespace? if width == 1
+
+          codepoint = lead & (0x7F >> width)
+          (1...width).each do |offset|
+            continuation = bytes[position + offset].to_i32
+            return false unless (continuation & 0xC0) == 0x80
+            codepoint = (codepoint << 6) | (continuation & 0x3F)
+          end
+          return false if codepoint > Char::MAX_CODEPOINT || (0xD800..0xDFFF).includes?(codepoint)
+          codepoint.unsafe_chr.whitespace?
+        end
       end
 
       private EMPTY_SPAN = TextSpan.new(0_i64, 0_i64, 0_i64)
@@ -159,13 +204,14 @@ module Amber::Schema::Parser
       @limits : Amber::Configuration::ParamsConfig
       @remaining_bytes : Int64
       @spans_by_node : Hash(UInt64, TextSpan)
-      @text_by_node : Hash(UInt64, String)
+      @entity_text_by_node : Hash(UInt64, String)
+      @document : XML::Document?
 
       def initialize(@limits : Amber::Configuration::ParamsConfig = Amber.settings.params)
         @budget = Amber::Router::Parsers::ParamBudget.new(@limits)
         @remaining_bytes = @limits.max_document_body_bytes.to_i64 * EXTRACTED_BYTES_FACTOR
         @spans_by_node = {} of UInt64 => TextSpan
-        @text_by_node = {} of UInt64 => String
+        @entity_text_by_node = {} of UInt64 => String
       end
 
       # Checks an extracted key's length and depth, and charges its bytes.
@@ -188,48 +234,67 @@ module Amber::Schema::Parser
         raise Amber::Exceptions::ParameterLimitExceeded.new("max_document_body_bytes", @limits.max_document_body_bytes)
       end
 
-      # Whether *node*'s text, stripped, is empty. Measures without copying.
-      def blank_text?(node : XML::Node) : Bool
-        span_of(node).blank?
-      end
-
       # Returns *node*'s text and its descendants' text, stripped, as
       # `XML::Node#content.strip` would give it. The stripped size is checked
       # against `max_value_bytes` and charged before the string is built, and
       # the stripped text is written straight into a string of that size, so
       # it is copied once.
       def text_of(node : XML::Node) : String
-        span = span_of(node)
+        @document = node.document
+        pointer = node.to_unsafe
+        span = span_of(pointer)
         return "" if span.blank?
 
         stripped_bytesize = span.stripped_bytesize
-        max_value_bytes = @limits.max_value_bytes
-        if stripped_bytesize > max_value_bytes
-          raise Amber::Exceptions::ParameterLimitExceeded.new("max_value_bytes", max_value_bytes)
-        end
+        check_value_size!(stripped_bytesize)
         charge!(stripped_bytesize)
 
         capacity = stripped_bytesize.to_i32
         String.new(capacity) do |buffer|
           writer = StrippedTextWriter.new(buffer, capacity, span.leading)
-          append_text(node, writer)
+          append_text(pointer, writer)
           {writer.offset, 0}
         end
       end
 
-      private def span_of(node : XML::Node) : TextSpan
-        address = node.to_unsafe.address
+      # Returns an attribute's value after measuring it in libxml's buffers,
+      # checking it against `max_value_bytes`, and charging it.
+      def attribute_value(attribute : XML::Node) : String
+        @document = attribute.document
+        size = 0_i64
+        child = attribute.to_unsafe.value.children
+        while child
+          size += piece_bytes(child).size
+          child = child.value.next
+        end
+        check_value_size!(size)
+        charge!(size)
+        attribute.content
+      end
+
+      private def check_value_size!(size : Int64) : Nil
+        max_value_bytes = @limits.max_value_bytes
+        return if size <= max_value_bytes
+
+        raise Amber::Exceptions::ParameterLimitExceeded.new("max_value_bytes", max_value_bytes)
+      end
+
+      private def span_of(pointer : LibXML::Node*) : TextSpan
+        address = pointer.address
         if span = @spans_by_node[address]?
           return span
         end
 
-        span = if text_piece?(node)
-                 TextSpan.of(piece_text(node))
-               else
-                 node.children.reduce(EMPTY_SPAN) do |total, child|
-                   text_piece?(child) || child.element? ? total + span_of(child) : total
-                 end
-               end
+        span = EMPTY_SPAN
+        if text_piece?(pointer)
+          span = TextSpan.of(piece_bytes(pointer))
+        else
+          child = pointer.value.children
+          while child
+            span += span_of(child) if text_piece?(child) || child.value.type.element_node?
+            child = child.value.next
+          end
+        end
         @spans_by_node[address] = span
       end
 
@@ -243,8 +308,7 @@ module Amber::Schema::Parser
           @skip = skip
         end
 
-        def write(piece : String) : Nil
-          bytes = piece.to_slice
+        def write(bytes : Bytes) : Nil
           if @skip > 0
             dropped = Math.min(@skip, bytes.size.to_i64).to_i32
             bytes += dropped
@@ -258,30 +322,43 @@ module Amber::Schema::Parser
         end
       end
 
-      private def append_text(node : XML::Node, writer : StrippedTextWriter) : Nil
-        if text_piece?(node)
-          writer.write(piece_text(node))
+      private def append_text(pointer : LibXML::Node*, writer : StrippedTextWriter) : Nil
+        if text_piece?(pointer)
+          writer.write(piece_bytes(pointer))
           return
         end
 
-        node.children.each do |child|
-          if text_piece?(child) || (child.element? && !span_of(child).bytesize.zero?)
+        child = pointer.value.children
+        while child
+          if text_piece?(child) || (child.value.type.element_node? && !span_of(child).bytesize.zero?)
             append_text(child, writer)
           end
+          child = child.value.next
         end
       end
 
-      # The content of one text piece, read from libxml once and reused, so
-      # every ancestor that copies it copies the same string. The cache holds
-      # at most the document's own text.
-      private def piece_text(node : XML::Node) : String
-        @text_by_node[node.to_unsafe.address] ||= node.content
+      # The bytes of one text piece. Text and CDATA are read in place from
+      # libxml's buffer; an entity reference's expansion is read once.
+      private def piece_bytes(pointer : LibXML::Node*) : Bytes
+        type = pointer.value.type
+        if type.entity_ref_node?
+          document = @document
+          return Bytes.empty unless document
+          address = pointer.address
+          return (@entity_text_by_node[address] ||= XML::Node.new(pointer, document).content).to_slice
+        end
+        return Bytes.empty unless type.text_node? || type.cdata_section_node?
+
+        content = pointer.value.content
+        return Bytes.empty if content.null?
+        Bytes.new(content, LibC.strlen(content), read_only: true)
       end
 
       # Text, CDATA, and entity reference nodes: the pieces
       # `XML::Node#content` joins.
-      private def text_piece?(node : XML::Node) : Bool
-        node.text? || node.cdata? || node.type.entity_ref_node?
+      private def text_piece?(pointer : LibXML::Node*) : Bool
+        type = pointer.value.type
+        type.text_node? || type.cdata_section_node? || type.entity_ref_node?
       end
     end
 
@@ -315,7 +392,7 @@ module Amber::Schema::Parser
     # Parse HTTP request body
     def self.parse_request(request : HTTP::Request) : Hash(String, JSON::Any)
       budget = request.param_budget
-      body = budget.read_document(request.body)
+      body = request.read_document_body
       parse_string(body, budget.limits)
     end
 
@@ -345,27 +422,60 @@ module Amber::Schema::Parser
       raise SchemaDefinitionError.new("Invalid XML: #{ex.message}")
     end
 
-    # Parses *xml_string* and checks that the document has at most
-    # `max_document_nodes` nodes before any field is extracted.
+    # Parses *xml_string*, holding it to `max_document_nodes` nodes.
+    #
+    # A well-formed document is counted while it streams, so one with too
+    # many nodes is rejected before its tree is built. libxml recovers from
+    # malformed markup and the streaming count stops at the first error, so
+    # the parsed tree is counted again, by pointer, before any extraction.
     private def self.parse_document(xml_string : String, limits : Amber::Configuration::ParamsConfig) : XML::Node
-      document = XML.parse(xml_string)
       max_nodes = limits.max_document_nodes
-      if count_nodes(document, max_nodes) > max_nodes
+      if streamed_node_count(xml_string, max_nodes) > max_nodes
+        raise Amber::Exceptions::ParameterLimitExceeded.new("max_document_nodes", max_nodes)
+      end
+
+      document = XML.parse(xml_string)
+      if tree_node_count(document.to_unsafe, max_nodes) > max_nodes
         raise Amber::Exceptions::ParameterLimitExceeded.new("max_document_nodes", max_nodes)
       end
       document
     end
 
-    # Counts *node* and its attributes and descendants, stopping once the
-    # count passes *stop_after*, so the walk is bounded by the limit.
-    private def self.count_nodes(node : XML::Node, stop_after : Int32) : Int32
-      count = 1
-      if node.element?
-        count += node.attributes.size
-      end
-      node.children.each do |child|
-        count += count_nodes(child, stop_after - count)
+    # :nodoc:
+    # Counts the nodes `XML::Reader` streams, with each element's attributes,
+    # stopping once the count passes *stop_after* or the markup is
+    # malformed.
+    def self.streamed_node_count(xml_string : String, stop_after : Int32) : Int32
+      reader = XML::Reader.new(xml_string)
+      count = 0
+      while reader.read
+        node_type = reader.node_type
+        next if node_type.end_element?
+        count += 1
+        count += reader.attributes_count if node_type.element?
         return count if count > stop_after
+      end
+      count
+    end
+
+    # Counts the descendants of *pointer*, with each element's attributes,
+    # by following libxml's links, stopping once the count passes
+    # *stop_after*. Nothing is allocated per node.
+    private def self.tree_node_count(pointer : LibXML::Node*, stop_after : Int32) : Int32
+      count = 0
+      child = pointer.value.children
+      while child
+        count += 1
+        if child.value.type.element_node?
+          attribute = child.value.properties
+          while attribute
+            count += 1
+            attribute = attribute.value.next.as(LibXML::Attr*)
+          end
+          count += tree_node_count(child, stop_after - count)
+        end
+        return count if count > stop_after
+        child = child.value.next
       end
       count
     end
@@ -394,8 +504,7 @@ module Amber::Schema::Parser
       element.attributes.each do |attr|
         attr_name = "#{element_name}@#{attr.name}"
         allowance.charge_key!(attr_name)
-        attribute_value = attr.content
-        allowance.charge_value!(attribute_value)
+        attribute_value = allowance.attribute_value(attr)
         result[attr_name] = JSON::Any.new(attribute_value)
       end
 

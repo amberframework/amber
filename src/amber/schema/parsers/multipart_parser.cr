@@ -128,7 +128,11 @@ module Amber::Schema::Parser
     # Parse multipart form data, handling both files and regular fields
     def self.parse_multipart_request(request : HTTP::Request, budget : Amber::Router::Parsers::ParamBudget = request.param_budget) : Hash(String, JSON::Any)
       result = {} of String => JSON::Any
+      request.guard_body_read { collect_multipart_parts(request, budget, result) }
+      result
+    end
 
+    private def self.collect_multipart_parts(request : HTTP::Request, budget : Amber::Router::Parsers::ParamBudget, result : Hash(String, JSON::Any)) : Nil
       Amber::Router::Parsers::Multipart.each_part(request, budget.limits) do |upload|
         budget.admit!(upload.name)
         filename = upload.filename
@@ -152,8 +156,6 @@ module Amber::Schema::Parser
           QueryParser.set_nested_value(result, upload.name, QueryParser.parse_value(content), budget)
         end
       end
-
-      result
     end
 
     # Builds schema data from the router's cached multipart parse. This keeps

@@ -19,7 +19,6 @@ module Amber::Router
     @multipart : Types::Params?
     @json : Types::Params?
     @form : HTTP::Params?
-    @body_error : Amber::Exceptions::BadRequest?
 
     def initialize(@request : HTTP::Request)
     end
@@ -38,10 +37,16 @@ module Amber::Router
       @files ||= Types::Files.new
     end
 
-    # Deletes the tempfiles behind `files`, if the body was parsed.
+    # Deletes the tempfiles behind `files`, if the body was parsed. A file
+    # that cannot be deleted is logged and skipped, so the rest are still
+    # removed and the request's own error, if any, is kept.
     def delete_uploaded_files : Nil
       if uploaded_files = @files
-        uploaded_files.each_value(&.delete_tempfile)
+        uploaded_files.each_value do |uploaded_file|
+          uploaded_file.delete_tempfile
+        rescue ex : IO::Error
+          Amber::Router::File::Log.warn(exception: ex) { "Could not delete the upload tempfile #{uploaded_file.path}" }
+        end
       end
     end
 
@@ -145,20 +150,10 @@ module Amber::Router
       @json = parse_body { Parsers::JSON.parse(@request) }
     end
 
-    # Parses the body once. A rejected body consumed part of the stream, so
-    # the rejection is kept and raised again on every later read: a caller
-    # that catches it never sees a parse of the bytes that remain.
+    # Parses the body through `HTTP::Request#guard_body_read`, so a rejected
+    # body is rejected again on every later read.
     private def parse_body(& : -> T) : T forall T
-      if error = @body_error
-        raise error
-      end
-
-      begin
-        yield
-      rescue ex : Amber::Exceptions::BadRequest
-        @body_error = ex
-        raise ex
-      end
+      @request.guard_body_read { yield }
     end
 
     private def json_value?(key : String) : String?

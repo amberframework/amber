@@ -295,6 +295,49 @@ describe Amber::Schema::Parser::XMLParser do
       Amber::Schema::Parser::XMLParser.parse_string("<r>#{"<a/>" * 998}</r>", config).should_not be_empty
     end
 
+    it "counts a well-formed document's nodes while it streams, before building its tree" do
+      xml = "<r>#{"<a/>" * 1_000_000}</r>"
+      # The streaming count stops one node past the limit; libxml's tree is
+      # outside the garbage collector, so this shows it is never needed.
+      Amber::Schema::Parser::XMLParser.streamed_node_count(xml, 100_000).should eq 100_001
+      allocated = bytes_allocated_by do
+        expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_document_nodes/) do
+          Amber::Schema::Parser::XMLParser.parse_string(xml)
+        end
+      end
+      allocated.should be < 4_u64 * 1024 * 1024
+    end
+
+    it "counts a recovered malformed document's tree before extracting" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_document_nodes = 1_000
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_document_nodes/) do
+        Amber::Schema::Parser::XMLParser.parse_string("<r><a></b>#{"<a/>" * 2_000}</r>", config)
+      end
+    end
+
+    it "measures text and attribute values in place before copying them" do
+      text = "x" * (7 * 1024 * 1024)
+      root = XML.parse("<r v=\"#{text}\">#{text}</r>").first_element_child || raise "no root element"
+      allowance = Amber::Schema::Parser::XMLParser::ExtractionAllowance.new
+      attribute = root.attributes.first? || raise "no attribute"
+
+      allocated = bytes_allocated_by do
+        expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_value_bytes/) do
+          allowance.text_of(root)
+        end
+        expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_value_bytes/) do
+          allowance.attribute_value(attribute)
+        end
+      end
+      allocated.should be < 256_u64 * 1024
+    end
+
+    it "strips multibyte whitespace the way String#strip does" do
+      result = Amber::Schema::Parser::XMLParser.parse_string("<p>\u3000\u2003value \u00A0x\u2029\u3000<b/></p>")
+      result["p#text"].should eq JSON::Any.new("value \u00A0x")
+    end
+
     it "checks the generated element#text key against max_key_bytes" do
       config = Amber::Configuration::ParamsConfig.new
       config.max_key_bytes = 8
