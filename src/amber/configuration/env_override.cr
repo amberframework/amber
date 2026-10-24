@@ -185,6 +185,10 @@ module Amber::Configuration
       if v = ENV["AMBER_PARAMS_MAX_NESTING_DEPTH"]?
         config.max_nesting_depth = v.to_i
       end
+      apply_params_sizes(config)
+    end
+
+    private def self.apply_params_sizes(config : ParamsConfig) : Nil
       if v = ENV["AMBER_PARAMS_MAX_KEY_BYTES"]?
         config.max_key_bytes = v.to_i
       end
@@ -202,6 +206,9 @@ module Amber::Configuration
       end
       if v = ENV["AMBER_PARAMS_MAX_PART_HEADER_BYTES"]?
         config.max_part_header_bytes = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_WEBSOCKET_MESSAGE_BYTES"]?
+        config.max_websocket_message_bytes = v.to_i
       end
     end
 

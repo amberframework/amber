@@ -19,8 +19,10 @@
   (`max_multipart_body_bytes`, 128 MiB), multipart part headers
   (`max_part_header_bytes`, 16 KiB), and uploaded file size
   (`max_file_bytes`, 64 MiB). Query strings and URL-encoded bodies are
-  checked pair by pair as they are read; multipart bodies, headers and files
-  are counted while they stream.
+  scanned byte by byte (`&` and `;` both separate pairs), with key, value and
+  body sizes enforced as the bytes arrive; the query is read from the raw
+  request target before the URI is parsed. Multipart bodies, headers and
+  files are counted while they stream.
 - Each request has one parameter budget (`HTTP::Request#param_budget`)
   shared by its query string, body, and schema conversion, so counts and
   array padding are cumulative. `HTTP::Request#query_params` checks the query
@@ -30,10 +32,18 @@
   in the new `params:` section of `config/environments/<env>.yml` or with
   `AMBER_PARAMS_<KEY>` environment variables; the loader validates them at
   boot, and V1-format settings files accept the same section and overrides.
-- Uploaded files are written to tempfiles with a fixed `amber-upload` name
-  (keeping a plain extension), and Amber deletes them when the request
-  finishes or when a later part is rejected. **Copy or move an upload during
-  the action to keep it.**
+- Uploaded files are copied through the handle that created their tempfile
+  (a fixed `amber-upload` name keeping a plain extension), the handle is
+  closed, and `Amber::Router::File#size` reports the bytes received rather
+  than the client's declared size. Amber deletes upload tempfiles when the
+  request finishes, when a later part is rejected, or when a later part with
+  the same name replaces one. **Copy or move an upload during the action to
+  keep it.** Malformed multipart framing or part metadata is answered with
+  `400 Bad Request` (`Amber::Exceptions::BadRequest`).
+- WebSocket routes read each connection through
+  `Amber::WebSockets::BoundedProtocol`, which caps a message across its
+  frames and fragments as they arrive (`max_websocket_message_bytes`,
+  2 MiB) and closes the connection with code 1009 when it is exceeded.
 - The WebSocket binary decoder caps each frame (`max_frame_bytes:`, default
   1 MiB) before Base64 decoding, rejects a length prefix or field count
   larger than the message, and rejects bytes after the declared fields.

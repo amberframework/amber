@@ -180,7 +180,8 @@ module Amber::Schema::Parser
     private def self.parse_bracket_notation(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any), budget : Amber::Router::Parsers::ParamBudget)
       # Parse keys like: user[profile][name] or items[0] or tags[1][name]
       parts = key.split(/[\[\]]/).reject(&.empty?)
-      parts.each { |part| budget.check_segment!(part) }
+      # Only bracketed segments are indices; the base name is a plain field.
+      parts.skip(1).each { |part| budget.check_segment!(part) }
 
       if parts.size == 1
         hash[parts[0]] = parse_value(value)

@@ -145,4 +145,19 @@ describe "request parameter limits on the request path" do
     path = ParameterLimitsController.list_of_upload_paths.first
     File.exists?(path).should be_false
   end
+
+  it "answers 400 for malformed multipart metadata" do
+    boundary = "AmberMalformedBoundary"
+    request = HTTP::Request.new("POST", "/parameter-limits/upload", HTTP::Headers{
+      "Content-Type" => "multipart/form-data; boundary=#{boundary}",
+      "Accept"       => "application/json",
+    })
+    request.body = IO::Memory.new(
+      "--#{boundary}\r\nContent-Disposition: form-data; name=\"doc\"; filename=\"x\"; size=bogus\r\n\r\nx\r\n--#{boundary}--\r\n"
+    )
+    response = create_request_and_return_io(pipeline, request)
+
+    response.status_code.should eq 400
+    response.body.should contain("malformed")
+  end
 end

@@ -63,7 +63,9 @@ module Amber::Schema::Parser
     private def self.set_nested_value_internal(hash : Hash(String, JSON::Any), key : String, value : JSON::Any, budget : Amber::Router::Parsers::ParamBudget)
       budget.check_key_shape!(key)
       parts = parse_nested_key(key)
-      parts.each { |part| budget.check_segment!(part) }
+      # Only bracketed segments are indices; the base name, and dot-separated
+      # names, are plain fields such as `-1`.
+      parts.skip(1).each { |part| budget.check_segment!(part) } if key.includes?('[')
 
       # Handle array notation with indices: tags[0], tags[1]
       if match = key.match(/^(.+)\[(\d+)\]$/)

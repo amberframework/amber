@@ -174,11 +174,12 @@ module Amber::Schema::Parser
       result = QueryParser.parse_admitted_params(params, budget)
 
       files.each do |name, upload|
-        content = ::File.open(upload.file.path) { |file| budget.read_file(file) }
+        content = upload.open_tempfile { |file| budget.read_file(file) }
         file_info = FileInfo.new(
           filename: upload.filename,
           content_type: upload.headers["Content-Type"]?,
-          size: upload.size || content.bytesize.to_u64,
+          # The bytes received, never the client's declared size.
+          size: content.bytesize.to_u64,
           content: content,
           headers: upload.headers
         )
