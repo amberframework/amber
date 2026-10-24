@@ -112,11 +112,21 @@ Current limitations that need to be addressed:
 The parser system uses a registry pattern for content-type based selection:
 
 ```crystal
-# Register custom parser
-ParserRegistry.register("application/xml", XMLParser)
+# Map a content type to a built-in parser ("json" or "query")
+ParserRegistry.register("application/vnd.api+json", "json")
 
 # Parse request automatically selects parser
 data = ParserRegistry.parse_request(request)
+```
+
+XML request bodies are answered with 415 by default. An application opts in to
+another body format, such as XML, with one call at boot; see
+`docs/guides/schema-api.md#opt-in-request-body-parsers`:
+
+```crystal
+ParserRegistry.register_body_parser("application/xml") do |body|
+  MyXMLReader.read_fields(body) # => Hash(String, JSON::Any)
+end
 ```
 
 ## Edge Cases Handled

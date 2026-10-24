@@ -43,7 +43,7 @@ crystal docs                   # Generate API docs → docs/
 
 6. **Configuration** (`src/amber/configuration/`): Typed configuration structs with YAML loading, environment variable overrides (`AMBER_` prefix), validation, and custom registry
 
-7. **Schema API** (`src/amber/schema/`): Request validation and type coercion. Define schemas with field types, validators (required, length, format, range, pattern, enum), and parsers (JSON, multipart, query, XML)
+7. **Schema API** (`src/amber/schema/`): Request validation and type coercion. Define schemas with field types, validators (required, length, format, range, pattern, enum), and parsers (JSON, URL-encoded and multipart forms, query, CBOR, COSE); XML bodies are answered with 415
 
 8. **Jobs** (`src/amber/jobs/`): Background job processing with work-stealing pattern — idle web instances pick up queued jobs. Retry logic, queue adapters
 

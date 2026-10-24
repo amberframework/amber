@@ -45,6 +45,22 @@ class EnforcedSchemaController < Amber::Controller::Base
   end
 end
 
+class XMLDeclaredCreateSchema < Amber::Schema::Definition
+  content_type "application/json", "application/xml", "text/xml"
+  field :name, String, required: true
+end
+
+class XMLDeclaredSchemaController < Amber::Controller::Base
+  schema :create, XMLDeclaredCreateSchema
+
+  class_property action_calls = 0
+
+  def create
+    self.class.action_calls += 1
+    respond_with({"name" => JSON::Any.new(validated_as(XMLDeclaredCreateSchema).name.not_nil!)})
+  end
+end
+
 class InlineSchemaController < Amber::Controller::Base
   schema :create do
     field :name, String, required: true
@@ -225,6 +241,38 @@ describe "enforced controller schemas" do
 
     context.response.status_code.should eq(415)
     context.content.should_not be_nil
+  end
+
+  it "answers XML request bodies with HTTP 415 even when a schema declares XML" do
+    {"application/xml", "text/xml"}.each do |content_type|
+      XMLDeclaredSchemaController.action_calls = 0
+      context, output = schema_context(%(<user><name>Amber</name></user>), content_type)
+      XMLDeclaredSchemaController.new(context).run_before_filter(:create)
+
+      context.response.status_code.should eq(415)
+      XMLDeclaredSchemaController.action_calls.should eq(0)
+      context.response.close
+      output.to_s.should contain("unsupported_media_type")
+    end
+  end
+
+  it "runs an XML action once the application registers an XML body parser" do
+    Amber::Schema::Parser::ParserRegistry.register_body_parser("application/xml") do |body|
+      name = body.gets_to_end[/<name>([^<]*)<\/name>/, 1]? || ""
+      {"name" => JSON::Any.new(name)}
+    end
+    XMLDeclaredSchemaController.action_calls = 0
+    context, output = schema_context(%(<user><name>Amber</name></user>), "application/xml")
+    controller = XMLDeclaredSchemaController.new(context)
+    controller.run_before_filter(:create)
+    context.content.should be_nil
+    controller.create
+
+    XMLDeclaredSchemaController.action_calls.should eq(1)
+    context.response.close
+    output.to_s.should contain(%("name":"Amber"))
+  ensure
+    Amber::Schema::Parser::ParserRegistry.request_body_parsers.delete("application/xml")
   end
 
   it "rejects undeclared body fields when the contract is closed" do
