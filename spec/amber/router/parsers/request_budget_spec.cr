@@ -173,7 +173,7 @@ module Amber::Router::Parsers
       fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
 
       fields["note"].should eq "hello"
-      ::File.read(files["doc"].file.path).should eq "file body"
+      ::File.read(files["doc"].path).should eq "file body"
       files["doc"].delete_tempfile
     end
 
@@ -184,7 +184,7 @@ module Amber::Router::Parsers
       _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
 
       files.size.should eq 1
-      ::File.read(files["doc"].file.path).should eq "second"
+      ::File.read(files["doc"].path).should eq "second"
       upload_tempfile_count.should eq before + 1
       files["doc"].delete_tempfile
       upload_tempfile_count.should eq before
@@ -224,21 +224,25 @@ module Amber::Router::Parsers
   end
 
   describe Amber::Router::File do
-    it "closes the handle it copied through" do
+    it "holds no open handle until the action calls file" do
       body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
       _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
 
-      files["doc"].file.closed?.should be_true
       files["doc"].open_tempfile(&.gets_to_end).should eq "file body"
+      handle = files["doc"].file
+      handle.gets_to_end.should eq "file body"
       files["doc"].delete_tempfile
+      handle.closed?.should be_true
     end
 
     it "refuses to read a tempfile whose path now names another file" do
       body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
       _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
-      path = files["doc"].file.path
-      ::File.delete(path)
-      ::File.write(path, "replacement")
+      path = files["doc"].path
+      # Written while the tempfile still exists, so it has its own inode.
+      replacement = "#{path}.replacement"
+      ::File.write(replacement, "replacement")
+      ::File.rename(replacement, path)
 
       expect_raises(IO::Error, /replaced/) do
         files["doc"].open_tempfile(&.gets_to_end)
@@ -319,7 +323,7 @@ module Amber::Router::Parsers
     it "leaves a file that replaced the tempfile's path during cleanup" do
       body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
       _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
-      path = files["doc"].file.path
+      path = files["doc"].path
       ::File.delete(path)
       ::File.write(path, "replacement")
 

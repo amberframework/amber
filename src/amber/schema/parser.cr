@@ -59,7 +59,7 @@ module Amber::Schema
           if body.starts_with?("{") || body.starts_with?("[")
             parse_json_body(body)
           elsif body.starts_with?("<")
-            parse_xml_body(body)
+            parse_xml_body(body, request.param_budget.limits)
           else
             {} of String => JSON::Any
           end
@@ -111,13 +111,14 @@ module Amber::Schema
 
       # Parse XML request
       private def self.parse_xml_request(request : HTTP::Request) : Hash(String, JSON::Any)
-        body = request.param_budget.read_document(request.body)
-        parse_xml_body(body)
+        budget = request.param_budget
+        body = budget.read_document(request.body)
+        parse_xml_body(body, budget.limits)
       end
 
       # Parse XML body string
-      private def self.parse_xml_body(body : String) : Hash(String, JSON::Any)
-        XMLParser.parse_string(body)
+      private def self.parse_xml_body(body : String, limits : Amber::Configuration::ParamsConfig) : Hash(String, JSON::Any)
+        XMLParser.parse_string(body, limits)
       end
 
       # Normalize content type (remove charset, etc)

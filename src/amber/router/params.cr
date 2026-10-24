@@ -50,6 +50,11 @@ module Amber::Router
       form
     end
 
+    # Whether the request body is URL-encoded form data.
+    def url_encoded_form? : Bool
+      !!content_type?(URL_ENCODED_FORM)
+    end
+
     # Returns parsed multipart fields, reusing the cached body parse.
     def multipart_params : Types::Params
       multipart

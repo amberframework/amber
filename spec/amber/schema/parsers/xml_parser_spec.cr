@@ -71,11 +71,11 @@ describe Amber::Schema::Parser::XMLParser do
       result["description"].should eq(JSON::Any.new("This is <em>content</em> with HTML"))
     end
 
-    it "handles mixed content" do
+    it "keeps an element's own text apart from its children's in mixed content" do
       xml = %(<note>Hello <b>world</b> of XML</note>)
       result = Amber::Schema::Parser::XMLParser.parse_string(xml)
 
-      result["note#text"].should eq(JSON::Any.new("Hello world of XML"))
+      result["note#text"].should eq(JSON::Any.new("Hello of XML"))
       result["note.b"].should eq(JSON::Any.new("world"))
     end
 

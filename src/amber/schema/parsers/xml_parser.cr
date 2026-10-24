@@ -100,6 +100,44 @@ module Amber::Schema::Parser
       end
     end
 
+    # Bounds what extraction copies out of a parsed document, so nesting
+    # cannot multiply the output: each key's length and depth, each value's
+    # length, and the total bytes of every extracted key and value, which
+    # may be at most `EXTRACTED_BYTES_FACTOR` times
+    # `max_document_body_bytes`.
+    class ExtractionAllowance
+      EXTRACTED_BYTES_FACTOR = 4
+
+      @budget : Amber::Router::Parsers::ParamBudget
+      @limits : Amber::Configuration::ParamsConfig
+      @remaining_bytes : Int64
+
+      def initialize(@limits : Amber::Configuration::ParamsConfig = Amber.settings.params)
+        @budget = Amber::Router::Parsers::ParamBudget.new(@limits)
+        @remaining_bytes = @limits.max_document_body_bytes.to_i64 * EXTRACTED_BYTES_FACTOR
+      end
+
+      # Checks an extracted key's length and depth, and charges its bytes.
+      def charge_key!(key : String) : Nil
+        @budget.check_key_shape!(key)
+        charge!(key.bytesize)
+      end
+
+      # Checks an extracted value's length, and charges its bytes.
+      def charge_value!(value : String) : Nil
+        @budget.check_value!(value)
+        charge!(value.bytesize)
+      end
+
+      # Charges *bytes* of text before they are copied.
+      def charge!(bytes : Int) : Nil
+        @remaining_bytes -= bytes
+        return if @remaining_bytes >= 0
+
+        raise Amber::Exceptions::ParameterLimitExceeded.new("max_document_body_bytes", @limits.max_document_body_bytes)
+      end
+    end
+
     # Instance methods for Parser::Base interface
     def parse(value : JSON::Any) : JSON::Any
       # If it's already JSON::Any, return as-is
@@ -113,31 +151,34 @@ module Amber::Schema::Parser
 
     # Class methods for parsing different input types
 
-    # Parse raw XML string into Hash suitable for schema validation
-    def self.parse_string(xml_string : String) : Hash(String, JSON::Any)
+    # Parse raw XML string into Hash suitable for schema validation.
+    # Extraction is bounded by *limits* (see `ExtractionAllowance`).
+    def self.parse_string(xml_string : String, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
       return {} of String => JSON::Any if xml_string.empty?
 
       # Parse XML document
       document = XML.parse(xml_string)
 
       # Convert to flat structure suitable for schema validation
-      extract_default_fields(document)
+      extract_default_fields(document, ExtractionAllowance.new(limits))
     rescue ex : XML::Error
       raise SchemaDefinitionError.new("Invalid XML: #{ex.message}")
     end
 
     # Parse HTTP request body
     def self.parse_request(request : HTTP::Request) : Hash(String, JSON::Any)
-      body = request.param_budget.read_document(request.body)
-      parse_string(body)
+      budget = request.param_budget
+      body = budget.read_document(request.body)
+      parse_string(body, budget.limits)
     end
 
     # Extract fields from XML using schema field definitions with XPath support
-    def self.extract_fields_with_schema(xml_string : String, schema : Definition) : Hash(String, JSON::Any)
+    def self.extract_fields_with_schema(xml_string : String, schema : Definition, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
       return {} of String => JSON::Any if xml_string.empty?
 
       document = XML.parse(xml_string)
       result = {} of String => JSON::Any
+      allowance = ExtractionAllowance.new(limits)
 
       # Create XPath context
       namespaces = extract_schema_namespaces(schema)
@@ -147,7 +188,7 @@ module Amber::Schema::Parser
       schema.class.fields.each do |field_name, field_def|
         if xpath = field_def.options["xpath"]?.try(&.as_s)
           # Use XPath to extract field value
-          value = extract_field_with_xpath(xpath_context, xpath, field_def)
+          value = extract_field_with_xpath(xpath_context, xpath, field_def, allowance)
           result[field_name] = value if value
         end
       end
@@ -158,32 +199,39 @@ module Amber::Schema::Parser
     end
 
     # Extract default fields from XML document (without schema)
-    def self.extract_default_fields(document : XML::Node) : Hash(String, JSON::Any)
+    def self.extract_default_fields(document : XML::Node, allowance : ExtractionAllowance = ExtractionAllowance.new) : Hash(String, JSON::Any)
       result = {} of String => JSON::Any
 
       # Start with root element
       if root = document.first_element_child
-        extract_element_to_hash(root, result)
+        extract_element_to_hash(root, result, allowance)
       end
 
       result
     end
 
-    # Extract XML element and its children into a hash
-    private def self.extract_element_to_hash(element : XML::Node, result : Hash(String, JSON::Any), prefix : String = "")
+    # Extract XML element and its children into a hash. Each node's text is
+    # read once: an element with child elements contributes only its own
+    # (direct) text, so nesting never copies a descendant's text again.
+    private def self.extract_element_to_hash(element : XML::Node, result : Hash(String, JSON::Any), allowance : ExtractionAllowance, prefix : String = "")
       element_name = prefix.empty? ? element.name : "#{prefix}.#{element.name}"
+      allowance.charge_key!(element_name)
 
       # Handle attributes
       element.attributes.each do |attr|
         attr_name = "#{element_name}@#{attr.name}"
-        result[attr_name] = JSON::Any.new(attr.content)
+        allowance.charge_key!(attr_name)
+        attribute_value = attr.content
+        allowance.charge_value!(attribute_value)
+        result[attr_name] = JSON::Any.new(attribute_value)
       end
-
-      # Handle text content
-      text_content = element.content.strip
 
       # Check if element has children
       has_child_elements = element.children.any? { |child| child.element? }
+
+      # Handle text content
+      text_content = has_child_elements ? direct_text(element) : element.content.strip
+      allowance.charge_value!(text_content)
 
       if text_content.empty?
         # Empty element - still add it to the result if it has no children
@@ -202,7 +250,35 @@ module Amber::Schema::Parser
       # Handle child elements
       element.children.each do |child|
         next unless child.element?
-        extract_element_to_hash(child, result, element_name)
+        extract_element_to_hash(child, result, allowance, element_name)
+      end
+    end
+
+    # The element's own text and CDATA children, each stripped, joined by
+    # single spaces, without the text of its child elements.
+    private def self.direct_text(element : XML::Node) : String
+      String.build do |io|
+        element.children.each do |child|
+          next unless child.text? || child.cdata?
+          piece = child.content.strip
+          next if piece.empty?
+          io << ' ' unless io.empty?
+          io << piece
+        end
+      end
+    end
+
+    # Appends the text of *node*'s descendants to *io*, charging each piece
+    # to *allowance* before copying it.
+    private def self.append_descendant_text(node : XML::Node, io : IO, allowance : ExtractionAllowance) : Nil
+      node.children.each do |child|
+        if child.text? || child.cdata?
+          piece = child.content
+          allowance.charge!(piece.bytesize)
+          io << piece
+        elsif child.element?
+          append_descendant_text(child, io, allowance)
+        end
       end
     end
 
@@ -225,7 +301,7 @@ module Amber::Schema::Parser
     end
 
     # Extract field value using XPath
-    private def self.extract_field_with_xpath(xpath_context : XPathContext, xpath : String, field_def : Definition::FieldDef) : JSON::Any?
+    private def self.extract_field_with_xpath(xpath_context : XPathContext, xpath : String, field_def : Definition::FieldDef, allowance : ExtractionAllowance) : JSON::Any?
       nodes = xpath_context.query(xpath)
       return nil if nodes.empty?
 
@@ -234,20 +310,28 @@ module Amber::Schema::Parser
       when "Array(String)", "Array(Int32)", "Array(Float32)", "Array(Float64)"
         # Return array of values
         values = nodes.compact_map do |node|
-          extract_node_value(node)
+          extract_node_value(node, allowance)
         end
         JSON::Any.new(values)
       else
         # Return first matching value
         if first_node = nodes.first?
-          extract_node_value(first_node)
+          extract_node_value(first_node, allowance)
         end
       end
     end
 
-    # Extract value from XML node
-    def self.extract_node_value(node : XML::Node) : JSON::Any
-      content = node.content.strip
+    # Extract value from XML node: the text of the node and its descendants,
+    # charged to *allowance* as it is copied, so many overlapping matches
+    # cannot copy the same text without bound.
+    def self.extract_node_value(node : XML::Node, allowance : ExtractionAllowance = ExtractionAllowance.new) : JSON::Any
+      content = if node.text? || node.cdata?
+                  text = node.content
+                  allowance.charge!(text.bytesize)
+                  text.strip
+                else
+                  String.build { |io| append_descendant_text(node, io, allowance) }.strip
+                end
 
       # For now, treat all content as text since Crystal's XML API is limited
       # TODO: Add CDATA handling when API supports it
