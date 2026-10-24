@@ -340,6 +340,21 @@ module Amber::Router::Parsers
       end
     end
 
+    it "reads a form by its media type, compared without regard to letter case" do
+      mixed_case = HTTP::Request.new("PUT", "/", HTTP::Headers{"Content-Type" => "Application/X-Www-Form-Urlencoded; charset=UTF-8"}, "title=hello")
+      mixed_case.form_params["title"]?.should eq "hello"
+      mixed_case.params.form_params["title"]?.should eq "hello"
+
+      other_type = HTTP::Request.new("PUT", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencodedx"}, "title=hello")
+      other_type.form_params?.should be_nil
+      other_type.params.form_params.size.should eq 0
+
+      boundary = "MediaTypeBoundary"
+      multipart = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "Multipart/Form-Data; boundary=#{boundary}"},
+        "--#{boundary}\r\nContent-Disposition: form-data; name=\"title\"\r\n\r\nhello\r\n--#{boundary}--\r\n")
+      Amber::Router::Params.new(multipart).multipart_params["title"]?.should eq "hello"
+    end
+
     it "keeps ordinary query access working within the limits" do
       params = Amber::Router::Params.new(HTTP::Request.new("GET", "/?a=1&a=2"))
       params.fetch_all("a").should eq ["1", "2"]

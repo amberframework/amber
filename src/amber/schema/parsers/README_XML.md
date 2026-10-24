@@ -10,7 +10,7 @@ The XML parser provides comprehensive XML parsing capabilities for the Amber Sch
 - Parses XML documents into `Hash(String, JSON::Any)` format
 - Handles nested elements with dot notation (`parent.child`)
 - Extracts attributes with `@` notation (`element@attribute`)
-- Supports mixed content with `#text` notation (an element's own text)
+- Supports mixed content with `#text` notation
 - Handles empty elements and self-closing tags
 - Manages CDATA sections (content extraction)
 
@@ -54,6 +54,7 @@ data = Amber::Schema::Parser::XMLParser.parse_string(xml_string)
 # Result:
 # {
 #   "book@id" => "123",
+#   "book#text" => "Crystal Programming John Doe 350 Programming",
 #   "book.title" => "Crystal Programming",
 #   "book.author" => "John Doe", 
 #   "book.metadata.pages" => "350",
@@ -138,7 +139,7 @@ end
 - **Simple elements**: `elementName`
 - **Nested elements**: `parent.child.grandchild`
 - **Attributes**: `element@attributeName`
-- **Mixed content**: `element#text` holds an element's own text (not its children's) when the element has child elements; `<note>Hello <b>world</b> of XML</note>` gives `"note#text" => "Hello of XML"` and `"note.b" => "world"`
+- **Mixed content**: `element#text` for text content when element has children
 
 ### Special Cases
 - **Empty elements**: `<empty></empty>` → `{"empty" => ""}`
