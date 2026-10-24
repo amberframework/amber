@@ -176,5 +176,144 @@ module Amber::Router::Parsers
       ::File.read(files["doc"].file.path).should eq "file body"
       files["doc"].delete_tempfile
     end
+
+    it "removes the tempfile of an upload replaced by a later part with the same name" do
+      body = multipart_body("AmberBudgetBoundary", [{"doc", "first.txt", "first"}, {"doc", "second.txt", "second"}])
+      before = upload_tempfile_count
+
+      _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
+
+      files.size.should eq 1
+      ::File.read(files["doc"].file.path).should eq "second"
+      upload_tempfile_count.should eq before + 1
+      files["doc"].delete_tempfile
+      upload_tempfile_count.should eq before
+    end
+
+    it "removes every tempfile, duplicates included, when a later part is rejected" do
+      config = limits_with(&.max_params = 3)
+      body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "1"}, {"doc", "b.txt", "2"}, {"doc", "c.txt", "3"}, {"note", nil, "x"}])
+      before = upload_tempfile_count
+
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
+        Multipart.parse(multipart_post(body), ParamBudget.new(config))
+      end
+      upload_tempfile_count.should eq before
+    end
+
+    it "reports the bytes received, not the client's declared size" do
+      boundary = "AmberBudgetBoundary"
+      body = "--#{boundary}\r\nContent-Disposition: form-data; name=\"doc\"; filename=\"a.txt\"; size=1\r\n\r\n#{"x" * 4_096}\r\n--#{boundary}--\r\n"
+      fields, files = Multipart.parse(multipart_post(body, boundary), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
+
+      files["doc"].size.should eq 4_096
+      schema_data = Amber::Schema::Parser::MultipartParser.parse_router_params(fields, files)
+      schema_data["doc"]["size"].as_i64.should eq 4_096
+      files["doc"].delete_tempfile
+    end
+
+    it "answers malformed part metadata with a bad request" do
+      boundary = "AmberBudgetBoundary"
+      body = "--#{boundary}\r\nContent-Disposition: form-data; name=\"doc\"; filename=\"x\"; size=bogus\r\n\r\nx\r\n--#{boundary}--\r\n"
+
+      error = expect_raises(Amber::Exceptions::BadRequest, /malformed/) do
+        Multipart.parse(multipart_post(body, boundary), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
+      end
+      error.status_code.should eq 400
+    end
+  end
+
+  describe Amber::Router::File do
+    it "closes the handle it copied through" do
+      body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
+      _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
+
+      files["doc"].file.closed?.should be_true
+      files["doc"].open_tempfile(&.gets_to_end).should eq "file body"
+      files["doc"].delete_tempfile
+    end
+
+    it "refuses to read a tempfile whose path now names another file" do
+      body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
+      _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
+      path = files["doc"].file.path
+      ::File.delete(path)
+      ::File.write(path, "replacement")
+
+      expect_raises(IO::Error, /replaced/) do
+        files["doc"].open_tempfile(&.gets_to_end)
+      end
+      ::File.delete(path)
+    end
+  end
+
+  describe FormScanner do
+    it "treats ; as a separator, so max_params applies to a body of a=1; pairs" do
+      body = "a=1;" * 2_000_000
+
+      allocated = bytes_allocated_by do
+        expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
+          ParamBudget.new(Amber::Configuration::ParamsConfig.new).parse_form(IO::Memory.new(body))
+        end
+      end
+      allocated.should be < 1_048_576_u64
+    end
+
+    it "rejects a raw value while its bytes arrive" do
+      config = limits_with(&.max_value_bytes = 1_024)
+      body = "a=" + "x" * 10_000_000
+
+      allocated = bytes_allocated_by do
+        expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_value_bytes/) do
+          ParamBudget.new(config).parse_form(IO::Memory.new(body))
+        end
+      end
+      allocated.should be < 1_048_576_u64
+    end
+
+    it "matches URI::Params.parse on edge cases" do
+      list_of_inputs = ["", "&", ";;", "a", "a=", "=b", "a==b", "a=1&a=2", "a+b=c+d", "%41%42=%7e", "%zz=%", "k=v;k2=v2&&k3"]
+      list_of_inputs.each do |input|
+        scanned = [] of Tuple(String, String)
+        FormScanner.new(IO::Memory.new(input), Amber::Configuration::ParamsConfig.new).each_pair { |key, value| scanned << {key, value} }
+        expected = [] of Tuple(String, String)
+        URI::Params.parse(input) { |key, value| expected << {key, value} }
+        scanned.should eq expected
+      end
+    end
+  end
+
+  describe "plain field names" do
+    it "accepts a plain field named -1 and still rejects a bracketed negative index" do
+      Amber::Schema::Parser::QueryParser.parse_params_to_nested({"-1" => "foo"})["-1"].as_s.should eq "foo"
+      Amber::Schema::Parser::JSONParser.parse_params(HTTP::Params.parse("-1=foo"))["-1"].as_s.should eq "foo"
+
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /array indices/) do
+        Amber::Schema::Parser::QueryParser.parse_params_to_nested({"items[-1]" => "foo"})
+      end
+    end
+  end
+
+  describe "raw request target" do
+    it "checks the query in the request target before the URI is parsed" do
+      target = "/?" + "a=1&" * 2_000_000
+      request = HTTP::Request.new("GET", target)
+
+      allocated = bytes_allocated_by do
+        expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
+          request.query_params
+        end
+      end
+      allocated.should be < 1_048_576_u64
+    end
+
+    it "stops the query at a fragment and reads an app-set query" do
+      request = HTTP::Request.new("GET", "/?a=1#b=2")
+      request.query_params.to_h.should eq({"a" => "1"})
+
+      request = HTTP::Request.new("GET", "/")
+      request.query = "c=3"
+      request.query_params["c"].should eq "3"
+    end
   end
 end

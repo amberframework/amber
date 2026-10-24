@@ -5,10 +5,13 @@ module Amber::Router::Parsers
     # part's headers by `max_part_header_bytes`, and each file by
     # `max_file_bytes` while they stream; every part counts toward
     # `max_params`, and field values are bounded by `max_value_bytes`. If any
-    # limit trips, the tempfiles already written are removed.
+    # limit trips, every tempfile already written is removed. A later file
+    # part with the same name replaces the earlier one, whose tempfile is
+    # removed at once.
     def self.parse(request : HTTP::Request, budget : ParamBudget = request.param_budget) : Tuple(Types::Params, Types::Files)
       multipart_params = Types::Params.new
       files = Types::Files.new
+      list_of_created_files = [] of Amber::Router::File
       limits = budget.limits
 
       begin
@@ -16,13 +19,18 @@ module Amber::Router::Parsers
           budget.admit!(upload.name)
           filename = upload.filename
           if filename.is_a?(String) && !filename.empty?
-            files[upload.name] = Amber::Router::File.new(upload: upload, max_bytes: limits.max_file_bytes)
+            uploaded = Amber::Router::File.new(upload: upload, max_bytes: limits.max_file_bytes)
+            list_of_created_files << uploaded
+            if replaced = files[upload.name]?
+              replaced.delete_tempfile
+            end
+            files[upload.name] = uploaded
           else
             multipart_params[upload.name] = budget.read_value(upload.body)
           end
         end
       rescue ex
-        files.each_value(&.delete_tempfile)
+        list_of_created_files.each(&.delete_tempfile)
         raise ex
       end
       {multipart_params, files}
@@ -35,18 +43,24 @@ module Amber::Router::Parsers
     # must consume each part's body.
     def self.each_part(request : HTTP::Request, limits : Amber::Configuration::ParamsConfig, & : HTTP::FormData::Part ->) : Nil
       body = request.body
-      raise HTTP::FormData::Error.new("Cannot extract form-data from HTTP request: body is empty") unless body
+      raise Amber::Exceptions::BadRequest.new("The multipart request has no body.") unless body
 
       content_type = request.headers["Content-Type"]?
       boundary = content_type ? MIME::Multipart.parse_boundary(content_type) : nil
-      raise HTTP::FormData::Error.new("Cannot extract form-data from HTTP request: could not find boundary in Content-Type") unless boundary
+      raise Amber::Exceptions::BadRequest.new("The multipart request has no boundary in its Content-Type.") unless boundary
 
       bounded_body = BoundedIO.new(body, limits.max_multipart_body_bytes, "max_multipart_body_bytes")
       bounded_body.begin_segment(limits.max_part_header_bytes, "max_part_header_bytes")
-      HTTP::FormData.parse(bounded_body, boundary) do |upload|
-        bounded_body.end_segment
-        yield upload
-        bounded_body.begin_segment(limits.max_part_header_bytes, "max_part_header_bytes")
+      begin
+        HTTP::FormData.parse(bounded_body, boundary) do |upload|
+          bounded_body.end_segment
+          yield upload
+          bounded_body.begin_segment(limits.max_part_header_bytes, "max_part_header_bytes")
+        end
+      rescue ex : HTTP::FormData::Error | MIME::Multipart::Error | ArgumentError | Time::Format::Error | IO::EOFError
+        # Malformed framing or part metadata, such as `size=bogus`, is the
+        # client's error.
+        raise Amber::Exceptions::BadRequest.new("The multipart body is malformed: #{ex.message}")
       end
       bounded_body.end_segment
       bounded_body.skip_to_end

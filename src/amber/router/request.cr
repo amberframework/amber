@@ -4,6 +4,8 @@ require "./route"
 
 class HTTP::Request
   METHOD          = "_method"
+  private QUERY_START     = '?'.ord.to_u8
+  private FRAGMENT_START  = '#'.ord.to_u8
   OVERRIDE_HEADER = "X-HTTP-Method-Override"
 
   @matched_route : Amber::Router::RoutedResult(Amber::Route)?
@@ -64,10 +66,23 @@ class HTTP::Request
       return parsed
     end
 
-    if raw_query = query
-      param_budget.each_form_pair(IO::Memory.new(raw_query)) { }
-    end
+    param_budget.each_form_pair(raw_query_io) { }
     previous_def
+  end
+
+  # The raw query as an IO. Before the URI is parsed this reads the request
+  # target in place, so a rejected query is never copied.
+  private def raw_query_io : IO
+    if @uri
+      return IO::Memory.new(query || "")
+    end
+
+    target = @resource.to_slice
+    query_start = target.index(QUERY_START)
+    return IO::Memory.new(Bytes.empty) unless query_start
+
+    query_end = target.index(FRAGMENT_START, query_start + 1) || target.size
+    IO::Memory.new(target[query_start + 1, query_end - query_start - 1], writable: false)
   end
 
   # Removes the tempfiles of this request's uploads. Amber calls it when the
@@ -129,7 +144,7 @@ class HTTP::Request
     end
 
     return false unless query_start = @resource.index('?')
-    query = @resource.byte_slice(query_start + 1, @resource.bytesize - query_start - 1)
-    query.includes?(METHOD) || query.includes?('%')
+    # Searches the target in place rather than copying the query.
+    !!(@resource.index(METHOD, query_start + 1) || @resource.index('%', query_start + 1))
   end
 end

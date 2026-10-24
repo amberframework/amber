@@ -48,21 +48,28 @@ module Amber
       end
     end
 
+    # Raised when a request body or query cannot be parsed. Answered with
+    # `400 Bad Request`.
+    class BadRequest < Base
+      def initialize(message : String)
+        @status_code = 400
+        super(message)
+      end
+    end
+
     # Raised when request parameters exceed a bound in
     # `Amber::Configuration::ParamsConfig`. Answered with `400 Bad Request`.
-    class ParameterLimitExceeded < Base
+    class ParameterLimitExceeded < BadRequest
       getter limit_name : String
       getter limit_value : Int64
 
       def initialize(@limit_name : String, limit_value : Int)
         @limit_value = limit_value.to_i64
-        @status_code = 400
         super("Request parameters exceed the #{@limit_name} limit of #{@limit_value}.")
       end
 
       def initialize(message : String, @limit_name : String, limit_value : Int)
         @limit_value = limit_value.to_i64
-        @status_code = 400
         super(message)
       end
     end

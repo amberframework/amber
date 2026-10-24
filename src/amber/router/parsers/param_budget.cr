@@ -55,7 +55,8 @@ module Amber::Router::Parsers
       exceed!("max_nesting_depth", limits.max_nesting_depth) if segment_count > limits.max_nesting_depth
     end
 
-    # Rejects a key segment written as a negative integer, such as `items[-1]`.
+    # Rejects a bracketed key segment written as a negative integer, such as
+    # the `-1` in `items[-1]`. Callers pass only bracketed segments.
     def check_segment!(segment : String) : Nil
       invalid_index! if negative_integer?(segment)
     end
@@ -109,32 +110,13 @@ module Amber::Router::Parsers
 
     # Yields each decoded pair of a URL-encoded stream after admitting it.
     #
-    # The stream is read one pair at a time and never past the remaining
-    # `max_form_body_bytes` allowance. Each raw key and value is size-checked
-    # before it is decoded, so the count, key, value and total-size limits
-    # reject a hostile body before it is held in memory.
+    # `FormScanner` reads the stream in small blocks, never past the
+    # remaining `max_form_body_bytes` allowance, and rejects a raw key or
+    # value as soon as it grows past what its limit could decode to.
     def each_form_pair(io : IO, & : String, String ->) : Nil
-      max_body = limits.max_form_body_bytes.to_i64
-      pair_limit = encoded_pair_limit
-      bytes_read = 0_i64
-
-      loop do
-        allowance = max_body - bytes_read
-        read_limit = Math.min(allowance + 1, pair_limit.to_i64 + 1).to_i32
-        chunk = io.gets('&', limit: read_limit)
-        break unless chunk
-
-        bytes_read += chunk.bytesize
-        exceed!("max_form_body_bytes", limits.max_form_body_bytes) if bytes_read > max_body
-        # A pair longer than any admissible encoded key and value.
-        exceed!("max_value_bytes", limits.max_value_bytes) if chunk.bytesize > pair_limit
-
-        each_raw_pair(chunk) do |raw_key, raw_value|
-          key = URI.decode_www_form(raw_key)
-          value = URI.decode_www_form(raw_value)
-          admit!(key, value)
-          yield key, value
-        end
+      FormScanner.new(io, limits).each_pair do |key, value|
+        admit!(key, value)
+        yield key, value
       end
     end
 
@@ -143,34 +125,6 @@ module Amber::Router::Parsers
       params = HTTP::Params.new
       each_form_pair(io) { |key, value| params.add(key, value) }
       params
-    end
-
-    # Splits one `&`-terminated chunk on `;` the way `URI::Params.parse`
-    # does, checking the encoded sizes before anything is decoded.
-    private def each_raw_pair(chunk : String, & : String, String ->) : Nil
-      chunk.chomp('&').split(';') do |segment|
-        next if segment.empty?
-
-        if separator = segment.index('=')
-          raw_key = segment.byte_slice(0, separator)
-          raw_value = segment.byte_slice(separator + 1)
-        else
-          raw_key = segment
-          raw_value = ""
-        end
-
-        # Percent-encoding uses at most three bytes per decoded byte.
-        exceed!("max_key_bytes", limits.max_key_bytes) if raw_key.bytesize > 3_i64 * limits.max_key_bytes
-        exceed!("max_value_bytes", limits.max_value_bytes) if raw_value.bytesize > 3_i64 * limits.max_value_bytes
-        yield raw_key, raw_value
-      end
-    end
-
-    # The longest encoded `key=value&` that can decode within the limits:
-    # percent-encoding uses at most three bytes per decoded byte.
-    private def encoded_pair_limit : Int32
-      longest = 3_i64 * (limits.max_key_bytes.to_i64 + limits.max_value_bytes.to_i64) + 2
-      Math.min(longest, Int32::MAX.to_i64 - 1).to_i32
     end
 
     # Counts the segments the schema parsers split a key into: non-empty runs

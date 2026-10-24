@@ -10,33 +10,49 @@ module Amber::Router
     getter read_time : Time?
     getter size : UInt64?
 
-    # Copies the upload to a tempfile. With *max_bytes*, a larger upload
-    # raises `Amber::Exceptions::ParameterLimitExceeded` and its tempfile is
-    # removed.
+    # The identity (device and inode) of the tempfile Amber created.
+    getter tempfile_info : ::File::Info
+
+    # Copies the upload into a newly created tempfile through the handle
+    # that created it, then closes the handle. With *max_bytes*, a larger
+    # upload raises `Amber::Exceptions::ParameterLimitExceeded`; on any
+    # failure the handle is closed and the tempfile removed. `size` is the
+    # number of bytes copied; the client's declared size is ignored.
     def initialize(upload, max_bytes : Int64? = nil)
       @filename = upload.filename
       # A fixed name plus a short, plain extension: the client's filename is
       # kept only as metadata, so it can never make the tempfile path invalid.
       @file = ::File.tempfile("amber-upload", self.class.safe_extension(@filename))
-      copied = begin
-        ::File.open(@file.path, "w") do |tempfile|
-          max_bytes ? ::IO.copy(upload.body, tempfile, max_bytes + 1) : ::IO.copy(upload.body, tempfile)
+      copied, info = begin
+        bytes_copied = max_bytes ? ::IO.copy(upload.body, @file, max_bytes + 1) : ::IO.copy(upload.body, @file)
+        if max_bytes && bytes_copied > max_bytes
+          raise Amber::Exceptions::ParameterLimitExceeded.new("max_file_bytes", max_bytes)
         end
+        {bytes_copied, @file.info}
       rescue ex
-        # A limit tripped mid-copy (for example the whole-body cap) must not
-        # leave the partial tempfile behind.
+        @file.close
         @file.delete
         raise ex
       end
-      if max_bytes && copied > max_bytes
-        @file.delete
-        raise Amber::Exceptions::ParameterLimitExceeded.new("max_file_bytes", max_bytes)
-      end
+      @file.close
+      @tempfile_info = info
+
       @headers = upload.headers
       @creation_time = upload.creation_time
       @modification_time = upload.modification_time
       @read_time = upload.read_time
-      @size = upload.size
+      @size = copied.to_u64
+    end
+
+    # Opens the tempfile for reading after checking that its path still
+    # names the file Amber created, and yields the handle.
+    def open_tempfile(& : ::File -> T) : T forall T
+      ::File.open(@file.path, "r") do |handle|
+        unless handle.info.same_file?(@tempfile_info)
+          raise IO::Error.new("The upload tempfile was replaced")
+        end
+        yield handle
+      end
     end
 
     # Returns the extension of *filename* when it is a dot followed by one to

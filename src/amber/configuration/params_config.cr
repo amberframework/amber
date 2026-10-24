@@ -61,18 +61,23 @@ module Amber::Configuration
     # The size of one multipart part's boundary line and headers, in bytes.
     property max_part_header_bytes : Int32 = 16_384
 
+    # The size of one incoming WebSocket message, in bytes, counted across
+    # its frames and fragments as they arrive.
+    property max_websocket_message_bytes : Int32 = 2_097_152
+
     # The accepted range of each limit. The ranges keep every limit far from
     # integer overflow and reject settings that would disable a limit.
     INT32_RANGES = {
-      "max_array_index"       => 0..1_000_000,
-      "max_array_index_gap"   => 0..1_000_000,
-      "max_array_padding"     => 0..10_000_000,
-      "max_params"            => 1..1_000_000,
-      "max_nesting_depth"     => 1..1_024,
-      "max_key_bytes"         => 1..1_048_576,
-      "max_value_bytes"       => 1..268_435_456,
-      "max_form_body_bytes"   => 1..1_073_741_824,
-      "max_part_header_bytes" => 1..1_048_576,
+      "max_array_index"             => 0..1_000_000,
+      "max_array_index_gap"         => 0..1_000_000,
+      "max_array_padding"           => 0..10_000_000,
+      "max_params"                  => 1..1_000_000,
+      "max_nesting_depth"           => 1..1_024,
+      "max_key_bytes"               => 1..1_048_576,
+      "max_value_bytes"             => 1..268_435_456,
+      "max_form_body_bytes"         => 1..1_073_741_824,
+      "max_part_header_bytes"       => 1..1_048_576,
+      "max_websocket_message_bytes" => 125..1_073_741_824,
     }
 
     INT64_RANGES = {
@@ -87,15 +92,16 @@ module Amber::Configuration
       list_of_errors = [] of String
 
       {
-        "max_array_index"       => @max_array_index,
-        "max_array_index_gap"   => @max_array_index_gap,
-        "max_array_padding"     => @max_array_padding,
-        "max_params"            => @max_params,
-        "max_nesting_depth"     => @max_nesting_depth,
-        "max_key_bytes"         => @max_key_bytes,
-        "max_value_bytes"       => @max_value_bytes,
-        "max_form_body_bytes"   => @max_form_body_bytes,
-        "max_part_header_bytes" => @max_part_header_bytes,
+        "max_array_index"             => @max_array_index,
+        "max_array_index_gap"         => @max_array_index_gap,
+        "max_array_padding"           => @max_array_padding,
+        "max_params"                  => @max_params,
+        "max_nesting_depth"           => @max_nesting_depth,
+        "max_key_bytes"               => @max_key_bytes,
+        "max_value_bytes"             => @max_value_bytes,
+        "max_form_body_bytes"         => @max_form_body_bytes,
+        "max_part_header_bytes"       => @max_part_header_bytes,
+        "max_websocket_message_bytes" => @max_websocket_message_bytes,
       }.each do |name, value|
         range = INT32_RANGES[name]
         list_of_errors << range_error(name, value, range) unless range.includes?(value)

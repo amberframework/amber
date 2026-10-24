@@ -14,7 +14,7 @@ module Amber
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.forbidden)
         Log.warn(exception: ex) { error_msg(context, 403).colorize(:yellow) }
-      rescue ex : Amber::Exceptions::ParameterLimitExceeded
+      rescue ex : Amber::Exceptions::BadRequest
         context.response.status_code = 400
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.bad_request)
