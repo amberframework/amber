@@ -1,4 +1,5 @@
 require "../../spec_helper"
+require "file_utils"
 
 private def build_upload(content : String) : Amber::Router::File
   boundary = "FileSpecBoundary"
@@ -78,6 +79,44 @@ module Amber::Router
       expect_raises(IO::Error, /moved/) { attachment.file }
       expect_raises(IO::Error, /already moved or retained/) { attachment.retain! }
       ::File.delete(destination)
+    end
+
+    it "leaves both files intact when a cross-file-system copy fails" do
+      attachment = build_upload("upload body")
+      directory = ::File.tempname("amber-move-spec")
+      Dir.mkdir(directory)
+      destination = ::File.join(directory, "kept.txt")
+      ::File.write(destination, "existing content")
+      failing_copy = ->(from : IO, to : IO) do
+        to.write(from.read_string(3).to_slice)
+        raise IO::Error.new("No space left on device")
+      end
+
+      expect_raises(IO::Error, /No space left/) do
+        attachment.open_tempfile { |source| File.copy_into_place(source, destination, failing_copy) }
+      end
+
+      ::File.read(destination).should eq "existing content"
+      ::File.read(attachment.path).should eq "upload body"
+      attachment.owned_by_amber?.should be_true
+      Dir.children(directory).should eq ["kept.txt"]
+      attachment.delete_tempfile
+      FileUtils.rm_rf(directory)
+    end
+
+    it "renames a completed cross-file-system copy into place" do
+      attachment = build_upload("upload body")
+      directory = ::File.tempname("amber-move-spec")
+      Dir.mkdir(directory)
+      destination = ::File.join(directory, "kept.txt")
+      ::File.write(destination, "existing content")
+
+      attachment.open_tempfile { |source| File.copy_into_place(source, destination) }
+
+      ::File.read(destination).should eq "upload body"
+      Dir.children(directory).should eq ["kept.txt"]
+      attachment.delete_tempfile
+      FileUtils.rm_rf(directory)
     end
 
     it "keeps a retained upload at its path for later use" do

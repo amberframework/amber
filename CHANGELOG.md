@@ -32,6 +32,9 @@
   `HTTP::Request#form_params` and `#form_params?` reuse Amber's bounded,
   cached form parse for any request method, so a middleware or action read
   of a URL-encoded body is bounded too and shares one result with `params`.
+- URL-encoded and multipart bodies are recognized by their media type,
+  compared without regard to letter case, rather than by a prefix of the
+  `Content-Type` header.
 - Every query, form and multipart pair is checked when it is admitted, so
   plain `params` readers see the same limits as schema contracts: a key
   nested deeper than `max_nesting_depth`, or a bracketed number above
@@ -68,12 +71,11 @@
   owned by that user, which every worker and restart reuses. Cleanup removes
   a tempfile only when Amber still owns it and its path, when checked, still
   names the file Amber created.
-- XML extraction reads each node's text once and charges every extracted key
-  and value to the request's limits (key length and depth, value length,
-  and at most four times `max_document_body_bytes` in all), so nested
-  elements cannot copy the same text again at each ancestor. An element
-  with child elements now reports only its own text in `element#text`, such
-  as `"Hello of XML"` for `<note>Hello <b>world</b> of XML</note>`.
+- XML extraction measures each node's text once, before copying it, and
+  checks every extracted key and value against the request's limits (key
+  length and depth, value length, and at most four times
+  `max_document_body_bytes` in all, XPath fields included), so nested
+  elements cannot multiply the text copied out of a document.
 - The pipeline detects a WebSocket upgrade the way the WebSocket handler
   does (`Upgrade: websocket` in any letter case, with `Upgrade` in
   `Connection`), and a route that only has a socket handler no longer

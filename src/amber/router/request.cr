@@ -162,8 +162,8 @@ class HTTP::Request
 
   private def method_override_params? : Bool
     if content_type = headers["Content-Type"]?
-      return true if content_type.starts_with?(Amber::Router::Params::URL_ENCODED_FORM)
-      return true if content_type.starts_with?(Amber::Router::Params::MULTIPART_FORM)
+      return true if Amber::Router::Params.media_type?(content_type, Amber::Router::Params::URL_ENCODED_FORM)
+      return true if Amber::Router::Params.media_type?(content_type, Amber::Router::Params::MULTIPART_FORM)
     end
 
     return false unless query_start = @resource.index('?')

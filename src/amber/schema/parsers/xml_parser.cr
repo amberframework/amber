@@ -105,16 +105,67 @@ module Amber::Schema::Parser
     # length, and the total bytes of every extracted key and value, which
     # may be at most `EXTRACTED_BYTES_FACTOR` times
     # `max_document_body_bytes`.
+    #
+    # Text values are measured before they are built (`text_of`), so an
+    # over-limit value is rejected without being copied. Each text node is
+    # measured once, and each element's measurement is reused by its
+    # ancestors.
     class ExtractionAllowance
       EXTRACTED_BYTES_FACTOR = 4
+
+      # The byte size of a run of text, and of the whitespace that
+      # `String#strip` would remove from each end.
+      private record TextSpan, bytesize : Int64, leading : Int64, trailing : Int64 do
+        def self.of(text : String) : TextSpan
+          leading = 0_i64
+          text.each_char do |char|
+            break unless char.whitespace?
+            leading += char.bytesize
+          end
+          size = text.bytesize.to_i64
+          return new(size, size, size) if leading == size
+
+          # The text has a character that is not whitespace, so this stops
+          # before the start.
+          trailing = 0_i64
+          reader = Char::Reader.new(at_end: text)
+          while reader.current_char.whitespace?
+            trailing += reader.current_char.bytesize
+            reader.previous_char
+          end
+          new(size, leading, trailing)
+        end
+
+        def blank? : Bool
+          leading == bytesize
+        end
+
+        def stripped_bytesize : Int64
+          blank? ? 0_i64 : bytesize - leading - trailing
+        end
+
+        def +(other : TextSpan) : TextSpan
+          TextSpan.new(
+            bytesize + other.bytesize,
+            blank? ? bytesize + other.leading : leading,
+            other.blank? ? other.bytesize + trailing : other.trailing
+          )
+        end
+      end
+
+      private EMPTY_SPAN = TextSpan.new(0_i64, 0_i64, 0_i64)
 
       @budget : Amber::Router::Parsers::ParamBudget
       @limits : Amber::Configuration::ParamsConfig
       @remaining_bytes : Int64
+      @spans_by_node : Hash(UInt64, TextSpan)
+      @text_by_node : Hash(UInt64, String)
 
       def initialize(@limits : Amber::Configuration::ParamsConfig = Amber.settings.params)
         @budget = Amber::Router::Parsers::ParamBudget.new(@limits)
         @remaining_bytes = @limits.max_document_body_bytes.to_i64 * EXTRACTED_BYTES_FACTOR
+        @spans_by_node = {} of UInt64 => TextSpan
+        @text_by_node = {} of UInt64 => String
       end
 
       # Checks an extracted key's length and depth, and charges its bytes.
@@ -135,6 +186,81 @@ module Amber::Schema::Parser
         return if @remaining_bytes >= 0
 
         raise Amber::Exceptions::ParameterLimitExceeded.new("max_document_body_bytes", @limits.max_document_body_bytes)
+      end
+
+      # Whether *node*'s text, stripped, is empty. Measures without copying.
+      def blank_text?(node : XML::Node) : Bool
+        span_of(node).blank?
+      end
+
+      # Returns *node*'s text and its descendants' text, stripped, as
+      # `XML::Node#content` would give it. The stripped size is checked
+      # against `max_value_bytes`, and the bytes copied are charged, before
+      # the string is built.
+      def text_of(node : XML::Node) : String
+        span = span_of(node)
+        return "" if span.blank?
+
+        max_value_bytes = @limits.max_value_bytes
+        if span.stripped_bytesize > max_value_bytes
+          raise Amber::Exceptions::ParameterLimitExceeded.new("max_value_bytes", max_value_bytes)
+        end
+        charge!(span.bytesize)
+        # Written straight into a string of the measured size, so the text
+        # is copied once.
+        capacity = span.bytesize.to_i32
+        text = String.new(capacity) do |buffer|
+          written = append_text(node, buffer, 0, capacity)
+          {written, 0}
+        end
+        text.strip
+      end
+
+      private def span_of(node : XML::Node) : TextSpan
+        address = node.to_unsafe.address
+        if span = @spans_by_node[address]?
+          return span
+        end
+
+        span = if text_piece?(node)
+                 TextSpan.of(piece_text(node))
+               else
+                 node.children.reduce(EMPTY_SPAN) do |total, child|
+                   text_piece?(child) || child.element? ? total + span_of(child) : total
+                 end
+               end
+        @spans_by_node[address] = span
+      end
+
+      # Copies the text of *node* into *buffer* at *offset*, never past
+      # *capacity*, and returns the new offset.
+      private def append_text(node : XML::Node, buffer : Pointer(UInt8), offset : Int32, capacity : Int32) : Int32
+        if text_piece?(node)
+          piece = piece_text(node)
+          count = Math.min(piece.bytesize, capacity - offset)
+          buffer.+(offset).copy_from(piece.to_unsafe, count)
+          return offset + count
+        end
+
+        node.children.each do |child|
+          if text_piece?(child) || (child.element? && !span_of(child).bytesize.zero?)
+            offset = append_text(child, buffer, offset, capacity)
+          end
+        end
+        offset
+      end
+
+      # The content of one text piece, read from libxml once and reused, so
+      # every ancestor that copies it copies the same string. The cache holds
+      # at most the document's own text.
+      private def piece_text(node : XML::Node) : String
+        @text_by_node[node.to_unsafe.address] ||= node.content
+      end
+
+      # Text, CDATA, and entity reference nodes: the pieces
+      # `XML::Node#content` joins.
+      private def text_piece?(node : XML::Node) : Bool
+        node.text? || node.cdata? || node.type.entity_ref_node?
       end
     end
 
@@ -210,9 +336,10 @@ module Amber::Schema::Parser
       result
     end
 
-    # Extract XML element and its children into a hash. Each node's text is
-    # read once: an element with child elements contributes only its own
-    # (direct) text, so nesting never copies a descendant's text again.
+    # Extract XML element and its children into a hash. An element with
+    # child elements reports all of its text, its descendants' included, as
+    # `element#text`; *allowance* measures that text once per node and
+    # charges every copy, so nesting cannot multiply the output.
     private def self.extract_element_to_hash(element : XML::Node, result : Hash(String, JSON::Any), allowance : ExtractionAllowance, prefix : String = "")
       element_name = prefix.empty? ? element.name : "#{prefix}.#{element.name}"
       allowance.charge_key!(element_name)
@@ -230,8 +357,7 @@ module Amber::Schema::Parser
       has_child_elements = element.children.any? { |child| child.element? }
 
       # Handle text content
-      text_content = has_child_elements ? direct_text(element) : element.content.strip
-      allowance.charge_value!(text_content)
+      text_content = allowance.text_of(element)
 
       if text_content.empty?
         # Empty element - still add it to the result if it has no children
@@ -241,7 +367,9 @@ module Amber::Schema::Parser
       else
         # Element has content
         if has_child_elements
-          result["#{element_name}#text"] = JSON::Any.new(text_content)
+          text_key = "#{element_name}#text"
+          allowance.charge_key!(text_key)
+          result[text_key] = JSON::Any.new(text_content)
         else
           result[element_name] = JSON::Any.new(text_content)
         end
@@ -251,34 +379,6 @@ module Amber::Schema::Parser
       element.children.each do |child|
         next unless child.element?
         extract_element_to_hash(child, result, allowance, element_name)
-      end
-    end
-
-    # The element's own text and CDATA children, each stripped, joined by
-    # single spaces, without the text of its child elements.
-    private def self.direct_text(element : XML::Node) : String
-      String.build do |io|
-        element.children.each do |child|
-          next unless child.text? || child.cdata?
-          piece = child.content.strip
-          next if piece.empty?
-          io << ' ' unless io.empty?
-          io << piece
-        end
-      end
-    end
-
-    # Appends the text of *node*'s descendants to *io*, charging each piece
-    # to *allowance* before copying it.
-    private def self.append_descendant_text(node : XML::Node, io : IO, allowance : ExtractionAllowance) : Nil
-      node.children.each do |child|
-        if child.text? || child.cdata?
-          piece = child.content
-          allowance.charge!(piece.bytesize)
-          io << piece
-        elsif child.element?
-          append_descendant_text(child, io, allowance)
-        end
       end
     end
 
@@ -322,16 +422,11 @@ module Amber::Schema::Parser
     end
 
     # Extract value from XML node: the text of the node and its descendants,
-    # charged to *allowance* as it is copied, so many overlapping matches
-    # cannot copy the same text without bound.
+    # checked against `max_value_bytes` and charged to *allowance* before it
+    # is copied, so many overlapping matches cannot copy the same text
+    # without bound.
     def self.extract_node_value(node : XML::Node, allowance : ExtractionAllowance = ExtractionAllowance.new) : JSON::Any
-      content = if node.text? || node.cdata?
-                  text = node.content
-                  allowance.charge!(text.bytesize)
-                  text.strip
-                else
-                  String.build { |io| append_descendant_text(node, io, allowance) }.strip
-                end
+      content = allowance.text_of(node)
 
       # For now, treat all content as text since Crystal's XML API is limited
       # TODO: Add CDATA handling when API supports it

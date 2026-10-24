@@ -144,8 +144,26 @@ module Amber::Router
       @request.matched_route.params
     end
 
-    private def content_type?(header_type)
-      @request.headers["Content-Type"]?.try &.starts_with?(header_type)
+    # Whether *content_type*'s media type, the part before any `;`
+    # parameters, is *expected*, compared without regard to letter case.
+    # `Application/X-WWW-Form-Urlencoded; charset=utf-8` is a URL-encoded
+    # form; `application/x-www-form-urlencodedx` is not.
+    def self.media_type?(content_type : String?, expected : String) : Bool
+      return false unless content_type
+      media_type_end = content_type.byte_index(';') || content_type.bytesize
+      media_type = content_type.byte_slice(0, media_type_end).strip
+      media_type.compare(expected, case_insensitive: true) == 0
+    end
+
+    private def content_type?(header_type : String) : Bool
+      content_type = @request.headers["Content-Type"]?
+      if header_type == APPLICATION_JSON
+        # JSON keeps its prefix match, as before this change.
+        return false unless content_type
+        return content_type.starts_with?(header_type)
+      end
+
+      self.class.media_type?(content_type, header_type)
     end
   end
 end

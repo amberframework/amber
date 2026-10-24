@@ -146,10 +146,15 @@ module Amber::Router
       end
     end
 
-    # Moves the upload to *destination* and returns that path. From then on
-    # the file belongs to the caller: Amber's cleanup leaves it alone, and
-    # `file` raises. Across file systems the upload is copied, then the
-    # tempfile is deleted.
+    # Moves the upload to *destination*, replacing any file there, and
+    # returns that path. From then on the file belongs to the caller:
+    # Amber's cleanup leaves it alone, and `file` raises.
+    #
+    # Across file systems the upload is copied to a new file beside
+    # *destination* and renamed into place only after the copy succeeds;
+    # the tempfile is deleted only after that rename. If the copy fails, the
+    # partial copy is removed, *destination* is left as it was, and Amber
+    # still owns the tempfile.
     def move_to(destination : String | Path) : String
       tempfile = @tempfile
       raise IO::Error.new("The upload was already moved or retained") unless tempfile.owned_by_amber?
@@ -161,14 +166,32 @@ module Amber::Router
         ::File.rename(tempfile.path, target)
       rescue ex : ::File::Error
         raise ex unless ex.os_error == Errno::EXDEV
-        open_tempfile do |source|
-          ::File.open(target, "w") { |output| ::IO.copy(source, output) }
-        end
+        open_tempfile { |source| self.class.copy_into_place(source, target) }
         ::File.delete(tempfile.path)
       end
       tempfile.owned_by_amber = false
       tempfile.moved = true
       target
+    end
+
+    # :nodoc:
+    # Copies *source* into a new file in *target*'s directory, then renames
+    # it to *target*, so *target* is either untouched or complete. On any
+    # failure the new file is removed and the error is raised. *copy* does
+    # the copying; specs pass one that fails.
+    def self.copy_into_place(source : IO, target : String, copy : Proc(IO, IO, Nil) = ->(from : IO, to : IO) { ::IO.copy(from, to); nil }) : Nil
+      staging = ::File.tempfile(".amber-upload-move", dir: ::File.dirname(target))
+      begin
+        copy.call(source, staging)
+        staging.flush
+        staging.fsync
+        staging.close
+        ::File.rename(staging.path, target)
+      rescue ex
+        staging.close unless staging.closed?
+        ::File.delete?(staging.path)
+        raise ex
+      end
     end
 
     # Keeps the tempfile at `path` after the request and returns that path.
