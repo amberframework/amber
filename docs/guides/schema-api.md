@@ -178,7 +178,8 @@ end
 The block receives the raw request body as an `IO` and returns the fields the
 schema validates. If it raises, the request is answered with
 `400 invalid_request_body`. XML support returns later as an opt-in parser built
-on a pure-Crystal XML library, registered through this same call.
+on Mica, a pure-Crystal XML library in development as a separate project,
+registered through this same call. Mica has no release yet.
 
 ## Field types and constraints
 
