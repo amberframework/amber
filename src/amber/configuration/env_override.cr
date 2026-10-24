@@ -167,7 +167,9 @@ module Amber::Configuration
       end
     end
 
-    private def self.apply_params(config : ParamsConfig) : Nil
+    # Applies `AMBER_PARAMS_*` overrides. Public so the V1 settings path can
+    # apply the same overrides to its parameter limits.
+    def self.apply_params(config : ParamsConfig) : Nil
       if v = ENV["AMBER_PARAMS_MAX_ARRAY_INDEX"]?
         config.max_array_index = v.to_i
       end
@@ -191,6 +193,12 @@ module Amber::Configuration
       end
       if v = ENV["AMBER_PARAMS_MAX_FORM_BODY_BYTES"]?
         config.max_form_body_bytes = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_MULTIPART_BODY_BYTES"]?
+        config.max_multipart_body_bytes = v.to_i64
+      end
+      if v = ENV["AMBER_PARAMS_MAX_FILE_BYTES"]?
+        config.max_file_bytes = v.to_i64
       end
     end
 

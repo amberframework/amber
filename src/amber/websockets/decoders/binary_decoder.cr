@@ -27,7 +27,24 @@ module Amber
       # decoded["event"].as_s # => "message"
       # ```
       class BinaryDecoder < Decoder
+        # The largest decoded message accepted, in bytes.
+        DEFAULT_MAX_FRAME_BYTES = 1_048_576
+
+        getter max_frame_bytes : Int32
+
+        # *max_frame_bytes* bounds the decoded message; override `decoder` in
+        # a `ClientSocket` to pass a different value.
+        def initialize(@max_frame_bytes : Int32 = DEFAULT_MAX_FRAME_BYTES)
+          raise ArgumentError.new("max_frame_bytes must be positive, got #{@max_frame_bytes}") unless @max_frame_bytes > 0
+        end
+
         def decode(raw : String) : JSON::Any
+          # Checked before decoding: Base64 yields 3 bytes per 4 characters.
+          max_encoded_bytes = (@max_frame_bytes.to_i64 + 2) // 3 * 4
+          if raw.bytesize > max_encoded_bytes
+            raise DecoderError.new("Failed to decode binary message: frame exceeds #{@max_frame_bytes} bytes", nil)
+          end
+
           bytes = Base64.decode(raw)
           io = IO::Memory.new(bytes)
 
@@ -41,6 +58,10 @@ module Amber
             key = read_length_prefixed_string(io)
             value = read_length_prefixed_string(io)
             result[key] = JSON::Any.new(value)
+          end
+
+          unless io.pos == io.size
+            raise DecoderError.new("Failed to decode binary message: #{io.size - io.pos} trailing bytes after the declared fields", raw)
           end
 
           JSON::Any.new(result)

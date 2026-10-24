@@ -52,14 +52,16 @@ module Amber
     # `Amber::Configuration::ParamsConfig`. Answered with `400 Bad Request`.
     class ParameterLimitExceeded < Base
       getter limit_name : String
-      getter limit_value : Int32
+      getter limit_value : Int64
 
-      def initialize(@limit_name : String, @limit_value : Int32)
+      def initialize(@limit_name : String, limit_value : Int)
+        @limit_value = limit_value.to_i64
         @status_code = 400
         super("Request parameters exceed the #{@limit_name} limit of #{@limit_value}.")
       end
 
-      def initialize(message : String, @limit_name : String, @limit_value : Int32)
+      def initialize(message : String, @limit_name : String, limit_value : Int)
+        @limit_value = limit_value.to_i64
         @status_code = 400
         super(message)
       end

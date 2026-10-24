@@ -49,6 +49,31 @@ module Amber::Configuration
     # The size of a complete `application/x-www-form-urlencoded` body, in bytes.
     property max_form_body_bytes : Int32 = 8_388_608
 
+    # The size of a complete `multipart/form-data` body, in bytes, counted
+    # while it streams.
+    property max_multipart_body_bytes : Int64 = 134_217_728_i64
+
+    # The size of one uploaded file, in bytes, counted while it streams.
+    property max_file_bytes : Int64 = 67_108_864_i64
+
+    # The accepted range of each limit. The ranges keep every limit far from
+    # integer overflow and reject settings that would disable a limit.
+    INT32_RANGES = {
+      "max_array_index"     => 0..1_000_000,
+      "max_array_index_gap" => 0..1_000_000,
+      "max_array_padding"   => 0..10_000_000,
+      "max_params"          => 1..1_000_000,
+      "max_nesting_depth"   => 1..1_024,
+      "max_key_bytes"       => 1..1_048_576,
+      "max_value_bytes"     => 1..268_435_456,
+      "max_form_body_bytes" => 1..1_073_741_824,
+    }
+
+    INT64_RANGES = {
+      "max_multipart_body_bytes" => 1_i64..68_719_476_736_i64,
+      "max_file_bytes"           => 1_i64..68_719_476_736_i64,
+    }
+
     def initialize
     end
 
@@ -65,12 +90,25 @@ module Amber::Configuration
         "max_value_bytes"     => @max_value_bytes,
         "max_form_body_bytes" => @max_form_body_bytes,
       }.each do |name, value|
-        list_of_errors << "params.#{name} must be at least 1, got #{value}" if value < 1
+        range = INT32_RANGES[name]
+        list_of_errors << range_error(name, value, range) unless range.includes?(value)
+      end
+
+      {
+        "max_multipart_body_bytes" => @max_multipart_body_bytes,
+        "max_file_bytes"           => @max_file_bytes,
+      }.each do |name, value|
+        range = INT64_RANGES[name]
+        list_of_errors << range_error(name, value, range) unless range.includes?(value)
       end
 
       unless list_of_errors.empty?
         raise Amber::Exceptions::ConfigurationError.new(list_of_errors)
       end
+    end
+
+    private def range_error(name : String, value : Int, range : Range) : String
+      "params.#{name} must be between #{range.begin} and #{range.end}, got #{value}"
     end
   end
 end

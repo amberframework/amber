@@ -10,11 +10,25 @@ module Amber::Router
     getter read_time : Time?
     getter size : UInt64?
 
-    def initialize(upload)
+    # Copies the upload to a tempfile. With *max_bytes*, a larger upload
+    # raises `Amber::Exceptions::ParameterLimitExceeded` and its tempfile is
+    # removed.
+    def initialize(upload, max_bytes : Int64? = nil)
       @filename = upload.filename
       @file = ::File.tempfile(::File.basename(filename.to_s))
-      ::File.open(@file.path, "w") do |f|
-        ::IO.copy(upload.body, f)
+      copied = begin
+        ::File.open(@file.path, "w") do |tempfile|
+          max_bytes ? ::IO.copy(upload.body, tempfile, max_bytes + 1) : ::IO.copy(upload.body, tempfile)
+        end
+      rescue ex
+        # A limit tripped mid-copy (for example the whole-body cap) must not
+        # leave the partial tempfile behind.
+        @file.delete
+        raise ex
+      end
+      if max_bytes && copied > max_bytes
+        @file.delete
+        raise Amber::Exceptions::ParameterLimitExceeded.new("max_file_bytes", max_bytes)
       end
       @headers = upload.headers
       @creation_time = upload.creation_time
