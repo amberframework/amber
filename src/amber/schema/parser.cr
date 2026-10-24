@@ -55,7 +55,7 @@ module Amber::Schema
 
           # Backward-compatible standalone parser behavior. Controller-bound
           # schemas enforce declared media types before reaching this fallback.
-          body = request.body.try(&.gets_to_end) || ""
+          body = request.param_budget.read_document(request.body)
           if body.starts_with?("{") || body.starts_with?("[")
             parse_json_body(body)
           elsif body.starts_with?("<")
@@ -82,7 +82,7 @@ module Amber::Schema
 
       # Parse JSON request
       private def self.parse_json_request(request : HTTP::Request) : Hash(String, JSON::Any)
-        body = request.body.try(&.gets_to_end) || ""
+        body = request.param_budget.read_document(request.body)
         parse_json_body(body)
       end
 
@@ -111,7 +111,7 @@ module Amber::Schema
 
       # Parse XML request
       private def self.parse_xml_request(request : HTTP::Request) : Hash(String, JSON::Any)
-        body = request.body.try(&.gets_to_end) || ""
+        body = request.param_budget.read_document(request.body)
         parse_xml_body(body)
       end
 

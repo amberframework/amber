@@ -94,14 +94,28 @@ module Amber::Router::Parsers
     end
 
     describe "#read_bounded" do
-      it "stops reading one byte past the limit" do
+      it "rejects the first byte past the limit" do
         budget = ParamBudget.new(Amber::Configuration::ParamsConfig.new)
-        io = IO::Memory.new("x" * 100)
 
         expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_form_body_bytes/) do
-          budget.read_bounded(io, 10, "max_form_body_bytes")
+          budget.read_bounded(IO::Memory.new("x" * 11), 10, "max_form_body_bytes")
         end
-        io.pos.should eq 11
+        budget.read_bounded(IO::Memory.new("x" * 10), 10, "max_form_body_bytes").should eq "x" * 10
+      end
+
+      it "keeps no more than the limit when a large value runs one byte over" do
+        limit = 4 * 1_048_576
+        budget = ParamBudget.new(Amber::Configuration::ParamsConfig.new)
+        body = "x" * (limit + 1)
+
+        allocated = bytes_allocated_by do
+          expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_value_bytes/) do
+            budget.read_bounded(IO::Memory.new(body), limit, "max_value_bytes")
+          end
+        end
+        # Growing an in-memory buffer past the limit would cost at least
+        # four times the limit in total; reading by blocks stays near two.
+        allocated.should be < (limit * 5 // 2).to_u64
       end
     end
   end

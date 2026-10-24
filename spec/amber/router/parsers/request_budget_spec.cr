@@ -25,7 +25,7 @@ private def multipart_post(body : String, boundary : String = "AmberBudgetBounda
 end
 
 private def upload_tempfile_count : Int32
-  Dir.children(Dir.tempdir).count(&.starts_with?("amber-upload"))
+  Dir.children(Amber::Router::File.upload_directory).count(&.starts_with?("amber-upload"))
 end
 
 module Amber::Router::Parsers
@@ -314,6 +314,70 @@ module Amber::Router::Parsers
       request = HTTP::Request.new("GET", "/")
       request.query = "c=3"
       request.query_params["c"].should eq "3"
+    end
+
+    it "leaves a file that replaced the tempfile's path during cleanup" do
+      body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
+      _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
+      path = files["doc"].file.path
+      ::File.delete(path)
+      ::File.write(path, "replacement")
+
+      files["doc"].delete_tempfile
+      ::File.read(path).should eq "replacement"
+      ::File.delete(path)
+    end
+
+    it "keeps uploads in a directory closed to other users" do
+      info = ::File.info(Amber::Router::File.upload_directory, follow_symlinks: false)
+      info.directory?.should be_true
+      (info.permissions.value & 0o077).should eq 0
+    end
+  end
+
+  describe "document bodies" do
+    it "rejects a JSON body one byte over max_document_body_bytes" do
+      config = limits_with(&.max_document_body_bytes = 16)
+      fits = %({"a":"12345678"})
+      fits.bytesize.should eq 16
+
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/json"}, fits)
+      request.param_budget = ParamBudget.new(config)
+      Amber::Schema::Parser::ParserRegistry.parse_request(request)["a"].as_s.should eq "12345678"
+
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/json"}, %({"a":"123456789"}))
+      request.param_budget = ParamBudget.new(config)
+      error = expect_raises(Amber::Schema::RequestParseError) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      end
+      error.http_status.should eq 400
+      error.code.should eq "parameter_limit_exceeded"
+    end
+
+    it "bounds the router's JSON params read" do
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/json"}, %({"a":"#{"x" * 100}"}))
+      request.param_budget = ParamBudget.new(limits_with(&.max_document_body_bytes = 16))
+
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_document_body_bytes/) do
+        Amber::Router::Parsers::JSON.parse(request)
+      end
+    end
+  end
+
+  describe "array-form keys in the JSON schema helpers" do
+    it "checks depth and bracketed indices before collecting array values" do
+      deep_key = "a" + "[b]" * 40 + "[]"
+
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_nesting_depth/) do
+        Amber::Schema::Parser::JSONParser.parse_params(HTTP::Params.parse("#{deep_key}=x"))
+      end
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_nesting_depth/) do
+        Amber::Schema::Parser::JSONParser.parse_multipart({deep_key => ["x"]} of String => String | Array(String))
+      end
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /array indices/) do
+        Amber::Schema::Parser::JSONParser.parse_params(HTTP::Params.parse("tags[-1][]=x"))
+      end
+      Amber::Schema::Parser::JSONParser.parse_params(HTTP::Params.parse("tags[]=a&tags[]=b"))["tags"].as_a.map(&.as_s).should eq ["a", "b"]
     end
   end
 end

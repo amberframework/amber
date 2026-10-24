@@ -4,7 +4,7 @@ module Amber::Router::Parsers
       json_params = Types::Params.new
 
       return json_params unless request_body = request.body
-      return json_params unless body = request_body.gets_to_end
+      body = request.param_budget.read_document(request_body)
       return json_params unless body.size > 2
       return json_params unless parsed = ::JSON.parse body
 

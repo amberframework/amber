@@ -51,6 +51,23 @@ private def close_code(reply : Bytes) : Int32?
   nil
 end
 
+struct SmallBinarySocket < Amber::WebSockets::ClientSocket
+  channel "small_binary_room:*", UserChannel
+
+  def self.decoder : Amber::WebSockets::Decoders::Decoder
+    Amber::WebSockets::Decoders::BinaryDecoder.new(max_frame_bytes: 8)
+  end
+end
+
+private def upgrade_request(path : String) : HTTP::Request
+  HTTP::Request.new("GET", path, HTTP::Headers{
+    "Upgrade"               => "websocket",
+    "Connection"            => "Upgrade",
+    "Sec-WebSocket-Version" => HTTP::WebSocket::Protocol::VERSION,
+    "Sec-WebSocket-Key"     => "dGhlIHNhbXBsZSBub25jZQ==",
+  })
+end
+
 module Amber::WebSockets
   describe BoundedProtocol do
     it "delivers a fragmented message within the cap" do
@@ -106,6 +123,37 @@ module Amber::WebSockets
 
       list_of_messages.should be_empty
       close_code(reply.to_slice).should eq 1009
+    end
+
+    it "rejects an oversized query with a 400-class error before switching protocols" do
+      handler = Server::Handler.new("/bounded-query-spec") { |_socket, _context| }
+      query = Array.new(1_001, "a=1").join("&")
+      context = HTTP::Server::Context.new(upgrade_request("/bounded-query-spec?#{query}"), HTTP::Server::Response.new(IO::Memory.new))
+
+      error = expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
+        handler.call(context)
+      end
+      error.status_code.should eq 400
+      context.response.status.should_not eq HTTP::Status::SWITCHING_PROTOCOLS
+      context.response.upgrade_handler.should be_nil
+    end
+  end
+
+  describe Decoders::BinaryDecoder do
+    it "defaults its frame limit to the WebSocket ingress limit" do
+      Decoders::BinaryDecoder.new.max_frame_bytes.should eq Amber.settings.params.max_websocket_message_bytes
+    end
+
+    it "closes the socket with 1009 when a message exceeds a smaller decoder limit" do
+      wire = IO::Memory.new
+      socket = HTTP::WebSocket.new(wire)
+      client_socket = SmallBinarySocket.new(socket, create_context(HTTP::Request.new("GET", "/")))
+      message = Decoders::BinaryDecoder.new.encode({"event" => "message", "topic" => "small_binary_room:1"})
+
+      client_socket.on_message(message)
+
+      socket.closed?.should be_true
+      close_code(wire.to_slice).should eq 1009
     end
   end
 end

@@ -25,7 +25,7 @@ module Amber::Schema::Parser
 
     # Parse HTTP request body
     def self.parse_request(request : HTTP::Request) : Hash(String, JSON::Any)
-      body = request.body.try(&.gets_to_end) || ""
+      body = request.param_budget.read_document(request.body)
       parse_string(body)
     end
 
@@ -39,6 +39,7 @@ module Amber::Schema::Parser
       params.each do |key, value|
         budget.admit!(key, value)
         if key.ends_with?("[]")
+          check_array_key!(key, budget)
           base_key = key[0..-3]
           array_values[base_key] ||= [] of String
           array_values[base_key] << value
@@ -73,6 +74,7 @@ module Amber::Schema::Parser
             budget.check_value!(element)
           end
           if key.ends_with?("[]")
+            check_array_key!(key, budget)
             base_key = key[0..-3]
             result[base_key] = JSON::Any.new(value.map { |v| parse_value(v) })
           else
@@ -292,6 +294,13 @@ module Amber::Schema::Parser
         # Setting object property
         ch[final_part] = parse_value(value)
       end
+    end
+
+    # Checks an array-form key such as `user[tags][]` the way nested keys are
+    # checked: its length, its depth, and its bracketed segments.
+    private def self.check_array_key!(key : String, budget : Amber::Router::Parsers::ParamBudget) : Nil
+      budget.check_key_shape!(key)
+      key.split(/[\[\]]/).reject(&.empty?).skip(1).each { |segment| budget.check_segment!(segment) }
     end
 
     # Returns the container at *index*, replacing the null that padding put

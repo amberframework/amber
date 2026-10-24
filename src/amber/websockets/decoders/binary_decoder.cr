@@ -27,14 +27,14 @@ module Amber
       # decoded["event"].as_s # => "message"
       # ```
       class BinaryDecoder < Decoder
-        # The largest decoded message accepted, in bytes.
-        DEFAULT_MAX_FRAME_BYTES = 1_048_576
-
         getter max_frame_bytes : Int32
 
-        # *max_frame_bytes* bounds the decoded message; override `decoder` in
-        # a `ClientSocket` to pass a different value.
-        def initialize(@max_frame_bytes : Int32 = DEFAULT_MAX_FRAME_BYTES)
+        # *max_frame_bytes* bounds the decoded message. It defaults to the
+        # WebSocket ingress limit (`Amber.settings.params.max_websocket_message_bytes`),
+        # so ingress governs unless a socket's `decoder` passes a smaller value.
+        # A message over a smaller value raises `FrameTooLargeError`, and the
+        # socket closes with code 1009.
+        def initialize(@max_frame_bytes : Int32 = Amber.settings.params.max_websocket_message_bytes)
           raise ArgumentError.new("max_frame_bytes must be positive, got #{@max_frame_bytes}") unless @max_frame_bytes > 0
         end
 
@@ -42,13 +42,13 @@ module Amber
           # Checked before decoding: Base64 yields 3 bytes per 4 characters.
           max_encoded_bytes = (@max_frame_bytes.to_i64 + 2) // 3 * 4
           if raw.bytesize > max_encoded_bytes
-            raise DecoderError.new("Failed to decode binary message: frame exceeds #{@max_frame_bytes} bytes", nil)
+            raise FrameTooLargeError.new("Failed to decode binary message: frame exceeds #{@max_frame_bytes} bytes")
           end
 
           bytes = Base64.decode(raw)
           # The encoded check allows up to two bytes of slack; this one is exact.
           if bytes.size > @max_frame_bytes
-            raise DecoderError.new("Failed to decode binary message: frame exceeds #{@max_frame_bytes} bytes", nil)
+            raise FrameTooLargeError.new("Failed to decode binary message: frame exceeds #{@max_frame_bytes} bytes")
           end
           io = IO::Memory.new(bytes)
 

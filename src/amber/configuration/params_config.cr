@@ -61,6 +61,10 @@ module Amber::Configuration
     # The size of one multipart part's boundary line and headers, in bytes.
     property max_part_header_bytes : Int32 = 16_384
 
+    # The size of a JSON, XML, or other document request body that Amber
+    # reads for schema validation or `params`, in bytes.
+    property max_document_body_bytes : Int32 = 8_388_608
+
     # The size of one incoming WebSocket message, in bytes, counted across
     # its frames and fragments as they arrive.
     property max_websocket_message_bytes : Int32 = 2_097_152
@@ -78,6 +82,7 @@ module Amber::Configuration
       "max_form_body_bytes"         => 1..1_073_741_824,
       "max_part_header_bytes"       => 1..1_048_576,
       "max_websocket_message_bytes" => 125..1_073_741_824,
+      "max_document_body_bytes"     => 1..1_073_741_824,
     }
 
     INT64_RANGES = {
@@ -102,6 +107,7 @@ module Amber::Configuration
         "max_form_body_bytes"         => @max_form_body_bytes,
         "max_part_header_bytes"       => @max_part_header_bytes,
         "max_websocket_message_bytes" => @max_websocket_message_bytes,
+        "max_document_body_bytes"     => @max_document_body_bytes,
       }.each do |name, value|
         range = INT32_RANGES[name]
         list_of_errors << range_error(name, value, range) unless range.includes?(value)
