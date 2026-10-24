@@ -10,6 +10,7 @@ class HTTP::Request
   @requested_method : String?
   @effective_method : String?
   @params : Amber::Router::Params?
+  @param_budget : Amber::Router::Parsers::ParamBudget?
 
   def method
     {% if flag?(:amber_bench_legacy_request_method) %}
@@ -40,6 +41,41 @@ class HTTP::Request
 
   def params
     @params ||= Amber::Router::Params.new(self)
+  end
+
+  # The parameter budget shared by every parsing step of this request, so
+  # counts and array padding stay cumulative across the query string, the
+  # body, and schema conversion.
+  def param_budget : Amber::Router::Parsers::ParamBudget
+    @param_budget ||= Amber::Router::Parsers::ParamBudget.new
+  end
+
+  # Replaces this request's budget, for example from a pipe that gives one
+  # route larger limits. Set it before anything reads the request's params.
+  def param_budget=(budget : Amber::Router::Parsers::ParamBudget) : Amber::Router::Parsers::ParamBudget
+    @param_budget = budget
+  end
+
+  # Checks the raw query string pair by pair against `param_budget` before
+  # Crystal parses it. A rejected query raises on every access, so a caught
+  # error never exposes an unchecked parse.
+  def query_params : URI::Params
+    if parsed = @query_params
+      return parsed
+    end
+
+    if raw_query = query
+      param_budget.each_form_pair(IO::Memory.new(raw_query)) { }
+    end
+    previous_def
+  end
+
+  # Removes the tempfiles of this request's uploads. Amber calls it when the
+  # request finishes; an action keeps an upload by copying or moving it.
+  def delete_uploaded_files : Nil
+    if request_params = @params
+      request_params.delete_uploaded_files
+    end
   end
 
   def port

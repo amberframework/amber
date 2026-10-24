@@ -39,6 +39,7 @@ module Amber
       rescue e : Amber::Exceptions::Base
         Amber::Pipe::Error.new.call(context)
       ensure
+        context.request.delete_uploaded_files
         Amber::Jobs::Worker.end_request if track_pending_request
       end
 

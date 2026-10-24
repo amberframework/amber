@@ -14,15 +14,31 @@
   error that surfaced as a 500.
 - Add explicit defaults for the number of parameters (`max_params`, 1,000),
   key nesting depth (`max_nesting_depth`, 32), key length (`max_key_bytes`,
-  1 KiB), field value length (`max_value_bytes`, 1 MiB), and URL-encoded body
-  size (`max_form_body_bytes`, 8 MiB). They apply to query strings,
-  URL-encoded and multipart forms in both the router and the schema parsers.
+  1 KiB), field value length (`max_value_bytes`, 1 MiB), URL-encoded body
+  size (`max_form_body_bytes`, 8 MiB), multipart body size
+  (`max_multipart_body_bytes`, 128 MiB), multipart part headers
+  (`max_part_header_bytes`, 16 KiB), and uploaded file size
+  (`max_file_bytes`, 64 MiB). Query strings and URL-encoded bodies are
+  checked pair by pair as they are read; multipart bodies, headers and files
+  are counted while they stream.
+- Each request has one parameter budget (`HTTP::Request#param_budget`)
+  shared by its query string, body, and schema conversion, so counts and
+  array padding are cumulative. `HTTP::Request#query_params` checks the query
+  against it before parsing, which covers every reader of the query string.
 - A request beyond any limit is answered with `400 Bad Request` (schema
   contracts report the `parameter_limit_exceeded` code). Configure the limits
   in the new `params:` section of `config/environments/<env>.yml` or with
-  `AMBER_PARAMS_<KEY>` environment variables.
-- The WebSocket binary decoder rejects a length prefix or field count larger
-  than the message instead of allocating the declared size.
+  `AMBER_PARAMS_<KEY>` environment variables; the loader validates them at
+  boot, and V1-format settings files accept the same section and overrides.
+- Uploaded files are written to tempfiles with a fixed `amber-upload` name
+  (keeping a plain extension), and Amber deletes them when the request
+  finishes or when a later part is rejected. **Copy or move an upload during
+  the action to keep it.**
+- The WebSocket binary decoder caps each frame (`max_frame_bytes:`, default
+  1 MiB) before Base64 decoding, rejects a length prefix or field count
+  larger than the message, and rejects bytes after the declared fields.
+- Indexed nested keys such as `items[0][name]=alice` now build
+  `[{"name" => "alice"}]` in `JSONParser` instead of a null entry.
 
 ## 2.0.0-beta.5 (2026-08-13)
 

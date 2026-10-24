@@ -200,6 +200,9 @@ module Amber::Configuration
       if v = ENV["AMBER_PARAMS_MAX_FILE_BYTES"]?
         config.max_file_bytes = v.to_i64
       end
+      if v = ENV["AMBER_PARAMS_MAX_PART_HEADER_BYTES"]?
+        config.max_part_header_bytes = v.to_i
+      end
     end
 
     # Parse a string value as a boolean.

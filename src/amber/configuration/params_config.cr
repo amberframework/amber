@@ -54,24 +54,30 @@ module Amber::Configuration
     property max_multipart_body_bytes : Int64 = 134_217_728_i64
 
     # The size of one uploaded file, in bytes, counted while it streams.
+    # Schema contracts hold uploads in memory, so the accepted range stops
+    # at 1 GiB.
     property max_file_bytes : Int64 = 67_108_864_i64
+
+    # The size of one multipart part's boundary line and headers, in bytes.
+    property max_part_header_bytes : Int32 = 16_384
 
     # The accepted range of each limit. The ranges keep every limit far from
     # integer overflow and reject settings that would disable a limit.
     INT32_RANGES = {
-      "max_array_index"     => 0..1_000_000,
-      "max_array_index_gap" => 0..1_000_000,
-      "max_array_padding"   => 0..10_000_000,
-      "max_params"          => 1..1_000_000,
-      "max_nesting_depth"   => 1..1_024,
-      "max_key_bytes"       => 1..1_048_576,
-      "max_value_bytes"     => 1..268_435_456,
-      "max_form_body_bytes" => 1..1_073_741_824,
+      "max_array_index"       => 0..1_000_000,
+      "max_array_index_gap"   => 0..1_000_000,
+      "max_array_padding"     => 0..10_000_000,
+      "max_params"            => 1..1_000_000,
+      "max_nesting_depth"     => 1..1_024,
+      "max_key_bytes"         => 1..1_048_576,
+      "max_value_bytes"       => 1..268_435_456,
+      "max_form_body_bytes"   => 1..1_073_741_824,
+      "max_part_header_bytes" => 1..1_048_576,
     }
 
     INT64_RANGES = {
       "max_multipart_body_bytes" => 1_i64..68_719_476_736_i64,
-      "max_file_bytes"           => 1_i64..68_719_476_736_i64,
+      "max_file_bytes"           => 1_i64..1_073_741_824_i64,
     }
 
     def initialize
@@ -81,14 +87,15 @@ module Amber::Configuration
       list_of_errors = [] of String
 
       {
-        "max_array_index"     => @max_array_index,
-        "max_array_index_gap" => @max_array_index_gap,
-        "max_array_padding"   => @max_array_padding,
-        "max_params"          => @max_params,
-        "max_nesting_depth"   => @max_nesting_depth,
-        "max_key_bytes"       => @max_key_bytes,
-        "max_value_bytes"     => @max_value_bytes,
-        "max_form_body_bytes" => @max_form_body_bytes,
+        "max_array_index"       => @max_array_index,
+        "max_array_index_gap"   => @max_array_index_gap,
+        "max_array_padding"     => @max_array_padding,
+        "max_params"            => @max_params,
+        "max_nesting_depth"     => @max_nesting_depth,
+        "max_key_bytes"         => @max_key_bytes,
+        "max_value_bytes"       => @max_value_bytes,
+        "max_form_body_bytes"   => @max_form_body_bytes,
+        "max_part_header_bytes" => @max_part_header_bytes,
       }.each do |name, value|
         range = INT32_RANGES[name]
         list_of_errors << range_error(name, value, range) unless range.includes?(value)

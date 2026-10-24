@@ -126,11 +126,10 @@ module Amber::Schema::Parser
     end
 
     # Parse multipart form data, handling both files and regular fields
-    def self.parse_multipart_request(request : HTTP::Request, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
+    def self.parse_multipart_request(request : HTTP::Request, budget : Amber::Router::Parsers::ParamBudget = request.param_budget) : Hash(String, JSON::Any)
       result = {} of String => JSON::Any
-      budget = Amber::Router::Parsers::ParamBudget.new(limits)
 
-      Amber::Router::Parsers::Multipart.each_part(request, limits) do |upload|
+      Amber::Router::Parsers::Multipart.each_part(request, budget.limits) do |upload|
         budget.admit!(upload.name)
         filename = upload.filename
 
@@ -159,13 +158,22 @@ module Amber::Schema::Parser
 
     # Builds schema data from the router's cached multipart parse. This keeps
     # file uploads available after routing and CSRF have inspected the request.
+    # Every field and file is admitted against a fresh budget built from
+    # *limits*.
     def self.parse_router_params(params : Amber::Router::Types::Params, files : Amber::Router::Types::Files, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
-      # One budget covers fields and files so padding and counts stay cumulative.
       budget = Amber::Router::Parsers::ParamBudget.new(limits)
-      result = QueryParser.parse_params_to_nested(params, budget)
+      params.each { |key, value| budget.admit!(key, value) }
+      files.each_key { |name| budget.admit!(name) }
+      parse_router_params(params, files, budget)
+    end
+
+    # Builds schema data from fields and files that *budget* already admitted
+    # (the request's own budget charged them while routing parsed the body).
+    # One budget covers fields and files, so padding stays cumulative.
+    def self.parse_router_params(params : Amber::Router::Types::Params, files : Amber::Router::Types::Files, budget : Amber::Router::Parsers::ParamBudget) : Hash(String, JSON::Any)
+      result = QueryParser.parse_admitted_params(params, budget)
 
       files.each do |name, upload|
-        budget.admit!(name)
         content = ::File.open(upload.file.path) { |file| budget.read_file(file) }
         file_info = FileInfo.new(
           filename: upload.filename,

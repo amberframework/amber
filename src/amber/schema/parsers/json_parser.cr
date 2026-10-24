@@ -155,7 +155,7 @@ module Amber::Schema::Parser
 
     # Set nested value in hash using dot notation or bracket notation
     private def self.set_nested_value(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any), budget : Amber::Router::Parsers::ParamBudget)
-      budget.check_key!(key)
+      budget.check_key_shape!(key)
       # Handle different key formats
       if key.includes?("[") && key.includes?("]")
         # Bracket notation: user[name] or user[address][city]
@@ -180,7 +180,6 @@ module Amber::Schema::Parser
     private def self.parse_bracket_notation(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any), budget : Amber::Router::Parsers::ParamBudget)
       # Parse keys like: user[profile][name] or items[0] or tags[1][name]
       parts = key.split(/[\[\]]/).reject(&.empty?)
-      budget.check_depth!(parts.size)
       parts.each { |part| budget.check_segment!(part) }
 
       if parts.size == 1
@@ -311,7 +310,6 @@ module Amber::Schema::Parser
     # Parse dot notation keys
     private def self.parse_dot_notation(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any), budget : Amber::Router::Parsers::ParamBudget)
       parts = key.split('.')
-      budget.check_depth!(parts.size)
 
       if parts.size == 1
         hash[parts[0]] = parse_value(value)

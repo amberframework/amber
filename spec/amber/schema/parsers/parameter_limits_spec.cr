@@ -128,7 +128,7 @@ describe "schema parsers sharing one budget per request" do
     request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"}, body)
 
     expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_file_bytes/) do
-      Amber::Schema::Parser::MultipartParser.parse_multipart_request(request, config)
+      Amber::Schema::Parser::MultipartParser.parse_multipart_request(request, Amber::Router::Parsers::ParamBudget.new(config))
     end
   end
 end
