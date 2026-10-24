@@ -143,12 +143,42 @@ The automatic failure statuses are:
 |---|---|
 | `400` | The body is malformed JSON, CBOR, or COSE. |
 | `406` | The requested response media type is not declared by the response schema. |
-| `415` | The request `Content-Type` is not declared by the request schema. |
+| `415` | The request `Content-Type` is not declared by the request schema, or is an XML type (`application/xml`, `text/xml`, `+xml`) with no opt-in parser registered. |
 | `422` | The document parsed, but its values do not satisfy the schema. |
 | `500` | Application code produced a response shape or status outside its declared contract. |
 | `503` | A COSE request arrived before a key provider was configured. |
 
 Actions without a declared schema retain their existing params behavior.
+
+## Opt-in request body parsers
+
+Amber parses JSON and form bodies (URL-encoded and multipart), plus bounded
+CBOR and COSE. XML is not parsed by default, so Amber applications do not link
+an XML library and a client cannot make the server parse an XML document. A
+request sent as `application/xml`, `text/xml`, or any `+xml` type is answered
+with 415.
+
+An application that needs another body format registers a parser for that
+media type once at boot, then lists the media type in the action's schema:
+
+```crystal
+# config/initializers/request_body_parsers.cr
+Amber::Schema::Parser::ParserRegistry.register_body_parser("application/xml") do |body|
+  MyXMLReader.read_fields(body) # => Hash(String, JSON::Any)
+end
+```
+
+```crystal
+class CreateOrderSchema < Amber::Schema::Definition
+  content_type "application/json", "application/xml"
+  field :sku, String, required: true
+end
+```
+
+The block receives the raw request body as an `IO` and returns the fields the
+schema validates. If it raises, the request is answered with
+`400 invalid_request_body`. XML support returns later as an opt-in parser built
+on a pure-Crystal XML library, registered through this same call.
 
 ## Field types and constraints
 

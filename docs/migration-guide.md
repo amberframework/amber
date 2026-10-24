@@ -332,6 +332,8 @@ The declared schema is enforced automatically before `create`; no extra validati
 
 After successful validation, the controller's `params` wrapper prioritizes normalized schema values and falls back to raw params for undeclared keys. This preserves mixed controllers while the migration is in progress. See the [request and response schema guide](guides/schema-api.md) for response contracts, exact file locations, source mapping, OpenAPI generation, and JSON/CBOR/COSE support.
 
+**Request body formats.** The Schema API parses JSON and form bodies (URL-encoded and multipart), plus bounded CBOR and COSE. XML request parsing was removed before the 2.0.0 release: a request sent as `application/xml`, `text/xml`, or any `+xml` type receives HTTP 415. XML request bodies return later as an opt-in parser built on a pure-Crystal XML library; 415 remains the default. Until then, an application upgrading from a beta that accepted XML either moves those endpoints to JSON or registers its own parser once at boot with `Amber::Schema::Parser::ParserRegistry.register_body_parser("application/xml") { |body| ... }`, returning a `Hash(String, JSON::Any)`, and keeps `application/xml` in the schema's `content_type` list. See the [request and response schema guide](guides/schema-api.md#opt-in-request-body-parsers).
+
 ## 6. Database Drivers No Longer Bundled
 
 Amber V1 bundled `pg`, `mysql`, and `sqlite3` as direct dependencies. V2 does not. Add only the database driver you need to your application's shard.yml.
