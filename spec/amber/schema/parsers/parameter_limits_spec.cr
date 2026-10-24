@@ -173,3 +173,59 @@ describe Amber::Schema::Parser::JSONParser do
     allocated.should be < MAX_REJECTION_BYTES
   end
 end
+
+describe Amber::Schema::Parser::XMLParser do
+  describe "extraction limits" do
+    text_bytes = 7 * 1024 * 1024
+    nested_xml = "#{"<a>" * 200}#{"x" * text_bytes}#{"</a>" * 200}"
+
+    it "reads each node's text once, so 200 nested elements around 7 MiB of text copy it once" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_nesting_depth = 1_024
+      config.max_value_bytes = 8 * 1024 * 1024
+      result = {} of String => JSON::Any
+
+      allocated = bytes_allocated_by do
+        result = Amber::Schema::Parser::XMLParser.parse_string(nested_xml, config)
+      end
+
+      innermost_key = Array.new(200, "a").join(".")
+      result[innermost_key].as_s.bytesize.should eq text_bytes
+      result.size.should eq 1
+      # Parsing holds the text about twice; reading it at every ancestor
+      # would copy it 200 times (more than 1.4 GB).
+      allocated.should be < 8_u64 * text_bytes
+    end
+
+    it "rejects the same document at max_nesting_depth under the default limits" do
+      allocated = bytes_allocated_by do
+        error = expect_raises(Amber::Exceptions::ParameterLimitExceeded) do
+          Amber::Schema::Parser::XMLParser.parse_string(nested_xml)
+        end
+        error.limit_name.should eq "max_nesting_depth"
+      end
+      allocated.should be < 8_u64 * text_bytes
+    end
+
+    it "caps the total text extracted through repeated XPath matches" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_document_body_bytes = 1_024
+      allowance = Amber::Schema::Parser::XMLParser::ExtractionAllowance.new(config)
+      node = XML.parse("<a>#{"x" * 3_000}</a>").first_element_child || raise "no root element"
+
+      Amber::Schema::Parser::XMLParser.extract_node_value(node, allowance).as_s.bytesize.should eq 3_000
+      error = expect_raises(Amber::Exceptions::ParameterLimitExceeded) do
+        Amber::Schema::Parser::XMLParser.extract_node_value(node, allowance)
+      end
+      error.limit_name.should eq "max_document_body_bytes"
+    end
+
+    it "rejects an extracted value larger than max_value_bytes" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_value_bytes = 8
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_value_bytes/) do
+        Amber::Schema::Parser::XMLParser.parse_string("<note>#{"x" * 9}</note>", config)
+      end
+    end
+  end
+end

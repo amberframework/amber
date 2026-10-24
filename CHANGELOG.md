@@ -29,19 +29,33 @@
   shared by its query string, body, and schema conversion, so counts and
   array padding are cumulative. `HTTP::Request#query_params` checks the query
   against it before parsing, which covers every reader of the query string.
+  `HTTP::Request#form_params` and `#form_params?` reuse Amber's bounded,
+  cached form parse for any request method, so a middleware or action read
+  of a URL-encoded body is bounded too and shares one result with `params`.
+- Every query, form and multipart pair is checked when it is admitted, so
+  plain `params` readers see the same limits as schema contracts: a key
+  nested deeper than `max_nesting_depth`, or a bracketed number above
+  `max_array_index` (or negative), is answered with `400 Bad Request`.
+  **Compatibility:** a form that names records by id in brackets, such as
+  `users[1700][name]`, now needs `params.max_array_index` raised to cover
+  those ids.
 - A request beyond any limit is answered with `400 Bad Request` (schema
   contracts report the `parameter_limit_exceeded` code). Configure the limits
   in the new `params:` section of `config/environments/<env>.yml` or with
   `AMBER_PARAMS_<KEY>` environment variables; the loader validates them at
   boot, and V1-format settings files accept the same section and overrides.
-- Uploaded files are copied through the handle that created their tempfile
-  (a fixed `amber-upload` name keeping a plain extension), the handle is
-  closed, and `Amber::Router::File#size` reports the bytes received rather
-  than the client's declared size. Amber deletes upload tempfiles when the
-  request finishes, when a later part is rejected, or when a later part with
-  the same name replaces one. **Copy or move an upload during the action to
-  keep it.** Malformed multipart framing or part metadata is answered with
-  `400 Bad Request` (`Amber::Exceptions::BadRequest`).
+- Uploaded files are copied into a tempfile with a fixed `amber-upload`
+  name keeping a plain extension, and `Amber::Router::File#size` reports the
+  bytes received rather than the client's declared size. During the action
+  `params.files["doc"].file` is a readable handle, opened on first use;
+  `#path` names the tempfile. Amber closes that handle and deletes upload
+  tempfiles when the request finishes, when a later part is rejected, or
+  when a later part with the same name replaces one. **To keep an upload,
+  call `Amber::Router::File#move_to(path)` during the action, or `#retain!`
+  to keep the tempfile at `#path` and take over deleting it, for example
+  before passing the path to a background job.** Malformed multipart framing
+  or part metadata is answered with `400 Bad Request`
+  (`Amber::Exceptions::BadRequest`).
 - WebSocket routes read each connection through
   `Amber::WebSockets::BoundedProtocol`, which caps a message across its
   frames and fragments as they arrive (`max_websocket_message_bytes`,
@@ -49,9 +63,22 @@
   handshake's query string is checked before the 101 response.
   `BinaryDecoder` defaults its frame limit to the ingress limit, and a
   smaller decoder limit also closes the socket with 1009.
-- Upload tempfiles live in a per-process directory with mode 0700, and
-  cleanup removes a tempfile only while its path still names the file Amber
-  created.
+- Upload tempfiles live in one directory per user,
+  `<tmpdir>/amber-uploads-<uid>`, created with mode 0700 and checked to be
+  owned by that user, which every worker and restart reuses. Cleanup removes
+  a tempfile only when Amber still owns it and its path, when checked, still
+  names the file Amber created.
+- XML extraction reads each node's text once and charges every extracted key
+  and value to the request's limits (key length and depth, value length,
+  and at most four times `max_document_body_bytes` in all), so nested
+  elements cannot copy the same text again at each ancestor. An element
+  with child elements now reports only its own text in `element#text`, such
+  as `"Hello of XML"` for `<note>Hello <b>world</b> of XML</note>`.
+- The pipeline detects a WebSocket upgrade the way the WebSocket handler
+  does (`Upgrade: websocket` in any letter case, with `Upgrade` in
+  `Connection`), and a route that only has a socket handler no longer
+  raises `NilAssertionError`: an upgrade reaches the handler, and a plain
+  request is answered with 404.
 - The WebSocket binary decoder caps each frame (`max_frame_bytes:`, default
   1 MiB) before Base64 decoding, rejects a length prefix or field count
   larger than the message, and rejects bytes after the declared fields.

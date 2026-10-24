@@ -13,20 +13,25 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
-        track_pending_request = !context.websocket?
+        websocket = context.websocket?
+        track_pending_request = !websocket
         Amber::Jobs::Worker.begin_request if track_pending_request
 
         raise Amber::Exceptions::RouteNotFound.new(context.request) unless context.valid_route?
 
-        # Check request-level constraint if the matched route has one
-        if constraint = context.request.route.request_constraint
+        # A socket-only route has no HTTP route payload, so only an HTTP
+        # route's request constraint is checked.
+        if (http_route = context.request.matched_route.payload?) && (constraint = http_route.request_constraint)
           unless constraint.matches?(context.request)
             raise Amber::Exceptions::RouteNotFound.new(context.request)
           end
         end
 
-        if context.websocket?
+        if websocket
           context.process_websocket_request
+        elsif http_route.nil?
+          # A plain HTTP request to a path that only has a socket route.
+          raise Amber::Exceptions::RouteNotFound.new(context.request)
         elsif @drain[context.valve]
           @drain[context.valve].call(context)
           context.finalize_response!

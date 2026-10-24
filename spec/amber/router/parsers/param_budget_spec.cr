@@ -91,6 +91,35 @@ module Amber::Router::Parsers
           budget.admit!("k", "v" * 9)
         end
       end
+
+      it "rejects a key nested deeper than max_nesting_depth" do
+        budget = ParamBudget.new(Amber::Configuration::ParamsConfig.new)
+
+        error = expect_raises(Amber::Exceptions::ParameterLimitExceeded) do
+          budget.admit!("a#{"[b]" * 40}", "x")
+        end
+        error.limit_name.should eq "max_nesting_depth"
+      end
+
+      it "rejects bracket indices above max_array_index, overflowing, or negative" do
+        budget = ParamBudget.new(Amber::Configuration::ParamsConfig.new)
+
+        ["items[999999999]", "items[99999999999999999999]", "items[-1]", "a[0][101][name]"].each do |key|
+          error = expect_raises(Amber::Exceptions::ParameterLimitExceeded) do
+            budget.admit!(key, "x")
+          end
+          error.limit_name.should eq "max_array_index"
+        end
+      end
+
+      it "admits ordinary keys" do
+        budget = ParamBudget.new(Amber::Configuration::ParamsConfig.new)
+
+        ["title", "user[name]", "items[0]", "items[100][name]", "tags[]", "user.address.city", "a[-]", "price[-1.5]"].each do |key|
+          budget.admit!(key, "x")
+        end
+        budget.param_count.should eq 8
+      end
     end
 
     describe "#read_bounded" do
@@ -283,6 +312,31 @@ module Amber::Router::Parsers
 
       expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
         params.fetch_all("a")
+      end
+    end
+
+    it "rejects a deeply nested key or an oversized index on ordinary query access" do
+      {"a#{"[b]" * 40}=x" => "max_nesting_depth", "items[999999999]=x" => "max_array_index"}.each do |query, limit_name|
+        params = Amber::Router::Params.new(HTTP::Request.new("GET", "/?#{query}"))
+        error = expect_raises(Amber::Exceptions::ParameterLimitExceeded) do
+          params["a"]?
+        end
+        error.limit_name.should eq limit_name
+      end
+    end
+
+    it "rejects a deeply nested key or an oversized index in a form or multipart body" do
+      key = "a#{"[b]" * 40}"
+      form_request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}, "#{key}=x")
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_nesting_depth/) do
+        Amber::Router::Params.new(form_request).form_params
+      end
+
+      boundary = "AdmissionBoundary"
+      multipart_request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"},
+        "--#{boundary}\r\nContent-Disposition: form-data; name=\"items[999999999]\"\r\n\r\nx\r\n--#{boundary}--\r\n")
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_array_index/) do
+        Amber::Router::Params.new(multipart_request).multipart_params
       end
     end
 

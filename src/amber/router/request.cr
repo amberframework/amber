@@ -70,6 +70,28 @@ class HTTP::Request
     previous_def
   end
 
+  # Returns the URL-encoded form fields of the body, for any request
+  # method, or nil when the body is not `application/x-www-form-urlencoded`
+  # or there is no body.
+  #
+  # Unlike Crystal's version, which reads the whole body into memory, this
+  # reuses Amber's bounded parse (`Amber::Router::Params#form_params`), so
+  # the body is read once, every pair is checked against `param_budget`,
+  # and a middleware read and the action's `params` share one result.
+  def form_params? : HTTP::Params?
+    if parsed = @form_params
+      return parsed
+    end
+    return unless body && params.url_encoded_form?
+
+    @form_params = params.form_params
+  end
+
+  # Whether a WebSocket route is registered for this request's path.
+  def socket_route? : Bool
+    router.socket_route_defined?(self)
+  end
+
   # The raw query as an IO. Before the URI is parsed this reads the request
   # target in place, so a rejected query is never copied.
   private def raw_query_io : IO
@@ -85,8 +107,9 @@ class HTTP::Request
     IO::Memory.new(target[query_start + 1, query_end - query_start - 1], writable: false)
   end
 
-  # Removes the tempfiles of this request's uploads. Amber calls it when the
-  # request finishes; an action keeps an upload by copying or moving it.
+  # Closes and removes the tempfiles of this request's uploads. Amber calls
+  # it when the request finishes; an action keeps an upload with
+  # `Amber::Router::File#move_to` or `Amber::Router::File#retain!`.
   def delete_uploaded_files : Nil
     if request_params = @params
       request_params.delete_uploaded_files
