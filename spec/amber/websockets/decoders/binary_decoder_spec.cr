@@ -115,6 +115,15 @@ module Amber
         end
       end
 
+      it "checks the decoded frame size exactly" do
+        frame = Base64.strict_encode(Bytes[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+
+        WebSockets::Decoders::BinaryDecoder.new(max_frame_bytes: 12).decode(frame)[""].as_s.should eq ""
+        expect_raises(WebSockets::Decoders::DecoderError, /frame exceeds 11 bytes/) do
+          WebSockets::Decoders::BinaryDecoder.new(max_frame_bytes: 11).decode(frame)
+        end
+      end
+
       it "honors a smaller max_frame_bytes" do
         decoder = WebSockets::Decoders::BinaryDecoder.new(max_frame_bytes: 8)
         encoded = decoder.encode({"event" => "message"})

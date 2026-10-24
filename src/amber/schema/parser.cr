@@ -97,14 +97,14 @@ module Amber::Schema
         if content_type && content_type.starts_with?("multipart/form-data")
           # Routing and CSRF may already have consumed the multipart body.
           # Reuse Amber's cached fields and files instead of parsing it twice.
-          MultipartParser.parse_router_params(request.params.multipart_params, request.params.files)
+          MultipartParser.parse_router_params(request.params.multipart_params, request.params.files, request.param_budget)
         elsif content_type && content_type.starts_with?("application/x-www-form-urlencoded")
           # Routing inspects URL-encoded fields for `_method`, so the raw body
           # may already be consumed. Amber::Router::Params caches that parse.
-          QueryParser.parse_params_to_nested(request.params.form_params)
+          QueryParser.parse_admitted_params(request.params.form_params, request.param_budget)
         else
           # Default to query parameters
-          QueryParser.parse_params_to_nested(request.query_params)
+          QueryParser.parse_admitted_params(request.query_params, request.param_budget)
         end
       end
 

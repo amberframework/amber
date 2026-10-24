@@ -40,6 +40,7 @@ module Amber::Configuration
           config.validate!
         end
         error.list_of_errors.size.should eq 3
+        error.message.to_s.should contain("params.max_file_bytes must be between 1 and 1073741824")
         error.message.to_s.should contain("params.max_array_index_gap must be between 0 and 1000000")
       end
 

@@ -114,7 +114,7 @@ module Amber::Router::Parsers
 
       allocated = bytes_allocated_by do
         expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
-          FormData.parse(request, config)
+          FormData.parse(request, ParamBudget.new(config))
         end
       end
       allocated.should be < MAX_REJECTION_BYTES
@@ -126,7 +126,7 @@ module Amber::Router::Parsers
       request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}, "a=" + "x" * 100)
 
       expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_form_body_bytes/) do
-        FormData.parse(request, config)
+        FormData.parse(request, ParamBudget.new(config))
       end
     end
   end
@@ -140,7 +140,7 @@ module Amber::Router::Parsers
       request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"}, body)
 
       expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_value_bytes/) do
-        Multipart.parse(request, config)
+        Multipart.parse(request, ParamBudget.new(config))
       end
     end
   end
@@ -172,7 +172,7 @@ module Amber::Router::Parsers
 
         allocated = bytes_allocated_by do
           expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
-            FormData.parse(request, config)
+            FormData.parse(request, ParamBudget.new(config))
           end
         end
         allocated.should be < MAX_REJECTION_BYTES
@@ -187,7 +187,7 @@ module Amber::Router::Parsers
 
         allocated = bytes_allocated_by do
           expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_form_body_bytes/) do
-            FormData.parse(request, config)
+            FormData.parse(request, ParamBudget.new(config))
           end
         end
         # Total bytes handed out, garbage included: each admitted pair is read,
@@ -200,9 +200,9 @@ module Amber::Router::Parsers
         config = Amber::Configuration::ParamsConfig.new
         config.max_form_body_bytes = 100
 
-        FormData.parse(form_request("a=" + "x" * 98), config)["a"].bytesize.should eq 98
+        FormData.parse(form_request("a=" + "x" * 98), ParamBudget.new(config))["a"].bytesize.should eq 98
         expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_form_body_bytes/) do
-          FormData.parse(form_request("a=" + "x" * 99), config)
+          FormData.parse(form_request("a=" + "x" * 99), ParamBudget.new(config))
         end
       end
     end
@@ -230,7 +230,7 @@ module Amber::Router::Parsers
       ])
 
       expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_multipart_body_bytes/) do
-        Multipart.parse(request, config)
+        Multipart.parse(request, ParamBudget.new(config))
       end
     end
 
@@ -241,7 +241,7 @@ module Amber::Router::Parsers
 
       allocated = bytes_allocated_by do
         expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_file_bytes/) do
-          Multipart.parse(request, config)
+          Multipart.parse(request, ParamBudget.new(config))
         end
       end
       allocated.should be < MAX_REJECTION_BYTES
@@ -257,7 +257,7 @@ module Amber::Router::Parsers
       ])
 
       expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) do
-        Multipart.parse(request, config)
+        Multipart.parse(request, ParamBudget.new(config))
       end
     end
   end

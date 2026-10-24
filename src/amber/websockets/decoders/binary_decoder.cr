@@ -46,6 +46,10 @@ module Amber
           end
 
           bytes = Base64.decode(raw)
+          # The encoded check allows up to two bytes of slack; this one is exact.
+          if bytes.size > @max_frame_bytes
+            raise DecoderError.new("Failed to decode binary message: frame exceeds #{@max_frame_bytes} bytes", nil)
+          end
           io = IO::Memory.new(bytes)
 
           field_count = read_uint32(io)

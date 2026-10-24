@@ -17,6 +17,13 @@ class ParameterLimitsController < Amber::Controller::Base
     "created"
   end
 
+  class_property list_of_upload_paths = [] of String
+
+  def upload
+    self.class.list_of_upload_paths << params.files["doc"].file.path
+    "uploaded"
+  end
+
   def index
     count = params.fetch_all("a").size
     self.class.action_calls += 1
@@ -52,6 +59,7 @@ describe "request parameter limits on the request path" do
     Amber::Server.router.draw :web do
       post "/parameter-limits", ParameterLimitsController, :create
       get "/parameter-limits", ParameterLimitsController, :index
+      post "/parameter-limits/upload", ParameterLimitsController, :upload
     end
     pipeline.build :web do
       plug Amber::Pipe::CSRF.new
@@ -114,5 +122,27 @@ describe "request parameter limits on the request path" do
 
     response.status_code.should eq 200
     response.body.should eq "2"
+  end
+
+  it "removes upload tempfiles when the request finishes" do
+    ParameterLimitsController.list_of_upload_paths.clear
+    boundary = "AmberCleanupBoundary"
+    request = HTTP::Request.new("POST", "/parameter-limits/upload", HTTP::Headers{
+      "Content-Type" => "multipart/form-data; boundary=#{boundary}",
+    })
+    io = IO::Memory.new
+    context = HTTP::Server::Context.new(request, HTTP::Server::Response.new(io))
+    token = Amber::Pipe::CSRF.token(context).to_s
+    request.body = IO::Memory.new(
+      "--#{boundary}\r\nContent-Disposition: form-data; name=\"_csrf\"\r\n\r\n#{token}\r\n" \
+      "--#{boundary}\r\nContent-Disposition: form-data; name=\"doc\"; filename=\"a.txt\"\r\n\r\nfile body\r\n" \
+      "--#{boundary}--\r\n"
+    )
+
+    pipeline.call(context)
+
+    context.response.status_code.should eq 200
+    path = ParameterLimitsController.list_of_upload_paths.first
+    File.exists?(path).should be_false
   end
 end

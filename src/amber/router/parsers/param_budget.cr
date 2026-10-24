@@ -16,6 +16,9 @@ module Amber::Router::Parsers
   # list_of_items[index] = JSON::Any.new("x")
   # ```
   class ParamBudget
+    private OPEN_BRACKET  = '['.ord.to_u8
+    private CLOSE_BRACKET = ']'.ord.to_u8
+
     getter limits : Amber::Configuration::ParamsConfig
     getter param_count : Int32 = 0
     getter padding_used : Int32 = 0
@@ -38,6 +41,13 @@ module Amber::Router::Parsers
 
     def check_value!(value : String) : Nil
       exceed!("max_value_bytes", limits.max_value_bytes) if value.bytesize > limits.max_value_bytes
+    end
+
+    # Checks a key's length and nesting depth without splitting it, so a
+    # hostile key is rejected before any segment array is built.
+    def check_key_shape!(key : String) : Nil
+      check_key!(key)
+      check_depth!(nested_segment_count(key))
     end
 
     # Checks the number of segments in one key, such as 3 for `a[b][c]`.
@@ -99,20 +109,29 @@ module Amber::Router::Parsers
 
     # Yields each decoded pair of a URL-encoded stream after admitting it.
     #
-    # The stream is read one pair at a time, so the count, key, value and
-    # total-size limits reject a hostile body before it is held in memory.
+    # The stream is read one pair at a time and never past the remaining
+    # `max_form_body_bytes` allowance. Each raw key and value is size-checked
+    # before it is decoded, so the count, key, value and total-size limits
+    # reject a hostile body before it is held in memory.
     def each_form_pair(io : IO, & : String, String ->) : Nil
-      raw_pair_limit = encoded_pair_limit
       max_body = limits.max_form_body_bytes.to_i64
+      pair_limit = encoded_pair_limit
       bytes_read = 0_i64
 
-      while chunk = io.gets('&', limit: raw_pair_limit + 1)
+      loop do
+        allowance = max_body - bytes_read
+        read_limit = Math.min(allowance + 1, pair_limit.to_i64 + 1).to_i32
+        chunk = io.gets('&', limit: read_limit)
+        break unless chunk
+
         bytes_read += chunk.bytesize
         exceed!("max_form_body_bytes", limits.max_form_body_bytes) if bytes_read > max_body
         # A pair longer than any admissible encoded key and value.
-        exceed!("max_value_bytes", limits.max_value_bytes) if chunk.bytesize > raw_pair_limit
+        exceed!("max_value_bytes", limits.max_value_bytes) if chunk.bytesize > pair_limit
 
-        HTTP::Params.parse(chunk) do |key, value|
+        each_raw_pair(chunk) do |raw_key, raw_value|
+          key = URI.decode_www_form(raw_key)
+          value = URI.decode_www_form(raw_value)
           admit!(key, value)
           yield key, value
         end
@@ -126,11 +145,49 @@ module Amber::Router::Parsers
       params
     end
 
+    # Splits one `&`-terminated chunk on `;` the way `URI::Params.parse`
+    # does, checking the encoded sizes before anything is decoded.
+    private def each_raw_pair(chunk : String, & : String, String ->) : Nil
+      chunk.chomp('&').split(';') do |segment|
+        next if segment.empty?
+
+        if separator = segment.index('=')
+          raw_key = segment.byte_slice(0, separator)
+          raw_value = segment.byte_slice(separator + 1)
+        else
+          raw_key = segment
+          raw_value = ""
+        end
+
+        # Percent-encoding uses at most three bytes per decoded byte.
+        exceed!("max_key_bytes", limits.max_key_bytes) if raw_key.bytesize > 3_i64 * limits.max_key_bytes
+        exceed!("max_value_bytes", limits.max_value_bytes) if raw_value.bytesize > 3_i64 * limits.max_value_bytes
+        yield raw_key, raw_value
+      end
+    end
+
     # The longest encoded `key=value&` that can decode within the limits:
     # percent-encoding uses at most three bytes per decoded byte.
     private def encoded_pair_limit : Int32
       longest = 3_i64 * (limits.max_key_bytes.to_i64 + limits.max_value_bytes.to_i64) + 2
       Math.min(longest, Int32::MAX.to_i64 - 1).to_i32
+    end
+
+    # Counts the segments the schema parsers split a key into: non-empty runs
+    # between `[` and `]`, or dot-separated parts when there are no brackets.
+    private def nested_segment_count(key : String) : Int32
+      count = 0
+      in_segment = false
+      key.each_byte do |byte|
+        if byte == OPEN_BRACKET || byte == CLOSE_BRACKET
+          in_segment = false
+        elsif !in_segment
+          in_segment = true
+          count += 1
+        end
+      end
+      count = key.count('.') + 1 if count == 1 && key.includes?('.')
+      count
     end
 
     # Returns the index written in *digits*, or nil when it is not a plain
