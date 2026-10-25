@@ -131,7 +131,10 @@ module Amber::Schema::CBOR
         JSON::Any.new(read_text_argument(additional))
       when 4
         count = checked_items(read_argument(additional))
-        JSON::Any.new(Array(JSON::Any).new(count) { read_json(depth + 1) })
+        # Grown as elements arrive, not reserved from the declared count.
+        list_of_values = [] of JSON::Any
+        count.times { list_of_values << read_json(depth + 1) }
+        JSON::Any.new(list_of_values)
       when 5
         count = checked_items(read_argument(additional))
         object = {} of String => JSON::Any
@@ -192,8 +195,8 @@ module Amber::Schema::CBOR
     end
 
     def finish! : Nil
-      if extra = @io.read_byte
-        @bytes_read += 1
+      if @io.read_byte
+        enforce_limit(1)
         raise DecodeError.new("trailing bytes after document")
       end
     end
@@ -265,6 +268,7 @@ module Amber::Schema::CBOR
     end
 
     private def read_blob(length : UInt64, label : String) : Bytes
+      enforce_document_limit(length)
       raise DecodeError.new("#{label} exceeds #{MAX_TEXT_BYTES} bytes") if length > MAX_TEXT_BYTES
       read_exact(length.to_i)
     end
@@ -298,12 +302,21 @@ module Amber::Schema::CBOR
       raise DecodeError.new("unexpected end of input")
     end
 
-    private def enforce_limit(increment : Int32) : Nil
-      @bytes_read += increment
+    # Raises `Amber::Exceptions::ParameterLimitExceeded` when reading
+    # *increment* more bytes would pass the request's document limit. It
+    # runs before the decoder's own caps, so an over-limit body is reported
+    # as a limit error whatever it declares.
+    private def enforce_document_limit(increment : UInt64) : Nil
       document_limit = @document_limit
-      if document_limit && @bytes_read > document_limit
+      return unless document_limit
+      if @bytes_read.to_u64 + increment > document_limit.to_u64
         raise Amber::Exceptions::ParameterLimitExceeded.new("max_document_body_bytes", document_limit)
       end
+    end
+
+    private def enforce_limit(increment : Int32) : Nil
+      enforce_document_limit(increment.to_u64)
+      @bytes_read += increment
       raise DecodeError.new("body exceeds #{@max_bytes} bytes") if @bytes_read > @max_bytes
     end
   end

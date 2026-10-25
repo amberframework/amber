@@ -516,10 +516,54 @@ module Amber::Router::Parsers
       end
     end
 
+    it "reports a declared CBOR length past both caps as a request limit error" do
+      # A text value declaring 2 MiB, past the decoder's own 1 MiB text cap.
+      body = Bytes[0xA1, 0x61, 0x61, 0x7A, 0x00, 0x20, 0x00, 0x00]
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_document_body_bytes/) do
+        Amber::Schema::CBOR.decode_object(IO::Memory.new(body), 16)
+      end
+    end
+
+    it "reports a trailing byte past max_document_body_bytes as a request limit error" do
+      document = Amber::Schema::CBOR.encode({"t" => ::JSON::Any.new("x")})
+      body = IO::Memory.new
+      body.write(document)
+      body.write_byte(0x00)
+      body.rewind
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_document_body_bytes/) do
+        Amber::Schema::CBOR.decode_object(body, document.size)
+      end
+    end
+
+    it "grows CBOR arrays as elements arrive rather than from declared counts" do
+      body = IO::Memory.new
+      body.write(Bytes[0xA1, 0x61, 0x61])
+      # 32 nested arrays, each declaring 16,384 elements.
+      32.times { body.write(Bytes[0x99, 0x40, 0x00]) }
+      body.rewind
+
+      allocated_before = GC.stats.total_bytes
+      expect_raises(Amber::Schema::CBOR::DecodeError) do
+        Amber::Schema::CBOR.decode_object(body)
+      end
+      (GC.stats.total_bytes - allocated_before).should be < 262_144
+    end
+
     it "reads a long CBOR value that arrives in full" do
       title = "t" * 200_000
       decoded = Amber::Schema::CBOR.decode_object(IO::Memory.new(Amber::Schema::CBOR.encode({"title" => ::JSON::Any.new(title)})))
       decoded["title"].as_s.should eq title
+    end
+  end
+
+  describe "the development exception page" do
+    it "renders a rejected query's error without reading the query again" do
+      request = HTTP::Request.new("GET", "/?#{"a=1&" * 1_001}")
+      context = HTTP::Server::Context.new(request, HTTP::Server::Response.new(IO::Memory.new))
+      error = expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_params/) { request.query_params }
+
+      page = Amber::Exceptions::Page.new(context, error).to_s
+      page.should contain("max_params")
     end
   end
 

@@ -37,11 +37,19 @@ abstract class ExceptionPage
       context.request.path,
       context.response.status,
       nil,
-      context.request.query_params,
+      displayed_query_params(context.request),
       context.response.headers,
       context.response.cookies,
       exception.message,
     )
+  end
+
+  # The request's query parameters, or none when the query itself was
+  # rejected: the page reports that error rather than raising it again.
+  private def self.displayed_query_params(request : HTTP::Request) : URI::Params
+    request.query_params
+  rescue Amber::Exceptions::BadRequest
+    URI::Params.new
   end
 
   @method : String
