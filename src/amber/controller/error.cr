@@ -48,7 +48,7 @@ module Amber::Controller
         if Amber.env.development?
           Amber::Exceptions::Page.new(context, @ex)
         else
-          "<html><body><pre>#{@ex.message}</pre></body></html>"
+          "<html><body><pre>#{HTML.escape(@ex.message.to_s)}</pre></body></html>"
         end
       end
     end

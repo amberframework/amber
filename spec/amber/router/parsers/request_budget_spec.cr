@@ -394,6 +394,12 @@ module Amber::Router::Parsers
       end
     end
 
+    it "leaves the declared charset out of the error message" do
+      request = HTTP::Request.new("PUT", "/", HTTP::Headers{"Content-Type" => %(application/x-www-form-urlencoded; charset="<script>alert(1)</script>")}, "title=x")
+      error = expect_raises(Amber::Exceptions::BadRequest, /declared charset/) { request.form_params }
+      error.message.to_s.should_not contain("script")
+    end
+
     it "answers an unknown charset with a bad request" do
       request = HTTP::Request.new("PUT", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=no-such-charset"}, "title=x")
       expect_raises(Amber::Exceptions::BadRequest, /could not be decoded/) { request.form_params }
@@ -547,6 +553,19 @@ module Amber::Router::Parsers
         Amber::Schema::CBOR.decode_object(body)
       end
       (GC.stats.total_bytes - allocated_before).should be < 262_144
+    end
+
+    it "reports the largest declared CBOR length as a request limit error" do
+      body = Bytes[0xA1, 0x61, 0x61, 0x7B, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_document_body_bytes/) do
+        Amber::Schema::CBOR.decode_object(IO::Memory.new(body), 16)
+      end
+    end
+
+    it "reports a CBOR body that ends early as ending early, even at the limit" do
+      expect_raises(Amber::Schema::CBOR::DecodeError, /unexpected end of input/) do
+        Amber::Schema::CBOR.decode_object(IO::Memory.new(Bytes[0x18]), 1)
+      end
     end
 
     it "reads a long CBOR value that arrives in full" do

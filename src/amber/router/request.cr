@@ -32,6 +32,11 @@ class HTTP::Request
     {% end %}
   end
 
+  # The method on the request line, before any `_method` override.
+  def request_line_method : String
+    @method
+  end
+
   def requested_method
     {% if flag?(:amber_bench_legacy_request_method) %}
       @requested_method ||= params.override_method?(METHOD) || headers[OVERRIDE_HEADER]? || @method

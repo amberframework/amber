@@ -33,7 +33,7 @@ abstract class ExceptionPage
   def self.new(context : HTTP::Server::Context, exception : Exception)
     new(
       exception,
-      context.request.method,
+      displayed_method(context.request),
       context.request.path,
       context.response.status,
       nil,
@@ -42,6 +42,14 @@ abstract class ExceptionPage
       context.response.cookies,
       exception.message,
     )
+  end
+
+  # The request's method, or the method on its request line when resolving
+  # a `_method` override would read a rejected body again.
+  private def self.displayed_method(request : HTTP::Request) : String
+    request.method
+  rescue Amber::Exceptions::BadRequest | Amber::Schema::RequestParseError
+    request.request_line_method
   end
 
   # The request's query parameters, or none when the query itself was

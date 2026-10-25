@@ -19,8 +19,9 @@ module Amber::Router::Parsers
         raw_body = BoundedIO.new(body, max_form_body_bytes, "max_form_body_bytes")
         raw_body.set_encoding(charset)
         budget.parse_form(UTF8Reader.new(raw_body))
-      rescue ex : ArgumentError
-        raise Amber::Exceptions::BadRequest.new("The form body could not be decoded as #{charset}: #{ex.message}")
+      rescue ArgumentError
+        # The message leaves out the client's charset and decoder text.
+        raise Amber::Exceptions::BadRequest.new("The form body could not be decoded with its declared charset")
       end
     end
 

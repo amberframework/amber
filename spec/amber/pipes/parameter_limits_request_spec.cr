@@ -79,10 +79,10 @@ end
 
 # Sends a URL-encoded POST through routing, the CSRF pipe, and the schema
 # contract, carrying a valid CSRF token in the body as a browser form would.
-private def post_form(pipeline : Amber::Pipe::Pipeline, fields : String, method : String = "POST", path : String = "/parameter-limits") : HTTP::Client::Response
+private def post_form(pipeline : Amber::Pipe::Pipeline, fields : String, method : String = "POST", path : String = "/parameter-limits", accept : String = "application/json") : HTTP::Client::Response
   request = HTTP::Request.new(method, path, HTTP::Headers{
     "Content-Type" => "application/x-www-form-urlencoded",
-    "Accept"       => "application/json",
+    "Accept"       => accept,
   })
   io = IO::Memory.new
   context = HTTP::Server::Context.new(request, HTTP::Server::Response.new(io))
@@ -198,6 +198,34 @@ describe "request parameter limits on the request path" do
     response.body.should contain("max_params")
     ParameterLimitsController.action_calls.should eq 0
     allocated.should be < MAX_REJECTION_BYTES
+  end
+
+  it "answers an oversized form with a 400 development error page" do
+    Amber.env = :development
+    fields = (0..1_000).map { |i| "f#{i}=x" }.join("&")
+    response = post_form(pipeline, fields, accept: "text/html")
+
+    response.status_code.should eq 400
+    response.body.should contain("max_params")
+    response.body.should contain("POST")
+    ParameterLimitsController.action_calls.should eq 0
+  ensure
+    Amber.env = :test
+  end
+
+  it "escapes a script tag from the request on the production and development error pages" do
+    script = "<script>alert(1)</script>"
+    {:production, :development}.each do |environment|
+      Amber.env = environment
+      request = HTTP::Request.new("GET", "/#{script}?q=#{script}", HTTP::Headers{"Accept" => "text/html"})
+      response = create_request_and_return_io(pipeline, request)
+
+      response.status_code.should eq 404
+      response.body.should_not contain(script)
+      response.body.should contain("&lt;script&gt;")
+    end
+  ensure
+    Amber.env = :test
   end
 
   it "answers 400 when a controller reads an oversized query string" do

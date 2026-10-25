@@ -254,9 +254,9 @@ module Amber::Schema::CBOR
       case additional
       when 0_u8...24_u8 then additional.to_u64
       when 24_u8        then read_byte.to_u64
-      when 25_u8        then IO::ByteFormat::BigEndian.decode(UInt16, read_exact(2)).to_u64
-      when 26_u8        then IO::ByteFormat::BigEndian.decode(UInt32, read_exact(4)).to_u64
-      when 27_u8        then IO::ByteFormat::BigEndian.decode(UInt64, read_exact(8))
+      when 25_u8        then IO::ByteFormat::BigEndian.decode(UInt16, read_fixed(2)).to_u64
+      when 26_u8        then IO::ByteFormat::BigEndian.decode(UInt32, read_fixed(4)).to_u64
+      when 27_u8        then IO::ByteFormat::BigEndian.decode(UInt64, read_fixed(8))
       else
         raise DecodeError.new("indefinite-length and reserved items are unsupported")
       end
@@ -273,13 +273,27 @@ module Amber::Schema::CBOR
       read_exact(length.to_i)
     end
 
+    # Bytes of the document's own framing are counted once they are read,
+    # so a body that ends early is reported as ending early.
     private def read_byte : UInt8
+      byte = @io.read_byte || raise DecodeError.new("unexpected end of input")
       enforce_limit(1)
-      @io.read_byte || raise DecodeError.new("unexpected end of input")
+      byte
     end
 
-    # Reads *length* bytes. A long value is read in chunks, so memory grows
-    # with the bytes that arrive rather than with the declared length.
+    private def read_fixed(length : Int32) : Bytes
+      bytes = Bytes.new(length)
+      @io.read_fully(bytes)
+      enforce_limit(length)
+      bytes
+    rescue IO::EOFError
+      raise DecodeError.new("unexpected end of input")
+    end
+
+    # Reads a value of declared *length*. A length past the remaining
+    # allowance is rejected before anything is allocated, and a long value
+    # is read in chunks, so memory grows with the bytes that arrive rather
+    # than with the declared length.
     private def read_exact(length : Int32) : Bytes
       enforce_limit(length)
       if length <= READ_CHUNK_BYTES
@@ -309,7 +323,8 @@ module Amber::Schema::CBOR
     private def enforce_document_limit(increment : UInt64) : Nil
       document_limit = @document_limit
       return unless document_limit
-      if @bytes_read.to_u64 + increment > document_limit.to_u64
+      remaining = document_limit > @bytes_read ? (document_limit - @bytes_read).to_u64 : 0_u64
+      if increment > remaining
         raise Amber::Exceptions::ParameterLimitExceeded.new("max_document_body_bytes", document_limit)
       end
     end
