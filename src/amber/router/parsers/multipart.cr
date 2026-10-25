@@ -30,10 +30,20 @@ module Amber::Router::Parsers
           end
         end
       rescue ex
-        list_of_created_files.each(&.delete_tempfile)
+        delete_all(list_of_created_files)
         raise ex
       end
       {multipart_params, files}
+    end
+
+    # Deletes every tempfile in *list_of_files*, logging and skipping any
+    # that cannot be deleted, so the caller's own error is the one raised.
+    private def self.delete_all(list_of_files : Array(Amber::Router::File)) : Nil
+      list_of_files.each do |uploaded_file|
+        uploaded_file.delete_tempfile
+      rescue ex : IO::Error
+        Amber::Router::File::Log.warn(exception: ex) { "Could not delete the upload tempfile #{uploaded_file.path}" }
+      end
     end
 
     # Yields each part of a multipart request. The body is read through a

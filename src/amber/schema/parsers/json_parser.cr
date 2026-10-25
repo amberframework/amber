@@ -25,8 +25,7 @@ module Amber::Schema::Parser
 
     # Parse HTTP request body
     def self.parse_request(request : HTTP::Request) : Hash(String, JSON::Any)
-      body = request.read_document_body
-      parse_string(body)
+      request.guard_body_read { parse_string(request.read_document_body) }
     end
 
     # Parse HTTP::Params into JSON-compatible hash with proper nesting

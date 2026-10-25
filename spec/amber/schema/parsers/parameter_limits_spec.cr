@@ -338,6 +338,53 @@ describe Amber::Schema::Parser::XMLParser do
       result["p#text"].should eq JSON::Any.new("value \u00A0x")
     end
 
+    it "rejects a document type declaration, so no entity is expanded or counted" do
+      {
+        %(<!DOCTYPE r [<!ENTITY x "#{"y" * 1_024}">]><r a="&x;&x;&x;">&x;</r>),
+        # The comment is malformed, so the streaming count stops before the
+        # DOCTYPE; the recovered tree is checked instead.
+        %(<!-- a -- b --><!DOCTYPE r [<!ENTITY x "y">]><r>&x;</r>),
+      }.each do |xml|
+        expect_raises(Amber::Exceptions::BadRequest, /document type declaration/) do
+          Amber::Schema::Parser::XMLParser.parse_string(xml)
+        end
+      end
+    end
+
+    it "answers a DOCTYPE in a request body as a 400 request parse error" do
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/xml"}, %(<!DOCTYPE r [<!ENTITY x "y">]><r>&x;</r>))
+      error = expect_raises(Amber::Schema::RequestParseError) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      end
+      error.http_status.should eq 400
+    end
+
+    it "keeps a rejection raised after the body was read" do
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_document_nodes = 1
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/xml"}, "<r><a/></r>")
+      request.param_budget = Amber::Router::Parsers::ParamBudget.new(config)
+
+      first = expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_document_nodes/) do
+        Amber::Schema::Parser::XMLParser.parse_request(request)
+      end
+      second = expect_raises(Amber::Exceptions::ParameterLimitExceeded) do
+        Amber::Schema::Parser::XMLParser.parse_request(request)
+      end
+      second.should be(first)
+    end
+
+    it "keeps a CBOR decoding rejection for later parses" do
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/cbor"}, Bytes[0xFF, 0x00])
+      first = expect_raises(Amber::Schema::RequestParseError) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      end
+      second = expect_raises(Amber::Schema::RequestParseError) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      end
+      second.should be(first)
+    end
+
     it "checks the generated element#text key against max_key_bytes" do
       config = Amber::Configuration::ParamsConfig.new
       config.max_key_bytes = 8

@@ -24,8 +24,14 @@ module Amber::Schema
         parsers[normalized]?
       end
 
-      # Parse request based on content type
+      # Parse request based on content type. The whole parse runs through
+      # `HTTP::Request#guard_body_read`, so a rejected body stays rejected for
+      # every later read of that request.
       def self.parse_request(request : HTTP::Request, schema_class : Definition.class | Nil = nil) : Hash(String, JSON::Any)
+        request.guard_body_read { parse_request_once(request, schema_class) }
+      end
+
+      private def self.parse_request_once(request : HTTP::Request, schema_class : Definition.class | Nil) : Hash(String, JSON::Any)
         content_type = request.headers["Content-Type"]?
         parser_name = get(content_type)
 

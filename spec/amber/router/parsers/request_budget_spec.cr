@@ -24,6 +24,29 @@ private def multipart_post(body : String, boundary : String = "AmberBudgetBounda
   HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"}, body)
 end
 
+# Reads *first*, then makes *directory* read-only, then reads *rest*.
+private class LockingIO < IO
+  @locked = false
+
+  def initialize(@first : IO, @rest : IO, @directory : String)
+  end
+
+  def read(slice : Bytes) : Int32
+    count = @first.read(slice)
+    return count if count > 0
+
+    unless @locked
+      ::File.chmod(@directory, 0o500)
+      @locked = true
+    end
+    @rest.read(slice)
+  end
+
+  def write(slice : Bytes) : Nil
+    raise IO::Error.new("read only")
+  end
+end
+
 private def upload_tempfile_count : Int32
   Dir.children(Amber::Router::File.upload_directory).count(&.starts_with?("amber-upload"))
 end
@@ -220,6 +243,36 @@ module Amber::Router::Parsers
         Multipart.parse(multipart_post(body, boundary), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
       end
       error.status_code.should eq 400
+    end
+  end
+
+  describe "multipart rejection cleanup" do
+    it "keeps the limit error when deleting the tempfiles fails" do
+      boundary = "AmberBudgetBoundary"
+      body = multipart_body(boundary, [{"a", "a.txt", "first"}, {"b", "b.txt", "second"}, {"note", nil, "x" * 64}])
+      directory = Amber::Router::File.upload_directory
+      before = Dir.children(directory).to_set
+      # Make the directory read-only once both files are written, so every
+      # cleanup delete fails while the oversized field is rejected.
+      trigger = body.index!("name=\"note\"")
+      source = IO::Memory.new(body)
+      reader = IO::Sized.new(source, trigger)
+      rest = IO::Memory.new(body.byte_slice(trigger))
+      locking = LockingIO.new(reader, rest, directory)
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"})
+      request.body = locking
+
+      begin
+        expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_value_bytes/) do
+          Multipart.parse(request, ParamBudget.new(limits_with(&.max_value_bytes = 8)))
+        end
+      ensure
+        ::File.chmod(directory, 0o700)
+      end
+
+      leftovers = Dir.children(directory).to_set - before
+      leftovers.size.should eq 2
+      leftovers.each { |name| ::File.delete(::File.join(directory, name)) }
     end
   end
 

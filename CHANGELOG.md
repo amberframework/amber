@@ -84,13 +84,20 @@
   An XML document may hold at most `params.max_document_nodes` nodes
   (default 100,000): a well-formed document is counted while it streams,
   before its tree is built, and a recovered malformed one is counted
-  before any field is extracted.
+  before any field is extracted. **XML request bodies may not contain a
+  document type declaration (`<!DOCTYPE ...>`)**; one that does is answered
+  with `400 Bad Request`, so request XML never defines or expands entities.
 - A rejected request body is remembered on the request
   (`HTTP::Request#guard_body_read`): every later read of `params`,
   `form_params`, or a schema contract for that request raises the same
   error, so a caller that catches it never sees a parse of the bytes left
-  in the stream. Upload cleanup continues past a file that fails to close
-  or delete.
+  in the stream. Rejections raised after the body was read (such as the
+  node limit, or a CBOR or COSE decoding error) are remembered the same
+  way. Upload cleanup continues past a file that fails to close or delete,
+  and a failed delete is retried at the end of the request.
+- `Amber::Schema::RequestParseError` raised from an action (for example by
+  calling `ParserRegistry.parse_request` directly) is answered with its own
+  status, such as 400, by the pipeline and the Error pipe, rather than 500.
 - The pipeline detects a WebSocket upgrade the way the WebSocket handler
   does (`Upgrade: websocket` in any letter case, with `Upgrade` in
   `Connection`), and a route that only has a socket handler no longer

@@ -204,14 +204,11 @@ module Amber::Schema::Parser
       @limits : Amber::Configuration::ParamsConfig
       @remaining_bytes : Int64
       @spans_by_node : Hash(UInt64, TextSpan)
-      @entity_text_by_node : Hash(UInt64, String)
-      @document : XML::Document?
 
       def initialize(@limits : Amber::Configuration::ParamsConfig = Amber.settings.params)
         @budget = Amber::Router::Parsers::ParamBudget.new(@limits)
         @remaining_bytes = @limits.max_document_body_bytes.to_i64 * EXTRACTED_BYTES_FACTOR
         @spans_by_node = {} of UInt64 => TextSpan
-        @entity_text_by_node = {} of UInt64 => String
       end
 
       # Checks an extracted key's length and depth, and charges its bytes.
@@ -240,7 +237,6 @@ module Amber::Schema::Parser
       # the stripped text is written straight into a string of that size, so
       # it is copied once.
       def text_of(node : XML::Node) : String
-        @document = node.document
         pointer = node.to_unsafe
         span = span_of(pointer)
         return "" if span.blank?
@@ -260,7 +256,6 @@ module Amber::Schema::Parser
       # Returns an attribute's value after measuring it in libxml's buffers,
       # checking it against `max_value_bytes`, and charging it.
       def attribute_value(attribute : XML::Node) : String
-        @document = attribute.document
         size = 0_i64
         child = attribute.to_unsafe.value.children
         while child
@@ -337,16 +332,11 @@ module Amber::Schema::Parser
         end
       end
 
-      # The bytes of one text piece. Text and CDATA are read in place from
-      # libxml's buffer; an entity reference's expansion is read once.
+      # The bytes of one text piece, read in place from libxml's buffer.
+      # Request documents cannot declare entities (see `parse_document`), so
+      # an entity reference left by error recovery has no text.
       private def piece_bytes(pointer : LibXML::Node*) : Bytes
         type = pointer.value.type
-        if type.entity_ref_node?
-          document = @document
-          return Bytes.empty unless document
-          address = pointer.address
-          return (@entity_text_by_node[address] ||= XML::Node.new(pointer, document).content).to_slice
-        end
         return Bytes.empty unless type.text_node? || type.cdata_section_node?
 
         content = pointer.value.content
@@ -391,9 +381,10 @@ module Amber::Schema::Parser
 
     # Parse HTTP request body
     def self.parse_request(request : HTTP::Request) : Hash(String, JSON::Any)
-      budget = request.param_budget
-      body = request.read_document_body
-      parse_string(body, budget.limits)
+      request.guard_body_read do
+        body = request.read_document_body
+        parse_string(body, request.param_budget.limits)
+      end
     end
 
     # Extract fields from XML using schema field definitions with XPath support
@@ -422,12 +413,16 @@ module Amber::Schema::Parser
       raise SchemaDefinitionError.new("Invalid XML: #{ex.message}")
     end
 
-    # Parses *xml_string*, holding it to `max_document_nodes` nodes.
+    # Parses *xml_string*, holding it to `max_document_nodes` nodes and
+    # rejecting any document type declaration.
     #
-    # A well-formed document is counted while it streams, so one with too
-    # many nodes is rejected before its tree is built. libxml recovers from
-    # malformed markup and the streaming count stops at the first error, so
-    # the parsed tree is counted again, by pointer, before any extraction.
+    # Request bodies may not declare a DTD, so they cannot define entities:
+    # no entity is expanded, and no entity reference can multiply a
+    # document's nodes or text. A well-formed document is counted while it
+    # streams, so one with too many nodes, or a DTD, is rejected before its
+    # tree is built. libxml recovers from malformed markup and the streaming
+    # count stops at the first error, so the parsed tree is checked again,
+    # by pointer, before any extraction.
     private def self.parse_document(xml_string : String, limits : Amber::Configuration::ParamsConfig) : XML::Node
       max_nodes = limits.max_document_nodes
       if streamed_node_count(xml_string, max_nodes) > max_nodes
@@ -441,6 +436,10 @@ module Amber::Schema::Parser
       document
     end
 
+    private def self.reject_document_type! : NoReturn
+      raise Amber::Exceptions::BadRequest.new("XML request bodies may not contain a document type declaration (DOCTYPE).")
+    end
+
     # :nodoc:
     # Counts the nodes `XML::Reader` streams, with each element's attributes,
     # stopping once the count passes *stop_after* or the markup is
@@ -450,6 +449,7 @@ module Amber::Schema::Parser
       count = 0
       while reader.read
         node_type = reader.node_type
+        reject_document_type! if node_type.document_type?
         next if node_type.end_element?
         count += 1
         count += reader.attributes_count if node_type.element?
@@ -458,18 +458,23 @@ module Amber::Schema::Parser
       count
     end
 
-    # Counts the descendants of *pointer*, with each element's attributes,
-    # by following libxml's links, stopping once the count passes
-    # *stop_after*. Nothing is allocated per node.
+    # Counts the descendants of *pointer*, with each element's attributes and
+    # the nodes inside each attribute value, by following libxml's links,
+    # stopping once the count passes *stop_after*. Nothing is allocated per
+    # node. A document type declaration is rejected.
     private def self.tree_node_count(pointer : LibXML::Node*, stop_after : Int32) : Int32
       count = 0
       child = pointer.value.children
       while child
+        child_type = child.value.type
+        reject_document_type! if child_type.dtd_node?
         count += 1
-        if child.value.type.element_node?
+        if child_type.element_node?
           attribute = child.value.properties
           while attribute
             count += 1
+            count += tree_node_count(attribute.as(LibXML::Node*), stop_after - count)
+            return count if count > stop_after
             attribute = attribute.value.next.as(LibXML::Attr*)
           end
           count += tree_node_count(child, stop_after - count)

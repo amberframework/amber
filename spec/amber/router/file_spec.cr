@@ -145,6 +145,23 @@ module Amber::Router
       end
     end
 
+    it "keeps ownership after a failed delete, so cleanup can retry it" do
+      attachment = build_upload("retry me")
+      directory = File.upload_directory
+      ::File.chmod(directory, 0o500)
+      begin
+        expect_raises(::File::Error) { attachment.delete_tempfile }
+        attachment.owned_by_amber?.should be_true
+        ::File.exists?(attachment.path).should be_true
+      ensure
+        ::File.chmod(directory, 0o700)
+      end
+
+      attachment.delete_tempfile
+      ::File.exists?(attachment.path).should be_false
+      attachment.owned_by_amber?.should be_false
+    end
+
     it "keeps a retained upload at its path for later use" do
       attachment = build_upload("for a job")
       path = attachment.retain!

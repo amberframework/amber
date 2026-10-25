@@ -275,9 +275,10 @@ module Amber::Router
     # Amber's cleanup, run when the request finishes or its parse fails.
     #
     # Closes the handle `file` opened. When Amber still owns the tempfile,
-    # it gives up ownership and deletes the path if, when checked, it still
-    # names the file Amber created (same device and inode, symlinks not
-    # followed). The check and the unlink are two system calls, so code
+    # it deletes the path if, when checked, it still names the file Amber
+    # created (same device and inode, symlinks not followed), then gives up
+    # ownership. A failed delete raises and leaves ownership in place, so a
+    # later call can retry it. The check and the unlink are two system calls, so code
     # running as this user that swaps the path between them can still lose
     # the file it put there; the private upload directory keeps every other
     # user out. To keep an upload, transfer it with `move_to` or `retain!`,
@@ -293,9 +294,11 @@ module Amber::Router
       end
       return unless tempfile.owned_by_amber?
 
-      tempfile.owned_by_amber = false
       current = ::File.info?(tempfile.path, follow_symlinks: false)
+      # Ownership ends only once nothing of Amber's is left at the path, so a
+      # failed delete (which raises) can be retried.
       ::File.delete(tempfile.path) if current && current.same_file?(tempfile.identity)
+      tempfile.owned_by_amber = false
     end
 
     private def open_checked(tempfile : Tempfile) : ::File

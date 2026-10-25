@@ -13,7 +13,7 @@ class HTTP::Request
   @effective_method : String?
   @params : Amber::Router::Params?
   @param_budget : Amber::Router::Parsers::ParamBudget?
-  @body_rejection : Amber::Exceptions::BadRequest?
+  @body_rejection : (Amber::Exceptions::BadRequest | Amber::Schema::RequestParseError)?
 
   def method
     {% if flag?(:amber_bench_legacy_request_method) %}
@@ -71,11 +71,12 @@ class HTTP::Request
     previous_def
   end
 
-  # Runs one read of the request body. A read that is rejected with
-  # `Amber::Exceptions::BadRequest` has consumed part of the stream, so the
-  # rejection is remembered and every later guarded read (`params`,
-  # `form_params`, schema contracts) raises it again: a caller that catches
-  # it never sees a parse of the bytes that remain.
+  # Runs one read or parse of the request body. A body rejected with
+  # `Amber::Exceptions::BadRequest` or `Amber::Schema::RequestParseError`,
+  # while it is read or after (a node limit, a CBOR or COSE decoding error),
+  # is remembered, and every later guarded read (`params`, `form_params`,
+  # schema contracts) raises it again: a caller that catches it never sees
+  # a parse of the bytes that remain, or an empty body passed off as valid.
   def guard_body_read(& : -> T) : T forall T
     if rejection = @body_rejection
       raise rejection
@@ -83,7 +84,7 @@ class HTTP::Request
 
     begin
       yield
-    rescue ex : Amber::Exceptions::BadRequest
+    rescue ex : Amber::Exceptions::BadRequest | Amber::Schema::RequestParseError
       @body_rejection ||= ex
       raise ex
     end

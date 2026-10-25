@@ -46,6 +46,14 @@ class ParameterLimitsController < Amber::Controller::Base
     title || "no title"
   end
 
+  def direct_parse
+    config = Amber::Configuration::ParamsConfig.new
+    config.max_document_body_bytes = 16
+    request.param_budget = Amber::Router::Parsers::ParamBudget.new(config)
+    Amber::Schema::Parser::ParserRegistry.parse_request(request)
+    "parsed"
+  end
+
   def plain
     self.class.action_calls += 1
     params["title"]? || "no title"
@@ -141,6 +149,7 @@ describe "request parameter limits on the request path" do
       post "/parameter-limits/retain", ParameterLimitsController, :retain_upload
       put "/parameter-limits/update", ParameterLimitsController, :update
       post "/parameter-limits/plain", ParameterLimitsController, :plain
+      post "/parameter-limits/direct", ParameterLimitsController, :direct_parse
     end
     pipeline.build :web do
       plug Amber::Pipe::CSRF.new
@@ -295,6 +304,26 @@ describe "request parameter limits on the request path" do
       form_response = post_form(pipeline, fields, "POST", "/parameter-limits/plain")
       form_response.status_code.should eq 400
       ParameterLimitsController.action_calls.should eq 0
+    end
+  end
+
+  it "answers 400, not 500, when an action's direct schema parse hits a limit" do
+    api_pipeline = Amber::Pipe::Pipeline.new
+    api_pipeline.build(:web) { }
+    api_pipeline.prepare_pipelines
+    error_pipeline = Amber::Pipe::Pipeline.new
+    error_pipeline.build(:web) { plug Amber::Pipe::Error.new }
+    error_pipeline.prepare_pipelines
+
+    [api_pipeline, error_pipeline].each do |each_pipeline|
+      request = HTTP::Request.new("POST", "/parameter-limits/direct", HTTP::Headers{
+        "Content-Type" => "application/json",
+        "Accept"       => "application/json",
+      }, %({"title":"seventeen"}))
+      response = create_request_and_return_io(each_pipeline, request)
+
+      response.status_code.should eq 400
+      response.body.should contain("max_document_body_bytes")
     end
   end
 
