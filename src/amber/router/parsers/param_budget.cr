@@ -19,7 +19,6 @@ module Amber::Router::Parsers
     private SCRATCH_BYTES = 65_536
     private OPEN_BRACKET  = '['.ord.to_u8
     private CLOSE_BRACKET = ']'.ord.to_u8
-    private MINUS         = '-'.ord.to_u8
     private MAX_DIGITS    = 10
 
     getter limits : Amber::Configuration::ParamsConfig
@@ -30,15 +29,16 @@ module Amber::Router::Parsers
     end
 
     # Records one parameter and checks its name and value: the name's
-    # length, nesting depth and bracket indices, and the value's length.
-    # Every query, form and multipart pair passes through here before any
-    # reader sees it.
+    # length and nesting depth, and the value's length. Every query, form
+    # and multipart pair passes through here before any reader sees it.
+    # Bracket indices are checked where a parser reserves an array slot
+    # (`reserve_array_slot!`), so a field named by record id, such as
+    # `users[1700000][name]`, stays an ordinary parameter.
     def admit!(key : String, value : String? = nil) : Nil
       # Compare before incrementing so the count can never overflow.
       exceed!("max_params", limits.max_params) if @param_count >= limits.max_params
       @param_count += 1
       check_key_shape!(key)
-      check_bracket_indices!(key)
       check_value!(value) if value
     end
 
@@ -66,28 +66,6 @@ module Amber::Router::Parsers
     # the `-1` in `items[-1]`. Callers pass only bracketed segments.
     def check_segment!(segment : String) : Nil
       invalid_index! if negative_integer?(segment)
-    end
-
-    # Checks every bracketed segment of *key* the way the schema parsers
-    # read them: a whole number must be at most `max_array_index`, and a
-    # negative one is rejected. Scans bytes in place, without splitting.
-    def check_bracket_indices!(key : String) : Nil
-      bytes = key.to_slice
-      return unless bytes.includes?(OPEN_BRACKET) || bytes.includes?(CLOSE_BRACKET)
-
-      seen_first_segment = false
-      segment_start = 0
-      (bytes.size + 1).times do |position|
-        at_end = position == bytes.size
-        next unless at_end || bytes[position] == OPEN_BRACKET || bytes[position] == CLOSE_BRACKET
-
-        if position > segment_start
-          # The first segment is the base name, not an index.
-          check_index_segment!(bytes[segment_start, position - segment_start]) if seen_first_segment
-          seen_first_segment = true
-        end
-        segment_start = position + 1
-      end
     end
 
     # Converts the digits of a bracket index and makes room for it in *array*.
@@ -211,16 +189,6 @@ module Amber::Router::Parsers
       return unless index
       return if index > limits.max_array_index
       index
-    end
-
-    private def check_index_segment!(segment : Bytes) : Nil
-      digits = segment[0] == MINUS && segment.size > 1 ? segment[1, segment.size - 1] : segment
-      return unless digits.all?(&.unsafe_chr.ascii_number?)
-
-      invalid_index! if digits.size != segment.size
-      invalid_index! if digits.size > MAX_DIGITS
-      index = digits.reduce(0_i64) { |value, digit| value * 10 + (digit - '0'.ord) }
-      invalid_index! if index > limits.max_array_index
     end
 
     private def negative_integer?(segment : String) : Bool

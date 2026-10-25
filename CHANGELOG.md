@@ -36,12 +36,12 @@
   compared without regard to letter case, rather than by a prefix of the
   `Content-Type` header.
 - Every query, form and multipart pair is checked when it is admitted, so
-  plain `params` readers see the same limits as schema contracts: a key
-  nested deeper than `max_nesting_depth`, or a bracketed number above
-  `max_array_index` (or negative), is answered with `400 Bad Request`.
-  **Compatibility:** a form that names records by id in brackets, such as
-  `users[1700][name]`, now needs `params.max_array_index` raised to cover
-  those ids.
+  plain `params` readers see the same key, value, count and depth limits
+  as schema contracts: a key nested deeper than `max_nesting_depth` is
+  answered with `400 Bad Request`. Bracketed array indices are checked
+  where a schema parser reserves array slots for them, so a form that
+  names records by id in brackets, such as `users[1700000][name]`, still
+  reads as ordinary `params`.
 - A request beyond any limit is answered with `400 Bad Request` (schema
   contracts report the `parameter_limit_exceeded` code). Configure the limits
   in the new `params:` section of `config/environments/<env>.yml` or with
@@ -110,8 +110,11 @@
   they stream, as Crystal's `HTTP::Request#form_params` does; an unknown
   charset is answered with `400 Bad Request`. `max_form_body_bytes` counts
   the raw bytes before decoding.
-- Error pages escape what they show of the request: the production HTML
-  error page HTML-escapes the error message, and the development
+- Error pages escape what they show of the request: the error response's
+  type is chosen by Amber (JSON, HTML or plain text, from the first
+  `Accept` entry without its parameters) rather than echoed from the
+  header, the production HTML error page HTML-escapes the error message,
+  and the development
   exception page escapes the method, path and title. A development error
   page for a rejected query or form shows the request-line method and no
   query parameters, so the 400 is not raised again while rendering.

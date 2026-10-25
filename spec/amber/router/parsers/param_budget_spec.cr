@@ -101,15 +101,13 @@ module Amber::Router::Parsers
         error.limit_name.should eq "max_nesting_depth"
       end
 
-      it "rejects bracket indices above max_array_index, overflowing, or negative" do
+      it "admits bracketed record ids, which are checked only where an array slot is reserved" do
         budget = ParamBudget.new(Amber::Configuration::ParamsConfig.new)
 
-        ["items[999999999]", "items[99999999999999999999]", "items[-1]", "a[0][101][name]"].each do |key|
-          error = expect_raises(Amber::Exceptions::ParameterLimitExceeded) do
-            budget.admit!(key, "x")
-          end
-          error.limit_name.should eq "max_array_index"
+        ["users[1000001][name]", "items[999999999]", "items[99999999999999999999]"].each do |key|
+          budget.admit!(key, "x")
         end
+        budget.param_count.should eq 3
       end
 
       it "admits ordinary keys" do
@@ -315,17 +313,27 @@ module Amber::Router::Parsers
       end
     end
 
-    it "rejects a deeply nested key or an oversized index on ordinary query access" do
-      {"a#{"[b]" * 40}=x" => "max_nesting_depth", "items[999999999]=x" => "max_array_index"}.each do |query, limit_name|
-        params = Amber::Router::Params.new(HTTP::Request.new("GET", "/?#{query}"))
-        error = expect_raises(Amber::Exceptions::ParameterLimitExceeded) do
-          params["a"]?
-        end
-        error.limit_name.should eq limit_name
+    it "rejects a deeply nested key on ordinary query access" do
+      params = Amber::Router::Params.new(HTTP::Request.new("GET", "/?a#{"[b]" * 40}=x"))
+      error = expect_raises(Amber::Exceptions::ParameterLimitExceeded) do
+        params["a"]?
+      end
+      error.limit_name.should eq "max_nesting_depth"
+    end
+
+    it "reads a field named by a large record id as an ordinary parameter" do
+      params = Amber::Router::Params.new(HTTP::Request.new("GET", "/?users[1000001][name]=Ada"))
+      params["users[1000001][name]"]?.should eq "Ada"
+    end
+
+    it "still rejects that record id where a schema parser would reserve array slots for it" do
+      request = HTTP::Request.new("GET", "/?items[1000001]=x")
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_array_index/) do
+        Amber::Schema::Parser::QueryParser.parse_query_string(request.query.to_s)
       end
     end
 
-    it "rejects a deeply nested key or an oversized index in a form or multipart body" do
+    it "rejects a deeply nested key in a form, and admits a large record id in a multipart body" do
       key = "a#{"[b]" * 40}"
       form_request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}, "#{key}=x")
       expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_nesting_depth/) do
@@ -335,9 +343,7 @@ module Amber::Router::Parsers
       boundary = "AdmissionBoundary"
       multipart_request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"},
         "--#{boundary}\r\nContent-Disposition: form-data; name=\"items[999999999]\"\r\n\r\nx\r\n--#{boundary}--\r\n")
-      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_array_index/) do
-        Amber::Router::Params.new(multipart_request).multipart_params
-      end
+      Amber::Router::Params.new(multipart_request).multipart_params["items[999999999]"]?.should eq "x"
     end
 
     it "reads a form by its media type, compared without regard to letter case" do

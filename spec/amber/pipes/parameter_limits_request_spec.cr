@@ -228,6 +228,25 @@ describe "request parameter limits on the request path" do
     Amber.env = :test
   end
 
+  it "escapes a script tag for an HTML Accept header with parameters, and picks the response type itself" do
+    script = "<script>alert(1)</script>"
+    {
+      "text/html; charset=utf-8" => "text/html",
+      "Text/HTML"                => "text/html",
+      "application/x-#{script}"  => "text/plain",
+    }.each do |accept, chosen_type|
+      Amber.env = :production
+      request = HTTP::Request.new("GET", "/#{script}", HTTP::Headers{"Accept" => accept})
+      response = create_request_and_return_io(pipeline, request)
+
+      response.status_code.should eq 404
+      response.content_type.should eq chosen_type
+      response.body.should_not contain(script) if chosen_type == "text/html"
+    end
+  ensure
+    Amber.env = :test
+  end
+
   it "answers 400 when a controller reads an oversized query string" do
     query = (0..1_000).map { "a=1" }.join("&")
     response = create_request_and_return_io(pipeline, HTTP::Request.new("GET", "/parameter-limits?#{query}", HTTP::Headers{"Accept" => "application/json"}))
@@ -321,18 +340,20 @@ describe "request parameter limits on the request path" do
     allocated.should be < MAX_FORM_REJECTION_BYTES
   end
 
-  {
-    "a key nested 40 deep" => "a#{"[b]" * 40}=x",
-    "an oversized index"   => "items[999999999]=x",
-  }.each do |description, fields|
-    it "answers 400 for #{description} on an ordinary route's query and form" do
-      query_response = create_request_and_return_io(pipeline, HTTP::Request.new("GET", "/parameter-limits?#{fields}", HTTP::Headers{"Accept" => "application/json"}))
-      query_response.status_code.should eq 400
+  it "answers 400 for a key nested 40 deep on an ordinary route's query and form" do
+    fields = "a#{"[b]" * 40}=x"
+    query_response = create_request_and_return_io(pipeline, HTTP::Request.new("GET", "/parameter-limits?#{fields}", HTTP::Headers{"Accept" => "application/json"}))
+    query_response.status_code.should eq 400
 
-      form_response = post_form(pipeline, fields, "POST", "/parameter-limits/plain")
-      form_response.status_code.should eq 400
-      ParameterLimitsController.action_calls.should eq 0
-    end
+    form_response = post_form(pipeline, fields, "POST", "/parameter-limits/plain")
+    form_response.status_code.should eq 400
+    ParameterLimitsController.action_calls.should eq 0
+  end
+
+  it "accepts a field named by a large record id on an ordinary route" do
+    response = post_form(pipeline, "title=ok&users[1000001][name]=Ada", "POST", "/parameter-limits/plain")
+    response.status_code.should eq 200
+    response.body.should eq "ok"
   end
 
   it "answers 400, not 500, when an action's direct schema parse hits a limit" do
