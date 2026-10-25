@@ -7,7 +7,6 @@ lib/
 .shards/
 /amber
 /tmp
-shard.lock
 .crystal-version
 /myapp
 *.dwarf

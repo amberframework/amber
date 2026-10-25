@@ -43,7 +43,7 @@ module Amber
             end
           }
 
-          request = HTTP::Request.new("GET", "")
+          request = HTTP::Request.new("GET", "/")
           context = create_context(request)
           route = Route.new("GET", "", handler)
 
