@@ -8,17 +8,37 @@ private def apply_legacy_rules(validator : Amber::Validators::Params, &) : Amber
   validator
 end
 
+# Compiles and runs a standalone program that calls the deprecated
+# `Params#validation` directly. A separate process keeps its deprecation
+# warning out of this suite's own build. `CRYSTAL` names the compiler when
+# set; otherwise the house toolchain, crystal-alpha, is used when installed.
+private def run_legacy_validation_fixture : {Process::Status, String, String}
+  compiler = ENV["CRYSTAL"]? || Process.find_executable("crystal-alpha") || "crystal"
+  fixture_path = "spec/fixtures/compile/legacy_params_validation.cr"
+  program_output = IO::Memory.new
+  compiler_output = IO::Memory.new
+  status = Process.run(compiler, ["run", "--no-color", fixture_path], output: program_output, error: compiler_output)
+  {status, program_output.to_s, compiler_output.to_s}
+end
+
 module Amber::Validators
   describe Params do
     describe "#validation" do
-      it "remains deprecated in favor of Amber::Schema controller contracts" do
-        {% begin %}
-          {% validation_method = Amber::Validators::Params.methods.find { |method| method.name == "validation" } %}
-          {% deprecation = validation_method && validation_method.annotation(Deprecated) %}
-          {{ deprecation ? deprecation[0] : nil }}.should eq(
-            "Use Amber::Schema controller contracts; legacy params validation remains available for V2 migration compatibility"
-          )
-        {% end %}
+      it "applies its rules, returns the validator, and warns app authors" do
+        status, program_output, compiler_output = run_legacy_validation_fixture
+
+        status.success?.should be_true, failure_message: compiler_output
+        program_output.lines.should eq([
+          "returns_self=true",
+          "rule_count=3",
+          "valid=false",
+          "error_fields=name",
+          "validated_fields=last_name",
+        ])
+        compiler_output.should contain(
+          "Warning: Deprecated Amber::Validators::Params#validation. " \
+          "Use Amber::Schema controller contracts; legacy params validation remains available for V2 migration compatibility"
+        )
       end
     end
 
