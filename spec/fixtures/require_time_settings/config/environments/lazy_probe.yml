@@ -1,0 +1,8 @@
+name: lazy_probe_app
+
+server:
+  host: "localhost"
+  port: 3000
+
+probe:
+  label: "from-yaml"

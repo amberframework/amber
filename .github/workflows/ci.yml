@@ -24,10 +24,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Install Crystal
-        uses: oprypin/install-crystal@v1
+        uses: oprypin/install-crystal@19ef8675e43f44f0d38b79f732df7ad4b6b669ed # v1.9.4
         with:
           crystal: ${{ matrix.crystal }}
 
@@ -42,6 +42,9 @@ jobs:
         # specs (respond_with + others fail under --order random regardless of
         # recent changes). Tracked as a cleanup task before switching to random.
         run: crystal spec
+        env:
+          # Compiled spec fixtures build with the same compiler as the suite.
+          CRYSTAL: crystal
 
       - name: Check formatting
         run: crystal tool format --check
