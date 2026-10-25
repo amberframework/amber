@@ -6,8 +6,8 @@ module Amber
       # settings sections. A read while `require "amber"` runs would cache the
       # settings before those sections exist.
       def initialize(@filter : Array(String) = log_config.filter,
-                     @skip : Array(String) = log_config.skip)
-        Colorize.enabled = log_config.colorize
+                     @skip : Array(String) = log_config.skip,
+                     @colorize : Bool = log_config.colorize)
       end
 
       def call(context : HTTP::Server::Context)
@@ -26,37 +26,37 @@ module Amber
       private def request(context, time, elapsed, status, color = :magenta)
         msg = String.build do |str|
           str << "Status: #{http_status(status)} Method: #{method(context)}"
-          str << " Pipeline: #{context.valve.colorize(color)} Format: #{context.format.colorize(color)}"
+          str << " Pipeline: #{paint(context.valve, color)} Format: #{paint(context.format, color)}"
         end
-        log "Started #{time.colorize(color)}", "request", color
+        log "Started #{paint(time, color)}", "request", color
         log msg, "Request", color
-        log "Requested Url: #{context.requested_url.colorize(color)}", "request", color
-        log "Time Elapsed: #{elapsed.colorize(color)}", "request", color
+        log "Requested Url: #{paint(context.requested_url, color)}", "request", color
+        log "Time Elapsed: #{paint(elapsed, color)}", "request", color
       end
 
       private def log_other(other, name, color = :light_cyan)
         other.to_h.each do |key, val|
           next if @skip.includes? key
           if @filter.includes? key.to_s
-            log "#{key}: #{"FILTERED".colorize(:white).mode(:underline)}", name, color
+            log "#{key}: #{paint("FILTERED", :white).mode(:underline)}", name, color
           else
-            log "#{key}: #{val.colorize(color)}", name, color
+            log "#{key}: #{paint(val, color)}", name, color
           end
         end
       end
 
       private def method(context)
-        context.request.method.colorize(:light_red).to_s
+        paint(context.request.method, :light_red).to_s
       end
 
       private def http_status(status)
         case status
-        when 200..299 then status.colorize(:green)
-        when 300..399 then status.colorize(:blue)
-        when 400..499 then status.colorize(:yellow)
-        when 500..599 then status.colorize(:red)
+        when 200..299 then paint(status, :green)
+        when 300..399 then paint(status, :blue)
+        when 400..499 then paint(status, :yellow)
+        when 500..599 then paint(status, :red)
         else
-          status.colorize(:white)
+          paint(status, :white)
         end
       end
 
@@ -67,7 +67,11 @@ module Amber
       end
 
       private def log(msg, prog, color = :white)
-        Log.for(prog.colorize(color).to_s).debug { msg }
+        Log.for(paint(prog, color).to_s).debug { msg }
+      end
+
+      private def paint(value, color)
+        Support::LogColor.paint(value, color, @colorize)
       end
 
       private def log_config
