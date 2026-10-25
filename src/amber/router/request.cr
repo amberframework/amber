@@ -63,10 +63,13 @@ class HTTP::Request
   # flag and `Amber::Pipe::SecurityHeaders`' `Strict-Transport-Security`
   # header both ask it, so they always agree.
   #
-  # A request counts as HTTPS when it carries the CGI-style `HTTPS: on`
-  # header, which a TLS-terminating proxy or an application pipe sets.
+  # A request counts as HTTPS when Amber itself terminates TLS (both
+  # `server.ssl` files are configured), or when it carries the CGI-style
+  # `HTTPS: on` header that a TLS-terminating proxy or an application pipe
+  # sets. The header is believed from any peer here; the trusted-proxy rule
+  # (`server.trusted_proxies`) narrows that to configured proxies.
   def https? : Bool
-    headers["HTTPS"]? == "on"
+    Amber.settings.server_terminates_tls? || headers["HTTPS"]? == "on"
   end
 
   private def parsed_uri

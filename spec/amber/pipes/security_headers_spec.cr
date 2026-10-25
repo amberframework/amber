@@ -89,6 +89,21 @@ module Amber
             headers["Strict-Transport-Security"].should eq "max-age=63072000; includeSubDomains"
           end
 
+          it "is sent on every request when Amber terminates TLS itself" do
+            settings = Amber.settings
+            original_key_file = settings.ssl_key_file
+            original_cert_file = settings.ssl_cert_file
+            begin
+              settings.ssl_key_file = "config/ssl/server.key"
+              settings.ssl_cert_file = "config/ssl/server.crt"
+              headers = headers_after(SecurityHeaders.new, HTTP::Request.new("GET", "/"))
+              headers["Strict-Transport-Security"].should eq "max-age=63072000; includeSubDomains"
+            ensure
+              settings.ssl_key_file = original_key_file
+              settings.ssl_cert_file = original_cert_file
+            end
+          end
+
           it "is not sent on a plain HTTP request" do
             headers = headers_after(SecurityHeaders.new, HTTP::Request.new("GET", "/"))
             headers.has_key?("Strict-Transport-Security").should be_false
@@ -165,6 +180,50 @@ module Amber
           response.status_code.should eq 200
           response.headers["X-Content-Type-Options"].should eq "nosniff"
           response.headers["X-Frame-Options"].should eq "DENY"
+        end
+
+        it "adds the headers to the 404 for a request that matches no route" do
+          request = HTTP::Request.new("GET", "/securityheaders/no-such-route")
+          response = create_request_and_return_io(pipeline, request)
+
+          response.status_code.should eq 404
+          DEFAULT_HEADER_VALUES.each do |header_name, value|
+            response.headers[header_name].should eq value
+          end
+        end
+      end
+
+      context "in a pipeline that does not plug it" do
+        it "adds nothing to the 404 for a request that matches no route" do
+          pipeline = Pipeline.new
+          pipeline.build :web do
+            plug Amber::Pipe::Logger.new
+          end
+          pipeline.prepare_pipelines
+
+          request = HTTP::Request.new("GET", "/securityheaders/no-such-route")
+          response = create_request_and_return_io(pipeline, request)
+
+          response.status_code.should eq 404
+          response.headers.has_key?("X-Frame-Options").should be_false
+        end
+      end
+
+      context "after the Error pipe" do
+        it "keeps the headers on the 500 the Error pipe renders" do
+          Amber::Server.router.draw :web do
+            get "/", HelloController, :index
+          end
+          error_pipe = Error.new
+          security_headers = SecurityHeaders.new
+          error_pipe.next = security_headers
+          security_headers.next = ->(_context : HTTP::Server::Context) { raise "Oops!" }
+
+          response = create_request_and_return_io(error_pipe, HTTP::Request.new("GET", "/"))
+
+          response.status_code.should eq 500
+          response.headers["X-Frame-Options"].should eq "DENY"
+          response.headers["X-Content-Type-Options"].should eq "nosniff"
         end
       end
     end

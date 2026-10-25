@@ -24,9 +24,9 @@ module Amber::Configuration
     describe "YAML deserialization" do
       it "overrides only the keys the YAML names" do
         yaml = <<-YAML
-        frame_options: "SAMEORIGIN"
-        referrer_policy: "no-referrer"
-        YAML
+          frame_options: "SAMEORIGIN"
+          referrer_policy: "no-referrer"
+          YAML
 
         config = SecurityHeadersConfig.from_yaml(yaml)
         config.frame_options.should eq "SAMEORIGIN"

@@ -30,6 +30,28 @@ module Amber::Environment
         security_headers.content_type_options.should eq "nosniff"
       end
 
+      it "rejects a security_headers value with a line break while loading" do
+        expect_raises(Amber::Exceptions::ConfigurationError, /security_headers\.referrer_policy/) do
+          Loader.new(:v2_security_headers_invalid, "./spec/support/config/").settings
+        end
+      end
+
+      it "rejects a line break that arrives through an AMBER_SECURITY_HEADERS_ variable" do
+        previous_value = ENV["AMBER_SECURITY_HEADERS_FRAME_OPTIONS"]?
+        ENV["AMBER_SECURITY_HEADERS_FRAME_OPTIONS"] = "DENY\nX-Injected: 1"
+        begin
+          expect_raises(Amber::Exceptions::ConfigurationError, /security_headers\.frame_options/) do
+            Loader.new(:v2_security_headers, "./spec/support/config/").settings
+          end
+        ensure
+          if previous_value
+            ENV["AMBER_SECURITY_HEADERS_FRAME_OPTIONS"] = previous_value
+          else
+            ENV.delete("AMBER_SECURITY_HEADERS_FRAME_OPTIONS")
+          end
+        end
+      end
+
       it "uses secure security_headers defaults when the YAML has no section" do
         settings = Loader.new(:v2_minimal, "./spec/support/config/").settings
         settings.security_headers.frame_options.should eq "DENY"

@@ -165,6 +165,12 @@ module Amber::Environment
       to_app_config.static
     end
 
+    # Returns `true` when Amber itself terminates TLS, which is when both
+    # `server.ssl` files are configured.
+    def server_terminates_tls? : Bool
+      !ssl_key_file.nil? && !ssl_cert_file.nil?
+    end
+
     # Returns the typed security headers configuration read by
     # `Amber::Pipe::SecurityHeaders`.
     def security_headers : Amber::Configuration::SecurityHeadersConfig

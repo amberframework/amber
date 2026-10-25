@@ -164,17 +164,31 @@ gets all of them; name only the keys you change. An empty string turns that
 one header off.
 
 - `strict_transport_security` is sent only when `HTTP::Request#https?` is
-  true, the same test the cookie jar uses to send `Secure` cookies.
+  true, the same test the cookie jar uses to send `Secure` cookies: Amber
+  terminates TLS itself (both `server.ssl` files are set), or the request
+  carries `HTTPS: on` from a TLS-terminating proxy.
+- The default `strict_transport_security` lasts two years and carries
+  `includeSubDomains`, so a browser that sees it uses HTTPS for every
+  subdomain of the host as well. An application that shares its domain with
+  subdomains still served over plain HTTP sets a value without
+  `includeSubDomains`, for example `"max-age=63072000"`.
 - The default `content_security_policy` carries only `frame-ancestors`, so it
   does not restrict scripts, styles, or images. An application with a full
   policy puts it here, keeping a `frame-ancestors` directive in it.
 - The pipe never replaces a header that is already on the response: a pipe
-  plugged earlier keeps its value, and a controller that sets one of these
-  headers has the final word.
-- `AppConfig#validate!` rejects a value that contains a line break.
+  plugged earlier keeps its value, and a controller that assigns one of these
+  headers with `response.headers["Name"] = value` has the final word.
+  `headers.add` appends a second value instead of replacing the pipe's.
+- A value that contains a line break fails settings loading with
+  `Amber::Exceptions::ConfigurationError`; `AppConfig#validate!` reports it
+  too.
+- A request that matches no route never reaches a pipeline's pipes. Its 404
+  carries the headers of the first `SecurityHeaders` pipe the application
+  plugs, so plugging it in any pipeline covers those responses as well.
 
 Plug the pipe early in every browser and API pipeline, after `Error` and
-`Logger`, so error responses carry the headers too:
+`Logger`. It writes its headers before the rest of the pipeline runs, so the
+error pages `Error` renders for a failing controller carry them too:
 
 ```crystal
 pipeline :web do

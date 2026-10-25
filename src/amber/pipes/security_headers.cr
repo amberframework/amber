@@ -43,6 +43,15 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context)
+        write_headers(context)
+        call_next(context)
+      end
+
+      # Writes the configured headers to the response of *context*, leaving a
+      # header that is already present as it is. `Amber::Pipe::Pipeline` also
+      # calls it for a request that matched no route, which never reaches a
+      # pipeline's pipes.
+      def write_headers(context : HTTP::Server::Context) : Nil
         config = current_config
         response_headers = context.response.headers
 
@@ -53,8 +62,6 @@ module Amber
         if config.sends_strict_transport_security? && context.request.https?
           set_unless_present(response_headers, STRICT_TRANSPORT_SECURITY, config.strict_transport_security)
         end
-
-        call_next(context)
       end
 
       private def current_config : Amber::Configuration::SecurityHeadersConfig
