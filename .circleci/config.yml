@@ -4,7 +4,8 @@ jobs:
   v2-beta:
     resource_class: medium
     docker:
-      - image: crystallang/crystal:latest
+      # Official Crystal 1.22.1 image, pinned by its multi-arch index digest.
+      - image: crystallang/crystal:1.22.1@sha256:1ed8297a705eae76d88bc146ce83d0b00dc014bb201df6d93c024e20c14dbfce
     working_directory: ~/amber
     steps:
       # The legacy CircleCI project SSH key is no longer accepted by GitHub.
@@ -17,13 +18,12 @@ jobs:
             git checkout "$CIRCLE_SHA1"
       - restore_cache:
           keys:
-            - v2-shards-{{ checksum "shard.yml" }}
-            - v2-shards-
+            - v2-shards-{{ checksum "shard.lock" }}
       - run:
           name: Install dependencies
-          command: shards install
+          command: shards install --frozen
       - save_cache:
-          key: v2-shards-{{ checksum "shard.yml" }}
+          key: v2-shards-{{ checksum "shard.lock" }}
           paths:
             - lib
             - bin
