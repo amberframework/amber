@@ -14,7 +14,6 @@ class HTTP::Request
   @params : Amber::Router::Params?
   @param_budget : Amber::Router::Parsers::ParamBudget?
   @body_rejection : (Amber::Exceptions::BadRequest | Amber::Schema::RequestParseError)?
-  @list_of_uploads_to_clean_up : Array(Amber::Router::File)?
   @schema_request_data : Hash(String, JSON::Any)?
 
   def method
@@ -163,21 +162,9 @@ class HTTP::Request
     if request_params = @params
       request_params.delete_uploaded_files
     end
-    if list_of_uploads = @list_of_uploads_to_clean_up
-      list_of_uploads.each do |uploaded_file|
-        uploaded_file.delete_tempfile
-      rescue ex : IO::Error
-        Amber::Router::File::Log.warn(exception: ex) { "Could not delete the upload tempfile #{uploaded_file.path}" }
-      end
-    end
+    # Tempfiles that could not be deleted earlier, by this request or
+    # another, are tried again.
     Amber::Router::File.retry_leftover_deletions
-  end
-
-  # Keeps *uploaded_file*, whose tempfile could not be deleted when its
-  # parse failed, so `delete_uploaded_files` tries again when the request
-  # finishes.
-  def clean_up_upload_later(uploaded_file : Amber::Router::File) : Nil
-    (@list_of_uploads_to_clean_up ||= [] of Amber::Router::File) << uploaded_file
   end
 
   def port

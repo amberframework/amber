@@ -47,6 +47,10 @@ private class LockingIO < IO
   end
 end
 
+private class RequestBudgetSchema < Amber::Schema::Definition
+  field :title, String
+end
+
 private def upload_tempfile_count : Int32
   Dir.children(Amber::Router::File.upload_directory).count(&.starts_with?("amber-upload"))
 end
@@ -305,6 +309,27 @@ module Amber::Router::Parsers
     end
   end
 
+  describe "an upload whose deletion fails when the request finishes" do
+    it "is deleted by a later request once the directory is writable again" do
+      body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
+      directory = Amber::Router::File.upload_directory
+      before = Dir.children(directory).to_set
+      request = multipart_post(body)
+      request.params.files["doc"].path.should_not be_empty
+
+      ::File.chmod(directory, 0o500)
+      begin
+        request.delete_uploaded_files
+      ensure
+        ::File.chmod(directory, 0o700)
+      end
+      (Dir.children(directory).to_set - before).size.should eq 1
+
+      HTTP::Request.new("GET", "/").delete_uploaded_files
+      (Dir.children(directory).to_set - before).should be_empty
+    end
+  end
+
   describe "repeated schema parses" do
     it "charge the request's array padding once" do
       request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}, "a[32]=x")
@@ -322,6 +347,19 @@ module Amber::Router::Parsers
       body = "title=caf".to_slice + Bytes[0xE9]
       request = HTTP::Request.new("PUT", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=ISO-8859-1"}, body)
       request.form_params["title"]?.should eq "café"
+    end
+
+    it "decodes a UTF-16 form" do
+      request = HTTP::Request.new("PUT", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=UTF-16LE"}, "title=ok".encode("UTF-16LE"))
+      request.form_params["title"]?.should eq "ok"
+    end
+
+    it "counts the raw bytes of a form in a charset that shrinks when decoded" do
+      body = "a=#{"x" * 40}".encode("UTF-16LE")
+      request = HTTP::Request.new("PUT", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=UTF-16LE"}, body)
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_form_body_bytes/) do
+        FormData.parse(request, ParamBudget.new(limits_with(&.max_form_body_bytes = 64)))
+      end
     end
 
     it "answers an unknown charset with a bad request" do
@@ -366,6 +404,41 @@ module Amber::Router::Parsers
       expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_document_body_bytes/) do
         request.params["role"]?
       end
+    end
+  end
+
+  describe "cached schema data" do
+    it "rejects an unsupported media type for a schema after a plain parse cached the body" do
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/octet-stream"}, "{}")
+      Amber::Schema::Parser::ParserRegistry.parse_request(request).should be_empty
+
+      expect_raises(Amber::Schema::UnsupportedMediaTypeError, /application\/octet-stream/) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request, RequestBudgetSchema)
+      end
+    end
+
+    it "gives each parse its own copy of nested values" do
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/json"}, %({"a":{"b":[1]}}))
+      first = Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      first["a"].as_h["c"] = ::JSON::Any.new(2_i64)
+      first["a"].as_h["b"].as_a << ::JSON::Any.new(3_i64)
+
+      second = Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      second["a"].as_h.has_key?("c").should be_false
+      second["a"].as_h["b"].as_a.size.should eq 1
+    end
+  end
+
+  describe "CBOR and COSE bodies" do
+    it "rejects a CBOR body over max_document_body_bytes" do
+      body = Amber::Schema::CBOR.encode({"title" => ::JSON::Any.new("x" * 40)})
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/cbor"}, body)
+      request.param_budget = ParamBudget.new(limits_with(&.max_document_body_bytes = 16))
+
+      error = expect_raises(Amber::Schema::RequestParseError, /max_document_body_bytes/) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      end
+      error.code.should eq "parameter_limit_exceeded"
     end
   end
 

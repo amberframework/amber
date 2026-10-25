@@ -17,7 +17,7 @@ module Amber::Schema::CBOR
     value = reader.read_json
     reader.finish!
     value.as_h? || raise DecodeError.new("request body must be a map")
-  rescue ex : DecodeError
+  rescue ex : DecodeError | Amber::Exceptions::ParameterLimitExceeded
     raise ex
   rescue ex
     raise DecodeError.new(ex.message || "malformed document")

@@ -38,14 +38,16 @@ module Amber::Router
     end
 
     # Deletes the tempfiles behind `files`, if the body was parsed. A file
-    # that cannot be deleted is logged and skipped, so the rest are still
+    # that cannot be deleted is logged and kept for
+    # `Amber::Router::File.retry_leftover_deletions`, so the rest are still
     # removed and the request's own error, if any, is kept.
     def delete_uploaded_files : Nil
       if uploaded_files = @files
         uploaded_files.each_value do |uploaded_file|
           uploaded_file.delete_tempfile
         rescue ex : IO::Error
-          Amber::Router::File::Log.warn(exception: ex) { "Could not delete the upload tempfile #{uploaded_file.path}" }
+          Amber::Router::File::Log.warn(exception: ex) { "Could not delete the upload tempfile #{uploaded_file.path}; retrying later" }
+          uploaded_file.defer_deletion
         end
       end
     end

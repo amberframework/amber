@@ -13,8 +13,12 @@ module Amber::Router::Parsers
       return budget.parse_form(body) unless charset
 
       begin
-        body.set_encoding(charset)
-        budget.parse_form(UTF8Reader.new(body))
+        # The raw bytes are bounded too, so an encoding that shrinks when
+        # decoded (such as UTF-16) cannot carry more than the limit.
+        max_form_body_bytes = budget.limits.max_form_body_bytes.to_i64
+        raw_body = BoundedIO.new(body, max_form_body_bytes, "max_form_body_bytes")
+        raw_body.set_encoding(charset)
+        budget.parse_form(UTF8Reader.new(raw_body))
       rescue ex : ArgumentError
         raise Amber::Exceptions::BadRequest.new("The form body could not be decoded as #{charset}: #{ex.message}")
       end

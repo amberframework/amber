@@ -29,8 +29,20 @@ module Amber::Schema
       # every later read of that request.
       def self.parse_request(request : HTTP::Request, schema_class : Definition.class | Nil = nil) : Hash(String, JSON::Any)
         request.guard_body_read do
+          reject_unsupported_media_type!(request, schema_class)
           request.schema_request_data { parse_request_once(request, schema_class) }
         end
+      end
+
+      # A schema accepts only the media types the registry knows. This runs
+      # on every call, before cached request data is returned.
+      private def self.reject_unsupported_media_type!(request : HTTP::Request, schema_class : Definition.class | Nil) : Nil
+        return unless schema_class && request.body
+        content_type = request.headers["Content-Type"]?
+        return if get(content_type)
+
+        media_type = normalize_content_type(content_type || "")
+        raise UnsupportedMediaTypeError.new(media_type.empty? ? "missing" : media_type)
       end
 
       private def self.parse_request_once(request : HTTP::Request, schema_class : Definition.class | Nil) : Hash(String, JSON::Any)
@@ -45,14 +57,14 @@ module Amber::Schema
         when "xml"
           parse_xml_request(request)
         when "cbor"
-          request.guard_body_read { CBOR.decode_object(request.body || IO::Memory.new) }
+          request.guard_body_read { CBOR.decode_object(bounded_document_body(request)) }
         when "cose"
           provider = COSE.key_provider || raise RequestParseError.new(
             "COSE request handling is not configured",
             "cose_not_configured",
             503
           )
-          plaintext = request.guard_body_read { COSE.decrypt0(request.body || IO::Memory.new, provider) }
+          plaintext = request.guard_body_read { COSE.decrypt0(bounded_document_body(request), provider) }
           CBOR.decode_object(IO::Memory.new(plaintext))
         else
           return {} of String => JSON::Any unless request.body
@@ -80,6 +92,16 @@ module Amber::Schema
         raise ex
       rescue ex
         raise SchemaDefinitionError.new("Failed to parse request: #{ex.message}")
+      end
+
+      # The request body, read under `max_document_body_bytes` as well as the
+      # decoder's own limits.
+      private def self.bounded_document_body(request : HTTP::Request) : IO
+        body = request.body
+        return IO::Memory.new unless body
+
+        max_document_body_bytes = request.param_budget.limits.max_document_body_bytes.to_i64
+        Amber::Router::Parsers::BoundedIO.new(body, max_document_body_bytes, "max_document_body_bytes")
       end
 
       private def self.bad_request_error(ex : Amber::Exceptions::BadRequest) : RequestParseError

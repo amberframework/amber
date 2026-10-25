@@ -34,7 +34,7 @@ module Amber::Router
     @@fallback_upload_directory : String?
 
     private LEFTOVER_LOCK = Mutex.new
-    private MAX_LEFTOVERS = 1_024
+    private MAX_LEFTOVERS = 10_000
     @@list_of_leftovers = [] of Tuple(String, ::File::Info)
 
     # Returns a directory only this user can enter, so no other local user
@@ -126,16 +126,16 @@ module Amber::Router
       # A fixed name plus a short, plain extension: the client's filename is
       # kept only as metadata, so it can never make the tempfile path invalid.
       created = ::File.tempfile("amber-upload", self.class.safe_extension(@filename), dir: self.class.upload_directory)
+      created_identity = created.info
       copied, identity = begin
         bytes_copied = max_bytes ? ::IO.copy(upload.body, created, max_bytes + 1) : ::IO.copy(upload.body, created)
         if max_bytes && bytes_copied > max_bytes
           raise Amber::Exceptions::ParameterLimitExceeded.new("max_file_bytes", max_bytes)
         end
-        created_identity = created.info
         created.close
         {bytes_copied, created_identity}
       rescue ex
-        self.class.discard(created)
+        self.class.discard(created, created_identity)
         raise ex
       end
       @tempfile = Tempfile.new(created.path, identity)
@@ -223,6 +223,7 @@ module Amber::Router
     # the copying; specs pass one that fails.
     def self.copy_into_place(source : IO, target : String, copy : Proc(IO, IO, Nil) = ->(from : IO, to : IO) { ::IO.copy(from, to); nil }) : Nil
       staging = ::File.tempfile(".amber-upload-move", dir: ::File.dirname(target))
+      staging_identity = staging.info
       begin
         copy.call(source, staging)
         staging.flush
@@ -230,7 +231,7 @@ module Amber::Router
         staging.close
         ::File.rename(staging.path, target)
       rescue ex
-        discard(staging)
+        discard(staging, staging_identity)
         raise ex
       end
     end
@@ -240,10 +241,12 @@ module Amber::Router
     # example while flushing onto a full disk). Never raises: callers
     # re-raise their original error. A file that cannot be deleted now is
     # remembered, and `retry_leftover_deletions` deletes it later while its
-    # path still names the same file.
-    def self.discard(file : ::File) : Nil
-      identity = begin
-        file.info
+    # path still names the same file. *identity* is the file's identity
+    # taken when it was created; without one it is read from the open
+    # handle.
+    def self.discard(file : ::File, identity : ::File::Info? = nil) : Nil
+      identity ||= begin
+        file.info unless file.closed?
       rescue IO::Error
         nil
       end
@@ -279,11 +282,26 @@ module Amber::Router
       end
     end
 
-    private def self.remember_leftover(path : String, identity : ::File::Info) : Nil
-      LEFTOVER_LOCK.synchronize do
-        @@list_of_leftovers.shift if @@list_of_leftovers.size >= MAX_LEFTOVERS
+    # :nodoc:
+    # Keeps *path* for `retry_leftover_deletions`. The list is bounded: past
+    # `MAX_LEFTOVERS` the path is logged as an error, naming the file for an
+    # operator to remove, and is not tracked.
+    def self.remember_leftover(path : String, identity : ::File::Info) : Nil
+      tracked = LEFTOVER_LOCK.synchronize do
+        next false if @@list_of_leftovers.size >= MAX_LEFTOVERS
         @@list_of_leftovers << {path, identity}
+        true
       end
+      Log.error { "Too many undeletable upload tempfiles; #{path} is not tracked for retry" } unless tracked
+    end
+
+    # :nodoc:
+    # Hands this upload's tempfile, which could not be deleted, to
+    # `retry_leftover_deletions` while Amber still owns it.
+    def defer_deletion : Nil
+      tempfile = @tempfile
+      return if tempfile.moved? || !tempfile.owned_by_amber?
+      self.class.remember_leftover(tempfile.path, tempfile.identity)
     end
 
     # Keeps the tempfile at `path` after the request and returns that path.
