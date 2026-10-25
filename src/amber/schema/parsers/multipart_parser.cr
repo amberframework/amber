@@ -137,24 +137,27 @@ module Amber::Schema::Parser
         budget.admit!(upload.name)
         filename = upload.filename
 
-        if filename.is_a?(String) && !filename.empty?
-          # Held in memory, so bounded by `max_file_bytes`; the whole body is
-          # bounded by `max_multipart_body_bytes`.
-          content = budget.read_file(upload.body)
-          # This is a file upload
-          file_info = FileInfo.new(
-            filename: filename,
-            content_type: upload.headers["Content-Type"]?,
-            size: content.bytesize.to_u64,
-            content: content,
-            headers: upload.headers
-          )
-          QueryParser.set_nested_value(result, upload.name, file_info.to_json_any, budget)
-        else
-          # This is a regular form field
-          content = budget.read_value(upload.body)
-          QueryParser.set_nested_value(result, upload.name, QueryParser.parse_value(content), budget)
+        # The key is checked, and its array slot reserved, before the part's
+        # body is read.
+        read = QueryParser.set_nested_value(result, upload.name, budget) do
+          if filename.is_a?(String) && !filename.empty?
+            # Held in memory, so bounded by `max_file_bytes`; the whole body
+            # is bounded by `max_multipart_body_bytes`.
+            content = budget.read_file(upload.body)
+            FileInfo.new(
+              filename: filename,
+              content_type: upload.headers["Content-Type"]?,
+              size: content.bytesize.to_u64,
+              content: content,
+              headers: upload.headers
+            ).to_json_any
+          else
+            QueryParser.parse_value(budget.read_value(upload.body))
+          end
         end
+        # A skipped part (its key conflicts with an earlier value) is drained
+        # within the body cap, so parsing can continue.
+        upload.body.skip_to_end unless read
       end
     end
 
@@ -176,16 +179,18 @@ module Amber::Schema::Parser
       result = QueryParser.parse_admitted_params(params, budget)
 
       files.each do |name, upload|
-        content = upload.open_tempfile { |file| budget.read_file(file) }
-        file_info = FileInfo.new(
-          filename: upload.filename,
-          content_type: upload.headers["Content-Type"]?,
-          # The bytes received, never the client's declared size.
-          size: content.bytesize.to_u64,
-          content: content,
-          headers: upload.headers
-        )
-        QueryParser.set_nested_value(result, name, file_info.to_json_any, budget)
+        # The key is checked before the tempfile is read.
+        QueryParser.set_nested_value(result, name, budget) do
+          content = upload.open_tempfile { |file| budget.read_file(file) }
+          FileInfo.new(
+            filename: upload.filename,
+            content_type: upload.headers["Content-Type"]?,
+            # The bytes received, never the client's declared size.
+            size: content.bytesize.to_u64,
+            content: content,
+            headers: upload.headers
+          ).to_json_any
+        end
       end
 
       result

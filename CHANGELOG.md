@@ -93,8 +93,11 @@
   error, so a caller that catches it never sees a parse of the bytes left
   in the stream. Rejections raised after the body was read (such as the
   node limit, or a CBOR or COSE decoding error) are remembered the same
-  way. Upload cleanup continues past a file that fails to close or delete,
-  and a failed delete is retried at the end of the request.
+  way, and a cached parse is not served once the body is rejected. Schema
+  parsers check each key, and reserve its array slot, before they read or
+  parse its value, so a rejected key never loads an upload into memory.
+  Upload cleanup continues past a file that fails to close or delete, and
+  a failed delete is retried when the request finishes.
 - `Amber::Schema::RequestParseError` raised from an action (for example by
   calling `ParserRegistry.parse_request` directly) is answered with its own
   status, such as 400, by the pipeline and the Error pipe, rather than 500.

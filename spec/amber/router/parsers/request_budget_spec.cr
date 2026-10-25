@@ -270,13 +270,39 @@ module Amber::Router::Parsers
         ::File.chmod(directory, 0o700)
       end
 
-      leftovers = Dir.children(directory).to_set - before
-      leftovers.size.should eq 2
-      leftovers.each { |name| ::File.delete(::File.join(directory, name)) }
+      (Dir.children(directory).to_set - before).size.should eq 2
+
+      # The request retries the cleanup when it finishes.
+      request.delete_uploaded_files
+      (Dir.children(directory).to_set - before).should be_empty
     end
   end
 
   describe "a rejected body" do
+    it "is not served from the router's cached form after a schema contract rejects it" do
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}, "a[33]=x")
+      request.params.form_params["a[33]"]?.should eq "x"
+
+      expect_raises(Amber::Schema::RequestParseError) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      end
+      expect_raises(Amber::Schema::RequestParseError) { request.form_params? }
+      expect_raises(Amber::Schema::RequestParseError) { request.params["a[33]"]? }
+    end
+
+    it "raises the same schema error on a repeated parse" do
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/json"}, %({"title":"seventeen"}))
+      request.param_budget = ParamBudget.new(limits_with(&.max_document_body_bytes = 16))
+
+      first = expect_raises(Amber::Schema::RequestParseError) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      end
+      second = expect_raises(Amber::Schema::RequestParseError) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      end
+      second.should be(first)
+    end
+
     it "stays rejected for params after a schema read rejects it" do
       body = "#{" " * 70_000}{\"role\":\"admin\"}"
       request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/json"}, body)

@@ -120,6 +120,36 @@ describe "schema parsers sharing one budget per request" do
     error.limit_name.should eq "max_array_padding"
   end
 
+  it "rejects an indexed upload's key before reading the file" do
+    boundary = "IndexedUploadBoundary"
+    payload = "f" * (4 * 1024 * 1024)
+    body = "--#{boundary}\r\nContent-Disposition: form-data; name=\"files[33]\"; filename=\"a.bin\"\r\n\r\n#{payload}\r\n--#{boundary}--\r\n"
+    request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"}, body)
+
+    allocated = bytes_allocated_by do
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_array_index_gap/) do
+        Amber::Schema::Parser::MultipartParser.parse_multipart_request(request)
+      end
+    end
+    allocated.should be < 1_u64 * 1024 * 1024
+  end
+
+  it "rejects a cached upload's key before reading its tempfile" do
+    boundary = "IndexedUploadBoundary"
+    payload = "f" * (4 * 1024 * 1024)
+    body = "--#{boundary}\r\nContent-Disposition: form-data; name=\"files[33]\"; filename=\"a.bin\"\r\n\r\n#{payload}\r\n--#{boundary}--\r\n"
+    request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"}, body)
+    files = request.params.files
+
+    allocated = bytes_allocated_by do
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_array_index_gap/) do
+        Amber::Schema::Parser::MultipartParser.parse_router_params(request.params.multipart_params, files, request.param_budget)
+      end
+    end
+    allocated.should be < 1_u64 * 1024 * 1024
+    request.delete_uploaded_files
+  end
+
   it "bounds uploads the schema multipart parser reads into memory" do
     config = Amber::Configuration::ParamsConfig.new
     config.max_file_bytes = 1_024_i64

@@ -116,6 +116,7 @@ module Amber::Router
 
     private def form : HTTP::Params
       return HTTP::Params.parse("") unless content_type?(URL_ENCODED_FORM)
+      @request.raise_body_rejection!
       if parsed = @form
         return parsed
       end
@@ -128,6 +129,7 @@ module Amber::Router
     end
 
     private def multipart : Types::Params
+      @request.raise_body_rejection!
       if parsed = @multipart
         return parsed
       end
@@ -144,6 +146,7 @@ module Amber::Router
 
     private def json : Types::Params
       return Types::Params.new unless content_type?(APPLICATION_JSON)
+      @request.raise_body_rejection!
       if parsed = @json
         return parsed
       end

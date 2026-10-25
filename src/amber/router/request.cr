@@ -14,6 +14,7 @@ class HTTP::Request
   @params : Amber::Router::Params?
   @param_budget : Amber::Router::Parsers::ParamBudget?
   @body_rejection : (Amber::Exceptions::BadRequest | Amber::Schema::RequestParseError)?
+  @list_of_uploads_to_clean_up : Array(Amber::Router::File)?
 
   def method
     {% if flag?(:amber_bench_legacy_request_method) %}
@@ -77,16 +78,27 @@ class HTTP::Request
   # is remembered, and every later guarded read (`params`, `form_params`,
   # schema contracts) raises it again: a caller that catches it never sees
   # a parse of the bytes that remain, or an empty body passed off as valid.
+  #
+  # When guarded reads nest, the outermost rejection is kept, so a schema
+  # parse that maps a limit error to `RequestParseError` raises that same
+  # `RequestParseError` again.
   def guard_body_read(& : -> T) : T forall T
-    if rejection = @body_rejection
-      raise rejection
-    end
+    raise_body_rejection!
 
     begin
       yield
     rescue ex : Amber::Exceptions::BadRequest | Amber::Schema::RequestParseError
-      @body_rejection ||= ex
+      @body_rejection = ex
       raise ex
+    end
+  end
+
+  # Raises the remembered body rejection, if there is one. Readers of a
+  # cached parse call it first, so a body rejected later (for example by a
+  # schema contract) is not served from the cache either.
+  def raise_body_rejection! : Nil
+    if rejection = @body_rejection
+      raise rejection
     end
   end
 
@@ -105,6 +117,7 @@ class HTTP::Request
   # the body is read once, every pair is checked against `param_budget`,
   # and a middleware read and the action's `params` share one result.
   def form_params? : HTTP::Params?
+    raise_body_rejection!
     if parsed = @form_params
       return parsed
     end
@@ -140,6 +153,20 @@ class HTTP::Request
     if request_params = @params
       request_params.delete_uploaded_files
     end
+    if list_of_uploads = @list_of_uploads_to_clean_up
+      list_of_uploads.each do |uploaded_file|
+        uploaded_file.delete_tempfile
+      rescue ex : IO::Error
+        Amber::Router::File::Log.warn(exception: ex) { "Could not delete the upload tempfile #{uploaded_file.path}" }
+      end
+    end
+  end
+
+  # Keeps *uploaded_file*, whose tempfile could not be deleted when its
+  # parse failed, so `delete_uploaded_files` tries again when the request
+  # finishes.
+  def clean_up_upload_later(uploaded_file : Amber::Router::File) : Nil
+    (@list_of_uploads_to_clean_up ||= [] of Amber::Router::File) << uploaded_file
   end
 
   def port
