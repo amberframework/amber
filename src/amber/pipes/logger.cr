@@ -1,10 +1,13 @@
 module Amber
   module Pipe
     class Logger < Base
-      Colorize.enabled = Amber.settings.logging.colorize
-
+      # Reads `Amber.settings` only when the pipe is built, which happens in
+      # `config/routes.cr` after the app's initializers have registered their
+      # settings sections. A read while `require "amber"` runs would cache the
+      # settings before those sections exist.
       def initialize(@filter : Array(String) = log_config.filter,
                      @skip : Array(String) = log_config.skip)
+        Colorize.enabled = log_config.colorize
       end
 
       def call(context : HTTP::Server::Context)

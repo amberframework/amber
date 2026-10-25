@@ -77,6 +77,7 @@ module Amber
 
     def start
       time = Time.local
+      Colorize.enabled = settings.logging.colorize
       Log.info { "#{version.colorize(:light_cyan)} serving application \"#{settings.name.capitalize}\" at #{host_url.colorize(:light_cyan).mode(:underline)}" }
       handler.prepare_pipelines
       server = HTTP::Server.new(handler)
