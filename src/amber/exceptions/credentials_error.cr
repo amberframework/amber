@@ -36,11 +36,12 @@ module Amber::Exceptions
     end
   end
 
-  # Raised when a credential file is a symlink whose target lies outside
-  # the credentials directory.
+  # Raised when a credential file is a symlink whose target is not a file
+  # directly inside the credentials directory, or when the entry turned into
+  # a symlink between the check and the read.
   class CredentialSymlinkOutsideDirectory < CredentialsError
     def initialize(name : String, directory : String)
-      super("Credential #{name.inspect} in #{directory} is a symlink that points outside the directory")
+      super("Credential #{name.inspect} in #{directory} is a symlink whose target is not directly inside the directory")
     end
   end
 
@@ -63,6 +64,14 @@ module Amber::Exceptions
   class CredentialTooLarge < CredentialsError
     def initialize(name : String, directory : String, maximum_file_size : Int64)
       super("Credential #{name.inspect} in #{directory} is larger than the #{maximum_file_size}-byte cap")
+    end
+  end
+
+  # Raised when the file names and contents one read takes from the
+  # credentials directory add up to more than the reader's total cap.
+  class CredentialsDirectoryTooLarge < CredentialsError
+    def initialize(directory : String, maximum_total_size : Int64)
+      super("Credentials in #{directory} are larger than the #{maximum_total_size}-byte total cap")
     end
   end
 

@@ -25,13 +25,22 @@ struct SpecOverrideConfig
 
   property api_key : String = "agentc-placeholder:spec-default-key"
   property timeout : Int32 = 30
-  property enabled : Bool = false
+  property? enabled : Bool = false
   property webhook_secret : String? = nil
 
   @[YAML::Field(key: "base-url")]
   property base_url : String = "https://example.com"
 
   property smtp : SpecOverrideSmtpConfig = SpecOverrideSmtpConfig.new
+
+  # Absent from the serialized section until something sets it.
+  property relay : SpecOverrideSmtpConfig? = nil
+
+  property interval_seconds : Float64 = 1.5
+
+  # Read from YAML but never written back out.
+  @[YAML::Field(ignore_serialize: true)]
+  property signing_secret : String = "agentc-placeholder:spec-default-signing-secret"
 
   def initialize
   end
@@ -258,7 +267,7 @@ module Amber::Configuration
             EnvOverride.apply_all(config)
             section = config.custom(:spec_override, SpecOverrideConfig)
             section.timeout.should eq 90
-            section.enabled.should be_true
+            section.enabled?.should be_true
           end
         end
 
@@ -305,6 +314,70 @@ module Amber::Configuration
               EnvOverride.apply_all(config)
             end
             error.message.to_s.should_not contain "not-a-number-secret"
+          end
+        end
+
+        it "keeps an empty String override as empty text, not nil" do
+          with_env({"AMBER_SPEC_OVERRIDE_WEBHOOK_SECRET" => "", "AMBER_SPEC_OVERRIDE_API_KEY" => "null"}) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override, SpecOverrideConfig)
+            section.webhook_secret.should eq ""
+            section.api_key.should eq "null"
+          end
+        end
+
+        it "reads Bool and Float fields the way the built-in pass does" do
+          vars = {"AMBER_SPEC_OVERRIDE_ENABLED" => "1", "AMBER_SPEC_OVERRIDE_INTERVAL_SECONDS" => "2"}
+          with_env(vars) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override, SpecOverrideConfig)
+            section.enabled?.should be_true
+            section.interval_seconds.should eq 2.0
+          end
+        end
+
+        it "raises a ConfigurationError naming the variable for a Float field that is not a number" do
+          with_env({"AMBER_SPEC_OVERRIDE_INTERVAL_SECONDS" => "agentc-placeholder:not-a-number"}) do
+            config = app_config_with_custom_section("spec_override")
+            error = expect_raises(Amber::Exceptions::ConfigurationError, /AMBER_SPEC_OVERRIDE_INTERVAL_SECONDS/) do
+              EnvOverride.apply_all(config)
+            end
+            error.message.to_s.should_not contain "not-a-number"
+          end
+        end
+
+        it "creates a nested section that is nil to hold its override" do
+          with_env({"AMBER_SPEC_OVERRIDE_RELAY_HOST" => "relay.example.com"}) do
+            config = app_config_with_custom_section("spec_override")
+            config.custom(:spec_override, SpecOverrideConfig).relay.should be_nil
+            EnvOverride.apply_all(config)
+            relay = config.custom(:spec_override, SpecOverrideConfig).relay
+            relay.should_not be_nil
+            if relay
+              relay.host.should eq "relay.example.com"
+              relay.port.should eq 25
+            end
+          end
+        end
+
+        it "leaves a nil nested section nil when none of its variables is set" do
+          with_env({"AMBER_SPEC_OVERRIDE_TIMEOUT" => "15"}) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            config.custom(:spec_override, SpecOverrideConfig).relay.should be_nil
+          end
+        end
+
+        it "keeps a field the type does not serialize when another field is overridden" do
+          Amber::Configuration.register_custom("spec_override_sourced", SpecOverrideConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_SOURCED_TIMEOUT" => "75"}) do
+            settings = Amber::Environment::Loader.new(:v2_with_custom_section, "./spec/support/config/").settings
+            section = settings.custom(:spec_override_sourced, SpecOverrideConfig)
+            section.timeout.should eq 75
+            section.api_key.should eq "agentc-placeholder:spec-yaml-key"
+            section.signing_secret.should eq "agentc-placeholder:spec-yaml-signing-secret"
           end
         end
 

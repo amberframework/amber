@@ -243,7 +243,7 @@ AMBER_STRIPE_API_KEY=sk_live_...     # stripe.api_key
 AMBER_STRIPE_CURRENCY=eur            # stripe.currency
 ```
 
-Values are read as plain YAML scalars, so `8080` fills an `Int32` field and `true` fills a `Bool`. A value that does not fit the field's type raises `Amber::Exceptions::ConfigurationError` naming the variable; the value itself is left out of the message.
+Values follow the field's type, as in the built-in pass: a `String` field keeps the text as given (an empty value stays empty), a `Bool` field accepts `true`, `1` or `yes`, a `Float` field accepts any number, and other fields read the value as a plain YAML scalar, so `8080` fills an `Int32`. A nested section that is nil or absent is created when one of its variables is set. The section is rebuilt from the YAML it was loaded from, so fields the type does not serialize keep their loaded values. A value that does not fit the field's type raises `Amber::Exceptions::ConfigurationError` naming the variable; the value itself is left out of the message.
 
 ## Credentials Directory
 
@@ -306,15 +306,16 @@ Each failure raises a named subclass of `Amber::Exceptions::CredentialsError`. M
 | Directory cannot be listed | `CredentialsDirectoryUnreadable` |
 | Name is empty, `.`, `..`, longer than 255 bytes, or contains `/` or NUL (`read_credential`) | `CredentialPathTraversal` |
 | No file for a requested name, or a dangling symlink | `CredentialNotFound` |
-| Symlink whose target lies outside the directory | `CredentialSymlinkOutsideDirectory` |
-| Entry is a subdirectory, socket, or device | `CredentialNotARegularFile` |
+| Symlink whose target is not a file directly inside the directory, or an entry that becomes a symlink before it is opened | `CredentialSymlinkOutsideDirectory` |
+| Entry is a subdirectory, FIFO, socket, or device | `CredentialNotARegularFile` |
 | File the process may not read | `CredentialUnreadable` |
 | File larger than the size cap (64 KiB by default) | `CredentialTooLarge` |
+| Names and contents of one read larger than the total cap (1 MiB by default) | `CredentialsDirectoryTooLarge` |
 | Files cannot build the section type | `CredentialsDoNotFitSection` |
 
-Symlinks that stay inside the directory are followed. Pass a different cap as the fourth argument: `register_credentials(:credentials, AppCredentials, directory, 128_i64 * 1024)`.
+A symlink is followed only when its target is a file directly inside the directory. Each file is opened without following a final symlink and without waiting on a FIFO, and its type and size are checked on the open file, so an entry swapped after it was listed is rejected rather than read. Pass different caps by name: `register_credentials(:credentials, AppCredentials, directory, maximum_file_size: 128_i64 * 1024, maximum_total_size: 2_i64 * 1024 * 1024)`.
 
-File contents are kept byte for byte, including a trailing newline, so write credential files without one (`printf '%s' "$secret" > secret_key_base`). Files with no matching field are ignored, and fields with no file keep their default.
+File contents are kept byte for byte, including a trailing newline, so write credential files without one (`printf '%s' "$secret" > secret_key_base`). Only the files the section declares are read: other files in the directory are neither read nor checked, and fields with no file keep their default.
 
 ### Credentials and the Other Layers
 

@@ -50,8 +50,27 @@ private def with_scratch_directories(&)
   end
 end
 
+# Reads the fixture directory into *key* the way `register_credentials`
+# does, without its check that settings are not loaded yet.
+private def store_fixture_credentials(key : String) : Nil
+  values = Amber::Configuration::CredentialsDirectory.new(FIXTURE_CREDENTIALS_DIRECTORY).read_for(SpecAppCredentials)
+  section = Amber::Configuration::CredentialsDirectory.section_from(SpecAppCredentials, values, FIXTURE_CREDENTIALS_DIRECTORY)
+  Amber::Configuration.store_credentials_section(key, section, values)
+end
+
 module Amber::Configuration
   describe CredentialsDirectory do
+    describe ".new" do
+      it "raises ArgumentError for a negative or oversized cap" do
+        expect_raises(ArgumentError, /maximum_file_size/) do
+          CredentialsDirectory.new(FIXTURE_CREDENTIALS_DIRECTORY, maximum_file_size: -1_i64)
+        end
+        expect_raises(ArgumentError, /maximum_total_size/) do
+          CredentialsDirectory.new(FIXTURE_CREDENTIALS_DIRECTORY, maximum_total_size: Int64::MAX)
+        end
+      end
+    end
+
     describe "#read" do
       it "reads one entry per file, keyed by file name, contents byte for byte" do
         credentials = CredentialsDirectory.new(FIXTURE_CREDENTIALS_DIRECTORY).read
@@ -104,6 +123,43 @@ module Amber::Configuration
           expect_raises(Amber::Exceptions::CredentialSymlinkOutsideDirectory) do
             CredentialsDirectory.new(credentials).read
           end
+        end
+      end
+
+      it "raises CredentialSymlinkOutsideDirectory for a link into a subdirectory" do
+        with_scratch_directories do |credentials, _outside|
+          Dir.mkdir(File.join(credentials, "nested"))
+          File.write(File.join(credentials, "nested", "inner_key"), "nested-value")
+          File.symlink(File.join(credentials, "nested", "inner_key"), File.join(credentials, "api_key"))
+
+          expect_raises(Amber::Exceptions::CredentialSymlinkOutsideDirectory, /api_key/) do
+            CredentialsDirectory.new(credentials).read_credential("api_key")
+          end
+        end
+      end
+
+      it "raises CredentialNotARegularFile for a FIFO without waiting for a writer" do
+        with_scratch_directories do |credentials, _outside|
+          fifo = File.join(credentials, "fifo_key")
+          status = Process.run("mkfifo", [fifo])
+          pending!("mkfifo is not available") unless status.success?
+
+          expect_raises(Amber::Exceptions::CredentialNotARegularFile, /fifo_key/) do
+            CredentialsDirectory.new(credentials).read_credential("fifo_key")
+          end
+        end
+      end
+
+      it "raises CredentialsDirectoryTooLarge when the files together exceed the total cap" do
+        with_scratch_directories do |credentials, _outside|
+          File.write(File.join(credentials, "first_key"), "a" * 10)
+          File.write(File.join(credentials, "second_key"), "b" * 10)
+
+          error = expect_raises(Amber::Exceptions::CredentialsDirectoryTooLarge) do
+            CredentialsDirectory.new(credentials, maximum_total_size: 30_i64).read
+          end
+          error.message.to_s.should contain "30-byte total cap"
+          error.message.to_s.should_not contain "a" * 10
         end
       end
 
@@ -189,6 +245,10 @@ module Amber::Configuration
         end
       end
 
+      it "returns nil from read_credential? for a name with no file" do
+        CredentialsDirectory.new(FIXTURE_CREDENTIALS_DIRECTORY).read_credential?("missing_key").should be_nil
+      end
+
       it "raises CredentialNotFound for a dangling symlink" do
         with_scratch_directories do |credentials, _outside|
           File.symlink(File.join(credentials, "gone"), File.join(credentials, "dangling_key"))
@@ -222,6 +282,17 @@ module Amber::Configuration
           section = CredentialsDirectory.new(credentials).read_into(SpecAppCredentials)
           section.secret_key_base.should eq "only-this-one"
           section.database_url.should be_nil
+        end
+      end
+
+      it "neither reads nor checks files the section does not declare" do
+        with_scratch_directories do |credentials, _outside|
+          File.write(File.join(credentials, "secret_key_base"), "small")
+          File.write(File.join(credentials, "unrelated_big_file"), "z" * 64)
+          Dir.mkdir(File.join(credentials, "unrelated_directory"))
+
+          section = CredentialsDirectory.new(credentials, maximum_file_size: 16_i64).read_into(SpecAppCredentials)
+          section.secret_key_base.should eq "small"
         end
       end
 
@@ -260,8 +331,7 @@ module Amber::Configuration
 
   describe "a registered credentials section" do
     it "reaches typed settings through the loader" do
-      section = CredentialsDirectory.new(FIXTURE_CREDENTIALS_DIRECTORY).read_into(SpecAppCredentials)
-      Amber::Configuration.store_credentials_section("spec_loaded_credentials", section)
+      store_fixture_credentials("spec_loaded_credentials")
 
       settings = Amber::Environment::Loader.new(:v2_minimal, "./spec/support/config/").settings
       credentials = settings.custom(:spec_loaded_credentials, SpecAppCredentials)
@@ -270,8 +340,7 @@ module Amber::Configuration
     end
 
     it "takes an AMBER_ override over the credential file" do
-      section = CredentialsDirectory.new(FIXTURE_CREDENTIALS_DIRECTORY).read_into(SpecAppCredentials)
-      Amber::Configuration.store_credentials_section("spec_overridden_credentials", section)
+      store_fixture_credentials("spec_overridden_credentials")
 
       ENV["AMBER_SPEC_OVERRIDDEN_CREDENTIALS_DATABASE_URL"] = "postgres://override/db"
       begin
@@ -279,14 +348,14 @@ module Amber::Configuration
         credentials = settings.custom(:spec_overridden_credentials, SpecAppCredentials)
         credentials.database_url.should eq "postgres://override/db"
         credentials.secret_key_base.should eq "fixture-secret-key-base-0123456789abcdef0123456789"
+        credentials.smtp_password.should eq "null"
       ensure
         ENV.delete("AMBER_SPEC_OVERRIDDEN_CREDENTIALS_DATABASE_URL")
       end
     end
 
     it "is rejected when the YAML file defines the same section" do
-      section = CredentialsDirectory.new(FIXTURE_CREDENTIALS_DIRECTORY).read_into(SpecAppCredentials)
-      Amber::Configuration.store_credentials_section("spec_yaml_conflict_credentials", section)
+      store_fixture_credentials("spec_yaml_conflict_credentials")
 
       error = expect_raises(Amber::Exceptions::ConfigurationError, /spec_yaml_conflict_credentials is loaded from the credentials directory/) do
         Amber::Environment::Loader.new(:v2_with_credentials_section, "./spec/support/config/").settings

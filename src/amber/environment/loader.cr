@@ -63,12 +63,21 @@ module Amber::Environment
               "#{key} is loaded from the credentials directory; remove the #{key} section from #{yml_settings_file}"
             )
           end
-          if loaded = Amber::Configuration.load_custom_from_yaml(key, yaml_node.to_yaml)
+          section_yaml = yaml_node.to_yaml
+          if loaded = Amber::Configuration.load_custom_from_yaml(key, section_yaml)
             app_config.custom_configs[key] = loaded
+            # Kept so the override pass rebuilds the section from what was
+            # loaded, including fields the type does not serialize.
+            if source = YAML::Nodes.parse(section_yaml).nodes.first?
+              app_config.custom_config_sources[key] = source
+            end
           end
         else
           # Use the default instance
           app_config.custom_configs[key] = Amber::Configuration.custom_config_defaults[key]
+          if credential_source = Amber::Configuration.credential_source(key)
+            app_config.custom_config_sources[key] = credential_source
+          end
         end
       end
     end
