@@ -32,6 +32,12 @@ module Amber
           context.finalize_response!
         end
       rescue e : Amber::Exceptions::Base
+        # A request that matched no route never reaches a pipeline's pipes, so
+        # the 404 gets the security headers of the first plugged
+        # SecurityHeaders pipe here.
+        if security_headers = first_plugged_security_headers
+          security_headers.write_headers(context)
+        end
         Amber::Pipe::Error.new.call(context)
       ensure
         Amber::Jobs::Worker.end_request if track_pending_request
@@ -52,6 +58,17 @@ module Amber
         pipeline.keys.each do |valve|
           @drain[valve] ||= build_pipeline(pipeline[valve], Amber::Pipe::Controller.new)
         end
+      end
+
+      # Returns the first `SecurityHeaders` pipe plugged into any pipeline, or
+      # `nil` when the application plugs none.
+      private def first_plugged_security_headers : SecurityHeaders?
+        pipeline.each_value do |pipes|
+          pipes.each do |pipe|
+            return pipe if pipe.is_a?(SecurityHeaders)
+          end
+        end
+        nil
       end
 
       def build_pipeline(pipes, last_pipe : HTTP::Handler | (HTTP::Server::Context ->))

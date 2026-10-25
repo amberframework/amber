@@ -489,6 +489,30 @@ V2 updates the default session configuration for improved security:
 
 Review your session configuration and update as needed.
 
+### Security headers pipe
+
+V2 adds `Amber::Pipe::SecurityHeaders`. It sends `X-Content-Type-Options`,
+`X-Frame-Options`, a `frame-ancestors` `Content-Security-Policy`,
+`Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, and,
+on HTTPS requests, `Strict-Transport-Security`. Its values come from the
+typed `security_headers` settings section, with secure defaults; see the
+configuration guide. Plug it into each browser and API pipeline right after
+`Amber::Pipe::Logger`:
+
+```crystal
+pipeline :web do
+  plug Amber::Pipe::Error.new
+  plug Amber::Pipe::Logger.new
+  plug Amber::Pipe::SecurityHeaders.new
+  # ...
+end
+```
+
+An app that set these headers in its own pipe or a controller filter can
+move the values to `security_headers:` in `config/environments/<env>.yml`
+and drop that code. A header already on the response is left as it is, so
+nothing is sent twice while both are in place.
+
 ## Dependency Changes Summary
 
 ### Remove from shard.yml
@@ -534,6 +558,7 @@ is published.
 - [ ] Update `LAYOUT` constant to `"application.ecr"`
 - [ ] Restructure `config/environments/*.yml` files to use typed sections
 - [ ] Update session configuration to use adapter pattern
+- [ ] Plug `Amber::Pipe::SecurityHeaders` into each browser and API pipeline
 - [ ] Remove any direct `require "redis"`, `require "amber_router"`, or `require "kilt"` statements
 - [ ] Add database drivers explicitly to shard.yml if needed
 - [ ] Test all routes and templates

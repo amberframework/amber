@@ -1,0 +1,11 @@
+name: v2_security_headers_app
+
+server:
+  host: "localhost"
+  port: 3000
+
+security_headers:
+  frame_options: "SAMEORIGIN"
+  content_security_policy: "frame-ancestors 'self'"
+  permissions_policy: ""
+  strict_transport_security: "max-age=31536000"

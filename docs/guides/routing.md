@@ -9,6 +9,7 @@ Amber::Server.configure do
   pipeline :web do
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Logger.new
+    plug Amber::Pipe::SecurityHeaders.new
     plug Amber::Pipe::Session.new
     plug Amber::Pipe::Flash.new
     plug Amber::Pipe::CSRF.new
@@ -143,6 +144,7 @@ Amber::Server.configure do
   pipeline :web do
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Logger.new
+    plug Amber::Pipe::SecurityHeaders.new
     plug Amber::Pipe::Session.new
     plug Amber::Pipe::Flash.new
     plug Amber::Pipe::CSRF.new
@@ -151,6 +153,7 @@ Amber::Server.configure do
   pipeline :api do
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Logger.new
+    plug Amber::Pipe::SecurityHeaders.new
     plug Amber::Pipe::CORS.new
   end
 
@@ -177,6 +180,7 @@ end
 | `Amber::Pipe::Flash` | Flash messages |
 | `Amber::Pipe::CSRF` | CSRF protection |
 | `Amber::Pipe::CORS` | Cross-Origin Resource Sharing |
+| `Amber::Pipe::SecurityHeaders` | Browser security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Content-Security-Policy: frame-ancestors`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, and `Strict-Transport-Security` on HTTPS requests); values from the `security_headers` settings section |
 | `Amber::Pipe::Static` | Static file serving |
 | `Amber::Pipe::PoweredByAmber` | Adds X-Powered-By header |
 | `Amber::Pipe::ClientIp` | Client IP detection |

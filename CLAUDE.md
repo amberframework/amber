@@ -37,7 +37,7 @@ crystal docs                   # Generate API docs → docs/
 
 3. **Router Engine** (`src/amber/router/engine/`): Internalized radix-tree router (formerly amber_router shard). Segment-based matching with fixed, variable, and glob segments
 
-4. **Middleware Pipes** (`src/amber/pipes/`): Pipeline-based HTTP request processing — CSRF, Session, Flash, Logger, CORS, Static, Error, ClientIp, ApiVersion, PoweredByAmber
+4. **Middleware Pipes** (`src/amber/pipes/`): Pipeline-based HTTP request processing — CSRF, Session, Flash, Logger, CORS, Static, Error, ClientIp, ApiVersion, PoweredByAmber, SecurityHeaders
 
 5. **WebSockets** (`src/amber/websockets/`): Channel-based real-time communication with presence tracking, message decoders, connection recovery, and adapter-backed PubSub
 

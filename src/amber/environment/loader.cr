@@ -41,6 +41,10 @@ module Amber::Environment
       # Apply environment variable overrides
       Amber::Configuration::EnvOverride.apply_all(app_config)
 
+      # Reject a security header value with a line break while the settings
+      # load, so a bad value fails the boot instead of every response.
+      app_config.security_headers.validate!
+
       # Load any registered custom configs from the YAML
       load_custom_configs(content, app_config)
 

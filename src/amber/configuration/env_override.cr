@@ -39,6 +39,9 @@ module Amber::Configuration
       # Mailer SMTP sub-section
       apply_mailer_smtp(config.mailer.smtp)
 
+      # Security headers section
+      apply_security_headers(config.security_headers)
+
       config
     end
 
@@ -161,6 +164,31 @@ module Amber::Configuration
       end
       if v = ENV["AMBER_MAILER_SMTP_HELO_DOMAIN"]?
         config.helo_domain = v
+      end
+    end
+
+    # An empty value is a valid override: it turns that header off.
+    private def self.apply_security_headers(config : SecurityHeadersConfig) : Nil
+      if v = ENV["AMBER_SECURITY_HEADERS_CONTENT_TYPE_OPTIONS"]?
+        config.content_type_options = v
+      end
+      if v = ENV["AMBER_SECURITY_HEADERS_FRAME_OPTIONS"]?
+        config.frame_options = v
+      end
+      if v = ENV["AMBER_SECURITY_HEADERS_CONTENT_SECURITY_POLICY"]?
+        config.content_security_policy = v
+      end
+      if v = ENV["AMBER_SECURITY_HEADERS_REFERRER_POLICY"]?
+        config.referrer_policy = v
+      end
+      if v = ENV["AMBER_SECURITY_HEADERS_PERMISSIONS_POLICY"]?
+        config.permissions_policy = v
+      end
+      if v = ENV["AMBER_SECURITY_HEADERS_CROSS_ORIGIN_OPENER_POLICY"]?
+        config.cross_origin_opener_policy = v
+      end
+      if v = ENV["AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY"]?
+        config.strict_transport_security = v
       end
     end
 

@@ -145,6 +145,62 @@ Put build-authored CSS, JavaScript, images, fonts, and downloads under
 `app/assets/`, compile them to `public/assets/`, and resolve them through the
 asset manifest. Keep user uploads on a separate persistent-storage lifecycle.
 
+### SecurityHeadersConfig
+
+```yaml
+security_headers:
+  content_type_options: "nosniff"                         # X-Content-Type-Options
+  frame_options: "DENY"                                   # X-Frame-Options
+  content_security_policy: "frame-ancestors 'none'"       # Content-Security-Policy
+  referrer_policy: "strict-origin-when-cross-origin"      # Referrer-Policy
+  permissions_policy: "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+  cross_origin_opener_policy: "same-origin"               # Cross-Origin-Opener-Policy
+  strict_transport_security: "max-age=63072000; includeSubDomains"  # HTTPS requests only
+```
+
+`Amber::Pipe::SecurityHeaders` sends these headers. The values above are the
+defaults, so an application that plugs the pipe and leaves the section out
+gets all of them; name only the keys you change. An empty string turns that
+one header off.
+
+- `strict_transport_security` is sent only when `HTTP::Request#https?` is
+  true, the same test the cookie jar uses to send `Secure` cookies: Amber
+  terminates TLS itself (both `server.ssl` files are set), or the request
+  carries `HTTPS: on` from a TLS-terminating proxy.
+- The default `strict_transport_security` lasts two years and carries
+  `includeSubDomains`, so a browser that sees it uses HTTPS for every
+  subdomain of the host as well. An application that shares its domain with
+  subdomains still served over plain HTTP sets a value without
+  `includeSubDomains`, for example `"max-age=63072000"`.
+- The default `content_security_policy` carries only `frame-ancestors`, so it
+  does not restrict scripts, styles, or images. An application with a full
+  policy puts it here, keeping a `frame-ancestors` directive in it.
+- The pipe never replaces a header that is already on the response: a pipe
+  plugged earlier keeps its value, and a controller that assigns one of these
+  headers with `response.headers["Name"] = value` has the final word.
+  `headers.add` appends a second value instead of replacing the pipe's.
+- A value that contains a line break fails settings loading with
+  `Amber::Exceptions::ConfigurationError`; `AppConfig#validate!` reports it
+  too.
+- A request that matches no route never reaches a pipeline's pipes. Its 404
+  carries the headers of the first `SecurityHeaders` pipe the application
+  plugs, so plugging it in any pipeline covers those responses as well.
+
+Plug the pipe early in every browser and API pipeline, after `Error` and
+`Logger`. It writes its headers before the rest of the pipeline runs, so the
+error pages `Error` renders for a failing controller carry them too:
+
+```crystal
+pipeline :web do
+  plug Amber::Pipe::Error.new
+  plug Amber::Pipe::Logger.new
+  plug Amber::Pipe::SecurityHeaders.new
+  plug Amber::Pipe::Session.new
+  plug Amber::Pipe::Flash.new
+  plug Amber::Pipe::CSRF.new
+end
+```
+
 ## Environment Variable Overrides
 
 Every configuration property can be overridden with an environment variable. Environment variables always take highest priority, overriding both YAML file values and compiled-in defaults.
@@ -184,6 +240,15 @@ The naming convention is `AMBER_{SECTION}_{KEY}`:
 | `AMBER_MAILER_SMTP_PASSWORD` | `mailer.smtp.password` |
 | `AMBER_MAILER_SMTP_USE_TLS` | `mailer.smtp.use_tls` |
 | `AMBER_MAILER_SMTP_HELO_DOMAIN` | `mailer.smtp.helo_domain` |
+| `AMBER_SECURITY_HEADERS_CONTENT_TYPE_OPTIONS` | `security_headers.content_type_options` |
+| `AMBER_SECURITY_HEADERS_FRAME_OPTIONS` | `security_headers.frame_options` |
+| `AMBER_SECURITY_HEADERS_CONTENT_SECURITY_POLICY` | `security_headers.content_security_policy` |
+| `AMBER_SECURITY_HEADERS_REFERRER_POLICY` | `security_headers.referrer_policy` |
+| `AMBER_SECURITY_HEADERS_PERMISSIONS_POLICY` | `security_headers.permissions_policy` |
+| `AMBER_SECURITY_HEADERS_CROSS_ORIGIN_OPENER_POLICY` | `security_headers.cross_origin_opener_policy` |
+| `AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY` | `security_headers.strict_transport_security` |
+
+A `security_headers` variable set to an empty string turns that header off.
 
 Boolean environment variables accept `"true"`, `"1"`, `"yes"` (case-insensitive) as true. All other values are treated as false.
 
@@ -312,6 +377,9 @@ mailer:
     use_tls: true
     helo_domain: "myapp.com"
 
+security_headers:
+  content_security_policy: "default-src 'self'; frame-ancestors 'none'"
+
 secrets:
   api_key: "secret_api_key_here"
 ```
@@ -328,5 +396,6 @@ secrets:
 - `src/amber/configuration/jobs_config.cr` -- JobsConfig
 - `src/amber/configuration/mailer_config.cr` -- MailerConfig
 - `src/amber/configuration/static_config.cr` -- StaticConfig
+- `src/amber/configuration/security_headers_config.cr` -- SecurityHeadersConfig
 - `src/amber/configuration/env_override.cr` -- Environment variable override logic
 - `src/amber/configuration/custom_registry.cr` -- Custom config registration

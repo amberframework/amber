@@ -4,6 +4,31 @@ module Amber::Router
   describe HTTP::Request do
     headers = HTTP::Headers.new
 
+    describe "#https?" do
+      it "is true when the request carries HTTPS: on" do
+        HTTP::Request.new("GET", "/", HTTP::Headers{"HTTPS" => "on"}).https?.should be_true
+      end
+
+      it "is false without the HTTPS header or with another value" do
+        HTTP::Request.new("GET", "/").https?.should be_false
+        HTTP::Request.new("GET", "/", HTTP::Headers{"HTTPS" => "off"}).https?.should be_false
+      end
+
+      it "is true for every request when Amber terminates TLS itself" do
+        settings = Amber.settings
+        original_key_file = settings.ssl_key_file
+        original_cert_file = settings.ssl_cert_file
+        begin
+          settings.ssl_key_file = "config/ssl/server.key"
+          settings.ssl_cert_file = "config/ssl/server.crt"
+          HTTP::Request.new("GET", "/").https?.should be_true
+        ensure
+          settings.ssl_key_file = original_key_file
+          settings.ssl_cert_file = original_cert_file
+        end
+      end
+    end
+
     describe "#params" do
       context "when parsing query string" do
         it "returns array of values for same param key" do
