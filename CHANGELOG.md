@@ -102,7 +102,10 @@
   retries a failed delete when a later request finishes. A schema's
   declared media types are checked on every schema read, including one
   served from that cached data. CBOR and COSE bodies are read under
-  `max_document_body_bytes` as well as their decoders' own limits.
+  `max_document_body_bytes` as well as their decoders' own limits, checked
+  before a declared length is allocated, and long values are read as
+  their bytes arrive. Malformed JSON in a schema read is answered with
+  `400 Bad Request` and stays rejected for later reads of that request.
 - URL-encoded bodies that declare a `charset` are decoded to UTF-8 while
   they stream, as Crystal's `HTTP::Request#form_params` does; an unknown
   charset is answered with `400 Bad Request`. `max_form_body_bytes` counts

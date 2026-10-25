@@ -1,4 +1,5 @@
 require "../../../spec_helper"
+require "file_utils"
 
 private MAX_REJECTION_BYTES = 8_u64 * 1024 * 1024
 
@@ -330,6 +331,37 @@ module Amber::Router::Parsers
     end
   end
 
+  describe "an upload moved across file systems whose original cannot be deleted" do
+    it "is deleted by a later request once the directory is writable again" do
+      body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
+      directory = Amber::Router::File.upload_directory
+      before = Dir.children(directory).to_set
+      request = multipart_post(body)
+      upload = request.params.files["doc"]
+      target_directory = ::File.tempname("amber-move-target")
+      Dir.mkdir(target_directory)
+      target = ::File.join(target_directory, "kept.txt")
+      across_file_systems = ->(from : String, to : String) do
+        raise ::File::Error.from_os_error("Error renaming file", Errno::EXDEV, file: from, other: to)
+      end
+
+      ::File.chmod(directory, 0o500)
+      begin
+        upload.move_to(target, across_file_systems).should eq target
+        request.delete_uploaded_files
+      ensure
+        ::File.chmod(directory, 0o700)
+      end
+      ::File.read(target).should eq "file body"
+      (Dir.children(directory).to_set - before).size.should eq 1
+
+      HTTP::Request.new("GET", "/").delete_uploaded_files
+      (Dir.children(directory).to_set - before).should be_empty
+      ::File.read(target).should eq "file body"
+      FileUtils.rm_rf(target_directory)
+    end
+  end
+
   describe "repeated schema parses" do
     it "charge the request's array padding once" do
       request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}, "a[32]=x")
@@ -417,6 +449,18 @@ module Amber::Router::Parsers
       end
     end
 
+    it "keeps rejecting a malformed JSON body on a later schema parse" do
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/json"}, "{")
+      first = expect_raises(Amber::Schema::RequestParseError, /Invalid JSON/) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request, RequestBudgetSchema)
+      end
+      first.code.should eq "invalid_request_body"
+      second = expect_raises(Amber::Schema::RequestParseError) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request, RequestBudgetSchema)
+      end
+      second.should be(first)
+    end
+
     it "gives each parse its own copy of nested values" do
       request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/json"}, %({"a":{"b":[1]}}))
       first = Amber::Schema::Parser::ParserRegistry.parse_request(request)
@@ -439,6 +483,43 @@ module Amber::Router::Parsers
         Amber::Schema::Parser::ParserRegistry.parse_request(request)
       end
       error.code.should eq "parameter_limit_exceeded"
+    end
+
+    it "rejects a declared CBOR length past max_document_body_bytes before allocating it" do
+      # A one-entry map whose text value declares 1,048,568 bytes and sends none.
+      body = Bytes[0xA1, 0x61, 0x61, 0x7A, 0x00, 0x0F, 0xFF, 0xF8]
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/cbor"}, body)
+      request.param_budget = ParamBudget.new(limits_with(&.max_document_body_bytes = 16))
+
+      allocated_before = GC.stats.total_bytes
+      error = expect_raises(Amber::Schema::RequestParseError, /max_document_body_bytes/) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      end
+      (GC.stats.total_bytes - allocated_before).should be < 262_144
+      error.code.should eq "parameter_limit_exceeded"
+    end
+
+    it "allocates a long declared CBOR value only as its bytes arrive" do
+      body = Bytes[0xA1, 0x61, 0x61, 0x7A, 0x00, 0x0F, 0xFF, 0xF8]
+      allocated_before = GC.stats.total_bytes
+      expect_raises(Amber::Schema::CBOR::DecodeError, /unexpected end of input/) do
+        Amber::Schema::CBOR.decode_object(IO::Memory.new(body))
+      end
+      (GC.stats.total_bytes - allocated_before).should be < 262_144
+    end
+
+    it "reports a COSE body over max_document_body_bytes as a limit error" do
+      provider = Amber::Schema::COSE::KeyProvider.new(Bytes.new(32, 7_u8), "primary")
+      encrypted = Amber::Schema::COSE.encrypt0(Amber::Schema::CBOR.encode({"title" => ::JSON::Any.new("x" * 40)}), provider)
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_document_body_bytes/) do
+        Amber::Schema::COSE.decrypt0(IO::Memory.new(encrypted), provider, max_document_body_bytes: 16)
+      end
+    end
+
+    it "reads a long CBOR value that arrives in full" do
+      title = "t" * 200_000
+      decoded = Amber::Schema::CBOR.decode_object(IO::Memory.new(Amber::Schema::CBOR.encode({"title" => ::JSON::Any.new(title)})))
+      decoded["title"].as_s.should eq title
     end
   end
 

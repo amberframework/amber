@@ -57,14 +57,14 @@ module Amber::Schema
         when "xml"
           parse_xml_request(request)
         when "cbor"
-          request.guard_body_read { CBOR.decode_object(bounded_document_body(request)) }
+          request.guard_body_read { CBOR.decode_object(request.body || IO::Memory.new, max_document_body_bytes(request)) }
         when "cose"
           provider = COSE.key_provider || raise RequestParseError.new(
             "COSE request handling is not configured",
             "cose_not_configured",
             503
           )
-          plaintext = request.guard_body_read { COSE.decrypt0(bounded_document_body(request), provider) }
+          plaintext = request.guard_body_read { COSE.decrypt0(request.body || IO::Memory.new, provider, max_document_body_bytes: max_document_body_bytes(request)) }
           CBOR.decode_object(IO::Memory.new(plaintext))
         else
           return {} of String => JSON::Any unless request.body
@@ -94,14 +94,8 @@ module Amber::Schema
         raise SchemaDefinitionError.new("Failed to parse request: #{ex.message}")
       end
 
-      # The request body, read under `max_document_body_bytes` as well as the
-      # decoder's own limits.
-      private def self.bounded_document_body(request : HTTP::Request) : IO
-        body = request.body
-        return IO::Memory.new unless body
-
-        max_document_body_bytes = request.param_budget.limits.max_document_body_bytes.to_i64
-        Amber::Router::Parsers::BoundedIO.new(body, max_document_body_bytes, "max_document_body_bytes")
+      private def self.max_document_body_bytes(request : HTTP::Request) : Int32
+        request.param_budget.limits.max_document_body_bytes
       end
 
       private def self.bad_request_error(ex : Amber::Exceptions::BadRequest) : RequestParseError
@@ -118,7 +112,7 @@ module Amber::Schema
 
       # Parse JSON body string
       private def self.parse_json_body(body : String) : Hash(String, JSON::Any)
-        JSONParser.parse_string(body)
+        JSONParser.parse_request_body(body)
       end
 
       # Parse query string request

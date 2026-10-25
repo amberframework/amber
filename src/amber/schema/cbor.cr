@@ -12,8 +12,11 @@ module Amber::Schema::CBOR
     end
   end
 
-  def decode_object(io : IO) : Hash(String, JSON::Any)
-    reader = Reader.new(io)
+  # Decodes a CBOR map from *io*. With *max_document_body_bytes*, a body
+  # longer than that raises `Amber::Exceptions::ParameterLimitExceeded`,
+  # checked before any declared length is allocated.
+  def decode_object(io : IO, max_document_body_bytes : Int32? = nil) : Hash(String, JSON::Any)
+    reader = Reader.new(io, document_limit: max_document_body_bytes)
     value = reader.read_json
     reader.finish!
     value.as_h? || raise DecodeError.new("request body must be a map")
@@ -97,9 +100,14 @@ module Amber::Schema::CBOR
   end
 
   class Reader
+    private READ_CHUNK_BYTES = 65_536
+
     @bytes_read = 0
 
-    def initialize(@io : IO, @max_bytes = MAX_BODY_BYTES)
+    # *document_limit* is the request's `max_document_body_bytes`; past it
+    # the reader raises `Amber::Exceptions::ParameterLimitExceeded` rather
+    # than `DecodeError`.
+    def initialize(@io : IO, @max_bytes = MAX_BODY_BYTES, @document_limit : Int32? = nil)
     end
 
     def read_json(depth = 0) : JSON::Any
@@ -266,17 +274,36 @@ module Amber::Schema::CBOR
       @io.read_byte || raise DecodeError.new("unexpected end of input")
     end
 
+    # Reads *length* bytes. A long value is read in chunks, so memory grows
+    # with the bytes that arrive rather than with the declared length.
     private def read_exact(length : Int32) : Bytes
       enforce_limit(length)
-      bytes = Bytes.new(length)
-      @io.read_fully(bytes)
-      bytes
+      if length <= READ_CHUNK_BYTES
+        bytes = Bytes.new(length)
+        @io.read_fully(bytes)
+        return bytes
+      end
+
+      received = IO::Memory.new
+      chunk = Bytes.new(READ_CHUNK_BYTES)
+      remaining = length
+      while remaining > 0
+        count = @io.read(chunk[0, Math.min(remaining, READ_CHUNK_BYTES)])
+        raise DecodeError.new("unexpected end of input") if count == 0
+        received.write(chunk[0, count])
+        remaining -= count
+      end
+      received.to_slice
     rescue IO::EOFError
       raise DecodeError.new("unexpected end of input")
     end
 
     private def enforce_limit(increment : Int32) : Nil
       @bytes_read += increment
+      document_limit = @document_limit
+      if document_limit && @bytes_read > document_limit
+        raise Amber::Exceptions::ParameterLimitExceeded.new("max_document_body_bytes", document_limit)
+      end
       raise DecodeError.new("body exceeds #{@max_bytes} bytes") if @bytes_read > @max_bytes
     end
   end

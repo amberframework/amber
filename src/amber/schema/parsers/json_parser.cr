@@ -25,7 +25,18 @@ module Amber::Schema::Parser
 
     # Parse HTTP request body
     def self.parse_request(request : HTTP::Request) : Hash(String, JSON::Any)
-      request.guard_body_read { parse_string(request.read_document_body) }
+      request.guard_body_read { parse_request_body(request.read_document_body) }
+    end
+
+    # Parses a request body like `parse_string`, except that malformed JSON
+    # raises `RequestParseError` (400), which the request remembers like
+    # any other rejected body.
+    def self.parse_request_body(body : String) : Hash(String, JSON::Any)
+      return {} of String => JSON::Any if body.empty?
+
+      extract_fields(JSON.parse(body))
+    rescue ex : JSON::ParseException
+      raise RequestParseError.new("Invalid JSON: #{ex.message}")
     end
 
     # Parse HTTP::Params into JSON-compatible hash with proper nesting

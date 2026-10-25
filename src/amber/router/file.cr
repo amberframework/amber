@@ -188,6 +188,13 @@ module Amber::Router
     # partial copy is removed, *destination* is left as it was, and Amber
     # still owns the tempfile.
     def move_to(destination : String | Path) : String
+      move_to(destination, ->(from : String, to : String) { ::File.rename(from, to); nil })
+    end
+
+    # :nodoc:
+    # `move_to` with its rename step passed in; specs pass one that fails as
+    # a rename across file systems does.
+    def move_to(destination : String | Path, rename : Proc(String, String, Nil)) : String
       tempfile = @tempfile
       if tempfile.moved? || !tempfile.owned_by_amber?
         raise IO::Error.new("The upload was already moved or retained")
@@ -197,7 +204,7 @@ module Amber::Router
       verify_identity!(tempfile)
       target = destination.to_s
       begin
-        ::File.rename(tempfile.path, target)
+        rename.call(tempfile.path, target)
       rescue ex : ::File::Error
         raise ex unless ex.os_error == Errno::EXDEV
         open_tempfile { |source| self.class.copy_into_place(source, target) }
@@ -297,10 +304,11 @@ module Amber::Router
 
     # :nodoc:
     # Hands this upload's tempfile, which could not be deleted, to
-    # `retry_leftover_deletions` while Amber still owns it.
+    # `retry_leftover_deletions` while Amber still owns it, including the
+    # original left behind by a move across file systems.
     def defer_deletion : Nil
       tempfile = @tempfile
-      return if tempfile.moved? || !tempfile.owned_by_amber?
+      return unless tempfile.owned_by_amber?
       self.class.remember_leftover(tempfile.path, tempfile.identity)
     end
 
