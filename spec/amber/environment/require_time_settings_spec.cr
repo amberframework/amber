@@ -23,8 +23,11 @@ module RequireTimeSettingsProbe
     @@outcome ||= build_and_run
   end
 
+  # `CRYSTAL` names the compiler when set; CI sets it to the compiler that
+  # runs the suite. Otherwise the house toolchain, crystal-alpha, is required.
   private def self.compiler : String
-    ENV["CRYSTAL"]? || Process.find_executable("crystal-alpha") || "crystal"
+    ENV["CRYSTAL"]? || Process.find_executable("crystal-alpha") ||
+      raise "Set CRYSTAL to a Crystal compiler, or install crystal-alpha, to build #{FIXTURE_DIRECTORY}/probe_app.cr"
   end
 
   private def self.build_and_run : Outcome

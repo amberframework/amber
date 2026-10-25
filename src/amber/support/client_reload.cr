@@ -55,7 +55,7 @@ module Amber::Support
         timestamp = get_timestamp(file)
         if FILE_TIMESTAMPS[file]? != timestamp
           if @app_running
-            log "File changed: ./#{file.colorize(:light_gray)}"
+            log "File changed: ./#{paint(file)}"
           end
           FILE_TIMESTAMPS[file] = timestamp
           file_counter += 1
@@ -68,7 +68,11 @@ module Amber::Support
     end
 
     def log(message)
-      Log.info { message.colorize(:light_gray) }
+      Log.info { paint(message) }
+    end
+
+    private def paint(text : String)
+      LogColor.paint(text, :light_gray, Amber.settings.logging.colorize)
     end
   end
 end

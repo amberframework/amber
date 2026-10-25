@@ -16,10 +16,12 @@ module Amber::Pipe
 
   private def self.with_global_colorize(enabled : Bool, &)
     previous = Colorize.enabled?
-    Colorize.enabled = enabled
-    yield
-  ensure
-    Colorize.enabled = previous unless previous.nil?
+    begin
+      Colorize.enabled = enabled
+      yield
+    ensure
+      Colorize.enabled = previous
+    end
   end
 
   describe Logger do
