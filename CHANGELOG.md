@@ -99,10 +99,14 @@
   Each request's schema data is parsed once and reused, so repeated
   schema reads charge its limits once. Upload cleanup continues past a
   file that fails to close or delete, keeps the original error, and
-  retries a failed delete when the request finishes.
+  retries a failed delete when a later request finishes. A schema's
+  declared media types are checked on every schema read, including one
+  served from that cached data. CBOR and COSE bodies are read under
+  `max_document_body_bytes` as well as their decoders' own limits.
 - URL-encoded bodies that declare a `charset` are decoded to UTF-8 while
   they stream, as Crystal's `HTTP::Request#form_params` does; an unknown
-  charset is answered with `400 Bad Request`.
+  charset is answered with `400 Bad Request`. `max_form_body_bytes` counts
+  the raw bytes before decoding.
 - `Amber::Schema::RequestParseError` raised from an action (for example by
   calling `ParserRegistry.parse_request` directly) is answered with its own
   status, such as 400, by the pipeline and the Error pipe, rather than 500.
