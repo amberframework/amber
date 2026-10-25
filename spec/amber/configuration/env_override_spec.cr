@@ -10,6 +10,42 @@ private def with_env(vars : Hash(String, String), &)
   end
 end
 
+struct SpecOverrideSmtpConfig
+  include YAML::Serializable
+
+  property host : String = "localhost"
+  property port : Int32 = 25
+
+  def initialize
+  end
+end
+
+struct SpecOverrideConfig
+  include YAML::Serializable
+
+  property api_key : String = "agentc-placeholder:spec-default-key"
+  property timeout : Int32 = 30
+  property enabled : Bool = false
+  property webhook_secret : String? = nil
+
+  @[YAML::Field(key: "base-url")]
+  property base_url : String = "https://example.com"
+
+  property smtp : SpecOverrideSmtpConfig = SpecOverrideSmtpConfig.new
+
+  def initialize
+  end
+end
+
+# Builds an AppConfig holding a registered custom section, the way the
+# loader does before it runs the override pass.
+private def app_config_with_custom_section(section : String) : Amber::Configuration::AppConfig
+  Amber::Configuration.register_custom(section, SpecOverrideConfig.new)
+  config = Amber::Configuration::AppConfig.new
+  config.custom_configs[section] = Amber::Configuration.custom_config_defaults[section]
+  config
+end
+
 module Amber::Configuration
   describe EnvOverride do
     describe ".apply_all" do
@@ -202,6 +238,81 @@ module Amber::Configuration
             config = AppConfig.new
             EnvOverride.apply_all(config)
             config.jobs.auto_start.should be_false
+          end
+        end
+      end
+
+      context "with a registered custom section" do
+        it "overrides a String field from AMBER_{SECTION}_{KEY}" do
+          with_env({"AMBER_SPEC_OVERRIDE_API_KEY" => "agentc-placeholder:spec-env-key"}) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            config.custom(:spec_override, SpecOverrideConfig).api_key.should eq "agentc-placeholder:spec-env-key"
+          end
+        end
+
+        it "converts Int32 and Bool fields from their plain text" do
+          vars = {"AMBER_SPEC_OVERRIDE_TIMEOUT" => "90", "AMBER_SPEC_OVERRIDE_ENABLED" => "true"}
+          with_env(vars) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override, SpecOverrideConfig)
+            section.timeout.should eq 90
+            section.enabled.should be_true
+          end
+        end
+
+        it "reaches a nilable field whose value is nil" do
+          with_env({"AMBER_SPEC_OVERRIDE_WEBHOOK_SECRET" => "agentc-placeholder:spec-webhook-secret"}) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            config.custom(:spec_override, SpecOverrideConfig).webhook_secret.should eq "agentc-placeholder:spec-webhook-secret"
+          end
+        end
+
+        it "names the variable after the YAML key, with other characters as underscores" do
+          with_env({"AMBER_SPEC_OVERRIDE_BASE_URL" => "https://env.example.com"}) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            config.custom(:spec_override, SpecOverrideConfig).base_url.should eq "https://env.example.com"
+          end
+        end
+
+        it "overrides a nested section from AMBER_{SECTION}_{SUBSECTION}_{KEY}" do
+          with_env({"AMBER_SPEC_OVERRIDE_SMTP_PORT" => "587"}) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override, SpecOverrideConfig)
+            section.smtp.port.should eq 587
+            section.smtp.host.should eq "localhost"
+          end
+        end
+
+        it "keeps values from YAML when no variable is set" do
+          Amber::Configuration.register_custom("spec_override_yaml", SpecOverrideConfig.new)
+          config = AppConfig.new
+          config.custom_configs["spec_override_yaml"] = SpecOverrideConfig.from_yaml("api_key: yaml-key\ntimeout: 45")
+          EnvOverride.apply_all(config)
+          section = config.custom(:spec_override_yaml, SpecOverrideConfig)
+          section.api_key.should eq "yaml-key"
+          section.timeout.should eq 45
+        end
+
+        it "raises a ConfigurationError naming the variable, not the value, on a type mismatch" do
+          with_env({"AMBER_SPEC_OVERRIDE_TIMEOUT" => "not-a-number-secret"}) do
+            config = app_config_with_custom_section("spec_override")
+            error = expect_raises(Amber::Exceptions::ConfigurationError, /AMBER_SPEC_OVERRIDE_TIMEOUT/) do
+              EnvOverride.apply_all(config)
+            end
+            error.message.to_s.should_not contain "not-a-number-secret"
+          end
+        end
+
+        it "reaches a section loaded from YAML by the loader" do
+          Amber::Configuration.register_custom("spec_override_loaded", SpecOverrideConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_LOADED_API_KEY" => "agentc-placeholder:spec-loader-env-key"}) do
+            settings = Amber::Environment::Loader.new(:v2_minimal, "./spec/support/config/").settings
+            settings.custom(:spec_override_loaded, SpecOverrideConfig).api_key.should eq "agentc-placeholder:spec-loader-env-key"
           end
         end
       end

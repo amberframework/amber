@@ -39,7 +39,92 @@ module Amber::Configuration
       # Mailer SMTP sub-section
       apply_mailer_smtp(config.mailer.smtp)
 
+      # Registered custom sections, including credentials sections
+      apply_custom(config)
+
       config
+    end
+
+    # Apply `AMBER_{SECTION}_{KEY}` overrides to every registered custom
+    # section loaded into *config*, the same way the built-in sections are
+    # overridden. Nested mappings extend the name, as with
+    # `AMBER_SERVER_SSL_KEY_FILE`: `AMBER_{SECTION}_{SUBSECTION}_{KEY}`.
+    #
+    # Section and key names are upper-cased, and any character other than a
+    # letter or digit becomes `_`. Values are read as plain YAML scalars, so
+    # `8080` fills an `Int32` field and `true` fills a `Bool`.
+    #
+    # Raises `Amber::Exceptions::ConfigurationError` naming the variable when
+    # its value does not fit the field's type. The value itself is left out
+    # of the message because it may be a secret.
+    def self.apply_custom(config : AppConfig) : Nil
+      config.custom_configs.keys.each do |section|
+        list_of_keys = Amber::Configuration.custom_config_keys(section)
+        next unless list_of_keys
+
+        document = YAML::Nodes.parse(config.custom_configs[section].to_yaml)
+        mapping = document.nodes.first?
+        next unless mapping.is_a?(YAML::Nodes::Mapping)
+
+        list_of_applied_variables = [] of String
+        apply_to_mapping(mapping, "AMBER_#{env_name(section)}", list_of_keys, list_of_applied_variables)
+        next if list_of_applied_variables.empty?
+
+        begin
+          if rebuilt_section = Amber::Configuration.build_custom_from_node(section, mapping)
+            config.custom_configs[section] = rebuilt_section
+          end
+        rescue YAML::ParseException
+          raise Amber::Exceptions::ConfigurationError.new(
+            "#{list_of_applied_variables.join(", ")}: value does not fit the field type in the #{section} section"
+          )
+        end
+      end
+    end
+
+    # Overwrites or adds each key of *mapping* that has a matching
+    # environment variable, then recurses into nested mappings.
+    private def self.apply_to_mapping(mapping : YAML::Nodes::Mapping, prefix : String,
+                                      list_of_keys : Array(String), list_of_applied_variables : Array(String)) : Nil
+      list_of_keys.each do |key|
+        variable = "#{prefix}_#{env_name(key)}"
+        value_index = index_of_value(mapping, key)
+        existing_value = value_index ? mapping.nodes[value_index] : nil
+
+        if existing_value.is_a?(YAML::Nodes::Mapping)
+          apply_to_mapping(existing_value, variable, scalar_keys_of(existing_value), list_of_applied_variables)
+        elsif override = ENV[variable]?
+          override_node = YAML::Nodes::Scalar.new(override)
+          override_node.style = YAML::ScalarStyle::PLAIN
+          if value_index
+            mapping.nodes[value_index] = override_node
+          else
+            mapping[YAML::Nodes::Scalar.new(key)] = override_node
+          end
+          list_of_applied_variables << variable
+        end
+      end
+    end
+
+    private def self.index_of_value(mapping : YAML::Nodes::Mapping, key : String) : Int32?
+      mapping.nodes.each_slice(2).with_index do |(key_node, _value_node), pair_index|
+        if key_node.is_a?(YAML::Nodes::Scalar) && key_node.value == key
+          return pair_index * 2 + 1
+        end
+      end
+      nil
+    end
+
+    private def self.scalar_keys_of(mapping : YAML::Nodes::Mapping) : Array(String)
+      list_of_keys = [] of String
+      mapping.nodes.each_slice(2) do |(key_node, _value_node)|
+        list_of_keys << key_node.value if key_node.is_a?(YAML::Nodes::Scalar)
+      end
+      list_of_keys
+    end
+
+    private def self.env_name(name : String) : String
+      name.upcase.gsub(/[^A-Z0-9]/, "_")
     end
 
     private def self.apply_server(config : ServerConfig) : Nil

@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Add `Amber::Configuration::CredentialsDirectory` and
+  `Amber::Configuration.register_credentials`, which read a systemd-style
+  `$CREDENTIALS_DIRECTORY` (one file per credential) into a typed, registered
+  settings section. The reader rejects path traversal, symlinks outside the
+  directory, unreadable files, and files over a size cap with named errors,
+  and never logs or quotes values.
+- Extend the `AMBER_{SECTION}_{KEY}` environment override pass to registered
+  custom sections, including nested mappings and nil-valued fields.
+- Raise a `ConfigurationError` when a credentials section is also defined in
+  the environment YAML file.
+
 ## 2.0.0-beta.5 (2026-08-13)
 
 This release makes Amber V2 schemas executable request and response contracts,

@@ -234,6 +234,93 @@ stripe.webhook_secret   # => "whsec_..."
 stripe.currency         # => "usd"
 ```
 
+### Overriding Custom Config from the Environment
+
+Registered custom sections take `AMBER_{SECTION}_{KEY}` overrides exactly like the built-in sections. Section and key names are upper-cased, and any character other than a letter or digit becomes `_`. Nested mappings extend the name: `AMBER_{SECTION}_{SUBSECTION}_{KEY}`.
+
+```bash
+AMBER_STRIPE_API_KEY=sk_live_...     # stripe.api_key
+AMBER_STRIPE_CURRENCY=eur            # stripe.currency
+```
+
+Values are read as plain YAML scalars, so `8080` fills an `Int32` field and `true` fills a `Bool`. A value that does not fit the field's type raises `Amber::Exceptions::ConfigurationError` naming the variable; the value itself is left out of the message.
+
+## Credentials Directory
+
+`Amber::Configuration::CredentialsDirectory` reads a directory with one file per credential, where the file name is the credential name and the file contents are its value. This is the layout systemd's `LoadCredential=` and `LoadCredentialEncrypted=` produce in `$CREDENTIALS_DIRECTORY`. `Amber::Configuration.register_credentials` reads that directory into a typed, registered section.
+
+### Registering a Credentials Section
+
+Declare the section as a `YAML::Serializable` struct whose fields are `String` or `String?`, one per credential file:
+
+```crystal
+# config/credentials.cr
+struct AppCredentials
+  include YAML::Serializable
+
+  property secret_key_base : String = ""
+  property database_url : String? = nil
+
+  def initialize
+  end
+end
+
+# ENV is read here, once, at the application boundary. Amber's reader takes
+# the directory as an argument and never reads ENV itself.
+if credentials_directory = ENV["CREDENTIALS_DIRECTORY"]?
+  Amber::Configuration.register_credentials(:credentials, AppCredentials, credentials_directory)
+else
+  Amber::Configuration.register(:credentials, AppCredentials)
+end
+```
+
+Read it like any custom section:
+
+```crystal
+credentials = Amber.settings.custom(:credentials, AppCredentials)
+credentials.secret_key_base
+```
+
+### Require Order in Generated Apps
+
+`Amber.settings` loads once, on its first read, and only sections registered by then are part of it. Generated apps read settings early (`config/database.cr` reads `Amber.settings.database_url`), so `config/application.cr` requires the credentials registration right after Amber and before anything that reads settings:
+
+```crystal
+# config/application.cr
+require "amber"
+require "./credentials"   # registers the credentials section
+require "./database"      # first Amber.settings read
+require "./initializers/**"
+# ...
+```
+
+`register_credentials` raises `Amber::Exceptions::CredentialsRegisteredAfterSettingsLoad` when settings are already loaded, so a misordered require fails at boot rather than leaving the section silently missing.
+
+### Rules the Reader Enforces
+
+Each failure raises a named subclass of `Amber::Exceptions::CredentialsError`. Messages name the directory and the credential, never its value, and the reader does not log.
+
+| Condition | Error |
+|-----------|-------|
+| Directory missing, or the path is not a directory | `CredentialsDirectoryNotFound` |
+| Directory cannot be listed | `CredentialsDirectoryUnreadable` |
+| Name is empty, `.`, `..`, longer than 255 bytes, or contains `/` or NUL (`read_credential`) | `CredentialPathTraversal` |
+| No file for a requested name, or a dangling symlink | `CredentialNotFound` |
+| Symlink whose target lies outside the directory | `CredentialSymlinkOutsideDirectory` |
+| Entry is a subdirectory, socket, or device | `CredentialNotARegularFile` |
+| File the process may not read | `CredentialUnreadable` |
+| File larger than the size cap (64 KiB by default) | `CredentialTooLarge` |
+| Files cannot build the section type | `CredentialsDoNotFitSection` |
+
+Symlinks that stay inside the directory are followed. Pass a different cap as the fourth argument: `register_credentials(:credentials, AppCredentials, directory, 128_i64 * 1024)`.
+
+File contents are kept byte for byte, including a trailing newline, so write credential files without one (`printf '%s' "$secret" > secret_key_base`). Files with no matching field are ignored, and fields with no file keep their default.
+
+### Credentials and the Other Layers
+
+- `AMBER_{SECTION}_{KEY}` variables override individual credentials, as for every other section.
+- A credentials section must not also appear in the environment YAML file. The loader raises `Amber::Exceptions::ConfigurationError` when it finds one, because the YAML copy would otherwise replace the directory values.
+
 ## Configuration Validation
 
 All configuration sections include built-in validation. Call `validate!` to check all settings at startup:
@@ -257,8 +344,8 @@ Validation checks include:
 
 Configuration values are resolved in this order (highest priority first):
 
-1. **Environment variables** (`AMBER_SERVER_PORT=8080`)
-2. **Environment YAML file** (`config/environments/production.yml`)
+1. **Environment variables** (`AMBER_SERVER_PORT=8080`, `AMBER_STRIPE_API_KEY=...`)
+2. **Environment YAML file** (`config/environments/production.yml`), or the **credentials directory** for a section registered with `register_credentials`
 3. **Compiled defaults** (hardcoded in the config classes)
 
 ## Full Example
@@ -330,3 +417,5 @@ secrets:
 - `src/amber/configuration/static_config.cr` -- StaticConfig
 - `src/amber/configuration/env_override.cr` -- Environment variable override logic
 - `src/amber/configuration/custom_registry.cr` -- Custom config registration
+- `src/amber/configuration/credentials_directory.cr` -- Credentials directory reader
+- `src/amber/exceptions/credentials_error.cr` -- Named credentials errors
