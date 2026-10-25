@@ -39,6 +39,9 @@ module Amber::Configuration
       # Mailer SMTP sub-section
       apply_mailer_smtp(config.mailer.smtp)
 
+      # Request parameter limits
+      apply_params(config.params)
+
       config
     end
 
@@ -161,6 +164,57 @@ module Amber::Configuration
       end
       if v = ENV["AMBER_MAILER_SMTP_HELO_DOMAIN"]?
         config.helo_domain = v
+      end
+    end
+
+    # Applies `AMBER_PARAMS_*` overrides. Public so the V1 settings path can
+    # apply the same overrides to its parameter limits.
+    def self.apply_params(config : ParamsConfig) : Nil
+      if v = ENV["AMBER_PARAMS_MAX_ARRAY_INDEX"]?
+        config.max_array_index = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_ARRAY_INDEX_GAP"]?
+        config.max_array_index_gap = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_ARRAY_PADDING"]?
+        config.max_array_padding = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_PARAMS"]?
+        config.max_params = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_NESTING_DEPTH"]?
+        config.max_nesting_depth = v.to_i
+      end
+      apply_params_sizes(config)
+    end
+
+    private def self.apply_params_sizes(config : ParamsConfig) : Nil
+      if v = ENV["AMBER_PARAMS_MAX_KEY_BYTES"]?
+        config.max_key_bytes = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_VALUE_BYTES"]?
+        config.max_value_bytes = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_FORM_BODY_BYTES"]?
+        config.max_form_body_bytes = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_MULTIPART_BODY_BYTES"]?
+        config.max_multipart_body_bytes = v.to_i64
+      end
+      if v = ENV["AMBER_PARAMS_MAX_FILE_BYTES"]?
+        config.max_file_bytes = v.to_i64
+      end
+      if v = ENV["AMBER_PARAMS_MAX_PART_HEADER_BYTES"]?
+        config.max_part_header_bytes = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_WEBSOCKET_MESSAGE_BYTES"]?
+        config.max_websocket_message_bytes = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_DOCUMENT_BODY_BYTES"]?
+        config.max_document_body_bytes = v.to_i
+      end
+      if v = ENV["AMBER_PARAMS_MAX_DOCUMENT_NODES"]?
+        config.max_document_nodes = v.to_i
       end
     end
 

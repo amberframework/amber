@@ -49,13 +49,50 @@ module Amber
         end
       end
 
+      # Upgrades socket routes like `HTTP::WebSocketHandler`, but reads every
+      # connection through a `BoundedProtocol`, so each message is capped at
+      # `Amber.settings.params.max_websocket_message_bytes` while it arrives.
       class Handler < HTTP::WebSocketHandler
         def initialize(@path : String, &@proc : HTTP::WebSocket, HTTP::Server::Context -> Void)
           Amber::Server.router.add_socket_route(@path, self)
         end
 
-        def call(context)
-          super
+        def call(context) : Nil
+          return call_next(context) unless websocket_upgrade_request?(context.request)
+
+          response = context.response
+          version = context.request.headers["Sec-WebSocket-Version"]?
+          unless version == HTTP::WebSocket::Protocol::VERSION
+            response.status = :upgrade_required
+            response.headers["Sec-WebSocket-Version"] = HTTP::WebSocket::Protocol::VERSION
+            return
+          end
+
+          key = context.request.headers["Sec-WebSocket-Key"]?
+          unless key
+            response.respond_with_status(:bad_request)
+            return
+          end
+
+          # Check the query before switching protocols, so an oversized query
+          # is answered with 400 rather than after the 101 response.
+          context.request.query_params
+
+          response.status = :switching_protocols
+          response.headers["Upgrade"] = "websocket"
+          response.headers["Connection"] = "Upgrade"
+          response.headers["Sec-WebSocket-Accept"] = HTTP::WebSocket::Protocol.key_challenge(key)
+          if protocol = sec_websocket_protocol(context.request)
+            response.headers["Sec-WebSocket-Protocol"] = protocol
+          end
+
+          max_message_bytes = Amber.settings.params.max_websocket_message_bytes
+          response.upgrade do |io|
+            protocol_reader = BoundedProtocol.new(io, max_message_bytes, sync_close: false)
+            ws_session = HTTP::WebSocket.new(protocol_reader)
+            @proc.call(ws_session, context)
+            ws_session.run
+          end
         end
       end
     end

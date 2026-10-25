@@ -1,5 +1,137 @@
 # Changelog
 
+## Unreleased
+
+### Security
+
+- Bound request parameter parsing. A bracket index such as `items[N]` is now
+  converted with a checked conversion and must be at most
+  `params.max_array_index` (default 100) and at most
+  `params.max_array_index_gap` (default 32) past the end of its array; the
+  empty entries added to fill gaps are capped per request by
+  `params.max_array_padding` (default 1,000). Previously a single request
+  could make Amber pad an array to the index it named, or raise an overflow
+  error that surfaced as a 500.
+- Add explicit defaults for the number of parameters (`max_params`, 1,000),
+  key nesting depth (`max_nesting_depth`, 32), key length (`max_key_bytes`,
+  1 KiB), field value length (`max_value_bytes`, 1 MiB), URL-encoded body
+  size (`max_form_body_bytes`, 8 MiB), multipart body size
+  (`max_multipart_body_bytes`, 128 MiB), multipart part headers
+  (`max_part_header_bytes`, 16 KiB), and uploaded file size
+  (`max_file_bytes`, 64 MiB). Query strings and URL-encoded bodies are
+  scanned byte by byte (`&` and `;` both separate pairs), with key, value and
+  body sizes enforced as the bytes arrive; the query is read from the raw
+  request target before the URI is parsed. Multipart bodies, headers and
+  files are counted while they stream, and bounded reads keep no more than
+  their limit. JSON, XML and other document bodies read for schemas or
+  `params` are bounded by `max_document_body_bytes` (8 MiB).
+- Each request has one parameter budget (`HTTP::Request#param_budget`)
+  shared by its query string, body, and schema conversion, so counts and
+  array padding are cumulative. `HTTP::Request#query_params` checks the query
+  against it before parsing, which covers every reader of the query string.
+  `HTTP::Request#form_params` and `#form_params?` reuse Amber's bounded,
+  cached form parse for any request method, so a middleware or action read
+  of a URL-encoded body is bounded too and shares one result with `params`.
+- URL-encoded and multipart bodies are recognized by their media type,
+  compared without regard to letter case, rather than by a prefix of the
+  `Content-Type` header.
+- Every query, form and multipart pair is checked when it is admitted, so
+  plain `params` readers see the same key, value, count and depth limits
+  as schema contracts: a key nested deeper than `max_nesting_depth` is
+  answered with `400 Bad Request`. Bracketed array indices are checked
+  where a schema parser reserves array slots for them, so a form that
+  names records by id in brackets, such as `users[1700000][name]`, still
+  reads as ordinary `params`.
+- A request beyond any limit is answered with `400 Bad Request` (schema
+  contracts report the `parameter_limit_exceeded` code). Configure the limits
+  in the new `params:` section of `config/environments/<env>.yml` or with
+  `AMBER_PARAMS_<KEY>` environment variables; the loader validates them at
+  boot, and V1-format settings files accept the same section and overrides.
+- Uploaded files are copied into a tempfile with a fixed `amber-upload`
+  name keeping a plain extension, and `Amber::Router::File#size` reports the
+  bytes received rather than the client's declared size. During the action
+  `params.files["doc"].file` is a readable handle, opened on first use;
+  `#path` names the tempfile. Amber closes that handle and deletes upload
+  tempfiles when the request finishes, when a later part is rejected, or
+  when a later part with the same name replaces one. **To keep an upload,
+  call `Amber::Router::File#move_to(path)` during the action, or `#retain!`
+  to keep the tempfile at `#path` and take over deleting it, for example
+  before passing the path to a background job.** Malformed multipart framing
+  or part metadata is answered with `400 Bad Request`
+  (`Amber::Exceptions::BadRequest`).
+- WebSocket routes read each connection through
+  `Amber::WebSockets::BoundedProtocol`, which caps a message across its
+  frames and fragments as they arrive (`max_websocket_message_bytes`,
+  2 MiB) and closes the connection with code 1009 when it is exceeded. The
+  handshake's query string is checked before the 101 response.
+  `BinaryDecoder` defaults its frame limit to the ingress limit, and a
+  smaller decoder limit also closes the socket with 1009.
+- Upload tempfiles live in one directory per user,
+  `<tmpdir>/amber-uploads-<uid>`, created with mode 0700 and checked to be
+  owned by that user, which every worker and restart reuses. Cleanup removes
+  a tempfile only when Amber still owns it and its path, when checked, still
+  names the file Amber created. If another local user has claimed that
+  directory in a shared temporary directory, the process uses a new
+  private directory with an unpredictable name instead. A move across file
+  systems copies to a file beside the destination and renames it into
+  place, so a failed copy leaves both files as they were.
+- XML extraction measures each node's text once, before copying it, and
+  checks every extracted key and value against the request's limits (key
+  length and depth, value length, and at most four times
+  `max_document_body_bytes` in all, XPath fields included), so nested
+  elements cannot multiply the text copied out of a document. Text and
+  attribute values are measured in libxml's buffers before they are copied.
+  An XML document may hold at most `params.max_document_nodes` nodes
+  (default 100,000): a well-formed document is counted while it streams,
+  before its tree is built, and a recovered malformed one is counted
+  before any field is extracted. **XML request bodies may not contain a
+  document type declaration (`<!DOCTYPE ...>`)**; one that does is answered
+  with `400 Bad Request`, so request XML never defines or expands entities.
+- A rejected request body is remembered on the request
+  (`HTTP::Request#guard_body_read`): every later read of `params`,
+  `form_params`, or a schema contract for that request raises the same
+  error, so a caller that catches it never sees a parse of the bytes left
+  in the stream. Rejections raised after the body was read (such as the
+  node limit, or a CBOR or COSE decoding error) are remembered the same
+  way, and a cached parse is not served once the body is rejected. Schema
+  parsers check each key, and reserve its array slot, before they read or
+  parse its value, so a rejected key never loads an upload into memory.
+  Each request's schema data is parsed once and reused, so repeated
+  schema reads charge its limits once. Upload cleanup continues past a
+  file that fails to close or delete, keeps the original error, and
+  retries a failed delete when a later request finishes. A schema's
+  declared media types are checked on every schema read, including one
+  served from that cached data. CBOR and COSE bodies are read under
+  `max_document_body_bytes` as well as their decoders' own limits, checked
+  before a declared length is allocated; long values are read, and arrays
+  grow, as their bytes arrive. Malformed JSON in a schema read is answered with
+  `400 Bad Request` and stays rejected for later reads of that request.
+- URL-encoded bodies that declare a `charset` are decoded to UTF-8 while
+  they stream, as Crystal's `HTTP::Request#form_params` does; an unknown
+  charset is answered with `400 Bad Request`. `max_form_body_bytes` counts
+  the raw bytes before decoding.
+- Error pages escape what they show of the request: the error response's
+  type is chosen by Amber (JSON, HTML or plain text, from the first
+  `Accept` entry without its parameters) rather than echoed from the
+  header, the production HTML error page HTML-escapes the error message,
+  and the development
+  exception page escapes the method, path and title. A development error
+  page for a rejected query or form shows the request-line method and no
+  query parameters, so the 400 is not raised again while rendering.
+- `Amber::Schema::RequestParseError` raised from an action (for example by
+  calling `ParserRegistry.parse_request` directly) is answered with its own
+  status, such as 400, by the pipeline and the Error pipe, rather than 500.
+- The pipeline detects a WebSocket upgrade the way the WebSocket handler
+  does (`Upgrade: websocket` in any letter case, with `Upgrade` in
+  `Connection`), and a route that only has a socket handler no longer
+  raises `NilAssertionError`: an upgrade reaches the handler, and a plain
+  request is answered with 404.
+- The WebSocket binary decoder caps each frame (`max_frame_bytes:`, by
+  default `max_websocket_message_bytes`) before Base64 decoding, rejects a length prefix or field count
+  larger than the message, and rejects bytes after the declared fields.
+- Indexed nested keys such as `items[0][name]=alice` now build
+  `[{"name" => "alice"}]` in `JSONParser` instead of a null entry.
+
 ## 2.0.0-beta.5 (2026-08-13)
 
 This release makes Amber V2 schemas executable request and response contracts,

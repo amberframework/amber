@@ -25,23 +25,36 @@ module Amber::Schema::Parser
 
     # Parse HTTP request body
     def self.parse_request(request : HTTP::Request) : Hash(String, JSON::Any)
-      body = request.body.try(&.gets_to_end) || ""
-      parse_string(body)
+      request.guard_body_read { parse_request_body(request.read_document_body) }
+    end
+
+    # Parses a request body like `parse_string`, except that malformed JSON
+    # raises `RequestParseError` (400), which the request remembers like
+    # any other rejected body.
+    def self.parse_request_body(body : String) : Hash(String, JSON::Any)
+      return {} of String => JSON::Any if body.empty?
+
+      extract_fields(JSON.parse(body))
+    rescue ex : JSON::ParseException
+      raise RequestParseError.new("Invalid JSON: #{ex.message}")
     end
 
     # Parse HTTP::Params into JSON-compatible hash with proper nesting
-    def self.parse_params(params : HTTP::Params) : Hash(String, JSON::Any)
+    def self.parse_params(params : HTTP::Params, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
       result = {} of String => JSON::Any
       array_values = {} of String => Array(String)
+      budget = Amber::Router::Parsers::ParamBudget.new(limits)
 
       # First pass: collect array values
       params.each do |key, value|
+        budget.admit!(key, value)
         if key.ends_with?("[]")
+          check_array_key!(key, budget)
           base_key = key[0..-3]
           array_values[base_key] ||= [] of String
           array_values[base_key] << value
         else
-          set_nested_value(result, key, value)
+          set_nested_value(result, key, value, budget)
         end
       end
 
@@ -54,16 +67,24 @@ module Amber::Schema::Parser
     end
 
     # Parse multipart form data with file upload support
-    def self.parse_multipart(params : Hash(String, String | Array(String)) | Hash(String, String | Array(String) | HTTP::FormData::Part)) : Hash(String, JSON::Any)
+    def self.parse_multipart(params : Hash(String, String | Array(String)) | Hash(String, String | Array(String) | HTTP::FormData::Part), limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
       result = {} of String => JSON::Any
+      budget = Amber::Router::Parsers::ParamBudget.new(limits)
 
       params.each do |key, value|
+        budget.admit!(key)
         case value
         when String
-          set_nested_value(result, key, value)
+          budget.check_value!(value)
+          set_nested_value(result, key, value, budget)
         when Array(String)
-          # Handle array parameters
+          # The key was admitted once above; every further element counts too.
+          value.each_with_index do |element, index|
+            budget.admit!(key) if index > 0
+            budget.check_value!(element)
+          end
           if key.ends_with?("[]")
+            check_array_key!(key, budget)
             base_key = key[0..-3]
             result[base_key] = JSON::Any.new(value.map { |v| parse_value(v) })
           else
@@ -77,7 +98,7 @@ module Amber::Schema::Parser
             "content_type" => JSON::Any.new(value.headers["Content-Type"]? || "application/octet-stream"),
             "size"         => JSON::Any.new(value.body.size.to_i64),
           }
-          set_nested_value(result, key, file_info)
+          set_nested_value(result, key, file_info, budget)
         end
       end
 
@@ -145,14 +166,15 @@ module Amber::Schema::Parser
     end
 
     # Set nested value in hash using dot notation or bracket notation
-    private def self.set_nested_value(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any))
+    private def self.set_nested_value(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any), budget : Amber::Router::Parsers::ParamBudget)
+      budget.check_key_shape!(key)
       # Handle different key formats
       if key.includes?("[") && key.includes?("]")
         # Bracket notation: user[name] or user[address][city]
-        parse_bracket_notation(hash, key, value)
+        parse_bracket_notation(hash, key, value, budget)
       elsif key.includes?(".")
         # Dot notation: user.name or user.address.city
-        parse_dot_notation(hash, key, value)
+        parse_dot_notation(hash, key, value, budget)
       elsif key.ends_with?("[]")
         # Array notation
         base_key = key[0..-3]
@@ -167,9 +189,11 @@ module Amber::Schema::Parser
     end
 
     # Parse bracket notation keys with array index support
-    private def self.parse_bracket_notation(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any))
+    private def self.parse_bracket_notation(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any), budget : Amber::Router::Parsers::ParamBudget)
       # Parse keys like: user[profile][name] or items[0] or tags[1][name]
       parts = key.split(/[\[\]]/).reject(&.empty?)
+      # Only bracketed segments are indices; the base name is a plain field.
+      parts.skip(1).each { |part| budget.check_segment!(part) }
 
       if parts.size == 1
         hash[parts[0]] = parse_value(value)
@@ -211,14 +235,13 @@ module Amber::Schema::Parser
             # We're navigating within an array
             if is_numeric?(part)
               # This is an array index
-              array_index = part.to_i
-              extend_array_to_index(current_array, array_index)
+              array_index = budget.reserve_array_slot!(current_array, part)
 
               # Check if next part exists and what it is
               if next_part = parts[index + 1]?
                 if is_numeric?(next_part)
                   # Next is also numeric, create nested array
-                  current_array[array_index] ||= JSON::Any.new([] of JSON::Any)
+                  container_slot(current_array, array_index, JSON::Any.new([] of JSON::Any))
                   if nested_array = current_array[array_index].as_a?
                     current_array = nested_array
                   else
@@ -226,7 +249,7 @@ module Amber::Schema::Parser
                   end
                 else
                   # Next is object key, create nested object
-                  current_array[array_index] ||= JSON::Any.new({} of String => JSON::Any)
+                  container_slot(current_array, array_index, JSON::Any.new({} of String => JSON::Any))
                   if nested_obj = current_array[array_index].as_h?
                     current_hash = nested_obj
                     current_array = nil
@@ -274,8 +297,7 @@ module Amber::Schema::Parser
       if ca = current_array
         if is_numeric?(final_part)
           # Setting array element
-          array_index = final_part.to_i
-          extend_array_to_index(ca, array_index)
+          array_index = budget.reserve_array_slot!(ca, final_part)
           ca[array_index] = parse_value(value)
         end
       elsif ch = current_hash
@@ -284,21 +306,29 @@ module Amber::Schema::Parser
       end
     end
 
+    # Checks an array-form key such as `user[tags][]` the way nested keys are
+    # checked: its length, its depth, and its bracketed segments.
+    private def self.check_array_key!(key : String, budget : Amber::Router::Parsers::ParamBudget) : Nil
+      budget.check_key_shape!(key)
+      key.split(/[\[\]]/).reject(&.empty?).skip(1).each { |segment| budget.check_segment!(segment) }
+    end
+
+    # Returns the container at *index*, replacing the null that padding put
+    # there, so `items[0][name]=alice` builds `[{"name" => "alice"}]`.
+    private def self.container_slot(array : Array(JSON::Any), index : Int32, empty : JSON::Any) : JSON::Any
+      slot = array[index]
+      return slot unless slot.raw.nil?
+      array[index] = empty
+    end
+
     # Helper method to check if a string represents a number
     private def self.is_numeric?(str : String?) : Bool
       return false unless str
       !!(str =~ /^\d+$/)
     end
 
-    # Helper method to extend array to accommodate index
-    private def self.extend_array_to_index(array : Array(JSON::Any), index : Int32)
-      while array.size <= index
-        array << JSON::Any.new(nil)
-      end
-    end
-
     # Parse dot notation keys
-    private def self.parse_dot_notation(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any))
+    private def self.parse_dot_notation(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any), budget : Amber::Router::Parsers::ParamBudget)
       parts = key.split('.')
 
       if parts.size == 1

@@ -14,6 +14,18 @@ module Amber
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.forbidden)
         Log.warn(exception: ex) { error_msg(context, 403).colorize(:yellow) }
+      rescue ex : Amber::Exceptions::BadRequest
+        context.response.status_code = 400
+        error = Amber::Controller::Error.new(context, ex)
+        context.response.print(error.bad_request)
+        Log.warn { error_msg(context, 400).colorize(:yellow) }
+      rescue ex : Amber::Schema::RequestParseError
+        # A request body that could not be decoded, such as one beyond a
+        # limit, read by an action through the schema parsers directly.
+        context.response.status_code = ex.http_status
+        error = Amber::Controller::Error.new(context, ex)
+        context.response.print(error.bad_request)
+        Log.warn { error_msg(context, ex.http_status).colorize(:yellow) }
       rescue ex : Amber::Exceptions::RouteNotFound
         context.response.status_code = 404
         error = Amber::Controller::Error.new(context, ex)

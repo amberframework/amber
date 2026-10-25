@@ -1,6 +1,6 @@
 module ValidationsHelper
   def params_builder(body = "")
-    request = HTTP::Request.new("GET", "")
+    request = HTTP::Request.new("GET", "/")
     params = Amber::Router::Params.new(request)
     return params if body.empty?
 

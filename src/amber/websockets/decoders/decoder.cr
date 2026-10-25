@@ -50,6 +50,14 @@ module Amber
           super(message)
         end
       end
+
+      # Raised when a message is larger than a decoder accepts. The socket is
+      # closed with code 1009 (message too big).
+      class FrameTooLargeError < DecoderError
+        def initialize(message : String)
+          super(message, nil)
+        end
+      end
     end
   end
 end

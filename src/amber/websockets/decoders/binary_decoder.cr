@@ -27,17 +27,45 @@ module Amber
       # decoded["event"].as_s # => "message"
       # ```
       class BinaryDecoder < Decoder
+        getter max_frame_bytes : Int32
+
+        # *max_frame_bytes* bounds the decoded message. It defaults to the
+        # WebSocket ingress limit (`Amber.settings.params.max_websocket_message_bytes`),
+        # so ingress governs unless a socket's `decoder` passes a smaller value.
+        # A message over a smaller value raises `FrameTooLargeError`, and the
+        # socket closes with code 1009.
+        def initialize(@max_frame_bytes : Int32 = Amber.settings.params.max_websocket_message_bytes)
+          raise ArgumentError.new("max_frame_bytes must be positive, got #{@max_frame_bytes}") unless @max_frame_bytes > 0
+        end
+
         def decode(raw : String) : JSON::Any
+          # Checked before decoding: Base64 yields 3 bytes per 4 characters.
+          max_encoded_bytes = (@max_frame_bytes.to_i64 + 2) // 3 * 4
+          if raw.bytesize > max_encoded_bytes
+            raise FrameTooLargeError.new("Failed to decode binary message: frame exceeds #{@max_frame_bytes} bytes")
+          end
+
           bytes = Base64.decode(raw)
+          # The encoded check allows up to two bytes of slack; this one is exact.
+          if bytes.size > @max_frame_bytes
+            raise FrameTooLargeError.new("Failed to decode binary message: frame exceeds #{@max_frame_bytes} bytes")
+          end
           io = IO::Memory.new(bytes)
 
           field_count = read_uint32(io)
+          # Each field needs at least two 4-byte length prefixes.
+          remaining = io.size - io.pos
+          raise IO::EOFError.new("field count #{field_count} exceeds the message size") if field_count > remaining // 8
           result = Hash(String, JSON::Any).new
 
           field_count.times do
             key = read_length_prefixed_string(io)
             value = read_length_prefixed_string(io)
             result[key] = JSON::Any.new(value)
+          end
+
+          unless io.pos == io.size
+            raise DecoderError.new("Failed to decode binary message: #{io.size - io.pos} trailing bytes after the declared fields", raw)
           end
 
           JSON::Any.new(result)
@@ -70,7 +98,7 @@ module Amber
           "application/octet-stream"
         end
 
-        private def read_uint32(io : IO) : UInt32
+        private def read_uint32(io : IO::Memory) : UInt32
           bytes = Bytes.new(4)
           io.read_fully(bytes)
           IO::ByteFormat::BigEndian.decode(UInt32, bytes)
@@ -82,8 +110,11 @@ module Amber
           io.write(bytes)
         end
 
-        private def read_length_prefixed_string(io : IO) : String
+        private def read_length_prefixed_string(io : IO::Memory) : String
           length = read_uint32(io)
+          # The prefix is untrusted: never allocate more than the message holds.
+          remaining = io.size - io.pos
+          raise IO::EOFError.new("length prefix #{length} exceeds the #{remaining} bytes remaining") if length > remaining
           bytes = Bytes.new(length)
           io.read_fully(bytes)
           String.new(bytes)
