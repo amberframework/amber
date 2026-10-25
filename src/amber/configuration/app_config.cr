@@ -30,6 +30,9 @@ module Amber::Configuration
     @[YAML::Field(key: "static")]
     property static : StaticConfig = StaticConfig.new
 
+    @[YAML::Field(key: "security_headers")]
+    property security_headers : SecurityHeadersConfig = SecurityHeadersConfig.new
+
     @[YAML::Field(key: "secrets")]
     property secrets : Hash(String, String) = {} of String => String
 
@@ -83,6 +86,12 @@ module Amber::Configuration
 
       begin
         mailer.validate!
+      rescue ex : Amber::Exceptions::ConfigurationError
+        list_of_errors.concat(ex.list_of_errors)
+      end
+
+      begin
+        security_headers.validate!
       rescue ex : Amber::Exceptions::ConfigurationError
         list_of_errors.concat(ex.list_of_errors)
       end

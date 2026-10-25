@@ -19,6 +19,22 @@ module Amber::Environment
     end
 
     describe "V2 YAML loading" do
+      it "loads security_headers overrides and keeps defaults for unnamed keys" do
+        settings = Loader.new(:v2_security_headers, "./spec/support/config/").settings
+        security_headers = settings.security_headers
+
+        security_headers.frame_options.should eq "SAMEORIGIN"
+        security_headers.content_security_policy.should eq "frame-ancestors 'self'"
+        security_headers.permissions_policy.should eq ""
+        security_headers.strict_transport_security.should eq "max-age=31536000"
+        security_headers.content_type_options.should eq "nosniff"
+      end
+
+      it "uses secure security_headers defaults when the YAML has no section" do
+        settings = Loader.new(:v2_minimal, "./spec/support/config/").settings
+        settings.security_headers.frame_options.should eq "DENY"
+      end
+
       it "loads a V2 YAML file and returns a Settings instance" do
         loader = Loader.new(:v2_test, "./spec/support/config/")
         settings = loader.settings

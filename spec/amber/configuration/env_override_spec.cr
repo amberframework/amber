@@ -13,6 +13,43 @@ end
 module Amber::Configuration
   describe EnvOverride do
     describe ".apply_all" do
+      it "overrides security_headers.frame_options from AMBER_SECURITY_HEADERS_FRAME_OPTIONS" do
+        with_env({"AMBER_SECURITY_HEADERS_FRAME_OPTIONS" => "SAMEORIGIN"}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.security_headers.frame_options.should eq "SAMEORIGIN"
+        end
+      end
+
+      it "overrides every security_headers key from its AMBER_SECURITY_HEADERS_ variable" do
+        with_env({
+          "AMBER_SECURITY_HEADERS_CONTENT_TYPE_OPTIONS"       => "nosniff-test",
+          "AMBER_SECURITY_HEADERS_CONTENT_SECURITY_POLICY"    => "frame-ancestors 'self'",
+          "AMBER_SECURITY_HEADERS_REFERRER_POLICY"            => "no-referrer",
+          "AMBER_SECURITY_HEADERS_PERMISSIONS_POLICY"         => "camera=(self)",
+          "AMBER_SECURITY_HEADERS_CROSS_ORIGIN_OPENER_POLICY" => "same-origin-allow-popups",
+          "AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY"  => "max-age=600",
+        }) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          security_headers = config.security_headers
+          security_headers.content_type_options.should eq "nosniff-test"
+          security_headers.content_security_policy.should eq "frame-ancestors 'self'"
+          security_headers.referrer_policy.should eq "no-referrer"
+          security_headers.permissions_policy.should eq "camera=(self)"
+          security_headers.cross_origin_opener_policy.should eq "same-origin-allow-popups"
+          security_headers.strict_transport_security.should eq "max-age=600"
+        end
+      end
+
+      it "turns a security header off with an empty AMBER_SECURITY_HEADERS_ value" do
+        with_env({"AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY" => ""}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.security_headers.sends_strict_transport_security?.should be_false
+        end
+      end
+
       it "overrides server.host from AMBER_SERVER_HOST" do
         with_env({"AMBER_SERVER_HOST" => "0.0.0.0"}) do
           config = AppConfig.new

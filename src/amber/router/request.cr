@@ -58,6 +58,17 @@ class HTTP::Request
     parsed_uri.to_s
   end
 
+  # Returns `true` when the client reached the application over HTTPS. This
+  # is the one place Amber answers that question: the cookie jar's `Secure`
+  # flag and `Amber::Pipe::SecurityHeaders`' `Strict-Transport-Security`
+  # header both ask it, so they always agree.
+  #
+  # A request counts as HTTPS when it carries the CGI-style `HTTPS: on`
+  # header, which a TLS-terminating proxy or an application pipe sets.
+  def https? : Bool
+    headers["HTTPS"]? == "on"
+  end
+
   private def parsed_uri
     if resource.starts_with?("http://") || resource.starts_with?("https://")
       URI.parse(resource)
