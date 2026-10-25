@@ -38,11 +38,12 @@ module Amber::Environment
     private def load_v2_settings(content : String) : Settings
       app_config = Amber::Configuration::AppConfig.from_yaml(content)
 
+      # Load any registered custom configs from the YAML first, so the
+      # environment variable pass reaches them as well as built-in sections.
+      load_custom_configs(content, app_config)
+
       # Apply environment variable overrides
       Amber::Configuration::EnvOverride.apply_all(app_config)
-
-      # Load any registered custom configs from the YAML
-      load_custom_configs(content, app_config)
 
       # Build a Settings instance backed by the AppConfig
       settings = build_settings_from_app_config(app_config)
@@ -55,12 +56,28 @@ module Amber::Environment
       parsed = YAML.parse(content)
       Amber::Configuration.custom_config_defaults.each do |key, _default|
         if yaml_node = parsed[key]?
-          if loaded = Amber::Configuration.load_custom_from_yaml(key, yaml_node.to_yaml)
+          if Amber::Configuration.credential_section?(key)
+            # Credentials come from the credentials directory only; a YAML
+            # copy would either be ignored or replace them silently.
+            raise Amber::Exceptions::ConfigurationError.new(
+              "#{key} is loaded from the credentials directory; remove the #{key} section from #{yml_settings_file}"
+            )
+          end
+          section_yaml = yaml_node.to_yaml
+          if loaded = Amber::Configuration.load_custom_from_yaml(key, section_yaml)
             app_config.custom_configs[key] = loaded
+            # Kept so the override pass rebuilds the section from what was
+            # loaded, including fields the type does not serialize.
+            if source = YAML::Nodes.parse(section_yaml).nodes.first?
+              app_config.custom_config_sources[key] = source
+            end
           end
         else
           # Use the default instance
           app_config.custom_configs[key] = Amber::Configuration.custom_config_defaults[key]
+          if credential_source = Amber::Configuration.credential_source(key)
+            app_config.custom_config_sources[key] = credential_source
+          end
         end
       end
     end

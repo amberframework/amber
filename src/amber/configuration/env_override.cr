@@ -39,7 +39,143 @@ module Amber::Configuration
       # Mailer SMTP sub-section
       apply_mailer_smtp(config.mailer.smtp)
 
+      # Registered custom sections, including credentials sections
+      apply_custom(config)
+
       config
+    end
+
+    # Apply `AMBER_{SECTION}_{KEY}` overrides to every registered custom
+    # section loaded into *config*, the same way the built-in sections are
+    # overridden. Nested sections extend the name, as with
+    # `AMBER_SERVER_SSL_KEY_FILE`: `AMBER_{SECTION}_{SUBSECTION}_{KEY}`,
+    # and a nested section that is nil or absent is created to hold it.
+    #
+    # Section and key names are upper-cased, and any character other than a
+    # letter or digit becomes `_`. Values follow the field's type, as in the
+    # built-in pass: `String` fields keep the text as given (an empty value
+    # stays empty), `Bool` fields accept `true`, `1` or `yes`, `Float` fields
+    # accept any number, and other fields read the value as a plain YAML
+    # scalar, so `8080` fills an `Int32`.
+    #
+    # The section is rebuilt from the YAML it was loaded from, or from the
+    # credentials it was read from, with the overrides applied.
+    #
+    # Raises `Amber::Exceptions::ConfigurationError` naming the variable when
+    # its value does not fit the field's type. The value itself is left out
+    # of the message because it may be a secret.
+    def self.apply_custom(config : AppConfig) : Nil
+      config.custom_configs.keys.each do |section|
+        list_of_fields = Amber::Configuration.custom_config_fields(section)
+        next unless list_of_fields
+
+        mapping = source_mapping(config, section)
+        list_of_applied_variables = [] of String
+        apply_to_mapping(mapping, "AMBER_#{env_name(section)}", list_of_fields, list_of_applied_variables)
+        next if list_of_applied_variables.empty?
+
+        begin
+          if rebuilt_section = Amber::Configuration.build_custom_from_node(section, mapping)
+            config.custom_configs[section] = rebuilt_section
+          end
+        rescue YAML::ParseException
+          raise Amber::Exceptions::ConfigurationError.new(
+            "#{list_of_applied_variables.join(", ")}: value does not fit the field type in the #{section} section"
+          )
+        end
+      end
+    end
+
+    # Returns the mapping a section was loaded from, falling back to the
+    # section's serialized form when the loader recorded no source.
+    private def self.source_mapping(config : AppConfig, section : String) : YAML::Nodes::Mapping
+      source = config.custom_config_sources[section]?
+      source ||= YAML::Nodes.parse(config.custom_configs[section].to_yaml).nodes.first?
+      source.as?(YAML::Nodes::Mapping) || YAML::Nodes::Mapping.new
+    end
+
+    # Overwrites or adds each field of *mapping* that has a matching
+    # environment variable, then recurses into nested sections, creating a
+    # nested mapping only when a variable inside it is set.
+    private def self.apply_to_mapping(mapping : YAML::Nodes::Mapping, prefix : String,
+                                      list_of_fields : Array(SectionField), list_of_applied_variables : Array(String)) : Nil
+      list_of_fields.each do |field|
+        variable = "#{prefix}_#{env_name(field.key)}"
+        value_index = index_of_value(mapping, field.key)
+        existing_value = value_index ? mapping.nodes[value_index] : nil
+
+        if field.value_kind.section?
+          nested_mapping = existing_value.as?(YAML::Nodes::Mapping)
+          created_mapping = nested_mapping.nil?
+          nested_mapping ||= YAML::Nodes::Mapping.new
+          applied_before = list_of_applied_variables.size
+          apply_to_mapping(nested_mapping, variable, field.list_of_fields, list_of_applied_variables)
+          if created_mapping && list_of_applied_variables.size > applied_before
+            set_value(mapping, field.key, value_index, nested_mapping)
+          end
+        elsif existing_value.is_a?(YAML::Nodes::Mapping)
+          # A hash-typed field: each of its existing keys takes a variable.
+          apply_to_mapping(existing_value, variable, untyped_fields_of(existing_value), list_of_applied_variables)
+        elsif override = ENV[variable]?
+          set_value(mapping, field.key, value_index, override_node(field.value_kind, variable, override))
+          list_of_applied_variables << variable
+        end
+      end
+    end
+
+    # Turns an environment value into a scalar the field's type accepts.
+    private def self.override_node(value_kind : SectionField::Kind, variable : String, value : String) : YAML::Nodes::Scalar
+      if value_kind.text?
+        # Quoted, so "", "null" and "true" stay that text in a String field.
+        scalar(value, YAML::ScalarStyle::DOUBLE_QUOTED)
+      elsif value_kind.flag?
+        scalar(parse_bool(value).to_s, YAML::ScalarStyle::PLAIN)
+      elsif value_kind.decimal?
+        number = value.to_f?
+        unless number
+          raise Amber::Exceptions::ConfigurationError.new("#{variable}: value is not a number")
+        end
+        scalar(number.to_s, YAML::ScalarStyle::PLAIN)
+      else
+        scalar(value, YAML::ScalarStyle::PLAIN)
+      end
+    end
+
+    private def self.scalar(value : String, style : YAML::ScalarStyle) : YAML::Nodes::Scalar
+      node = YAML::Nodes::Scalar.new(value)
+      node.style = style
+      node
+    end
+
+    private def self.set_value(mapping : YAML::Nodes::Mapping, key : String, value_index : Int32?, value : YAML::Nodes::Node) : Nil
+      if value_index
+        mapping.nodes[value_index] = value
+      else
+        mapping[YAML::Nodes::Scalar.new(key)] = value
+      end
+    end
+
+    private def self.index_of_value(mapping : YAML::Nodes::Mapping, key : String) : Int32?
+      mapping.nodes.each_slice(2).with_index do |(key_node, _value_node), pair_index|
+        if key_node.is_a?(YAML::Nodes::Scalar) && key_node.value == key
+          return pair_index * 2 + 1
+        end
+      end
+      nil
+    end
+
+    private def self.untyped_fields_of(mapping : YAML::Nodes::Mapping) : Array(SectionField)
+      list_of_fields = [] of SectionField
+      mapping.nodes.each_slice(2) do |(key_node, _value_node)|
+        if key_node.is_a?(YAML::Nodes::Scalar)
+          list_of_fields << SectionField.new(key_node.value, SectionField::Kind::Other)
+        end
+      end
+      list_of_fields
+    end
+
+    private def self.env_name(name : String) : String
+      name.upcase.gsub(/[^A-Z0-9]/, "_")
     end
 
     private def self.apply_server(config : ServerConfig) : Nil

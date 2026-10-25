@@ -37,6 +37,14 @@ module Amber::Configuration
     @[YAML::Field(ignore: true)]
     property custom_configs : Hash(String, YAML::Serializable) = {} of String => YAML::Serializable
 
+    # The YAML node each custom section was loaded from: the section's
+    # mapping in the environment file, or the credentials read for a
+    # credentials section. The `AMBER_*` override pass rebuilds a section
+    # from its source, so fields the type does not serialize keep their
+    # loaded values. A section with no source is rebuilt from `to_yaml`.
+    @[YAML::Field(ignore: true)]
+    property custom_config_sources : Hash(String, YAML::Nodes::Node) = {} of String => YAML::Nodes::Node
+
     def initialize
     end
 
