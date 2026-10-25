@@ -54,12 +54,26 @@ jobs:
             "https://github.com/crystal-lang/crystal/releases/download/1.22.1/$CRYSTAL_TARBALL"
           echo "$CRYSTAL_SHA256  $archive" | shasum -a 256 -c -
           tar -xzf "$archive" -C "$RUNNER_TEMP"
-          echo "$RUNNER_TEMP/crystal-1.22.1-1/bin" >> "$GITHUB_PATH"
+          root="$RUNNER_TEMP/crystal-1.22.1-1"
+          # The darwin tarball keeps shards in embedded/bin. Each GITHUB_PATH
+          # line is prepended, so bin/ (written last) wins for `crystal`.
+          if [ -d "$root/embedded/bin" ]; then
+            echo "$root/embedded/bin" >> "$GITHUB_PATH"
+          fi
+          echo "$root/bin" >> "$GITHUB_PATH"
 
-      - name: Confirm compiler version
+      - name: Confirm compiler and shards versions
         run: |
+          set -euo pipefail
+          test "$(command -v crystal)" = "$RUNNER_TEMP/crystal-1.22.1-1/bin/crystal"
+          case "$(command -v shards)" in
+            "$RUNNER_TEMP/crystal-1.22.1-1/"*) ;;
+            *) echo "shards does not come from the verified tarball" >&2; exit 1 ;;
+          esac
           crystal --version
+          shards --version
           crystal --version | grep -q '^Crystal 1\.22\.1 '
+          shards --version | grep -q '^Shards 0\.20\.0 '
 
       - name: Install dependencies
         run: shards install --frozen
