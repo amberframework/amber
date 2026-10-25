@@ -2,9 +2,44 @@ module Amber::Router::Parsers
   module FormData
     # Parses a URL-encoded request body, checking each pair as it streams
     # and charging *budget* (the request's own budget by default).
+    #
+    # A `charset` declared in the `Content-Type` is decoded to UTF-8 while
+    # the body streams, as `HTTP::Request#form_params` does in Crystal.
     def self.parse(request : HTTP::Request, budget : ParamBudget = request.param_budget) : HTTP::Params
       body = request.body
-      body ? budget.parse_form(body) : HTTP::Params.new
+      return HTTP::Params.new unless body
+
+      charset = declared_charset(request)
+      return budget.parse_form(body) unless charset
+
+      begin
+        body.set_encoding(charset)
+        budget.parse_form(UTF8Reader.new(body))
+      rescue ex : ArgumentError
+        raise Amber::Exceptions::BadRequest.new("The form body could not be decoded as #{charset}: #{ex.message}")
+      end
+    end
+
+    private def self.declared_charset(request : HTTP::Request) : String?
+      content_type = request.headers["Content-Type"]?
+      return unless content_type
+      media_type = MIME::MediaType.parse?(content_type)
+      return unless media_type
+      media_type["charset"]?
+    end
+
+    # Reads *io* as UTF-8, decoding the encoding set on it.
+    private class UTF8Reader < IO
+      def initialize(@io : IO)
+      end
+
+      def read(slice : Bytes) : Int32
+        @io.read_utf8(slice)
+      end
+
+      def write(slice : Bytes) : Nil
+        raise IO::Error.new("UTF8Reader is read-only")
+      end
     end
 
     def self.parse_part(input : IO, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : HTTP::Params

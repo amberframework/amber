@@ -134,6 +134,24 @@ describe "schema parsers sharing one budget per request" do
     allocated.should be < 1_u64 * 1024 * 1024
   end
 
+  it "holds a skipped conflicting part to its own cap" do
+    boundary = "ConflictBoundary"
+    config = Amber::Configuration::ParamsConfig.new
+    config.max_value_bytes = 64
+    config.max_file_bytes = 64_i64
+    {
+      %(name="a[b]"),
+      %(name="a[b]"; filename="big.bin"),
+    }.each do |disposition|
+      body = "--#{boundary}\r\nContent-Disposition: form-data; name=\"a\"\r\n\r\nx\r\n" \
+             "--#{boundary}\r\nContent-Disposition: form-data; #{disposition}\r\n\r\n#{"y" * 128}\r\n--#{boundary}--\r\n"
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"}, body)
+      expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_(value|file)_bytes/) do
+        Amber::Schema::Parser::MultipartParser.parse_multipart_request(request, Amber::Router::Parsers::ParamBudget.new(config))
+      end
+    end
+  end
+
   it "rejects a cached upload's key before reading its tempfile" do
     boundary = "IndexedUploadBoundary"
     payload = "f" * (4 * 1024 * 1024)

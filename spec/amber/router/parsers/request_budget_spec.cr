@@ -278,6 +278,58 @@ module Amber::Router::Parsers
     end
   end
 
+  describe "an upload rejected while its directory cannot be written" do
+    it "keeps the limit error and deletes the tempfile when the request finishes" do
+      boundary = "AmberBudgetBoundary"
+      body = multipart_body(boundary, [{"doc", "a.bin", "z" * 131_072}])
+      directory = Amber::Router::File.upload_directory
+      before = Dir.children(directory).to_set
+      # Lock the directory once the part's headers are read and its tempfile
+      # exists, so deleting the over-limit tempfile fails.
+      trigger = body.index!("\r\n\r\n") + 4 + 40_000
+      locking = LockingIO.new(IO::Sized.new(IO::Memory.new(body), trigger), IO::Memory.new(body.byte_slice(trigger)), directory)
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"})
+      request.body = locking
+
+      begin
+        expect_raises(Amber::Exceptions::ParameterLimitExceeded, /max_file_bytes/) do
+          Multipart.parse(request, ParamBudget.new(limits_with(&.max_file_bytes = 65_536_i64)))
+        end
+      ensure
+        ::File.chmod(directory, 0o700)
+      end
+      (Dir.children(directory).to_set - before).size.should eq 1
+
+      request.delete_uploaded_files
+      (Dir.children(directory).to_set - before).should be_empty
+    end
+  end
+
+  describe "repeated schema parses" do
+    it "charge the request's array padding once" do
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}, "a[32]=x")
+      request.param_budget = ParamBudget.new(limits_with(&.max_array_padding = 32))
+
+      first = Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      second = Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      second.should eq first
+      first["a"].as_a.size.should eq 33
+    end
+  end
+
+  describe "form charsets" do
+    it "decodes a declared charset while the form streams" do
+      body = "title=caf".to_slice + Bytes[0xE9]
+      request = HTTP::Request.new("PUT", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=ISO-8859-1"}, body)
+      request.form_params["title"]?.should eq "café"
+    end
+
+    it "answers an unknown charset with a bad request" do
+      request = HTTP::Request.new("PUT", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=no-such-charset"}, "title=x")
+      expect_raises(Amber::Exceptions::BadRequest, /could not be decoded/) { request.form_params }
+    end
+  end
+
   describe "a rejected body" do
     it "is not served from the router's cached form after a schema contract rejects it" do
       request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}, "a[33]=x")

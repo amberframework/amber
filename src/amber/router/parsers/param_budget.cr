@@ -144,6 +144,17 @@ module Amber::Router::Parsers
       read_bounded(io, limits.max_document_body_bytes, "max_document_body_bytes")
     end
 
+    # Reads and discards at most *max_bytes* from *io* through a fixed
+    # scratch buffer, raising when more remain.
+    def skip_bounded(io : IO, max_bytes : Int, limit_name : String) : Nil
+      scratch = Bytes.new(SCRATCH_BYTES)
+      total = 0_i64
+      while (count = io.read(scratch)) > 0
+        total += count
+        exceed!(limit_name, max_bytes) if total > max_bytes
+      end
+    end
+
     # Reads one field value, bounded by `max_value_bytes`.
     def read_value(io : IO) : String
       read_bounded(io, limits.max_value_bytes, "max_value_bytes")

@@ -156,8 +156,14 @@ module Amber::Schema::Parser
           end
         end
         # A skipped part (its key conflicts with an earlier value) is drained
-        # within the body cap, so parsing can continue.
-        upload.body.skip_to_end unless read
+        # within its own cap, so parsing can continue.
+        unless read
+          if filename.is_a?(String) && !filename.empty?
+            budget.skip_bounded(upload.body, budget.limits.max_file_bytes, "max_file_bytes")
+          else
+            budget.skip_bounded(upload.body, budget.limits.max_value_bytes, "max_value_bytes")
+          end
+        end
       end
     end
 

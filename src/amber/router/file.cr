@@ -33,6 +33,10 @@ module Amber::Router
 
     @@fallback_upload_directory : String?
 
+    private LEFTOVER_LOCK = Mutex.new
+    private MAX_LEFTOVERS = 1_024
+    @@list_of_leftovers = [] of Tuple(String, ::File::Info)
+
     # Returns a directory only this user can enter, so no other local user
     # can create or replace files in it: a real directory, owned by this
     # user, with mode 0700.
@@ -233,14 +237,53 @@ module Amber::Router
 
     # :nodoc:
     # Closes *file* and deletes its path, even when closing fails (for
-    # example while flushing onto a full disk). Callers re-raise their
-    # original error.
+    # example while flushing onto a full disk). Never raises: callers
+    # re-raise their original error. A file that cannot be deleted now is
+    # remembered, and `retry_leftover_deletions` deletes it later while its
+    # path still names the same file.
     def self.discard(file : ::File) : Nil
-      file.close unless file.closed?
-    rescue IO::Error
-      # The caller's original error is the one to report.
-    ensure
-      ::File.delete?(file.path)
+      identity = begin
+        file.info
+      rescue IO::Error
+        nil
+      end
+      begin
+        file.close unless file.closed?
+      rescue IO::Error
+        # The caller's original error is the one to report.
+      end
+
+      begin
+        ::File.delete?(file.path)
+      rescue ex : IO::Error
+        Log.warn(exception: ex) { "Could not delete the upload tempfile #{file.path}; retrying later" }
+        remember_leftover(file.path, identity) if identity
+      end
+    end
+
+    # Deletes the tempfiles `discard` could not, when their paths still name
+    # the files Amber created; Amber calls it when a request finishes. Files
+    # that still cannot be deleted are kept for the next call.
+    def self.retry_leftover_deletions : Nil
+      list_of_attempts = LEFTOVER_LOCK.synchronize do
+        attempts = @@list_of_leftovers
+        @@list_of_leftovers = [] of Tuple(String, ::File::Info)
+        attempts
+      end
+
+      list_of_attempts.each do |path, identity|
+        current = ::File.info?(path, follow_symlinks: false)
+        ::File.delete(path) if current && current.same_file?(identity)
+      rescue IO::Error
+        remember_leftover(path, identity)
+      end
+    end
+
+    private def self.remember_leftover(path : String, identity : ::File::Info) : Nil
+      LEFTOVER_LOCK.synchronize do
+        @@list_of_leftovers.shift if @@list_of_leftovers.size >= MAX_LEFTOVERS
+        @@list_of_leftovers << {path, identity}
+      end
     end
 
     # Keeps the tempfile at `path` after the request and returns that path.

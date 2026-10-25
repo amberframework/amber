@@ -28,7 +28,9 @@ module Amber::Schema
       # `HTTP::Request#guard_body_read`, so a rejected body stays rejected for
       # every later read of that request.
       def self.parse_request(request : HTTP::Request, schema_class : Definition.class | Nil = nil) : Hash(String, JSON::Any)
-        request.guard_body_read { parse_request_once(request, schema_class) }
+        request.guard_body_read do
+          request.schema_request_data { parse_request_once(request, schema_class) }
+        end
       end
 
       private def self.parse_request_once(request : HTTP::Request, schema_class : Definition.class | Nil) : Hash(String, JSON::Any)

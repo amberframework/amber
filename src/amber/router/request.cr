@@ -15,6 +15,7 @@ class HTTP::Request
   @param_budget : Amber::Router::Parsers::ParamBudget?
   @body_rejection : (Amber::Exceptions::BadRequest | Amber::Schema::RequestParseError)?
   @list_of_uploads_to_clean_up : Array(Amber::Router::File)?
+  @schema_request_data : Hash(String, JSON::Any)?
 
   def method
     {% if flag?(:amber_bench_legacy_request_method) %}
@@ -93,6 +94,15 @@ class HTTP::Request
     end
   end
 
+  # Returns a copy of this request's schema data, computing it with the
+  # block only once. Each schema parse of one request then sees the same
+  # data, and charges the request's `param_budget` (counts and array
+  # padding) only once.
+  def schema_request_data(& : -> Hash(String, JSON::Any)) : Hash(String, JSON::Any)
+    data = @schema_request_data ||= yield
+    data.clone
+  end
+
   # Raises the remembered body rejection, if there is one. Readers of a
   # cached parse call it first, so a body rejected later (for example by a
   # schema contract) is not served from the cache either.
@@ -160,6 +170,7 @@ class HTTP::Request
         Amber::Router::File::Log.warn(exception: ex) { "Could not delete the upload tempfile #{uploaded_file.path}" }
       end
     end
+    Amber::Router::File.retry_leftover_deletions
   end
 
   # Keeps *uploaded_file*, whose tempfile could not be deleted when its

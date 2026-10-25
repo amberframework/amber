@@ -96,8 +96,13 @@
   way, and a cached parse is not served once the body is rejected. Schema
   parsers check each key, and reserve its array slot, before they read or
   parse its value, so a rejected key never loads an upload into memory.
-  Upload cleanup continues past a file that fails to close or delete, and
-  a failed delete is retried when the request finishes.
+  Each request's schema data is parsed once and reused, so repeated
+  schema reads charge its limits once. Upload cleanup continues past a
+  file that fails to close or delete, keeps the original error, and
+  retries a failed delete when the request finishes.
+- URL-encoded bodies that declare a `charset` are decoded to UTF-8 while
+  they stream, as Crystal's `HTTP::Request#form_params` does; an unknown
+  charset is answered with `400 Bad Request`.
 - `Amber::Schema::RequestParseError` raised from an action (for example by
   calling `ParserRegistry.parse_request` directly) is answered with its own
   status, such as 400, by the pipeline and the Error pipe, rather than 500.
