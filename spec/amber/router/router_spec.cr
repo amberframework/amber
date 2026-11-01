@@ -99,7 +99,7 @@ module Amber
           router = Router.new
           request = HTTP::Request.new("GET", "/products/world")
 
-          router.route_defined?(request).should eq false
+          router.route_defined?(request).should be_false
         end
 
         it "returns true when route exists" do
@@ -113,7 +113,7 @@ module Amber
           route = Route.new("GET", "/hello/world", handler)
           router.add(route)
 
-          router.route_defined?(request).should eq true
+          router.route_defined?(request).should be_true
         end
       end
 
@@ -127,7 +127,7 @@ module Amber
           end
 
           route = router.match_by_request(request)
-          route.found?.should eq true
+          route.found?.should be_true
           route.path.should eq "get/checkout/:name"
         end
 
@@ -139,11 +139,11 @@ module Amber
 
           request = HTTP::Request.new("GET", "/checkout/hello")
           route = router.match_by_request(request)
-          route.found?.should eq false
+          route.found?.should be_false
 
           request = HTTP::Request.new("GET", "/checkout/he110")
           route = router.match_by_request(request)
-          route.found?.should eq true
+          route.found?.should be_true
         end
       end
 
@@ -189,11 +189,45 @@ module Amber
 
         it "falls back to the full path when the stripped path matches nothing" do
           router = Router.new
-          router.add Route.new("GET", "/files/*", handler, :download, :web, Scope.new, "FilesController")
+          router.add Route.new("GET", "/files/:name", handler, :download, :web, Scope.new, "FilesController", {"name" => /\.json\z/})
 
+          router.match_by_request(HTTP::Request.new("GET", "/files/report")).found?.should be_false
           route = router.match_by_request(HTTP::Request.new("GET", "/files/report.json"))
           route.found?.should be_true
-          route.payload.not_nil!.action.should eq :download
+          route.params["name"].should eq "report.json"
+        end
+
+        it "routes a path to a route whose optional part spells the extension" do
+          router = Router.new
+          router.add Route.new("GET", "/guides/setup(.md)", handler, :setup, :web, Scope.new, "GuidesController")
+          router.add Route.new("GET", "/*", handler, :static, :web, Scope.new, "StaticController")
+
+          router.match_by_request(HTTP::Request.new("GET", "/guides/setup.md")).payload.not_nil!.action.should eq :setup
+          router.match_by_request(HTTP::Request.new("GET", "/guides/setup")).payload.not_nil!.action.should eq :setup
+        end
+
+        it "treats a variable segment that ends in the extension as a parameter" do
+          router = Router.new
+          router.add Route.new("GET", "/pages/:slug.md", handler, :page, :web, Scope.new, "PagesController")
+          router.add Route.new("GET", "/pages/:id", handler, :show, :web, Scope.new, "PagesController")
+
+          route = router.match_by_request(HTTP::Request.new("GET", "/pages/intro.md"))
+          route.payload.not_nil!.action.should eq :page
+          route.params["slug.md"].should eq "intro"
+        end
+
+        it "skips a declared extension route whose request constraint rejects the request" do
+          router = Router.new
+          router.add Route.new("GET", "/overview", handler, :overview_html, :web, Scope.new, "InsightsController")
+          docs_only = Route.new("GET", "/overview.md", handler, :overview_md, :web, Scope.new, "InsightsController")
+          docs_only.request_constraint = Constraints::Host.new("docs.example.com")
+          router.add docs_only
+
+          app_request = HTTP::Request.new("GET", "/overview.md", HTTP::Headers{"Host" => "app.example.com"})
+          router.match_by_request(app_request).payload.not_nil!.action.should eq :overview_html
+
+          docs_request = HTTP::Request.new("GET", "/overview.md", HTTP::Headers{"Host" => "docs.example.com"})
+          router.match_by_request(docs_request).payload.not_nil!.action.should eq :overview_md
         end
       end
 
@@ -219,11 +253,11 @@ module Amber
 
           request = HTTP::Request.new("GET", "/posts/hello")
           route = router.match_by_request(request)
-          route.found?.should eq false
+          route.found?.should be_false
 
           request = HTTP::Request.new("GET", "/posts/55-hello")
           route = router.match_by_request(request)
-          route.found?.should eq true
+          route.found?.should be_true
           route.path.should eq "get/posts/:slug"
         end
       end

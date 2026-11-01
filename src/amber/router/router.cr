@@ -13,12 +13,13 @@ module Amber
         @routes = RouteSet(Route).new
         @routes_hash = {} of String => Route
         @named_routes = {} of Symbol => Route
+        @extension_routes_drawn = false
         @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new
         @scope = Scope.new
       end
 
       def get_socket_handler(request) : WebSockets::Server::Handler
-        if socket_route = @socket_routes.find { |sr| sr[:path] == request.path }
+        if socket_route = @socket_routes.find { |registered| registered[:path] == request.path }
           socket_route.[:handler]
         else
           raise Exceptions::RouteNotFound.new(request)
@@ -38,6 +39,7 @@ module Amber
 
       def add(route : Route)
         build_node(route.verb, route.resource)
+        @extension_routes_drawn ||= spells_extension?(route.trail)
         @routes.add(route.trail, route, route.constraints)
         @routes_hash["#{route.controller.downcase}##{route.action.to_s.downcase}"] = route
         if route_name = route.name
@@ -58,7 +60,7 @@ module Amber
       end
 
       def match_by_request(request)
-        match(request.method, request.path)
+        match(request.method, request.path, request)
       end
 
       def match_by_controller_action(controller, action)
@@ -70,30 +72,37 @@ module Amber
         @named_routes[name]?
       end
 
-      # Matches a request path to a route.
+      # Matches a request path to a route. Routes compete in the order they
+      # were drawn, as everywhere in the router.
       #
       # A path ending in a known response extension (`.json`, `.md`, ...) is
       # matched in this order:
       #
-      # 1. a route that declares the extension in its own path
-      #    (`get "/overview.md"`), so a literal route wins over any
-      #    parameter or catch-all that would also accept the full path;
-      # 2. the path with the extension removed (`/users/1.json` matches
+      # 1. the full path, when the route it reaches spells the extension as
+      #    the fixed end of its own path (`get "/overview.md"`,
+      #    `get "/overview(.md)"`) and that route's request constraint, if
+      #    any, accepts `request`;
+      # 2. the path without the extension (`/users/1.json` matches
       #    `/users/:id`, and the controller responds in that format);
-      # 3. the full path as written (`/files/*` receives `report.json`).
-      def match(http_verb, resource) : RoutedResult(Route)
-        if extension = content_ext(resource)
+      # 3. the full path as written.
+      #
+      # Step 1 runs only when some drawn route spells a known extension, so an
+      # app without one matches exactly as before.
+      def match(http_verb, resource, request : HTTP::Request? = nil) : RoutedResult(Route)
+        extension = content_ext(resource)
+        return find_route(http_verb, resource) unless extension
+
+        if @extension_routes_drawn
           literal = find_route(http_verb, resource)
-          if (route = literal.payload?) && declares_extension?(route, extension)
+          if declares_extension?(literal, extension) && constraint_accepts?(literal, request)
             return literal
           end
-
-          stripped = find_route(http_verb, resource.byte_slice(0, resource.bytesize - extension.bytesize))
-          return stripped if stripped.found?
-
-          return literal
         end
-        find_route(http_verb, resource)
+
+        stripped = find_route(http_verb, resource.byte_slice(0, resource.bytesize - extension.bytesize))
+        return stripped if stripped.found?
+
+        literal || find_route(http_verb, resource)
       end
 
       # Returns all registered routes as RouteInfo structs for introspection.
@@ -194,10 +203,26 @@ module Amber
         path.match(PATH_EXT_REGEX).try(&.[0])
       end
 
-      # True when the route declares `extension` as the literal end of its
-      # own path, as `get "/overview.md"` does.
-      private def declares_extension?(route : Route, extension : String) : Bool
-        route.resource.ends_with?(extension)
+      # True when the matched pattern (verb, scope and resource, with optional
+      # parts already expanded) ends in a fixed segment that spells
+      # `extension`. A variable segment such as `:slug.md` spells nothing.
+      private def declares_extension?(result : RoutedResult(Route), extension : String) : Bool
+        return false unless result.found?
+        last_segment = result.path.rpartition('/').last
+        return false if last_segment.starts_with?(':') || last_segment.starts_with?('*')
+        last_segment.ends_with?(extension)
+      end
+
+      private def constraint_accepts?(result : RoutedResult(Route), request : HTTP::Request?) : Bool
+        constraint = result.payload?.try(&.request_constraint)
+        return true unless constraint && request
+        constraint.matches?(request)
+      end
+
+      # A cheap, conservative test made once per drawn route: whether its path,
+      # optional parentheses removed, ends in a known extension.
+      private def spells_extension?(trail : String) : Bool
+        PATH_EXT_REGEX.matches?(trail.delete("()"))
       end
     end
   end
