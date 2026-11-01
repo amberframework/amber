@@ -235,6 +235,18 @@ module Amber::Configuration
         end
       end
 
+      it "refuses a path target that climbs out and back in with .." do
+        with_scratch_directories do |credentials, _outside|
+          File.write(File.join(credentials, "real_key"), "inside-value")
+          climbing_target = File.join("..", File.basename(credentials), "real_key")
+          File.symlink(climbing_target, File.join(credentials, "api_key"))
+
+          expect_raises(Amber::Exceptions::CredentialSymlinkOutsideDirectory) do
+            CredentialsDirectory.new(credentials).read_credential("api_key")
+          end
+        end
+      end
+
       it "raises CredentialNotARegularFile for a subdirectory" do
         with_scratch_directories do |credentials, _outside|
           Dir.mkdir(File.join(credentials, "nested"))

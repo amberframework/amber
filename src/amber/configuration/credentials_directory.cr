@@ -379,8 +379,8 @@ module Amber::Configuration
       target = String.new(buffer[0, target_size])
       target_name = File.basename(target)
       # Checked before anything is opened or looked up: a target such as
-      # `..` names no file of this directory.
-      unless plain_file_name?(target_name) && !target.ends_with?('/')
+      # `..`, or a path that climbs with `..`, is refused as written.
+      unless plain_file_name?(target_name) && !target.ends_with?('/') && !target.split('/').includes?("..")
         raise Amber::Exceptions::CredentialSymlinkOutsideDirectory.new(name, directory)
       end
       # A bare file name names an entry of this same directory.
