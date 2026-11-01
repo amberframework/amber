@@ -14,6 +14,12 @@ module Amber::Environment
       @@settings = Settings.from_yaml("default: settings")
     end
 
+    # Returns true once `settings` has been loaded. Sections registered after
+    # this point are missing from the loaded settings.
+    def self.settings_loaded? : Bool
+      !@@settings.nil?
+    end
+
     def self.env=(env : EnvType)
       @@env = Env.new(env.to_s)
       @@settings = Loader.new(env, path).settings

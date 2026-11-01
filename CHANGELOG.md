@@ -30,6 +30,25 @@
   key raises `Amber::Exceptions::ConfigurationError`. An app whose Grant models
   have UUID columns compiles with custom config again.
   `Amber::Configuration.load_custom_from_yaml` is removed.
+- Add `Amber::Configuration::CredentialsDirectory` and
+  `Amber::Configuration.register_credentials`, which read a systemd-style
+  `$CREDENTIALS_DIRECTORY` (one file per credential) into a typed, registered
+  settings section. Each read opens the directory once and works relative
+  to that open directory. The reader rejects path traversal, symlinks
+  outside the directory, FIFOs and other special files, unreadable files,
+  files over a per-file cap, and reads over a total cap with named errors,
+  opens each file without following a final symlink, and never logs or
+  quotes values. A section reads only the files its type declares. Windows
+  raises `CredentialsDirectoryUnsupported`.
+- Extend the `AMBER_{SECTION}_{KEY}` environment override pass to registered
+  custom sections, including nested sections that are nil or absent and
+  nil-valued fields. Values follow the field's type as in the built-in pass,
+  and a section is rebuilt from the YAML or credentials it was loaded from,
+  or from its registered default: each field Amber can write as YAML keeps
+  the default's value, and any other field takes its declared default. A
+  `Hash` field takes a variable for each key it already holds.
+- Raise a `ConfigurationError` when a credentials section is also defined in
+  the environment YAML file.
 
 ### Security
 
