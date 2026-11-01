@@ -218,6 +218,10 @@ module Amber
           decoded = decode_message(message)
           @subscription_manager.dispatch self, decoded
         end
+      rescue ex : Decoders::FrameTooLargeError
+        on_error(ex)
+        handle_error(ex, "message_decoding")
+        @socket.close(HTTP::WebSocket::CloseCode::MessageTooBig, "Message too big") unless @socket.closed?
       rescue ex : Decoders::DecoderError
         on_error(ex)
         handle_error(ex, "message_decoding")

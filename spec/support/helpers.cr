@@ -5,6 +5,8 @@ require "./helpers/session_helper"
 require "./helpers/router_helper"
 require "./helpers/websockets_helper"
 require "./helpers/validations_helper"
+require "./helpers/allocation_helper"
+require "./helpers/permission_helper"
 
 module Helpers
   include ControllerHelper
@@ -13,4 +15,6 @@ module Helpers
   include RouterHelper
   include WebsocketsHelper
   include ValidationsHelper
+  include AllocationHelper
+  include PermissionHelper
 end

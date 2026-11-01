@@ -10,52 +10,80 @@ module Amber::Schema::Parser
       value.as_h?
     end
 
-    # Parse query string into nested hash structure
-    def self.parse_query_string(query_string : String) : Hash(String, JSON::Any)
-      params = HTTP::Params.parse(query_string)
-      parse_params_to_nested(params)
+    # Parse query string into nested hash structure. Each pair is checked
+    # against *limits* as it is decoded.
+    def self.parse_query_string(query_string : String, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
+      budget = Amber::Router::Parsers::ParamBudget.new(limits)
+      result = {} of String => JSON::Any
+      budget.each_form_pair(IO::Memory.new(query_string)) do |key, value|
+        budget.check_key_shape!(key)
+        set_nested_value_internal(result, key, budget) { parse_value(value) }
+      end
+      result
     end
 
-    # Convert flat params to nested structure
-    def self.parse_params_to_nested(params : HTTP::Params | Hash(String, String)) : Hash(String, JSON::Any)
+    # Convert flat params to nested structure.
+    #
+    # Raises `Amber::Exceptions::ParameterLimitExceeded` when the params
+    # exceed *limits*; see `Amber::Configuration::ParamsConfig`.
+    def self.parse_params_to_nested(params : HTTP::Params | Hash(String, String), limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
+      budget = Amber::Router::Parsers::ParamBudget.new(limits)
+      params.each { |key, value| budget.admit!(key, value) }
+      parse_admitted_params(params, budget)
+    end
+
+    # Nests params that *budget* has already admitted, such as the router's
+    # cached parse of this request's query string or body. Counts are not
+    # charged again; indices, depth and padding are checked against the same
+    # budget so they stay cumulative for the request.
+    def self.parse_admitted_params(params : HTTP::Params | Hash(String, String) | URI::Params, budget : Amber::Router::Parsers::ParamBudget) : Hash(String, JSON::Any)
       result = {} of String => JSON::Any
 
-      case params
-      when HTTP::Params
-        params.each do |key, value|
-          set_nested_value_internal(result, key, parse_value(value))
-        end
-      when Hash(String, String)
-        params.each do |key, value|
-          set_nested_value_internal(result, key, parse_value(value))
-        end
+      params.each do |key, value|
+        # The key is checked, and its array slot reserved, before the value is
+        # parsed.
+        set_nested_value_internal(result, key, budget) { parse_value(value) }
       end
 
       result
     end
 
-    # Handle nested parameter keys like user[profile][name]
-    def self.set_nested_value(hash : Hash(String, JSON::Any), key : String, value : String | JSON::Any)
-      # Convert string values to JSON::Any
-      json_value = value.is_a?(String) ? parse_value(value) : value
-      set_nested_value_internal(hash, key, json_value)
+    # Handle nested parameter keys like user[profile][name].
+    #
+    # Pass the same *budget* for every parameter of one request so that its
+    # cumulative limits apply.
+    def self.set_nested_value(hash : Hash(String, JSON::Any), key : String, value : String | JSON::Any, budget : Amber::Router::Parsers::ParamBudget = Amber::Router::Parsers::ParamBudget.new)
+      # A string value is parsed only after its key is checked.
+      set_nested_value_internal(hash, key, budget) { value.is_a?(String) ? parse_value(value) : value }
+      nil
+    end
+
+    # Sets the value the block returns at nested *key*, checking the key and
+    # reserving its array slot first, so a rejected key never reads or parses
+    # its value (such as an uploaded file). Returns whether the block ran;
+    # it does not run for a key that conflicts with an earlier value's type.
+    def self.set_nested_value(hash : Hash(String, JSON::Any), key : String, budget : Amber::Router::Parsers::ParamBudget, & : -> JSON::Any) : Bool
+      set_nested_value_internal(hash, key, budget) { yield }
     end
 
     # Internal implementation for nested value setting
-    private def self.set_nested_value_internal(hash : Hash(String, JSON::Any), key : String, value : JSON::Any)
+    private def self.set_nested_value_internal(hash : Hash(String, JSON::Any), key : String, budget : Amber::Router::Parsers::ParamBudget, & : -> JSON::Any) : Bool
+      budget.check_key_shape!(key)
+      parts = parse_nested_key(key)
+      # Only bracketed segments are indices; the base name, and dot-separated
+      # names, are plain fields such as `-1`.
+      parts.skip(1).each { |part| budget.check_segment!(part) } if key.includes?('[')
+
       # Handle array notation with indices: tags[0], tags[1]
       if match = key.match(/^(.+)\[(\d+)\]$/)
         base_key = match[1]
-        index = match[2].to_i
         hash[base_key] ||= JSON::Any.new([] of JSON::Any)
         if array = hash[base_key].as_a?
-          # Extend array if necessary
-          while array.size <= index
-            array << JSON::Any.new(nil)
-          end
-          array[index] = value
+          index = budget.reserve_array_slot!(array, match[2])
+          array[index] = yield
+          return true
         end
-        return
+        return false
       end
 
       # Handle simple array notation: tags[]
@@ -63,17 +91,16 @@ module Amber::Schema::Parser
         base_key = key[0..-3]
         hash[base_key] ||= JSON::Any.new([] of JSON::Any)
         if array = hash[base_key].as_a?
-          array << value
+          array << yield
+          return true
         end
-        return
+        return false
       end
 
       # Handle nested object notation: user[profile][name]
-      parts = parse_nested_key(key)
-
       if parts.size == 1
         # Simple key
-        hash[key] = value
+        hash[key] = yield
       else
         # Nested key
         current = hash
@@ -83,11 +110,12 @@ module Amber::Schema::Parser
             current = nested
           else
             # Type conflict, skip this parameter
-            return
+            return false
           end
         end
-        current[parts.last] = value
+        current[parts.last] = yield
       end
+      true
     end
 
     # Parse nested keys handling both brackets and dots

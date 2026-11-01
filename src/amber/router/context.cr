@@ -43,8 +43,16 @@ class HTTP::Server::Context
     @flash ||= Amber::Router::Flash.from_session(session.fetch(Amber::Pipe::Flash::PARAM_KEY, "{}"))
   end
 
-  def websocket?
-    request.headers["Upgrade"]? == "websocket"
+  # Whether this is a WebSocket upgrade request, tested the way
+  # `HTTP::WebSocketHandler` tests it: `Upgrade: websocket` in any letter
+  # case, and `Upgrade` among the `Connection` header's words.
+  def websocket? : Bool
+    headers = request.headers
+    upgrade = headers["Upgrade"]?
+    return false unless upgrade
+    return false unless upgrade.compare("websocket", case_insensitive: true) == 0
+
+    headers.includes_word?("Connection", "Upgrade")
   end
 
   # TODO rename this method to something move descriptive

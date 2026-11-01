@@ -33,9 +33,16 @@ module Amber::Schema
       # ```
       #
       # The schema for the action must also list the media type in its
-      # `content_type` declaration. A parser that raises answers the request
-      # with 400 `invalid_request_body`. Media types without a registered
-      # parser keep their default answer; XML types are answered with 415.
+      # `content_type` declaration. The parser reads the body through a
+      # stream capped at `params.max_document_body_bytes`, and Amber drains
+      # whatever it leaves unread through the same cap; a longer body is
+      # answered with 400 `parameter_limit_exceeded`. A parser that raises
+      # `Amber::Schema::RequestParseError` is answered with that error as
+      # raised. Any other exception is answered with 400
+      # `invalid_request_body`, and the response includes the exception's
+      # message, so raise messages a client may read (a parse position, not a
+      # file path or a secret). Media types without a registered parser keep
+      # their default answer; XML types are answered with 415.
       def self.register_body_parser(content_type : String, &parser : IO -> Hash(String, JSON::Any)) : Nil
         request_body_parsers[normalize_content_type(content_type)] = parser
       end
@@ -47,8 +54,30 @@ module Amber::Schema
         parsers[normalized]?
       end
 
-      # Parse request based on content type
+      # Parse request based on content type. The whole parse runs through
+      # `HTTP::Request#guard_body_read`, so a rejected body stays rejected for
+      # every later read of that request.
       def self.parse_request(request : HTTP::Request, schema_class : Definition.class | Nil = nil) : Hash(String, JSON::Any)
+        request.guard_body_read do
+          reject_unsupported_media_type!(request, schema_class)
+          request.schema_request_data { parse_request_once(request, schema_class) }
+        end
+      end
+
+      # A schema accepts only the media types the registry knows, including
+      # those with a registered body parser. This runs
+      # on every call, before cached request data is returned.
+      private def self.reject_unsupported_media_type!(request : HTTP::Request, schema_class : Definition.class | Nil) : Nil
+        return unless schema_class && request.body
+        content_type = request.headers["Content-Type"]?
+        return if get(content_type)
+
+        media_type = normalize_content_type(content_type || "")
+        return if request_body_parsers.has_key?(media_type)
+        raise UnsupportedMediaTypeError.new(media_type.empty? ? "missing" : media_type)
+      end
+
+      private def self.parse_request_once(request : HTTP::Request, schema_class : Definition.class | Nil) : Hash(String, JSON::Any)
         content_type = request.headers["Content-Type"]?
         media_type = normalize_content_type(content_type || "")
         if request_body_parser = request_body_parsers[media_type]?
@@ -67,14 +96,14 @@ module Amber::Schema
         when "query"
           parse_query_request(request)
         when "cbor"
-          CBOR.decode_object(request.body || IO::Memory.new)
+          request.guard_body_read { CBOR.decode_object(request.body || IO::Memory.new, max_document_body_bytes(request)) }
         when "cose"
           provider = COSE.key_provider || raise RequestParseError.new(
             "COSE request handling is not configured",
             "cose_not_configured",
             503
           )
-          plaintext = COSE.decrypt0(request.body || IO::Memory.new, provider)
+          plaintext = request.guard_body_read { COSE.decrypt0(request.body || IO::Memory.new, provider, max_document_body_bytes: max_document_body_bytes(request)) }
           CBOR.decode_object(IO::Memory.new(plaintext))
         else
           return {} of String => JSON::Any unless request.body
@@ -84,7 +113,7 @@ module Amber::Schema
 
           # Backward-compatible standalone parser behavior. Controller-bound
           # schemas enforce declared media types before reaching this fallback.
-          body = request.body.try(&.gets_to_end) || ""
+          body = request.read_document_body
           if body.starts_with?("{") || body.starts_with?("[")
             parse_json_body(body)
           else
@@ -93,50 +122,71 @@ module Amber::Schema
         end
       rescue ex : RequestParseError
         raise ex
+      rescue ex : Amber::Exceptions::BadRequest
+        raise bad_request_error(ex)
       rescue ex : SchemaDefinitionError
         raise ex
       rescue ex
         raise SchemaDefinitionError.new("Failed to parse request: #{ex.message}")
       end
 
+      private def self.max_document_body_bytes(request : HTTP::Request) : Int32
+        request.param_budget.limits.max_document_body_bytes
+      end
+
+      private def self.bad_request_error(ex : Amber::Exceptions::BadRequest) : RequestParseError
+        message = ex.message || "The request body could not be parsed"
+        code = ex.is_a?(Amber::Exceptions::ParameterLimitExceeded) ? "parameter_limit_exceeded" : "invalid_request_body"
+        RequestParseError.new(message, code, 400)
+      end
+
       # Parse JSON request
       private def self.parse_json_request(request : HTTP::Request) : Hash(String, JSON::Any)
-        body = request.body.try(&.gets_to_end) || ""
+        body = request.read_document_body
         parse_json_body(body)
       end
 
       # Parse JSON body string
       private def self.parse_json_body(body : String) : Hash(String, JSON::Any)
-        JSONParser.parse_string(body)
+        JSONParser.parse_request_body(body)
       end
 
       # Parse query string request
       private def self.parse_query_request(request : HTTP::Request) : Hash(String, JSON::Any)
         content_type = request.headers["Content-Type"]?
 
-        if content_type && content_type.starts_with?("multipart/form-data")
+        if Amber::Router::Params.media_type?(content_type, Amber::Router::Params::MULTIPART_FORM)
           # Routing and CSRF may already have consumed the multipart body.
           # Reuse Amber's cached fields and files instead of parsing it twice.
-          MultipartParser.parse_router_params(request.params.multipart_params, request.params.files)
-        elsif content_type && content_type.starts_with?("application/x-www-form-urlencoded")
+          MultipartParser.parse_router_params(request.params.multipart_params, request.params.files, request.param_budget)
+        elsif Amber::Router::Params.media_type?(content_type, Amber::Router::Params::URL_ENCODED_FORM)
           # Routing inspects URL-encoded fields for `_method`, so the raw body
           # may already be consumed. Amber::Router::Params caches that parse.
-          QueryParser.parse_params_to_nested(request.params.form_params)
+          QueryParser.parse_admitted_params(request.params.form_params, request.param_budget)
         else
           # Default to query parameters
-          QueryParser.parse_params_to_nested(request.query_params)
+          QueryParser.parse_admitted_params(request.query_params, request.param_budget)
         end
       end
 
       # Runs an application-registered parser, reporting its failure as a
-      # malformed request body rather than a server error.
+      # malformed request body rather than a server error. The parser reads
+      # the body through a `BoundedIO` capped at `max_document_body_bytes`,
+      # and whatever it leaves unread is drained through the same cap, so a
+      # parser that stops early cannot accept a body over the limit.
       private def self.parse_with_registered_parser(request : HTTP::Request, request_body_parser : RequestBodyParser) : Hash(String, JSON::Any)
         request_body = request.body
         return {} of String => JSON::Any unless request_body
 
-        request_body_parser.call(request_body)
+        max_bytes = max_document_body_bytes(request).to_i64
+        bounded_body = Amber::Router::Parsers::BoundedIO.new(request_body, max_bytes, "max_document_body_bytes")
+        fields = request_body_parser.call(bounded_body)
+        bounded_body.skip_to_end
+        fields
       rescue ex : RequestParseError
         raise ex
+      rescue ex : Amber::Exceptions::BadRequest
+        raise bad_request_error(ex)
       rescue ex
         raise RequestParseError.new("Malformed request body: #{ex.message}")
       end
