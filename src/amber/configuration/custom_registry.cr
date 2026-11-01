@@ -35,12 +35,4 @@ module Amber::Configuration
   def self.custom_config_defaults : Hash(String, YAML::Serializable)
     @@custom_config_defaults
   end
-
-  # Load a custom config from a YAML node, or return the default instance
-  # if no YAML node is provided.
-  def self.load_custom_from_yaml(key : String, yaml_content : String) : YAML::Serializable?
-    if default = @@custom_config_defaults[key]?
-      default.class.from_yaml(yaml_content)
-    end
-  end
 end

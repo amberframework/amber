@@ -10,6 +10,13 @@
 - Restore a multipart request body up to `multipart_body_restore_limit`
   (8 MB by default, `0` turns it off) by spooling it to a tempfile, which is
   deleted with the uploads.
+- Load custom config sections without deserializing through every
+  `YAML::Serializable` type. `AppConfig#custom_configs` now holds each
+  section as raw YAML (`Hash(String, String)`), `AppConfig#custom` reads it as
+  the requested type or returns the registered default, and an unregistered
+  key raises `Amber::Exceptions::ConfigurationError`. An app whose Grant models
+  have UUID columns compiles with custom config again.
+  `Amber::Configuration.load_custom_from_yaml` is removed.
 
 ## 2.0.0-beta.6 (2026-11-01)
 
