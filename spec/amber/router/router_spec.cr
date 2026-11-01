@@ -12,6 +12,19 @@ module Amber
       end
     end
 
+    # Rejects the first request it is asked about and accepts every later
+    # call.
+    class RejectsOnceConstraint
+      include Constraint
+
+      getter calls = 0
+
+      def matches?(request : HTTP::Request) : Bool
+        @calls += 1
+        @calls > 1
+      end
+    end
+
     describe Router do
       describe "#resources" do
         it "defines all resources" do
@@ -246,6 +259,17 @@ module Amber
           router.match_by_request(seven).payload.not_nil!.action.should eq :overview_md
           eight = HTTP::Request.new("GET", "/projects/8/overview.md")
           router.match_by_request(eight).payload.not_nil!.action.should eq :overview_html
+        end
+
+        it "answers not found when a declared extension route rejects and nothing else matches" do
+          router = Router.new
+          rejects_once = RejectsOnceConstraint.new
+          notes = Route.new("GET", "/notes.md", handler, :notes, :web, Scope.new, "NotesController")
+          notes.request_constraint = rejects_once
+          router.add notes
+
+          router.match_by_request(HTTP::Request.new("GET", "/notes.md")).found?.should be_false
+          rejects_once.calls.should eq 1
         end
 
         it "skips a declared extension route whose request constraint rejects the request" do

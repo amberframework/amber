@@ -90,20 +90,25 @@ module Amber
       # 3. the full path as written.
       #
       # Step 1 runs only when some drawn route spells a known extension, so an
-      # app without one matches exactly as before.
+      # app without one matches exactly as before. A declared route whose
+      # request constraint rejected `request` in step 1 is not offered again in
+      # step 3; the path is then not found.
       def match(http_verb, resource, request : HTTP::Request? = nil) : RoutedResult(Route)
         extension = content_ext(resource)
         return find_route(http_verb, resource) unless extension
 
+        declared_route_rejected = false
         if @extension_routes_drawn
           literal = find_route(http_verb, resource)
-          if declares_extension?(literal, extension) && constraint_accepts?(literal, request)
-            return literal
+          if declares_extension?(literal, extension)
+            return literal if constraint_accepts?(literal, request)
+            declared_route_rejected = true
           end
         end
 
         stripped = find_route(http_verb, resource.byte_slice(0, resource.bytesize - extension.bytesize))
         return stripped if stripped.found?
+        return RoutedResult(Route).new(nil) if declared_route_rejected
 
         literal || find_route(http_verb, resource)
       end
@@ -218,14 +223,14 @@ module Amber
 
       # A constraint that reads `request.params` sees the candidate's route
       # parameters, because the candidate stands as the request's matched route
-      # while the constraint runs. An accepted check is recorded on the request,
-      # and `match` returns this candidate at once, so the pipeline does not ask
-      # the constraint a second time.
+      # while the constraint runs. An accepted check is recorded on the request
+      # against this exact result, so the pipeline skips its own check only when
+      # this result became the request's matched route.
       private def constraint_accepts?(result : RoutedResult(Route), request : HTTP::Request?) : Bool
         constraint = result.payload?.try(&.request_constraint)
         return true unless constraint && request
         accepted = request.matching_candidate(result) { constraint.matches?(request) }
-        request.request_constraint_accepted! if accepted
+        request.request_constraint_accepted!(result) if accepted
         accepted
       end
 

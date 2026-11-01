@@ -55,7 +55,7 @@ module Amber
         return unless http_route
         constraint = http_route.request_constraint
         return unless constraint
-        return if context.request.request_constraint_accepted?
+        return if context.request.request_constraint_accepted?(context.request.matched_route)
         return if constraint.matches?(context.request)
 
         raise Amber::Exceptions::RouteNotFound.new(context.request)

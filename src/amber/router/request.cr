@@ -9,7 +9,7 @@ class HTTP::Request
   OVERRIDE_HEADER = "X-HTTP-Method-Override"
 
   @matched_route : Amber::Router::RoutedResult(Amber::Route)?
-  @request_constraint_accepted = false
+  @request_constraint_accepted_match : Amber::Router::RoutedResult(Amber::Route)?
   @requested_method : String?
   @effective_method : String?
   @params : Amber::Router::Params?
@@ -226,17 +226,19 @@ class HTTP::Request
     end
   end
 
-  # Records that the matched route's request constraint accepted this
-  # request while the router chose the route.
-  def request_constraint_accepted! : Nil
-    @request_constraint_accepted = true
+  # Records that the request constraint of *match*'s route accepted this
+  # request while the router chose that route.
+  def request_constraint_accepted!(match : Amber::Router::RoutedResult(Amber::Route)) : Nil
+    @request_constraint_accepted_match = match
   end
 
-  # Whether the router already asked the matched route's request
-  # constraint and it accepted, so `Amber::Pipe::Pipeline` need not ask
-  # again.
-  def request_constraint_accepted? : Bool
-    @request_constraint_accepted
+  # Whether the router's accepted check belongs to *match*, the very result
+  # object, so `Amber::Pipe::Pipeline` need not ask that constraint again.
+  # A check recorded for any other lookup vouches for nothing.
+  def request_constraint_accepted?(match : Amber::Router::RoutedResult(Amber::Route)) : Bool
+    accepted_match = @request_constraint_accepted_match
+    return false unless accepted_match
+    accepted_match.same?(match)
   end
 
   private def router

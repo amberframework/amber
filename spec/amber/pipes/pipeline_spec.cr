@@ -15,6 +15,15 @@ module Amber
       end
     end
 
+    # Rejects every request.
+    class RejectsAllConstraint
+      include Amber::Router::Constraint
+
+      def matches?(request : HTTP::Request) : Bool
+        false
+      end
+    end
+
     describe Pipeline do
       it "connects pipes to the pipeline for given valve" do
         pipeline = Pipeline.new
@@ -54,6 +63,23 @@ module Amber
           request = HTTP::Request.new("GET", "/report.md")
           create_request_and_return_io(pipeline, request).status_code.should eq 200
           accepts_once.calls.should eq 1
+        end
+
+        it "checks the finally matched route's constraint after a preflight lookup accepted another route" do
+          accepts_once = AcceptsOnceConstraint.new
+          rejects_all = RejectsAllConstraint.new
+          Amber::Server.router.draw :web do
+            constraint rejects_all do
+              get "/summary", HelloController, :world
+            end
+            constraint accepts_once do
+              get "/summary.md", HelloController, :world
+            end
+          end
+
+          request = HTTP::Request.new("GET", "/summary.md")
+          Amber::Server.router.route_defined?(request).should be_true
+          create_request_and_return_io(pipeline, request).status_code.should eq 404
         end
 
         it "raises exception when route not found" do
