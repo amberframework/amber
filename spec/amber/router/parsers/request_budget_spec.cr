@@ -269,6 +269,7 @@ module Amber::Router::Parsers
 
   describe "multipart rejection cleanup" do
     it "keeps the limit error when deleting the tempfiles fails" do
+      pending!("root ignores directory permissions") unless directory_permissions_enforced?
       boundary = "AmberBudgetBoundary"
       body = multipart_body(boundary, [{"a", "a.txt", "first"}, {"b", "b.txt", "second"}, {"note", nil, "x" * 64}])
       directory = Amber::Router::File.upload_directory
@@ -301,6 +302,7 @@ module Amber::Router::Parsers
 
   describe "an upload rejected while its directory cannot be written" do
     it "keeps the limit error and deletes the tempfile when the request finishes" do
+      pending!("root ignores directory permissions") unless directory_permissions_enforced?
       boundary = "AmberBudgetBoundary"
       body = multipart_body(boundary, [{"doc", "a.bin", "z" * 131_072}])
       directory = Amber::Router::File.upload_directory
@@ -328,6 +330,7 @@ module Amber::Router::Parsers
 
   describe "an upload whose deletion fails when the request finishes" do
     it "is deleted by a later request once the directory is writable again" do
+      pending!("root ignores directory permissions") unless directory_permissions_enforced?
       body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
       directory = Amber::Router::File.upload_directory
       before = Dir.children(directory).to_set
@@ -350,6 +353,7 @@ module Amber::Router::Parsers
 
   describe "an upload moved across file systems whose original cannot be deleted" do
     it "is deleted by a later request once the directory is writable again" do
+      pending!("root ignores directory permissions") unless directory_permissions_enforced?
       body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
       directory = Amber::Router::File.upload_directory
       before = Dir.children(directory).to_set

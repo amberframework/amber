@@ -146,6 +146,7 @@ module Amber::Router
     end
 
     it "keeps ownership after a failed delete, so cleanup can retry it" do
+      pending!("root ignores directory permissions") unless directory_permissions_enforced?
       attachment = build_upload("retry me")
       directory = File.upload_directory
       ::File.chmod(directory, 0o500)

@@ -33,14 +33,16 @@ module Amber::Schema
       # ```
       #
       # The schema for the action must also list the media type in its
-      # `content_type` declaration. A parser that raises answers the request
-      # with 400 `invalid_request_body`, and the response includes the
-      # exception's message, so raise messages a client may read (a parse
-      # position, not a file path or a secret). The parser reads the body through a
-      # stream capped at `params.max_document_body_bytes`; a longer body is
-      # answered with 400 `parameter_limit_exceeded`. Media types without a
-      # registered parser keep their default answer; XML types are answered
-      # with 415.
+      # `content_type` declaration. The parser reads the body through a
+      # stream capped at `params.max_document_body_bytes`, and Amber drains
+      # whatever it leaves unread through the same cap; a longer body is
+      # answered with 400 `parameter_limit_exceeded`. A parser that raises
+      # `Amber::Schema::RequestParseError` is answered with that error as
+      # raised. Any other exception is answered with 400
+      # `invalid_request_body`, and the response includes the exception's
+      # message, so raise messages a client may read (a parse position, not a
+      # file path or a secret). Media types without a registered parser keep
+      # their default answer; XML types are answered with 415.
       def self.register_body_parser(content_type : String, &parser : IO -> Hash(String, JSON::Any)) : Nil
         request_body_parsers[normalize_content_type(content_type)] = parser
       end
