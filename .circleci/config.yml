@@ -33,6 +33,10 @@ jobs:
       - run:
           name: Run framework specs
           command: crystal spec
+          environment:
+            # Spec fixture programs build with the compiler that runs the
+            # suite (spec/support/fixture_compiler.cr).
+            CRYSTAL: crystal
       - run:
           name: Check Crystal formatting
           command: crystal tool format --check src spec

@@ -15,5 +15,6 @@ require "spec"
 require "../src/amber"
 require "./support/fixtures"
 require "./support/helpers"
+require "./support/fixture_compiler"
 
 include Helpers
