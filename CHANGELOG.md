@@ -65,6 +65,8 @@ See `RELEASE_NOTES_V2_BETA7.md`.
 - Build without compiler warnings (#1421): the 25 deprecation warnings from
   `Params#validation` are gone. Specs that compile fixture programs use the
   compiler named by `CRYSTAL`, otherwise `crystal-alpha`.
+- The ecosystem agent context names Micrate, Gemma and Mica, and the schema
+  guide shows XML through Mica (#1417).
 - Spec sockets write to their own `IO::Memory` instead of `STDOUT`, so a
   closing test socket no longer closes the spec runner's output (#1431).
 

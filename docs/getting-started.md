@@ -8,7 +8,7 @@ web app using ECR templates and the standalone Amber CLI.
 - A platform and installation method listed in the beta support guide
 - Crystal 1.20 or newer (but earlier than Crystal 2.0)
 - Git and `shards`
-- Amber CLI 2.0.6 or newer
+- Amber CLI 2.0.8 or newer
 
 Follow the [beta installation guide](beta-installation.md) if `amber --version`
 does not work yet.

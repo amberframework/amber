@@ -527,7 +527,7 @@ is published.
 
 ## Migration Checklist
 
-- [ ] Install Amber CLI 2.0.6 or newer from `amberframework/amber_cli`
+- [ ] Install Amber CLI 2.0.8 or newer from `amberframework/amber_cli`
 - [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.7` and remove bundled dependencies
 - [ ] Run `shards install`
 - [ ] Replace `YAML.mapping` with `YAML::Serializable` in all custom types

@@ -23,7 +23,8 @@ credentials directory.
   controller behind the CSRF pipe can read `request.body` again; the bytes
   are handed back from the bounded parse. A multipart body is restored up
   to `params.max_multipart_restore_bytes` (8 MiB by default, `0` turns it
-  off).
+  off) when its `Content-Length` is declared and within that limit and
+  `params.max_multipart_body_bytes`; any other multipart body stays drained.
 - **Upload tempfiles are deleted when the request finishes (#1429).** To
   keep an upload, call `Amber::Router::File#move_to(path)` during the
   action, or `#retain!` to keep the tempfile at `#path` and delete it
@@ -42,13 +43,25 @@ credentials directory.
 - **Request parameters are bounded (#1419).** Counts, nesting depth, key
   and value sizes, body sizes, array indices and padding, multipart parts,
   uploads and WebSocket messages each have a limit in the new `params:`
-  section of `config/environments/<env>.yml` (or `AMBER_PARAMS_<KEY>`). A
-  request beyond a limit is answered with `400 Bad Request`. The defaults
-  and every limit are listed in `CHANGELOG.md`.
+  section of `config/environments/<env>.yml` (or `AMBER_PARAMS_<KEY>`). An
+  HTTP request beyond a limit is answered with `400 Bad Request`; a
+  WebSocket message over `max_websocket_message_bytes` (2 MiB) closes the
+  connection with code 1009. The defaults and every limit are listed in
+  `CHANGELOG.md`.
 - **Credentials directory (#1423).** `Amber::Configuration.register_credentials`
-  reads `$CREDENTIALS_DIRECTORY`, one file per credential, into a typed
-  section, and `AMBER_{SECTION}_{KEY}` overrides now reach registered custom
-  sections.
+  reads a systemd-style credentials directory, one file per credential, into
+  a typed section. The application passes the directory, usually from
+  `CREDENTIALS_DIRECTORY`, before settings load:
+
+  ```crystal
+  if credentials_directory = ENV["CREDENTIALS_DIRECTORY"]?
+    Amber::Configuration.register_credentials(:credentials, AppCredentials, credentials_directory)
+  else
+    Amber::Configuration.register(:credentials, AppCredentials)
+  end
+  ```
+
+  `AMBER_{SECTION}_{KEY}` overrides now reach registered custom sections.
 - **A GREEN build (#1421):** no compiler warnings. The ecosystem agent
   context now names Micrate, Gemma and Mica (#1417).
 
