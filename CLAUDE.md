@@ -4,21 +4,19 @@
 
 Amber V2 is a web application framework written in Crystal. It provides an efficient, cohesive framework that embraces Crystal's language philosophies with near-zero runtime dependencies.
 
-**Version**: 2.0.0-dev
-**Crystal**: >= 1.0.0, < 2.0
+**Version**: the 2.0 beta line; `shard.yml` names the exact release
+**Crystal**: >= 1.20.0, < 2.0 (as `shard.yml` declares)
 **License**: MIT
 **Dependencies**: ameba (dev only) — framework is entirely self-contained at runtime
 
 ## Development Commands
 
+These commands are for working on the Amber framework repository itself. In an application, install dependencies with `minecart install --frozen` (see "Accepting XML request bodies" for adding a shard).
+
 ```bash
-# Install dependencies (ameba only)
-shards install
+# Install dependencies from the committed shard.lock (ameba only)
+shards install --frozen
 
-# Run all tests and checks (recommended)
-./bin/amber_spec
-
-# Individual commands
 crystal spec                   # Run test suite
 crystal spec spec/amber/controller/base_spec.cr  # Single file
 crystal tool format --check    # Check formatting
@@ -43,7 +41,7 @@ crystal docs                   # Generate API docs → docs/
 
 6. **Configuration** (`src/amber/configuration/`): Typed configuration structs with YAML loading, environment variable overrides (`AMBER_` prefix), validation, and custom registry
 
-7. **Schema API** (`src/amber/schema/`): Request validation and type coercion. Define schemas with field types, validators (required, length, format, range, pattern, enum), and parsers (JSON, URL-encoded and multipart forms, query, CBOR, COSE); XML bodies are answered with 415
+7. **Schema API** (`src/amber/schema/`): Request validation and type coercion. Define schemas with field types, validators (required, length, format, range, pattern, enum), and parsers (JSON, URL-encoded and multipart forms, query, CBOR, COSE); XML bodies are answered with 415 by default, until the app registers a parser (see "Accepting XML request bodies")
 
 8. **Jobs** (`src/amber/jobs/`): Background job processing with work-stealing pattern — idle web instances pick up queued jobs. Retry logic, queue adapters
 
@@ -139,7 +137,6 @@ Amber answers `application/xml`, `text/xml` and other `+xml` bodies with `415 Un
    end
    ```
 
-Full guide: https://github.com/amberframework/amber/blob/v2.0.0-beta.6/docs/guides/schema-api.md#opt-in-request-body-parsers
 
 ## Key File Paths
 
