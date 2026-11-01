@@ -25,6 +25,11 @@ module Amber::Support
         TrustedProxyNetwork.parse?("10.0.0.0/x").should be_nil
         TrustedProxyNetwork.parse?("").should be_nil
       end
+
+      it "refuses a scoped IPv6 address, whose zone a peer comparison cannot check" do
+        TrustedProxyNetwork.parse?("fe80::1%en0").should be_nil
+        TrustedProxyNetwork.parse?("fe80::%en0/64").should be_nil
+      end
     end
 
     describe ".parse" do

@@ -11,11 +11,19 @@ module Amber::Router
 
     # Returns, for each `Forwarded` element, the value of *parameter_name*
     # (unquoted), or `nil` when that element does not carry it.
+    #
+    # A field with an unterminated quoted string is malformed as a whole:
+    # its open quote would swallow the elements proxies appended after it,
+    # so it yields a single element with no value, which callers treat as an
+    # unknown hop and an unknown scheme.
     def self.list_of_parameter_values(headers : ::HTTP::Headers, parameter_name : String) : Array(String?)
       header_lines = headers.get?(FORWARDED)
       return [] of String? unless header_lines
 
-      split_outside_quotes(header_lines.join(','), ',').map do |element|
+      list_of_elements = split_outside_quotes(header_lines.join(','), ',')
+      return [nil] of String? unless list_of_elements
+
+      list_of_elements.map do |element|
         parameter_value(element, parameter_name)
       end
     end
@@ -75,7 +83,10 @@ module Amber::Router
     end
 
     private def self.parameter_value(element : String, parameter_name : String) : String?
-      split_outside_quotes(element, ';').each do |pair|
+      list_of_pairs = split_outside_quotes(element, ';')
+      return unless list_of_pairs
+
+      list_of_pairs.each do |pair|
         name, separator, value = pair.partition('=')
         next if separator.empty?
         next unless name.strip.compare(parameter_name, case_insensitive: true) == 0
@@ -96,8 +107,9 @@ module Amber::Router
 
     # Splits *text* on *separator*, leaving separators inside a quoted string
     # (RFC 7230 `quoted-string`, with backslash escapes) in place. Keeps empty
-    # parts so that every `Forwarded` element keeps its position.
-    private def self.split_outside_quotes(text : String, separator : Char) : Array(String)
+    # parts so that every `Forwarded` element keeps its position. Returns
+    # `nil` when a quoted string is never closed.
+    private def self.split_outside_quotes(text : String, separator : Char) : Array(String)?
       list_of_parts = [] of String
       current_part = String::Builder.new
       inside_quotes = false
@@ -120,8 +132,9 @@ module Amber::Router
           current_part << char
         end
       end
-      list_of_parts << current_part.to_s.strip
+      return if inside_quotes || escaped
 
+      list_of_parts << current_part.to_s.strip
       list_of_parts
     end
   end

@@ -51,6 +51,11 @@ module Amber::Support
     # Parses *notation* into a network, returning `nil` when it is not an IP
     # address or CIDR block.
     def self.parse?(notation : String) : self?
+      # A scoped IPv6 address (`fe80::1%en0`) names a link on one interface.
+      # Peers are compared without their zone, so such an entry would also
+      # trust the same address on another link; it is refused instead.
+      return if notation.includes?('%')
+
       address_text, separator, length_text = notation.strip.partition('/')
       parsed_address = address_bytes?(address_text)
       return unless parsed_address

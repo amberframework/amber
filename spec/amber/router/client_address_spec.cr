@@ -139,6 +139,11 @@ module Amber::Router
           client_address_of(request, loopback_writing_forwarded).should eq "2001:db8:cafe::17"
         end
 
+        it "returns the peer when a client's unterminated quote would swallow the proxy's element" do
+          headers = HTTP::Headers{"Forwarded" => %(for=6.6.6.6;unused=", for=198.51.100.7)}
+          client_address_of(request_from(ip("127.0.0.1"), headers), loopback_writing_forwarded).should eq "127.0.0.1"
+        end
+
         it "accepts an obfuscated port" do
           request = request_from(ip("127.0.0.1"), HTTP::Headers{"Forwarded" => %(for="198.51.100.7:_8080")})
           client_address_of(request, loopback_writing_forwarded).should eq "198.51.100.7"

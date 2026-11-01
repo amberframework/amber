@@ -141,6 +141,11 @@ module Amber::Router
           scheme_of(request, reads_forwarded_header: true).should eq "https"
         end
 
+        it "keeps the connection scheme when a client's unterminated quote would swallow the proxy's element" do
+          headers = HTTP::Headers{"Forwarded" => %(for=6.6.6.6;proto=https;unused=", for=198.51.100.7;proto=http)}
+          scheme_of(request_from("127.0.0.1", headers), reads_forwarded_header: true).should eq "http"
+        end
+
         it "takes the proto of the last Forwarded element" do
           request = request_from("127.0.0.1", HTTP::Headers{"Forwarded" => "for=192.0.2.60;proto=http, for=10.0.0.4;proto=https"})
           scheme_of(request, reads_forwarded_header: true).should eq "https"

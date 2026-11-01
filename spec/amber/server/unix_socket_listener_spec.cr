@@ -92,6 +92,47 @@ describe Amber::Server do
       end
     end
 
+    it "waits for the lock, so a server that binds first is never unlinked by a slower start" do
+      socket_path = File.tempname("amber-bind-race", ".sock")
+      winning_server = HTTP::Server.new { |context| context.response.print "winner" }
+      waiting_server = HTTP::Server.new { |context| context.response.print "waiter" }
+      outcome = Channel(Exception?).new(1)
+      begin
+        leave_stale_socket(socket_path)
+        File.open("#{socket_path}.lock", "a") do |lock_file|
+          lock_file.flock_exclusive do
+            spawn(name: "waiting unix socket binder") do
+              Amber::Server.bind_unix_socket(waiting_server, socket_path)
+              outcome.send(nil)
+            rescue error : Socket::BindError
+              outcome.send(error)
+            end
+            sleep 50.milliseconds
+
+            # The waiting start has not touched the stale socket while the
+            # lock is held: without the lock it would have replaced it already.
+            File.info(socket_path, follow_symlinks: false).type.socket?.should be_true
+            expect_raises(Socket::ConnectError) { UNIXSocket.new(socket_path) }
+
+            # Another start wins the race under the lock.
+            File.delete(socket_path)
+            winning_server.bind_unix(socket_path)
+            spawn(name: "winning unix socket spec server") { winning_server.listen }
+            Fiber.yield
+          end
+        end
+
+        error = outcome.receive
+        error.should be_a(Socket::BindError)
+        HTTP::Client.new(UNIXSocket.new(socket_path)).get("/").body.should eq "winner"
+      ensure
+        winning_server.close
+        waiting_server.close
+        File.delete?(socket_path)
+        File.delete?("#{socket_path}.lock")
+      end
+    end
+
     it "refuses a path another server is bound to and leaves that server running" do
       socket_path = File.tempname("amber-bind-busy", ".sock")
       first_server = HTTP::Server.new { |context| context.response.print "first" }
