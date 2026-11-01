@@ -169,14 +169,32 @@ module Amber
       {% else %}
         lock_path = "#{socket_path}.lock"
         check_unix_socket_lock_file(lock_path, File.info?(lock_path, follow_symlinks: false))
-        File.open(lock_path, "a", perm: UNIX_SOCKET_LOCK_MODE) do |lock_file|
+        lock_file = open_unix_socket_lock(lock_path)
+        begin
           check_unix_socket_lock_file(lock_path, lock_file.info)
           hold_unix_socket_lock(lock_file, lock_path, lock_timeout) do
             remove_stale_unix_socket(socket_path)
             bind_unix_socket_with_mode(server, socket_path)
           end
+        ensure
+          lock_file.close
         end
       {% end %}
+    end
+
+    # Opens the lock file at *lock_path* for appending, creating it with
+    # `UNIX_SOCKET_LOCK_MODE`, in one step that neither follows a symlink nor
+    # waits: a symlink, or a FIFO no process reads, put at the path after the
+    # check fails the start with `Socket::BindError` instead of redirecting
+    # or blocking it.
+    private def self.open_unix_socket_lock(lock_path : String) : IO::FileDescriptor
+      open_flags = LibC::O_WRONLY | LibC::O_CREAT | LibC::O_APPEND | LibC::O_NOFOLLOW | LibC::O_NONBLOCK | LibC::O_CLOEXEC
+      file_descriptor = LibC.open(lock_path.check_no_null_byte, open_flags, UNIX_SOCKET_LOCK_MODE)
+      if file_descriptor < 0
+        raise Socket::BindError.new("server.unix_socket lock file #{lock_path} cannot be opened: #{Errno.value.message}")
+      end
+
+      IO::FileDescriptor.new(handle: file_descriptor)
     end
 
     # How long a start waits for another start to release the bind lock
@@ -215,7 +233,7 @@ module Amber
     # that cannot take the lock within *lock_timeout*, because another
     # process holds it, raises `Socket::BindError` instead of waiting
     # forever.
-    private def self.hold_unix_socket_lock(lock_file : File, lock_path : String, lock_timeout : Time::Span, & : -> Socket::UNIXAddress) : Socket::UNIXAddress
+    private def self.hold_unix_socket_lock(lock_file : IO::FileDescriptor, lock_path : String, lock_timeout : Time::Span, & : -> Socket::UNIXAddress) : Socket::UNIXAddress
       attempts_left = (lock_timeout / UNIX_SOCKET_LOCK_RETRY_INTERVAL).ceil.to_i
       loop do
         begin

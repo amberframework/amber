@@ -157,6 +157,24 @@ describe Amber::Server do
       end
     end
 
+    it "fails with Socket::BindError when a symlink sits at the lock path" do
+      socket_path = File.tempname("amber-lock-symlink", ".sock")
+      lock_path = "#{socket_path}.lock"
+      target_path = File.tempname("amber-lock-target")
+      server = HTTP::Server.new { |context| context.response.print "ok" }
+      begin
+        File.symlink(target_path, lock_path)
+        expect_raises(Socket::BindError, /not a regular file|cannot be opened/) do
+          Amber::Server.bind_unix_socket(server, socket_path)
+        end
+        File.exists?(target_path).should be_false
+      ensure
+        server.close
+        File.delete?(lock_path)
+        File.delete?(target_path)
+      end
+    end
+
     it "fails with Socket::BindError when the lock path is not a regular file" do
       socket_path = File.tempname("amber-lock-not-file", ".sock")
       lock_path = "#{socket_path}.lock"
@@ -199,7 +217,7 @@ describe Amber::Server do
       outcome = Channel(Exception?).new(1)
       begin
         leave_stale_socket(socket_path)
-        File.open("#{socket_path}.lock", "a") do |lock_file|
+        File.open("#{socket_path}.lock", "a", perm: 0o600) do |lock_file|
           lock_file.flock_exclusive do
             spawn(name: "waiting unix socket binder") do
               Amber::Server.bind_unix_socket(waiting_server, socket_path)
@@ -224,6 +242,7 @@ describe Amber::Server do
 
         error = outcome.receive
         error.should be_a(Socket::BindError)
+        error.try(&.message).to_s.should contain "in use by another running server"
         HTTP::Client.new(UNIXSocket.new(socket_path)).get("/").body.should eq "winner"
       ensure
         winning_server.close
