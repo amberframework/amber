@@ -212,6 +212,19 @@ class HTTP::Request
     @matched_route ||= router.match_by_request(self)
   end
 
+  # Runs the block with *candidate* standing as the matched route, then
+  # restores the previous value. The router uses it to evaluate a request
+  # constraint that reads route parameters before the match is final.
+  def matching_candidate(candidate : Amber::Router::RoutedResult(Amber::Route), & : -> T) : T forall T
+    previous_match = @matched_route
+    @matched_route = candidate
+    begin
+      yield
+    ensure
+      @matched_route = previous_match
+    end
+  end
+
   private def router
     Amber::Server.router
   end

@@ -2,6 +2,16 @@ require "../../spec_helper"
 
 module Amber
   module Router
+    # Accepts only project 7, read through request.params, which resolves the
+    # route parameters of the request matched route.
+    class ProjectSevenConstraint
+      include Constraint
+
+      def matches?(request : HTTP::Request) : Bool
+        request.params["project_id"]? == "7"
+      end
+    end
+
     describe Router do
       describe "#resources" do
         it "defines all resources" do
@@ -214,6 +224,28 @@ module Amber
           route = router.match_by_request(HTTP::Request.new("GET", "/pages/intro.md"))
           route.payload.not_nil!.action.should eq :page
           route.params["slug.md"].should eq "intro"
+        end
+
+        it "routes to a declared extension that only an optional part leaves at the end" do
+          router = Router.new
+          router.add Route.new("GET", "/overview", handler, :overview_html, :web, Scope.new, "InsightsController")
+          router.add Route.new("GET", "/overview.md(/:version)", handler, :overview_md, :web, Scope.new, "InsightsController")
+
+          router.match_by_request(HTTP::Request.new("GET", "/overview.md")).payload.not_nil!.action.should eq :overview_md
+          router.match_by_request(HTTP::Request.new("GET", "/overview.md/v2")).payload.not_nil!.action.should eq :overview_md
+        end
+
+        it "lets a request constraint read the candidate route parameters" do
+          router = Router.new
+          router.add Route.new("GET", "/projects/:project_id/overview", handler, :overview_html, :web, Scope.new, "InsightsController")
+          project_seven = Route.new("GET", "/projects/:project_id/overview.md", handler, :overview_md, :web, Scope.new, "InsightsController")
+          project_seven.request_constraint = ProjectSevenConstraint.new
+          router.add project_seven
+
+          seven = HTTP::Request.new("GET", "/projects/7/overview.md")
+          router.match_by_request(seven).payload.not_nil!.action.should eq :overview_md
+          eight = HTTP::Request.new("GET", "/projects/8/overview.md")
+          router.match_by_request(eight).payload.not_nil!.action.should eq :overview_html
         end
 
         it "skips a declared extension route whose request constraint rejects the request" do

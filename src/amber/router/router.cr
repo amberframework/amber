@@ -72,8 +72,11 @@ module Amber
         @named_routes[name]?
       end
 
-      # Matches a request path to a route. Routes compete in the order they
-      # were drawn, as everywhere in the router.
+      # Matches a request path to a route. Within one lookup, routes compete in
+      # the order they were drawn. A path that ends in a known response
+      # extension may take two lookups, and the first that qualifies wins, so a
+      # later `get "/overview.md"` answers `/overview.md` ahead of an earlier
+      # `get "/overview"`.
       #
       # A path ending in a known response extension (`.json`, `.md`, ...) is
       # matched in this order:
@@ -213,16 +216,24 @@ module Amber
         last_segment.ends_with?(extension)
       end
 
+      # A constraint that reads `request.params` sees the candidate's route
+      # parameters, because the candidate stands as the request's matched route
+      # while the constraint runs.
       private def constraint_accepts?(result : RoutedResult(Route), request : HTTP::Request?) : Bool
         constraint = result.payload?.try(&.request_constraint)
         return true unless constraint && request
-        constraint.matches?(request)
+        request.matching_candidate(result) { constraint.matches?(request) }
       end
 
-      # A cheap, conservative test made once per drawn route: whether its path,
-      # optional parentheses removed, ends in a known extension.
+      # Whether any fixed segment of the drawn path, optional parentheses
+      # removed, ends in a known extension. Every expanded form of the route
+      # ends in one of these segments, so a route that can spell an extension
+      # always turns the full-path lookup on.
       private def spells_extension?(trail : String) : Bool
-        PATH_EXT_REGEX.matches?(trail.delete("()"))
+        trail.delete("()").split('/').any? do |segment|
+          next false if segment.starts_with?(':') || segment.starts_with?('*')
+          PATH_EXT_REGEX.matches?(segment)
+        end
       end
     end
   end
