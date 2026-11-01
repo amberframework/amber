@@ -70,10 +70,28 @@ module Amber
         @named_routes[name]?
       end
 
+      # Matches a request path to a route.
+      #
+      # A path ending in a known response extension (`.json`, `.md`, ...) is
+      # matched in this order:
+      #
+      # 1. a route that declares the extension in its own path
+      #    (`get "/overview.md"`), so a literal route wins over any
+      #    parameter or catch-all that would also accept the full path;
+      # 2. the path with the extension removed (`/users/1.json` matches
+      #    `/users/:id`, and the controller responds in that format);
+      # 3. the full path as written (`/files/*` receives `report.json`).
       def match(http_verb, resource) : RoutedResult(Route)
-        if has_content_ext(resource)
-          result = find_route(http_verb, resource.sub(PATH_EXT_REGEX, ""))
-          return result if result.found?
+        if extension = content_ext(resource)
+          literal = find_route(http_verb, resource)
+          if (route = literal.payload?) && declares_extension?(route, extension)
+            return literal
+          end
+
+          stripped = find_route(http_verb, resource.byte_slice(0, resource.bytesize - extension.bytesize))
+          return stripped if stripped.found?
+
+          return literal
         end
         find_route(http_verb, resource)
       end
@@ -169,8 +187,17 @@ module Amber
         end
       end
 
-      private def has_content_ext(str)
-        str.includes?('.') && str.match PATH_EXT_REGEX
+      # Returns the known response extension at the end of `path`, dot
+      # included (`".md"`), or `nil`.
+      private def content_ext(path : String) : String?
+        return unless path.includes?('.')
+        path.match(PATH_EXT_REGEX).try(&.[0])
+      end
+
+      # True when the route declares `extension` as the literal end of its
+      # own path, as `get "/overview.md"` does.
+      private def declares_extension?(route : Route, extension : String) : Bool
+        route.resource.ends_with?(extension)
       end
     end
   end

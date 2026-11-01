@@ -147,6 +147,56 @@ module Amber
         end
       end
 
+      describe "#match with a response extension in the path" do
+        handler = ->(_context : HTTP::Server::Context) { }
+
+        it "routes a path to the route that declares its extension, ahead of a catch-all" do
+          router = Router.new
+          router.add Route.new("GET", "/projects/:project_id/insights/overview.md", handler, :overview, :web, Scope.new, "InsightsController")
+          router.add Route.new("GET", "/*", handler, :static, :web, Scope.new, "StaticController")
+
+          route = router.match_by_request(HTTP::Request.new("GET", "/projects/7/insights/overview.md"))
+          route.found?.should be_true
+          route.payload.not_nil!.action.should eq :overview
+          route.params["project_id"].should eq "7"
+        end
+
+        it "routes a declared extension route ahead of the same path without the extension" do
+          router = Router.new
+          router.add Route.new("GET", "/overview", handler, :overview_html, :web, Scope.new, "InsightsController")
+          router.add Route.new("GET", "/overview.md", handler, :overview_md, :web, Scope.new, "InsightsController")
+
+          router.match_by_request(HTTP::Request.new("GET", "/overview.md")).payload.not_nil!.action.should eq :overview_md
+          router.match_by_request(HTTP::Request.new("GET", "/overview")).payload.not_nil!.action.should eq :overview_html
+        end
+
+        it "still strips the extension to match a parameterized route" do
+          router = Router.new
+          router.add Route.new("GET", "/users/:id", handler, :show, :web, Scope.new, "UsersController")
+
+          route = router.match_by_request(HTTP::Request.new("GET", "/users/1.json"))
+          route.found?.should be_true
+          route.params["id"].should eq "1"
+        end
+
+        it "still strips the extension before a catch-all when no route declares it" do
+          router = Router.new
+          router.add Route.new("GET", "/report", handler, :report, :web, Scope.new, "ReportsController")
+          router.add Route.new("GET", "/*", handler, :static, :web, Scope.new, "StaticController")
+
+          router.match_by_request(HTTP::Request.new("GET", "/report.md")).payload.not_nil!.action.should eq :report
+        end
+
+        it "falls back to the full path when the stripped path matches nothing" do
+          router = Router.new
+          router.add Route.new("GET", "/files/*", handler, :download, :web, Scope.new, "FilesController")
+
+          route = router.match_by_request(HTTP::Request.new("GET", "/files/report.json"))
+          route.found?.should be_true
+          route.payload.not_nil!.action.should eq :download
+        end
+      end
+
       describe "#add" do
         it "register a GET route" do
           router = Router.new

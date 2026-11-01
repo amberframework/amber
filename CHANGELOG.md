@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Route a path that ends in a response extension to the route that declares
+  that extension in its own path. `get "/projects/:id/insights/overview.md"`
+  answers `/projects/7/insights/overview.md` again instead of a later
+  `get "/*"` catch-all, which beta.6 reached after removing `.md`. A path no
+  route declares still has its extension removed first, so `/users/1.json`
+  matches `/users/:id`.
 - Restore the request body after Amber parses an urlencoded form, so a
   controller behind the CSRF pipe can still read `request.body`. The bytes
   the bounded parse read are handed back, so the copy never exceeds
