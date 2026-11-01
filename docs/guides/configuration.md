@@ -102,6 +102,14 @@ your deployment:
 | Platform router that is the only route to the app (e.g. DigitalOcean App Platform) | the private network the router connects from; log `request.remote_address` once to see it |
 | Cloudflare in front of Caddy on the host | default; configure Caddy as shown below |
 
+The loopback default trusts every process on the host, not only the proxy:
+any local program that connects to Amber's port directly can set its own
+scheme and client address. That is sound on a host or container that runs
+only your application and its proxy. On a host shared with other users or
+untrusted programs, set `server.unix_socket` instead, so only the proxy's
+user or group can connect, or set `trusted_proxies` to `[]` and send the
+proxy's traffic over an address only it can reach.
+
 List only addresses your proxies use. An entry that covers every address
 (`"0.0.0.0/0"`, `"::/0"`) is rejected: every client would become a trusted
 proxy. A block that clients share with your proxies has the same effect for
@@ -152,7 +160,12 @@ To put the proxy on a UNIX socket instead of loopback TCP, set
 `server.unix_socket` (for Caddy, `reverse_proxy unix//run/app.sock`). While
 it is set, every UNIX socket peer counts as a trusted proxy: the connection
 is local by construction and the socket file's permissions decide who may
-open it. A socket file left behind by a stopped server is replaced at boot;
+open it. Amber creates the socket with mode `0660`, so only its own user and
+group can connect: run the proxy as the application's user, or add the
+proxy's user to the application's group (for nginx on Debian, `www-data`).
+Put the socket in a directory the application owns, such as `/run/app/`,
+rather than a shared one like `/tmp`. A socket file left behind by a stopped
+server is replaced at boot;
 a socket another running server still accepts connections on is not, and the
 start fails with `Socket::BindError`. It cannot be combined with
 `server.ssl` or a `process_count` above 1; the server checks this before it

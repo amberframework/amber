@@ -92,7 +92,26 @@ describe Amber::Server do
       end
     end
 
-    it "waits for the lock, so a server that binds first is never unlinked by a slower start" do
+    it "creates the socket so that only its owner and group may connect" do
+      socket_path = File.tempname("amber-socket-mode", ".sock")
+      server = HTTP::Server.new { |context| context.response.print "ok" }
+      previous_umask = LibC.umask(0o000)
+      begin
+        Amber::Server.bind_unix_socket(server, socket_path)
+        umask_after_bind = LibC.umask(0o000)
+
+        File.info(socket_path).permissions.value.should eq Amber::Server::UNIX_SOCKET_MODE
+        umask_after_bind.should eq 0o000
+      ensure
+        LibC.umask(previous_umask)
+        server.close
+        File.delete?(socket_path)
+        File.delete?("#{socket_path}.lock")
+      end
+    end
+
+    it "waits
+ for the lock, so a server that binds first is never unlinked by a slower start" do
       socket_path = File.tempname("amber-bind-race", ".sock")
       winning_server = HTTP::Server.new { |context| context.response.print "winner" }
       waiting_server = HTTP::Server.new { |context| context.response.print "waiter" }

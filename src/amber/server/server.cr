@@ -144,19 +144,39 @@ module Amber
       Amber::Configuration::ServerConfig.check_unix_socket!(settings.server_terminates_tls?, settings.process_count)
     end
 
+    # Access mode of the socket file `server.unix_socket` creates: its owner
+    # and group may connect, and no one else. Every peer on the socket is a
+    # trusted proxy, so a wider mode would let any local user forge the
+    # scheme and client address.
+    UNIX_SOCKET_MODE = 0o660
+
     # :nodoc:
     #
     # Binds *server* to the UNIX socket at *socket_path*, replacing a socket
     # file a stopped server left behind. The check, the removal and the bind
     # run under an exclusive lock on `<socket_path>.lock`, so two servers
     # starting on one path at once cannot both see the old socket as stale
-    # and one remove the socket the other has just bound.
+    # and one remove the socket the other has just bound. The socket is
+    # created with `UNIX_SOCKET_MODE`, so no connection is accepted under a
+    # wider mode first.
     def self.bind_unix_socket(server : HTTP::Server, socket_path : String) : Socket::UNIXAddress
       File.open("#{socket_path}.lock", "a") do |lock_file|
         lock_file.flock_exclusive do
           remove_stale_unix_socket(socket_path)
-          server.bind_unix(socket_path)
+          bind_unix_socket_with_mode(server, socket_path)
         end
+      end
+    end
+
+    # Binds with a process umask that leaves the socket file at
+    # `UNIX_SOCKET_MODE`, then restores the umask. The umask is
+    # process-wide; this runs once, at start, before requests are served.
+    private def self.bind_unix_socket_with_mode(server : HTTP::Server, socket_path : String) : Socket::UNIXAddress
+      previous_umask = LibC.umask(0o777 & ~UNIX_SOCKET_MODE)
+      begin
+        server.bind_unix(socket_path)
+      ensure
+        LibC.umask(previous_umask)
       end
     end
 
