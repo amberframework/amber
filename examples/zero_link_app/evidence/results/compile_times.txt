@@ -1,0 +1,4 @@
+before run 1: 109.0 s
+before run 2: 119.0 s
+after run 1: 93.0 s
+after run 2: 81.0 s

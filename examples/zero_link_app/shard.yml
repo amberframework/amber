@@ -1,0 +1,31 @@
+name: zero_link_app
+version: 0.1.0
+
+authors:
+  - Your Name <your.email@example.com>
+
+crystal: ">= 1.20.0, < 2.0"
+
+license: UNLICENSED
+
+targets:
+  zero_link_app:
+    main: src/zero_link_app.cr
+
+dependencies:
+  amber:
+    github: amberframework/amber
+    # v2-dev merge of #1414 (XML is opt-in); 2.0.0-beta.6 once tagged.
+    commit: b9d246ba9678db8e39c69c949096ff09f604382f
+  grant:
+    github: crimson-knight/grant
+    commit: da1e06161148f156dbce262a4a4efcb39cba5ba4
+  asset_pipeline:
+    github: amberframework/asset_pipeline
+    version: 0.37.0
+  pg:
+    github: will/crystal-pg
+    version: 0.30.0
+  mica:
+    github: amberframework/mica
+    version: 0.1.0

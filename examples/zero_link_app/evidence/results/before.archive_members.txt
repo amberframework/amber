@@ -1,0 +1,12 @@
+libc.a 529
+libcrypto.a 1601
+libgc.a 62
+libgcc.a 36
+libgcc_eh.a 11
+libgmp.a 125
+liblzma.a 68
+libpcre2-8.a 41
+libssl.a 254
+libxml2.a 108
+libyaml.a 16
+libz.a 15

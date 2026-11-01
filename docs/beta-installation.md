@@ -1,6 +1,6 @@
 # Amber V2 Beta Installation and Support
 
-This is the release contract for Amber `2.0.0-beta.5` and Amber CLI `2.0.6`.
+This is the release contract for Amber `2.0.0-beta.6` and Amber CLI `2.0.6`.
 The goal is a repeatable first run, not a promise that every experimental
 generator is production-ready.
 
@@ -119,7 +119,7 @@ curl --fail http://127.0.0.1:3000/
 The request and `amber assets check` must succeed. Inspecting the page source
 must show fingerprinted `/assets/...` URLs with `integrity="sha256-..."` on
 the stylesheet and JavaScript module. The generated `shard.yml` must reference
-`amberframework/amber` at `2.0.0-beta.5`; it should not point at a personal
+`amberframework/amber` at `2.0.0-beta.6`; it should not point at a personal
 fork or a moving branch.
 
 ## Update or remove

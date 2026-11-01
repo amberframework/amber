@@ -1,0 +1,19 @@
+name: zero_link_app
+
+server:
+  host: 127.0.0.1
+  port: 3000
+  secret_key_base: "" # set AMBER_SERVER_SECRET_KEY_BASE
+
+database:
+  url: "postgres://localhost:5432/zero_link_app_test"
+
+session:
+  key: "zero_link_app.session"
+  store: "signed_cookie"
+  adapter: "memory"
+  expires: 0
+
+logging:
+  severity: "warn"
+  colorize: true

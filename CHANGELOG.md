@@ -1,6 +1,20 @@
 # Changelog
 
-## Unreleased
+## 2.0.0-beta.6 (2026-11-01)
+
+This release takes libxml2 out of every Amber V2 application. XML request
+bodies become opt-in, served by Mica, a pure-Crystal parser, so a static
+build of an Amber V2 + Grant application no longer links libxml2 or the
+liblzma it brings. See `RELEASE_NOTES_V2_BETA6.md` for measurements.
+
+- Remove the libxml2-backed XML request parser (#1414). XML bodies are
+  answered with 415 unless the application registers a parser.
+- Add `ParserRegistry.register_body_parser` so an application opts in to
+  another body format with one call at boot (#1414).
+- Pin CI: Crystal 1.22.1 tarballs checked by sha256, actions by full commit
+  SHA, the CircleCI image by digest, dependencies from a committed
+  `shard.lock` with `--frozen`, and a crystal-alpha job (#1420).
+- Fix specs that built HTTP messages Crystal 1.22 rejects (#1418).
 
 ### Breaking Changes
 
@@ -22,9 +36,16 @@ during the beta line is gone:
 - Amber no longer requires Crystal's `xml` module, so applications built on
   Amber stop linking libxml2.
 
-XML request bodies return later as an opt-in parser built on a pure-Crystal
-XML library that is being developed separately. 415 stays the default answer;
-an application turns XML on explicitly.
+XML request bodies are opt-in. 415 stays the default answer; an application
+turns XML on explicitly, for example with Mica, a pure-Crystal XML parser
+(`amberframework/mica`), which reads a body into the same fields a JSON object
+gives. Add it to the application's `shard.yml`:
+
+```yaml
+  mica:
+    github: amberframework/mica
+    version: 0.1.0
+```
 
 Upgrade: an application that accepted XML bodies through the Schema API either
 moves those endpoints to JSON or registers its own XML parser once at boot and
@@ -32,8 +53,12 @@ keeps `application/xml` in the schema's `content_type` list:
 
 ```crystal
 # config/initializers/request_body_parsers.cr
-Amber::Schema::Parser::ParserRegistry.register_body_parser("application/xml") do |body|
-  MyXMLReader.read_fields(body) # => Hash(String, JSON::Any)
+require "mica/xml/fields"
+
+{"application/xml", "text/xml"}.each do |media_type|
+  Amber::Schema::Parser::ParserRegistry.register_body_parser(media_type) do |body|
+    Mica::XML::Fields.read(body)
+  end
 end
 ```
 
