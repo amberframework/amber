@@ -272,6 +272,17 @@ module Amber
           rejects_once.calls.should eq 1
         end
 
+        it "answers not found when an optional extension route rejects, rather than matching its other expansion" do
+          router = Router.new
+          rejects_once = RejectsOnceConstraint.new
+          notes = Route.new("GET", "/notes(.md)", handler, :notes, :web, Scope.new, "NotesController")
+          notes.request_constraint = rejects_once
+          router.add notes
+
+          router.match_by_request(HTTP::Request.new("GET", "/notes.md")).found?.should be_false
+          rejects_once.calls.should eq 1
+        end
+
         it "skips a declared extension route whose request constraint rejects the request" do
           router = Router.new
           router.add Route.new("GET", "/overview", handler, :overview_html, :web, Scope.new, "InsightsController")

@@ -91,24 +91,29 @@ module Amber
       #
       # Step 1 runs only when some drawn route spells a known extension, so an
       # app without one matches exactly as before. A declared route whose
-      # request constraint rejected `request` in step 1 is not offered again in
-      # step 3; the path is then not found.
+      # request constraint rejected `request` in step 1 is not offered again,
+      # neither in step 3 nor in step 2 through another expansion of the same
+      # route (`get "/notes(.md)"` also matches `/notes`); the path is then
+      # not found.
       def match(http_verb, resource, request : HTTP::Request? = nil) : RoutedResult(Route)
         extension = content_ext(resource)
         return find_route(http_verb, resource) unless extension
 
-        declared_route_rejected = false
+        rejected_route : Route? = nil
         if @extension_routes_drawn
           literal = find_route(http_verb, resource)
           if declares_extension?(literal, extension)
             return literal if constraint_accepts?(literal, request)
-            declared_route_rejected = true
+            rejected_route = literal.payload?
           end
         end
 
         stripped = find_route(http_verb, resource.byte_slice(0, resource.bytesize - extension.bytesize))
+        if rejected_route
+          return stripped if stripped.found? && !same_registration?(stripped.payload?, rejected_route)
+          return RoutedResult(Route).new(nil)
+        end
         return stripped if stripped.found?
-        return RoutedResult(Route).new(nil) if declared_route_rejected
 
         literal || find_route(http_verb, resource)
       end
@@ -226,6 +231,16 @@ module Amber
       # while the constraint runs. An accepted check is recorded on the request
       # against this exact result, so the pipeline skips its own check only when
       # this result became the request's matched route.
+      # Whether two matches came from one drawn route: the same verb, scope and
+      # resource as written, and the same controller action. The optional
+      # expansions of one route share all of these.
+      private def same_registration?(candidate : Route?, drawn : Route) : Bool
+        return false unless candidate
+        candidate.trail == drawn.trail &&
+          candidate.controller == drawn.controller &&
+          candidate.action == drawn.action
+      end
+
       private def constraint_accepts?(result : RoutedResult(Route), request : HTTP::Request?) : Bool
         constraint = result.payload?.try(&.request_constraint)
         return true unless constraint && request
