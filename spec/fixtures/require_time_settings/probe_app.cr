@@ -23,8 +23,9 @@ ENV["AMBER_ENV"] = "lazy_probe"
 Amber.path = config_path
 Amber::Configuration.register(:probe, RequireTimeProbeConfig)
 
-loaded_section = Amber.settings.to_app_config.custom_configs["probe"]?
-probe_label = loaded_section.as?(RequireTimeProbeConfig).try(&.label) || "MISSING"
+# The registered default reads "default"; only a section loaded from the
+# YAML after registration reads "from-yaml".
+probe_label = Amber.settings.custom(:probe, RequireTimeProbeConfig).label
 
 STDOUT.puts "env=#{Amber.env}"
 STDOUT.puts "name=#{Amber.settings.name}"

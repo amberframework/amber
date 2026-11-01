@@ -23,13 +23,6 @@ module RequireTimeSettingsProbe
     @@outcome ||= build_and_run
   end
 
-  # `CRYSTAL` names the compiler when set; CI sets it to the compiler that
-  # runs the suite. Otherwise the house toolchain, crystal-alpha, is required.
-  private def self.compiler : String
-    ENV["CRYSTAL"]? || Process.find_executable("crystal-alpha") ||
-      raise "Set CRYSTAL to a Crystal compiler, or install crystal-alpha, to build #{FIXTURE_DIRECTORY}/probe_app.cr"
-  end
-
   private def self.build_and_run : Outcome
     work_directory = File.tempname("amber-require-time-settings")
     Dir.mkdir_p(work_directory)
@@ -37,7 +30,7 @@ module RequireTimeSettingsProbe
     source = File.join(FIXTURE_DIRECTORY, "probe_app.cr")
 
     build_output = IO::Memory.new
-    build = Process.run(compiler, ["build", source, "-o", binary],
+    build = Process.run(FixtureCompiler.executable, ["build", source, "-o", binary],
       output: build_output, error: build_output)
     raise "#{source} did not compile:\n#{build_output}" unless build.success?
 
