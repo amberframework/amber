@@ -1,0 +1,20 @@
+shards-alpha is now minecart; this alias will be removed in a future release
+I: dependency 'amber' uses an exact version "2.0.0-beta.5"; commit plus the lock checksum is stronger
+I: dependency 'asset_pipeline' uses an exact version "0.37.0"; commit plus the lock checksum is stronger
+I: dependency 'pg' uses an exact version "0.30.0"; commit plus the lock checksum is stronger
+I: Resolving dependencies
+I: Fetching https://github.com/amberframework/asset_pipeline.git
+I: Fetching https://github.com/will/crystal-pg.git
+I: Fetching https://github.com/crimson-knight/grant.git
+I: Fetching https://github.com/amberframework/amber.git
+I: Fetching https://github.com/crystal-lang/crystal-db.git
+I: Checking dependency policies
+I: Installing amber (2.0.0-beta.5)
+I: Installing db (0.14.0)
+I: Installing grant (0.23.4 at da1e061)
+I: Installing asset_pipeline (0.37.0)
+I: Installing pg (0.30.0)
+I: Installed AI docs for amber (2 files)
+W: Skipping .claude/settings.json from grant (security: settings files are not distributed)
+I: Installed AI docs for grant (11 files)
+I: Installed AI docs for asset_pipeline (2462 files)

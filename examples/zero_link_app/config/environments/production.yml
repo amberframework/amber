@@ -1,0 +1,19 @@
+name: zero_link_app
+
+server:
+  host: 0.0.0.0
+  port: 3000
+  secret_key_base: ""
+
+database:
+  url: ""
+
+session:
+  key: "zero_link_app.session"
+  store: "signed_cookie"
+  adapter: "memory"
+  expires: 0
+
+logging:
+  severity: "info"
+  colorize: true

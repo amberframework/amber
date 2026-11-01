@@ -1,0 +1,27 @@
+version: 2.0
+shards:
+  amber:
+    git: https://github.com/amberframework/amber.git
+    version: 2.0.0-beta.5
+    checksum: git-tree:1d80477a31811b987d2f1f6be2f4f89b9d9f4b19
+
+  asset_pipeline:
+    git: https://github.com/amberframework/asset_pipeline.git
+    version: 0.37.0
+    checksum: git-tree:47c884c51cc63e62d04056bc160ab6c329e1946c
+
+  db:
+    git: https://github.com/crystal-lang/crystal-db.git
+    version: 0.14.0
+    checksum: git-tree:3f3d464ddf96815f507434082245eb632ca65bf4
+
+  grant:
+    git: https://github.com/crimson-knight/grant.git
+    version: 0.23.4+git.commit.da1e06161148f156dbce262a4a4efcb39cba5ba4
+    checksum: git-tree:213b5f908e64b0763988aae82976c5a545d06529
+
+  pg:
+    git: https://github.com/will/crystal-pg.git
+    version: 0.30.0
+    checksum: git-tree:5adddb00e17885670bdaf1c2bc976f3adbab515a
+

@@ -1,0 +1,27 @@
+name: zero_link_app
+version: 0.1.0
+
+authors:
+  - Your Name <your.email@example.com>
+
+crystal: ">= 1.20.0, < 2.0"
+
+license: UNLICENSED
+
+targets:
+  zero_link_app:
+    main: src/zero_link_app.cr
+
+dependencies:
+  amber:
+    github: amberframework/amber
+    version: 2.0.0-beta.5
+  grant:
+    github: crimson-knight/grant
+    commit: da1e06161148f156dbce262a4a4efcb39cba5ba4
+  asset_pipeline:
+    github: amberframework/asset_pipeline
+    version: 0.37.0
+  pg:
+    github: will/crystal-pg
+    version: 0.30.0
