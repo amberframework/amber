@@ -245,8 +245,14 @@ module Amber::Configuration
           list_of_names = [] of String
           name_bytes = 0_i64
           loop do
+            # readdir reports an error only through errno, so it is cleared
+            # first; a failed listing must not pass for a complete one.
+            Errno.value = Errno::NONE
             entry = LibC.readdir(listing)
-            break if entry.null?
+            if entry.null?
+              raise Amber::Exceptions::CredentialsDirectoryUnreadable.new(directory) unless Errno.value.none?
+              break
+            end
             name = String.new(entry.value.d_name.to_unsafe)
             next if name == "." || name == ".."
 
@@ -367,6 +373,9 @@ module Amber::Configuration
         raise Amber::Exceptions::CredentialTooLarge.new(name, directory, maximum_file_size)
       end
       contents.to_s
+    rescue IO::Error
+      # Not chained: a read error is no place for a credential's bytes.
+      raise Amber::Exceptions::CredentialUnreadable.new(name, directory)
     ensure
       file.close
     end

@@ -54,6 +54,9 @@ module Amber::Configuration
 
   # Runtime registration method called by the `register` macro.
   def self.register_custom(key : String, default_instance : T) : Nil forall T
+    # A key registered again replaces everything known about it; a
+    # credentials registration marks it again right after this.
+    @@credential_values.delete(key)
     @@custom_config_defaults[key] = default_instance
     @@custom_config_fields[key] = SectionField.list_for(T)
     @@custom_config_default_writers[key] = -> { SectionField.yaml_of(default_instance) }

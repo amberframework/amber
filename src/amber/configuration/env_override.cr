@@ -59,7 +59,9 @@ module Amber::Configuration
     # built-in pass: `String` fields keep the text as given (an empty value
     # stays empty), `Bool` fields accept `true`, `1` or `yes`, `Float` fields
     # accept any number, and other fields read the value as a plain YAML
-    # scalar, so `8080` fills an `Int32`.
+    # scalar, so `8080` fills an `Int32`. A `Hash` field takes a variable for
+    # each key it already has, `AMBER_{SECTION}_{FIELD}_{KEY}`; the
+    # environment cannot add keys to it.
     #
     # The section is rebuilt from its raw YAML: the mapping in the
     # environment file, the values read for a credentials section, or, when
@@ -75,9 +77,13 @@ module Amber::Configuration
         list_of_fields = Amber::Configuration.custom_config_fields(section)
         next unless list_of_fields
 
+        prefix = "AMBER_#{env_name(section)}"
+        # Most sections have no variable set; leave their YAML untouched.
+        next unless ENV.keys.any?(&.starts_with?("#{prefix}_"))
+
         mapping = section_mapping(config, section)
         list_of_applied_variables = [] of String
-        apply_to_mapping(mapping, "AMBER_#{env_name(section)}", list_of_fields, list_of_applied_variables)
+        apply_to_mapping(mapping, prefix, list_of_fields, list_of_applied_variables)
         next if list_of_applied_variables.empty?
 
         section_yaml = YAML.build { |builder| mapping.to_yaml(builder) }
@@ -98,10 +104,20 @@ module Amber::Configuration
     # Returns the mapping of a section's raw YAML, falling back to the
     # registered default written as YAML when the section was not loaded.
     private def self.section_mapping(config : AppConfig, section : String) : YAML::Nodes::Mapping
-      section_yaml = config.custom_configs[section]? || Amber::Configuration.custom_default_yaml(section)
+      section_yaml = config.custom_configs[section]? || registered_default_yaml(section)
       return YAML::Nodes::Mapping.new unless section_yaml
 
       YAML::Nodes.parse(section_yaml).nodes.first?.as?(YAML::Nodes::Mapping) || YAML::Nodes::Mapping.new
+    end
+
+    # Writes a section's registered default as YAML. A converter's `to_yaml`
+    # can quote the default's value, so its error is replaced, not chained.
+    private def self.registered_default_yaml(section : String) : String?
+      Amber::Configuration.custom_default_yaml(section)
+    rescue Exception
+      raise Amber::Exceptions::ConfigurationError.new(
+        "The registered default of the #{section} section could not be written as YAML"
+      )
     end
 
     # Overwrites or adds each field of *mapping* that has a matching

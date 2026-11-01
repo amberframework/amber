@@ -57,10 +57,19 @@ module Amber::Configuration
       list_of_fields
     end
 
-    # Writes *instance* as a YAML mapping of every field `YAML::Serializable`
+    # Writes *instance* as a YAML mapping of the fields `YAML::Serializable`
     # reads for its type, including fields marked `ignore_serialize`, so a
-    # section rebuilt from this YAML keeps every value *instance* holds.
+    # section rebuilt from this YAML keeps the values *instance* holds.
     # Nested sections are written the same way, and nil values are left out.
+    #
+    # A field is written only when Amber knows how without asking the type to
+    # serialize: its value is a `String`, `Bool`, integer, float, `Time` or
+    # enum, an `Array` or `Hash` of the first four, or a nested
+    # `YAML::Serializable` section; or its converter is a type that defines
+    # its own `to_yaml`. Any other field is left out, and a section rebuilt
+    # from this YAML takes that field's declared default. So registering a type
+    # never requires it, or its converters, to be writable as YAML.
+    #
     # The writer is typed to *T*, so it never dispatches over every
     # `YAML::Serializable` type in the program.
     def self.yaml_of(instance : T) : String forall T
@@ -77,17 +86,32 @@ module Amber::Configuration
           {% unless field && (field[:ignore] || field[:ignore_deserialize]) %}
             {% key = field && field[:key] ? field[:key].id.stringify : ivar.name.stringify %}
             {% types = ivar.type.union_types.reject { |type| type == ::Nil } %}
-            %value{ivar.name} = instance.@{{ ivar.name.id }}
-            unless %value{ivar.name}.nil?
-              {{ key }}.to_yaml(builder)
-              {% if field && field[:converter] %}
-                {{ field[:converter] }}.to_yaml(%value{ivar.name}, builder)
-              {% elsif types.size == 1 && types[0] < ::YAML::Serializable %}
-                write_every_field(%value{ivar.name}, builder)
-              {% else %}
-                %value{ivar.name}.to_yaml(builder)
-              {% end %}
-            end
+            {% converter = field && field[:converter] %}
+            {% if converter %}
+              {% writable = converter.is_a?(Path) && converter.resolve.class.methods.any? { |method| method.name == "to_yaml" && method.args.size == 2 } %}
+              {% nested_section = false %}
+            {% else %}
+              {% nested_section = types.size == 1 && types[0] < ::YAML::Serializable %}
+              {% writable = nested_section || types.all? do |type|
+                   scalar = type <= ::String || type <= ::Bool || type < ::Int || type < ::Float || type <= ::Time || type < ::Enum
+                   collection = (type <= ::Array || type <= ::Hash) &&
+                                type.type_vars.all? { |inner| inner <= ::String || inner <= ::Bool || inner < ::Int || inner < ::Float }
+                   scalar || collection
+                 end %}
+            {% end %}
+            {% if writable %}
+              %value{ivar.name} = instance.@{{ ivar.name.id }}
+              unless %value{ivar.name}.nil?
+                {{ key }}.to_yaml(builder)
+                {% if converter %}
+                  {{ converter }}.to_yaml(%value{ivar.name}, builder)
+                {% elsif nested_section %}
+                  write_every_field(%value{ivar.name}, builder)
+                {% else %}
+                  %value{ivar.name}.to_yaml(builder)
+                {% end %}
+              end
+            {% end %}
           {% end %}
         {% end %}
       end

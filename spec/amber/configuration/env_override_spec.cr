@@ -70,6 +70,63 @@ struct SpecOverrideConvertedConfig
   end
 end
 
+# Reads a value but cannot write one, as a deserialization-only
+# converter may.
+module SpecOverrideReadOnlyConverter
+  def self.from_yaml(ctx : YAML::ParseContext, node : YAML::Nodes::Node) : String
+    String.new(ctx, node)
+  end
+end
+
+# Writes a value only by raising an error that quotes it.
+module SpecOverrideQuotingWriter
+  def self.from_yaml(ctx : YAML::ParseContext, node : YAML::Nodes::Node) : String
+    String.new(ctx, node)
+  end
+
+  def self.to_yaml(value : String, yaml : YAML::Nodes::Builder) : Nil
+    raise ArgumentError.new("cannot write #{value}")
+  end
+end
+
+# Registering this type compiles only if the default writer leaves out
+# fields it cannot write.
+struct SpecOverrideReadOnlyFieldsConfig
+  include YAML::Serializable
+
+  @[YAML::Field(converter: SpecOverrideReadOnlyConverter, ignore_serialize: true)]
+  property hint : String = "declared-hint"
+
+  @[YAML::Field(converter: SpecOverrideReadOnlyConverter)]
+  property label : String = "declared-label"
+
+  property timeout : Int32 = 1
+
+  def initialize
+  end
+end
+
+struct SpecOverrideQuotingDefaultConfig
+  include YAML::Serializable
+
+  @[YAML::Field(converter: SpecOverrideQuotingWriter)]
+  property token : String = "agentc-placeholder:spec-quoted-default"
+
+  property timeout : Int32 = 1
+
+  def initialize
+  end
+end
+
+struct SpecOverrideHashConfig
+  include YAML::Serializable
+
+  property labels : Hash(String, String) = {} of String => String
+
+  def initialize
+  end
+end
+
 # Registers a custom section and returns an AppConfig without its YAML,
 # as the loader leaves a section the environment file does not define.
 private def app_config_with_custom_section(section : String) : Amber::Configuration::AppConfig
@@ -427,6 +484,41 @@ module Amber::Configuration
             end
             error.message.to_s.should_not contain "rejected-override"
             error.cause.should be_nil
+          end
+        end
+
+        it "registers a type whose converters cannot write, leaving those fields out of the default" do
+          Amber::Configuration.register_custom("spec_override_read_only", SpecOverrideReadOnlyFieldsConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_READ_ONLY_TIMEOUT" => "9"}) do
+            config = AppConfig.new
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override_read_only, SpecOverrideReadOnlyFieldsConfig)
+            section.timeout.should eq 9
+            section.label.should eq "declared-label"
+            section.hint.should eq "declared-hint"
+          end
+        end
+
+        it "raises a ConfigurationError, not the default writer's error that quotes the value" do
+          Amber::Configuration.register_custom("spec_override_quoting_default", SpecOverrideQuotingDefaultConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_QUOTING_DEFAULT_TIMEOUT" => "3"}) do
+            config = AppConfig.new
+            error = expect_raises(Amber::Exceptions::ConfigurationError, /quoting_default/) do
+              EnvOverride.apply_all(config)
+            end
+            error.message.to_s.should_not contain "spec-quoted-default"
+            error.cause.should be_nil
+          end
+        end
+
+        it "overrides the keys a Hash field already has and adds none" do
+          Amber::Configuration.register_custom("spec_override_hash", SpecOverrideHashConfig.new)
+          vars = {"AMBER_SPEC_OVERRIDE_HASH_LABELS_TEAM" => "ops", "AMBER_SPEC_OVERRIDE_HASH_LABELS_EXTRA" => "ignored"}
+          with_env(vars) do
+            config = AppConfig.new
+            config.custom_configs["spec_override_hash"] = "labels:\n  team: core\n"
+            EnvOverride.apply_all(config)
+            config.custom(:spec_override_hash, SpecOverrideHashConfig).labels.should eq({"team" => "ops"})
           end
         end
 

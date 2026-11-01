@@ -409,6 +409,17 @@ module Amber::Configuration
     end
   end
 
+  describe ".register_custom" do
+    it "drops a key's credentials marker when the key is registered again" do
+      store_fixture_credentials("spec_reregistered_credentials")
+      Amber::Configuration.credential_section?("spec_reregistered_credentials").should be_true
+
+      Amber::Configuration.register_custom("spec_reregistered_credentials", SpecAppCredentials.new)
+      Amber::Configuration.credential_section?("spec_reregistered_credentials").should be_false
+      Amber::Configuration.credential_source("spec_reregistered_credentials").should be_nil
+    end
+  end
+
   describe ".register_credentials" do
     it "raises CredentialsRegisteredAfterSettingsLoad once Amber.settings is loaded" do
       # spec_helper loads Amber.settings before any spec runs.
