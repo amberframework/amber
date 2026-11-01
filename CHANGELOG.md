@@ -1,5 +1,45 @@
 # Changelog
 
+## Unreleased
+
+### Breaking Changes
+
+#### XML request parsing removed
+
+Amber V2 parses request bodies as JSON and form data
+(`application/x-www-form-urlencoded`, `multipart/form-data`), plus the
+existing bounded CBOR and COSE schema formats. The XML request parser added
+during the beta line is gone:
+
+- `Amber::Schema::Parser::XMLParser`, its example, and its README are removed.
+- A request whose `Content-Type` is `application/xml`, `text/xml`, or any
+  `+xml` type is answered with `415 Unsupported Media Type`
+  (`unsupported_media_type`), including when a schema lists that media type in
+  `content_type`.
+- A standalone `ParserRegistry.parse_request` call no longer sniffs a body
+  that starts with `<` as XML; it returns an empty hash, as it does for any
+  other unrecognized body.
+- Amber no longer requires Crystal's `xml` module, so applications built on
+  Amber stop linking libxml2.
+
+XML request bodies return later as an opt-in parser built on a pure-Crystal
+XML library that is being developed separately. 415 stays the default answer;
+an application turns XML on explicitly.
+
+Upgrade: an application that accepted XML bodies through the Schema API either
+moves those endpoints to JSON or registers its own XML parser once at boot and
+keeps `application/xml` in the schema's `content_type` list:
+
+```crystal
+# config/initializers/request_body_parsers.cr
+Amber::Schema::Parser::ParserRegistry.register_body_parser("application/xml") do |body|
+  MyXMLReader.read_fields(body) # => Hash(String, JSON::Any)
+end
+```
+
+A registered parser that raises answers the request with
+`400 invalid_request_body`.
+
 ## 2.0.0-beta.5 (2026-08-13)
 
 This release makes Amber V2 schemas executable request and response contracts,

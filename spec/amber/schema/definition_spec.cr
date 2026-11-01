@@ -146,7 +146,7 @@ module Amber::Schema
   end
 
   class SchemaWithContentType < Definition
-    content_type "application/json", "application/xml"
+    content_type "application/json", "application/cbor"
     field :data, String
   end
 
@@ -820,7 +820,7 @@ module Amber::Schema
     describe "content_type macro" do
       it "stores supported content types" do
         SchemaWithContentType.content_types.should contain("application/json")
-        SchemaWithContentType.content_types.should contain("application/xml")
+        SchemaWithContentType.content_types.should contain("application/cbor")
       end
     end
 
