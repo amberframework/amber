@@ -16,7 +16,7 @@ schema (`CreateSubscriberSchema`, JSON and XML), one API action
 | Variant | Amber | XML parser | Manifest and lock |
 |---|---|---|---|
 | before | 2.0.0-beta.5 | built in, stdlib `XML` (libxml2) | `baseline/shard.yml`, `baseline/shard.lock` |
-| after | v2-dev `b9d246ba` (#1414 merged) | Mica (`amberframework/mica`), opt-in | `../shard.yml`, `../shard.lock` |
+| after | v2-dev `b9d246ba` (#1414 merged) | Mica v0.1.0 (`amberframework/mica`), opt-in | `../shard.yml`, `../shard.lock` |
 
 Both locks record a `git-tree` checksum for every dependency, and every
 install runs `shards-alpha install --frozen`.
@@ -65,8 +65,9 @@ invalid email with 422; malformed XML with 400 and its position; an external
 entity and a billion-laughs body with 400 at the `<!DOCTYPE` (byte 0); and
 `application/xhtml+xml` with 415 (`results/after.smoke.txt`).
 
-Measured on 2026-11-01 with Amber `b9d246ba` and Mica `2a4ab10`
-(see `../shard.lock`).
+Measured on 2026-11-01 with Amber `b9d246ba` and Mica `2a4ab10`, now
+`c11b6cc` after a history rewrite that left file contents identical. The
+sample now pins Mica v0.1.0 (`6a4866e`; see `../shard.lock`).
 
 ## Files in `results/`
 
