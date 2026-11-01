@@ -2,6 +2,19 @@ require "../../spec_helper"
 
 module Amber
   module Pipe
+    # Accepts the first request it is asked about and rejects every later
+    # call, so a second check of the same request would answer 404.
+    class AcceptsOnceConstraint
+      include Amber::Router::Constraint
+
+      getter calls = 0
+
+      def matches?(request : HTTP::Request) : Bool
+        @calls += 1
+        @calls == 1
+      end
+    end
+
     describe Pipeline do
       it "connects pipes to the pipeline for given valve" do
         pipeline = Pipeline.new
@@ -27,6 +40,20 @@ module Amber
 
           pipeline.build :web { }
           pipeline.prepare_pipelines
+        end
+
+        it "asks a declared extension route's request constraint once" do
+          accepts_once = AcceptsOnceConstraint.new
+          Amber::Server.router.draw :web do
+            get "/report", HelloController, :world
+            constraint accepts_once do
+              get "/report.md", HelloController, :world
+            end
+          end
+
+          request = HTTP::Request.new("GET", "/report.md")
+          create_request_and_return_io(pipeline, request).status_code.should eq 200
+          accepts_once.calls.should eq 1
         end
 
         it "raises exception when route not found" do

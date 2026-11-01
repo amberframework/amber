@@ -218,17 +218,22 @@ module Amber
 
       # A constraint that reads `request.params` sees the candidate's route
       # parameters, because the candidate stands as the request's matched route
-      # while the constraint runs.
+      # while the constraint runs. An accepted check is recorded on the request,
+      # and `match` returns this candidate at once, so the pipeline does not ask
+      # the constraint a second time.
       private def constraint_accepts?(result : RoutedResult(Route), request : HTTP::Request?) : Bool
         constraint = result.payload?.try(&.request_constraint)
         return true unless constraint && request
-        request.matching_candidate(result) { constraint.matches?(request) }
+        accepted = request.matching_candidate(result) { constraint.matches?(request) }
+        request.request_constraint_accepted! if accepted
+        accepted
       end
 
-      # Whether any fixed segment of the drawn path, optional parentheses
-      # removed, ends in a known extension. Every expanded form of the route
-      # ends in one of these segments, so a route that can spell an extension
-      # always turns the full-path lookup on.
+      # A conservative test made once per drawn route: whether any fixed
+      # segment of its path, optional parentheses removed, ends in a known
+      # extension. It is true for every route that can spell an extension at
+      # its end, and for some that cannot (`/notes.md/:id`), which only costs
+      # those apps the extra full-path lookup.
       private def spells_extension?(trail : String) : Bool
         trail.delete("()").split('/').any? do |segment|
           next false if segment.starts_with?(':') || segment.starts_with?('*')
