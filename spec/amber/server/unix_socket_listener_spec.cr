@@ -131,11 +131,26 @@ describe Amber::Server do
     end
 
     it "fails with Socket::BindError when another user owns the lock file" do
-      # The root directory belongs to root; the check cannot be shown as root.
+      # /etc/hosts belongs to root; the check cannot be shown as root.
       next if LibC.getuid == 0
 
       expect_raises(Socket::BindError, /belongs to another user/) do
-        Amber::Server.check_unix_socket_lock_owner("/")
+        Amber::Server.check_unix_socket_lock_file("/etc/hosts", File.info("/etc/hosts"))
+      end
+    end
+
+    it "fails with Socket::BindError when the lock path is not a regular file" do
+      socket_path = File.tempname("amber-lock-not-file", ".sock")
+      lock_path = "#{socket_path}.lock"
+      server = HTTP::Server.new { |context| context.response.print "ok" }
+      begin
+        Dir.mkdir(lock_path)
+        expect_raises(Socket::BindError, /not a regular file/) do
+          Amber::Server.bind_unix_socket(server, socket_path)
+        end
+      ensure
+        server.close
+        Dir.delete(lock_path) if Dir.exists?(lock_path)
       end
     end
 

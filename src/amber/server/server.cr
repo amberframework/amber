@@ -168,9 +168,9 @@ module Amber
         raise Socket::BindError.new("server.unix_socket is not supported on Windows")
       {% else %}
         lock_path = "#{socket_path}.lock"
-        check_unix_socket_lock_owner(lock_path)
+        check_unix_socket_lock_file(lock_path, File.info?(lock_path, follow_symlinks: false))
         File.open(lock_path, "a", perm: UNIX_SOCKET_LOCK_MODE) do |lock_file|
-          check_unix_socket_lock_owner(lock_path)
+          check_unix_socket_lock_file(lock_path, lock_file.info)
           narrow_unix_socket_lock_mode(lock_path)
           hold_unix_socket_lock(lock_file, lock_path, lock_timeout) do
             remove_stale_unix_socket(socket_path)
@@ -186,13 +186,18 @@ module Amber
 
     # :nodoc:
     #
-    # Raises `Socket::BindError` when the lock file at *lock_path* exists and
-    # belongs to another user. It runs before the file is opened, so the
-    # start fails with this error rather than a permission error, and again
-    # once it is open, in case the file was replaced in between.
-    def self.check_unix_socket_lock_owner(lock_path : String) : Nil
-      lock_info = File.info?(lock_path, follow_symlinks: false)
+    # Raises `Socket::BindError` unless *lock_info*, the lock file at
+    # *lock_path*, is absent or a regular file this process's user owns. It
+    # runs on the path before the file is opened, so a symlink, a FIFO (whose
+    # open would block) or another user's file fails the start with this
+    # error, and again on the opened descriptor, in case the path was
+    # replaced in between.
+    def self.check_unix_socket_lock_file(lock_path : String, lock_info : File::Info?) : Nil
       return unless lock_info
+
+      unless lock_info.type.file?
+        raise Socket::BindError.new("server.unix_socket lock file #{lock_path} is not a regular file")
+      end
       return if lock_info.owner_id == LibC.getuid.to_s
 
       raise Socket::BindError.new("server.unix_socket lock file #{lock_path} belongs to another user")
