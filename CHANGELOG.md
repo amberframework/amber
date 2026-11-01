@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased
+## 2.0.0-beta.7 (2026-11-01)
+
+This release makes the fixes that AgentC applications carried on a fork
+part of Amber itself, so those applications can depend on an official
+release again. It also routes `.md` paths to their declared routes again,
+bounds request parameter parsing, and adds a credentials directory reader.
+See `RELEASE_NOTES_V2_BETA7.md`.
 
 - Route a path that ends in a response extension to the route that declares
   that extension in its own path. `get "/projects/:id/insights/overview.md"`
@@ -49,6 +55,20 @@
   `Hash` field takes a variable for each key it already holds.
 - Raise a `ConfigurationError` when a credentials section is also defined in
   the environment YAML file.
+
+- Load settings at first use instead of while `amber` is required (#1424),
+  so a custom section registered in `config/initializers` reads its YAML
+  value, and `config/application.cr` can still set `Amber.path` and
+  `Amber.env`. Amber colors its own log lines from `logging.colorize`
+  through `Amber::Support::LogColor` and leaves the process-wide
+  `Colorize.enabled` flag alone.
+- Build without compiler warnings (#1421): the 25 deprecation warnings from
+  `Params#validation` are gone. Specs that compile fixture programs use the
+  compiler named by `CRYSTAL`, otherwise `crystal-alpha`.
+- The ecosystem agent context names Micrate, Gemma and Mica, and the schema
+  guide shows XML through Mica (#1417).
+- Spec sockets write to their own `IO::Memory` instead of `STDOUT`, so a
+  closing test socket no longer closes the spec runner's output (#1431).
 
 ### Security
 

@@ -3,4 +3,5 @@ shards:
   ameba:
     git: https://github.com/crystal-ameba/ameba.git
     version: 1.7.0-dev+git.commit.cdd58b34b0d8a9c785d67183a7a8f07541549e55
+    checksum: git-tree:5fe9fbff073fc9a41923f19d8a43b9b35a528ac8
 
