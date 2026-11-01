@@ -3,6 +3,8 @@ require "../../spec_helper"
 private def build_upload_request(path : String = "/") : HTTP::Request
   headers = HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=fhhRFLCazlkA0dX; charset=UTF-8"}
   multipart_body = ::File.read(::File.expand_path("spec/support/sample/multipart.txt")).gsub("\n", "\r\n")
+  # Send Content-Length as a client does; the spool decision reads it.
+  headers["Content-Length"] = multipart_body.bytesize.to_s
   HTTP::Request.new("POST", path, headers, multipart_body)
 end
 
@@ -32,7 +34,7 @@ module Amber::Router
     it "leaves a multipart request body readable after parsing the files" do
       request = build_upload_request
       original_body = request.body.as(IO).gets_to_end
-      request.body = original_body
+      request.body = IO::Memory.new(original_body)
 
       request.params.files["picture"].filename.should eq "index.html"
 

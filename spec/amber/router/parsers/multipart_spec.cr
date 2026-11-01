@@ -3,6 +3,8 @@ require "../../../spec_helper"
 private def build_multipart_request : HTTP::Request
   headers = HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=fhhRFLCazlkA0dX; charset=UTF-8"}
   multipart_body = ::File.read(::File.expand_path("spec/support/sample/multipart.txt")).gsub("\n", "\r\n")
+  # Send Content-Length as a client does; the spool decision reads it.
+  headers["Content-Length"] = multipart_body.bytesize.to_s
   HTTP::Request.new("POST", "/", headers, multipart_body)
 end
 
@@ -22,7 +24,7 @@ module Amber::Router::Parsers
       it "leaves the request body readable when it is within the restore limit" do
         request = build_multipart_request
         original_body = request.body.as(IO).gets_to_end
-        request.body = original_body
+        request.body = IO::Memory.new(original_body)
 
         params, files, spool = Multipart.parse(request)
 
