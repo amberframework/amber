@@ -10,6 +10,8 @@ module Amber::Router
   end
 
   class Params
+    Log = ::Log.for(self)
+
     TYPE_EXT_REGEX   = Amber::Support::MimeTypes::TYPE_EXT_REGEX
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     MULTIPART_FORM   = "multipart/form-data"
@@ -19,6 +21,10 @@ module Amber::Router
     @multipart : Types::Params?
     @json : Types::Params?
     @form : HTTP::Params?
+
+    # Tempfile holding the raw multipart body so it can be replayed to the
+    # controller. Deleted by #cleanup_uploads at request teardown.
+    @body_spool : ::File?
 
     def initialize(@request : HTTP::Request)
     end
@@ -46,6 +52,33 @@ module Amber::Router
     # Returns parsed multipart fields, reusing the cached body parse.
     def multipart_params : Types::Params
       multipart
+    end
+
+    # Delete every tempfile this request spooled: the uploaded files themselves,
+    # and the spool holding the raw multipart body when one was made.
+    #
+    # Deliberately reads only ALREADY-parsed state. It must never call #files or
+    # #multipart, which would trigger a parse during teardown — on a request
+    # whose body has since been consumed that would raise.
+    #
+    # Best effort throughout: teardown must never raise into the request cycle.
+    def cleanup_uploads : Nil
+      if uploaded_files = @files
+        uploaded_files.each_value(&.cleanup)
+        uploaded_files.clear
+      end
+
+      if spool = @body_spool
+        @body_spool = nil
+        release_body_spool(spool)
+      end
+    end
+
+    private def release_body_spool(spool : ::File) : Nil
+      spool.close
+      ::File.delete?(spool.path)
+    rescue error : IO::Error
+      Log.warn(exception: error) { "Could not delete the multipart body spool #{spool.path}" }
     end
 
     def []=(key : Types::Key, value)
@@ -109,7 +142,7 @@ module Amber::Router
     private def multipart
       return @multipart.not_nil! if @multipart
       return Types::Params.new unless content_type?(MULTIPART_FORM)
-      @multipart, @files = Parsers::Multipart.parse(@request)
+      @multipart, @files, @body_spool = Parsers::Multipart.parse(@request)
       @multipart.not_nil!
     end
 

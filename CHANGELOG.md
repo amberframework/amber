@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Restore the request body after Amber parses an urlencoded form, so a
+  controller behind the CSRF pipe can still read `request.body`.
+- Delete upload tempfiles when the request finishes. `Amber::Pipe::Pipeline`
+  releases them in its `ensure`; copy an upload before the action returns to
+  keep it.
+- Restore a multipart request body up to `multipart_body_restore_limit`
+  (8 MB by default, `0` turns it off) by spooling it to a tempfile, which is
+  deleted with the uploads.
+
 ## 2.0.0-beta.6 (2026-11-01)
 
 This release takes libxml2 out of every Amber V2 application. XML request

@@ -35,6 +35,12 @@ module Amber
         Amber::Pipe::Error.new.call(context)
       ensure
         Amber::Jobs::Worker.end_request if track_pending_request
+        # End of the request cycle. This handler is the outermost HTTP::Handler
+        # — Amber::Server passes it straight to HTTP::Server.new — so it is the
+        # single place that sees every request finish, success or error, and the
+        # natural home for per-request cleanup. Uploaded files were spooled to
+        # tempfiles and never deleted; they are released here.
+        context.request.cleanup_uploads
       end
 
       # Connects pipes to a pipeline to process requests
