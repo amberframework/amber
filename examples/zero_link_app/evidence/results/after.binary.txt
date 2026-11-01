@@ -1,0 +1,35 @@
+== readelf -d (dynamic section)
+
+Dynamic section at offset 0x9dec70 contains 19 entries:
+  Tag        Type                         Name/Value
+ 0x000000000000000c (INIT)               0xccf70
+ 0x000000000000000d (FINI)               0x6448b0
+ 0x0000000000000019 (INIT_ARRAY)         0x96c710
+ 0x000000000000001b (INIT_ARRAYSZ)       16 (bytes)
+ 0x000000000000001a (FINI_ARRAY)         0x96c720
+ 0x000000000000001c (FINI_ARRAYSZ)       16 (bytes)
+ 0x000000006ffffef5 (GNU_HASH)           0x228
+ 0x0000000000000005 (STRTAB)             0x290
+ 0x0000000000000006 (SYMTAB)             0x248
+ 0x000000000000000a (STRSZ)              1 (bytes)
+ 0x000000000000000b (SYMENT)             24 (bytes)
+ 0x0000000000000015 (DEBUG)              0x0
+ 0x0000000000000007 (RELA)               0x298
+ 0x0000000000000008 (RELASZ)             838872 (bytes)
+ 0x0000000000000009 (RELAENT)            24 (bytes)
+ 0x000000000000001e (FLAGS)              BIND_NOW
+ 0x000000006ffffffb (FLAGS_1)            Flags: NOW PIE
+ 0x000000006ffffff9 (RELACOUNT)          34953
+ 0x0000000000000000 (NULL)               0x0
+== program interpreter
+none
+== ldd
+	/lib/ld-musl-aarch64.so.1 (0xffff90944000)
+== bytes
+26103720
+== bytes after strip
+10381728
+== defined symbols from libxml2 (xml*), liblzma (lzma_*), zlib (deflate*, inflate*)
+xml: 0
+lzma: 0
+zlib: 46

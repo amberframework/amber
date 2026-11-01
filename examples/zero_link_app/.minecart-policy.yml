@@ -1,0 +1,4 @@
+version: 1
+rules:
+  dependencies:
+    require_exact: true

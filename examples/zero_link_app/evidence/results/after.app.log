@@ -1,0 +1,3 @@
+2026-11-01T15:10:28.595361Z   INFO - amber.server: [96mAmber 2.0.0-beta.5[39m serving application "Zero_link_app" at [96;4mhttp://0.0.0.0:3000[39;24m
+2026-11-01T15:10:28.595526Z   INFO - amber.server: Server started in [33mproduction[39m.
+2026-11-01T15:10:28.595527Z   INFO - amber.server: [97mStartup Time 00:00:00.000171500[39m

@@ -1,0 +1,11 @@
+-lcrypto
+-ldl
+-lgc
+-lgmp
+-llzma
+-lm
+-lpcre2-8
+-lpthread
+-lxml2
+-lyaml
+-lz

@@ -1,0 +1,10 @@
+libc.a 521
+libcrypto.a 1618
+libgc.a 64
+libgcc.a 36
+libgcc_eh.a 11
+libgmp.a 125
+libpcre2-8.a 41
+libssl.a 258
+libyaml.a 16
+libz.a 11

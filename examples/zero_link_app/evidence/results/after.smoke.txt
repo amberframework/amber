@@ -1,0 +1,11 @@
+runtime image: alpine:3.22.2@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412 (no libxml2 installed: 0 libxml2 files)
+JSON body [application/json] -> 201 {"id":1,"email_address":"ada@example.com"}
+XML body, same fields [application/xml] -> 201 {"id":2,"email_address":"grace@example.com"}
+XML body, text/xml [text/xml] -> 201 {"id":3,"email_address":"alan@example.com"}
+XML body, invalid email [application/xml] -> 422 {"status":"error","success":false,"errors":[{"field":"email_address","message":"Field 'email_address' has invalid format. Expected email","code":"invalid_format","details":{"format":"email","value":"not-an-email"}}],"timestamp":"2026-11-01 15:10:30 UTC"}
+XML body, malformed [application/xml] -> 400 {"status":"error","success":false,"errors":[{"field":"body","message":"Malformed request body: End tag 'subscriber' does not match start tag 'email_address' (line 1, column 43, byte 42)","code":"invalid_request_body"}],"timestamp":"2026-11-01 15:10:31 UTC"}
+XML body, external entity [application/xml] -> 400 {"status":"error","success":false,"errors":[{"field":"body","message":"Malformed request body: A document type declaration (DTD) is not allowed here (line 1, column 1, byte 0)","code":"invalid_request_body"}],"timestamp":"2026-11-01 15:10:31 UTC"}
+XML body, billion laughs [application/xml] -> 400 {"status":"error","success":false,"errors":[{"field":"body","message":"Malformed request body: A document type declaration (DTD) is not allowed here (line 1, column 1, byte 0)","code":"invalid_request_body"}],"timestamp":"2026-11-01 15:10:32 UTC"}
+XHTML body, no parser registered [application/xhtml+xml] -> 415 {"status":"error","success":false,"errors":[{"field":"body","message":"Unsupported request Content-Type 'application/xhtml+xml'","code":"unsupported_media_type"}],"timestamp":"2026-11-01 15:10:32 UTC"}
+rows in subscribers: 3
+app log: results/after.app.log (       3 lines)
