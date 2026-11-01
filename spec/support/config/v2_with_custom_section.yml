@@ -1,0 +1,10 @@
+name: v2_with_custom_section_app
+
+server:
+  host: "localhost"
+  port: 3000
+
+# A registered custom section whose type does not serialize signing_secret.
+spec_override_sourced:
+  api_key: "agentc-placeholder:spec-yaml-key"
+  signing_secret: "agentc-placeholder:spec-yaml-signing-secret"

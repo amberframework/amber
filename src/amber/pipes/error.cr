@@ -13,17 +13,33 @@ module Amber
         context.response.status_code = 403
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.forbidden)
-        Log.warn(exception: ex) { error_msg(context, 403).colorize(:yellow) }
+        Log.warn(exception: ex) { paint(error_msg(context, 403), :yellow) }
+      rescue ex : Amber::Exceptions::BadRequest
+        context.response.status_code = 400
+        error = Amber::Controller::Error.new(context, ex)
+        context.response.print(error.bad_request)
+        Log.warn { paint(error_msg(context, 400), :yellow) }
+      rescue ex : Amber::Schema::RequestParseError
+        # A request body that could not be decoded, such as one beyond a
+        # limit, read by an action through the schema parsers directly.
+        context.response.status_code = ex.http_status
+        error = Amber::Controller::Error.new(context, ex)
+        context.response.print(error.bad_request)
+        Log.warn { paint(error_msg(context, ex.http_status), :yellow) }
       rescue ex : Amber::Exceptions::RouteNotFound
         context.response.status_code = 404
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.not_found)
-        Log.warn(exception: ex) { error_msg(context, 404).colorize(:yellow) }
+        Log.warn(exception: ex) { paint(error_msg(context, 404), :yellow) }
       rescue ex : Exception
         context.response.status_code = 500
         error = Amber::Controller::Error.new(context, ex)
         context.response.print(error.internal_server_error)
-        Log.error(exception: ex) { error_msg(context, 500).colorize(:red) }
+        Log.error(exception: ex) { paint(error_msg(context, 500), :red) }
+      end
+
+      private def paint(message : String, color : Symbol)
+        Support::LogColor.paint(message, color, Amber.settings.logging.colorize)
       end
 
       private def error_msg(context : HTTP::Server::Context, number : Int)

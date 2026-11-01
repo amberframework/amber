@@ -10,6 +10,171 @@ private def with_env(vars : Hash(String, String), &)
   end
 end
 
+struct SpecOverrideSmtpConfig
+  include YAML::Serializable
+
+  property host : String = "localhost"
+  property port : Int32 = 25
+
+  def initialize
+  end
+end
+
+struct SpecOverrideConfig
+  include YAML::Serializable
+
+  property api_key : String = "agentc-placeholder:spec-default-key"
+  property timeout : Int32 = 30
+  property? enabled : Bool = false
+  property webhook_secret : String? = nil
+
+  @[YAML::Field(key: "base-url")]
+  property base_url : String = "https://example.com"
+
+  property smtp : SpecOverrideSmtpConfig = SpecOverrideSmtpConfig.new
+
+  # Absent from the serialized section until something sets it.
+  property relay : SpecOverrideSmtpConfig? = nil
+
+  property interval_seconds : Float64 = 1.5
+
+  # Read from YAML but never written back out.
+  @[YAML::Field(ignore_serialize: true)]
+  property signing_secret : String = "agentc-placeholder:spec-default-signing-secret"
+
+  def initialize
+  end
+end
+
+# A converter that rejects some values with an error quoting them, as an
+# application's own converter might.
+module SpecOverrideQuotingConverter
+  def self.from_yaml(ctx : YAML::ParseContext, node : YAML::Nodes::Node) : String
+    value = String.new(ctx, node)
+    raise ArgumentError.new("rejected #{value}") if value.starts_with?("agentc-placeholder:rejected")
+    value
+  end
+
+  def self.to_yaml(value : String, yaml : YAML::Nodes::Builder) : Nil
+    value.to_yaml(yaml)
+  end
+end
+
+struct SpecOverrideConvertedConfig
+  include YAML::Serializable
+
+  @[YAML::Field(converter: SpecOverrideQuotingConverter)]
+  property api_token : String = ""
+
+  def initialize
+  end
+end
+
+# Reads a value but cannot write one, as a deserialization-only
+# converter may.
+module SpecOverrideReadOnlyConverter
+  def self.from_yaml(ctx : YAML::ParseContext, node : YAML::Nodes::Node) : String
+    String.new(ctx, node)
+  end
+end
+
+# Writes a value only by raising an error that quotes it.
+module SpecOverrideQuotingWriter
+  def self.from_yaml(ctx : YAML::ParseContext, node : YAML::Nodes::Node) : String
+    String.new(ctx, node)
+  end
+
+  def self.to_yaml(value : String, yaml : YAML::Nodes::Builder) : Nil
+    raise ArgumentError.new("cannot write #{value}")
+  end
+end
+
+# Registering this type compiles only if the default writer leaves out
+# fields it cannot write.
+struct SpecOverrideReadOnlyFieldsConfig
+  include YAML::Serializable
+
+  @[YAML::Field(converter: SpecOverrideReadOnlyConverter, ignore_serialize: true)]
+  property hint : String = "declared-hint"
+
+  @[YAML::Field(converter: SpecOverrideReadOnlyConverter)]
+  property label : String = "declared-label"
+
+  property timeout : Int32 = 1
+
+  def initialize
+  end
+end
+
+struct SpecOverrideQuotingDefaultConfig
+  include YAML::Serializable
+
+  @[YAML::Field(converter: SpecOverrideQuotingWriter)]
+  property token : String = "agentc-placeholder:spec-quoted-default"
+
+  property timeout : Int32 = 1
+
+  def initialize
+  end
+end
+
+struct SpecOverrideHashConfig
+  include YAML::Serializable
+
+  property labels : Hash(String, String) = {} of String => String
+
+  def initialize
+  end
+end
+
+struct SpecOverrideQuotingHashConfig
+  include YAML::Serializable
+
+  @[YAML::Field(converter: SpecOverrideQuotingWriter)]
+  property token : String = "agentc-placeholder:spec-quoted-default"
+
+  property labels : Hash(String, String) = {} of String => String
+
+  def initialize
+  end
+end
+
+struct SpecOverrideRatesConfig
+  include YAML::Serializable
+
+  property rates : Hash(String, Float64) = {} of String => Float64
+
+  def initialize
+  end
+end
+
+struct SpecOverrideNilDefaultConfig
+  include YAML::Serializable
+
+  property region : String? = "us-east"
+  property timeout : Int32 = 1
+
+  def initialize
+  end
+end
+
+class SpecOverrideTreeConfig
+  include YAML::Serializable
+
+  property label : String = "root"
+  property child : SpecOverrideTreeConfig? = nil
+
+  def initialize
+  end
+end
+
+# Registers a custom section and returns an AppConfig without its YAML,
+# as the loader leaves a section the environment file does not define.
+private def app_config_with_custom_section(section : String) : Amber::Configuration::AppConfig
+  Amber::Configuration.register_custom(section, SpecOverrideConfig.new)
+  Amber::Configuration::AppConfig.new
+end
+
 module Amber::Configuration
   describe EnvOverride do
     describe ".apply_all" do
@@ -202,6 +367,271 @@ module Amber::Configuration
             config = AppConfig.new
             EnvOverride.apply_all(config)
             config.jobs.auto_start.should be_false
+          end
+        end
+      end
+
+      context "with a registered custom section" do
+        it "overrides a String field from AMBER_{SECTION}_{KEY}" do
+          with_env({"AMBER_SPEC_OVERRIDE_API_KEY" => "agentc-placeholder:spec-env-key"}) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            config.custom(:spec_override, SpecOverrideConfig).api_key.should eq "agentc-placeholder:spec-env-key"
+          end
+        end
+
+        it "converts Int32 and Bool fields from their plain text" do
+          vars = {"AMBER_SPEC_OVERRIDE_TIMEOUT" => "90", "AMBER_SPEC_OVERRIDE_ENABLED" => "true"}
+          with_env(vars) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override, SpecOverrideConfig)
+            section.timeout.should eq 90
+            section.enabled?.should be_true
+          end
+        end
+
+        it "reaches a nilable field whose value is nil" do
+          with_env({"AMBER_SPEC_OVERRIDE_WEBHOOK_SECRET" => "agentc-placeholder:spec-webhook-secret"}) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            config.custom(:spec_override, SpecOverrideConfig).webhook_secret.should eq "agentc-placeholder:spec-webhook-secret"
+          end
+        end
+
+        it "names the variable after the YAML key, with other characters as underscores" do
+          with_env({"AMBER_SPEC_OVERRIDE_BASE_URL" => "https://env.example.com"}) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            config.custom(:spec_override, SpecOverrideConfig).base_url.should eq "https://env.example.com"
+          end
+        end
+
+        it "overrides a nested section from AMBER_{SECTION}_{SUBSECTION}_{KEY}" do
+          with_env({"AMBER_SPEC_OVERRIDE_SMTP_PORT" => "587"}) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override, SpecOverrideConfig)
+            section.smtp.port.should eq 587
+            section.smtp.host.should eq "localhost"
+          end
+        end
+
+        it "keeps values from YAML when no variable is set" do
+          Amber::Configuration.register_custom("spec_override_yaml", SpecOverrideConfig.new)
+          config = AppConfig.new
+          config.custom_configs["spec_override_yaml"] = "api_key: yaml-key\ntimeout: 45"
+          EnvOverride.apply_all(config)
+          section = config.custom(:spec_override_yaml, SpecOverrideConfig)
+          section.api_key.should eq "yaml-key"
+          section.timeout.should eq 45
+        end
+
+        it "raises a ConfigurationError naming the variable, not the value, on a type mismatch" do
+          with_env({"AMBER_SPEC_OVERRIDE_TIMEOUT" => "not-a-number-secret"}) do
+            config = app_config_with_custom_section("spec_override")
+            error = expect_raises(Amber::Exceptions::ConfigurationError, /AMBER_SPEC_OVERRIDE_TIMEOUT/) do
+              EnvOverride.apply_all(config)
+            end
+            error.message.to_s.should_not contain "not-a-number-secret"
+          end
+        end
+
+        it "keeps an empty String override as empty text, not nil" do
+          with_env({"AMBER_SPEC_OVERRIDE_WEBHOOK_SECRET" => "", "AMBER_SPEC_OVERRIDE_API_KEY" => "null"}) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override, SpecOverrideConfig)
+            section.webhook_secret.should eq ""
+            section.api_key.should eq "null"
+          end
+        end
+
+        it "reads Bool and Float fields the way the built-in pass does" do
+          vars = {"AMBER_SPEC_OVERRIDE_ENABLED" => "1", "AMBER_SPEC_OVERRIDE_INTERVAL_SECONDS" => "2"}
+          with_env(vars) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override, SpecOverrideConfig)
+            section.enabled?.should be_true
+            section.interval_seconds.should eq 2.0
+          end
+        end
+
+        it "raises a ConfigurationError naming the variable for a Float field that is not a number" do
+          with_env({"AMBER_SPEC_OVERRIDE_INTERVAL_SECONDS" => "agentc-placeholder:not-a-number"}) do
+            config = app_config_with_custom_section("spec_override")
+            error = expect_raises(Amber::Exceptions::ConfigurationError, /AMBER_SPEC_OVERRIDE_INTERVAL_SECONDS/) do
+              EnvOverride.apply_all(config)
+            end
+            error.message.to_s.should_not contain "not-a-number"
+          end
+        end
+
+        it "creates a nested section that is nil to hold its override" do
+          with_env({"AMBER_SPEC_OVERRIDE_RELAY_HOST" => "relay.example.com"}) do
+            config = app_config_with_custom_section("spec_override")
+            config.custom(:spec_override, SpecOverrideConfig).relay.should be_nil
+            EnvOverride.apply_all(config)
+            relay = config.custom(:spec_override, SpecOverrideConfig).relay
+            relay.should_not be_nil
+            if relay
+              relay.host.should eq "relay.example.com"
+              relay.port.should eq 25
+            end
+          end
+        end
+
+        it "leaves a nil nested section nil when none of its variables is set" do
+          with_env({"AMBER_SPEC_OVERRIDE_TIMEOUT" => "15"}) do
+            config = app_config_with_custom_section("spec_override")
+            EnvOverride.apply_all(config)
+            config.custom(:spec_override, SpecOverrideConfig).relay.should be_nil
+          end
+        end
+
+        it "keeps a field the type does not serialize when another field is overridden" do
+          Amber::Configuration.register_custom("spec_override_sourced", SpecOverrideConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_SOURCED_TIMEOUT" => "75"}) do
+            settings = Amber::Environment::Loader.new(:v2_with_custom_section, "./spec/support/config/").settings
+            section = settings.custom(:spec_override_sourced, SpecOverrideConfig)
+            section.timeout.should eq 75
+            section.api_key.should eq "agentc-placeholder:spec-yaml-key"
+            section.signing_secret.should eq "agentc-placeholder:spec-yaml-signing-secret"
+          end
+        end
+
+        it "keeps a registered default's unserialized field when another field is overridden" do
+          registered_default = SpecOverrideConfig.new
+          registered_default.signing_secret = "agentc-placeholder:spec-registered-signing-secret"
+          registered_default.api_key = "agentc-placeholder:spec-registered-key"
+          Amber::Configuration.register_custom("spec_override_registered", registered_default)
+          with_env({"AMBER_SPEC_OVERRIDE_REGISTERED_TIMEOUT" => "20"}) do
+            config = AppConfig.new
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override_registered, SpecOverrideConfig)
+            section.timeout.should eq 20
+            section.api_key.should eq "agentc-placeholder:spec-registered-key"
+            section.signing_secret.should eq "agentc-placeholder:spec-registered-signing-secret"
+          end
+        end
+
+        it "raises a ConfigurationError, not the converter's error that quotes the value" do
+          Amber::Configuration.register_custom("spec_override_converted", SpecOverrideConvertedConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_CONVERTED_API_TOKEN" => "agentc-placeholder:rejected-override"}) do
+            config = AppConfig.new
+            error = expect_raises(Amber::Exceptions::ConfigurationError, /AMBER_SPEC_OVERRIDE_CONVERTED_API_TOKEN/) do
+              EnvOverride.apply_all(config)
+            end
+            error.message.to_s.should_not contain "rejected-override"
+            error.cause.should be_nil
+          end
+        end
+
+        it "registers a type whose converters cannot write, leaving those fields out of the default" do
+          Amber::Configuration.register_custom("spec_override_read_only", SpecOverrideReadOnlyFieldsConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_READ_ONLY_TIMEOUT" => "9"}) do
+            config = AppConfig.new
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override_read_only, SpecOverrideReadOnlyFieldsConfig)
+            section.timeout.should eq 9
+            section.label.should eq "declared-label"
+            section.hint.should eq "declared-hint"
+          end
+        end
+
+        it "raises a ConfigurationError, not the default writer's error that quotes the value" do
+          Amber::Configuration.register_custom("spec_override_quoting_default", SpecOverrideQuotingDefaultConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_QUOTING_DEFAULT_TIMEOUT" => "3"}) do
+            config = AppConfig.new
+            error = expect_raises(Amber::Exceptions::ConfigurationError, /quoting_default/) do
+              EnvOverride.apply_all(config)
+            end
+            error.message.to_s.should_not contain "spec-quoted-default"
+            error.cause.should be_nil
+          end
+        end
+
+        it "overrides the keys a Hash field already has and adds none" do
+          Amber::Configuration.register_custom("spec_override_hash", SpecOverrideHashConfig.new)
+          vars = {"AMBER_SPEC_OVERRIDE_HASH_LABELS_TEAM" => "ops", "AMBER_SPEC_OVERRIDE_HASH_LABELS_EXTRA" => "ignored"}
+          with_env(vars) do
+            config = AppConfig.new
+            config.custom_configs["spec_override_hash"] = "labels:\n  team: core\n"
+            EnvOverride.apply_all(config)
+            config.custom(:spec_override_hash, SpecOverrideHashConfig).labels.should eq({"team" => "ops"})
+          end
+        end
+
+        it "replaces a malformed mapping in a String field with the field's variable" do
+          Amber::Configuration.register_custom("spec_override_malformed", SpecOverrideConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_MALFORMED_API_KEY" => "agentc-placeholder:spec-replaced-key"}) do
+            config = AppConfig.new
+            config.custom_configs["spec_override_malformed"] = "api_key:\n  stray: value\n"
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override_malformed, SpecOverrideConfig)
+            section.api_key.should eq "agentc-placeholder:spec-replaced-key"
+          end
+        end
+
+        it "leaves a section alone when a variable shares its prefix but names no field" do
+          Amber::Configuration.register_custom("spec_override_quoting_unused", SpecOverrideQuotingDefaultConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_QUOTING_UNUSED_NOT_A_FIELD" => "1"}) do
+            config = AppConfig.new
+            EnvOverride.apply_all(config)
+            config.custom_configs.has_key?("spec_override_quoting_unused").should be_false
+          end
+        end
+
+        it "leaves a section alone when a Hash key variable names no key and the default cannot be written" do
+          Amber::Configuration.register_custom("spec_override_quoting_hash", SpecOverrideQuotingHashConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_QUOTING_HASH_LABELS_UNKNOWN" => "1"}) do
+            config = AppConfig.new
+            EnvOverride.apply_all(config)
+            config.custom_configs.has_key?("spec_override_quoting_hash").should be_false
+          end
+        end
+
+        it "converts a Hash key's variable like a field of the Hash's value type" do
+          Amber::Configuration.register_custom("spec_override_rates", SpecOverrideRatesConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_RATES_RATES_USD" => "2"}) do
+            config = AppConfig.new
+            config.custom_configs["spec_override_rates"] = "rates:\n  usd: 1.5\n"
+            EnvOverride.apply_all(config)
+            config.custom(:spec_override_rates, SpecOverrideRatesConfig).rates.should eq({"usd" => 2.0})
+          end
+        end
+
+        it "keeps a nil the registered default holds when another field is overridden" do
+          default_instance = SpecOverrideNilDefaultConfig.new
+          default_instance.region = nil
+          Amber::Configuration.register_custom("spec_override_nil_default", default_instance)
+          with_env({"AMBER_SPEC_OVERRIDE_NIL_DEFAULT_TIMEOUT" => "7"}) do
+            config = AppConfig.new
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override_nil_default, SpecOverrideNilDefaultConfig)
+            section.timeout.should eq 7
+            section.region.should be_nil
+          end
+        end
+
+        it "registers a section type nested inside itself and overrides its first level" do
+          Amber::Configuration.register_custom("spec_override_tree", SpecOverrideTreeConfig.new)
+          vars = {"AMBER_SPEC_OVERRIDE_TREE_LABEL" => "trunk", "AMBER_SPEC_OVERRIDE_TREE_CHILD_LABEL" => "leaf"}
+          with_env(vars) do
+            config = AppConfig.new
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override_tree, SpecOverrideTreeConfig)
+            section.label.should eq "trunk"
+            section.child.should be_nil
+          end
+        end
+
+        it "reaches a section loaded from YAML by the loader" do
+          Amber::Configuration.register_custom("spec_override_loaded", SpecOverrideConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_LOADED_API_KEY" => "agentc-placeholder:spec-loader-env-key"}) do
+            settings = Amber::Environment::Loader.new(:v2_minimal, "./spec/support/config/").settings
+            settings.custom(:spec_override_loaded, SpecOverrideConfig).api_key.should eq "agentc-placeholder:spec-loader-env-key"
           end
         end
       end

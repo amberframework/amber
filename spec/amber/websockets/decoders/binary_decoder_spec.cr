@@ -67,6 +67,73 @@ module Amber
       end
     end
 
+    describe "#decode with hostile length prefixes" do
+      it "rejects a length prefix larger than the message without allocating it" do
+        decoder = WebSockets::Decoders::BinaryDecoder.new
+        # One field whose key claims 4 GiB - 1 bytes but carries none.
+        hostile = Base64.strict_encode(Bytes[0, 0, 0, 1, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0, 0, 0])
+
+        allocated = bytes_allocated_by do
+          expect_raises(WebSockets::Decoders::DecoderError, /length prefix/) do
+            decoder.decode(hostile)
+          end
+        end
+        allocated.should be < 1_048_576_u64
+      end
+
+      it "rejects a field count the message cannot hold" do
+        decoder = WebSockets::Decoders::BinaryDecoder.new
+        hostile = Base64.strict_encode(Bytes[0xFF, 0xFF, 0xFF, 0xFF])
+
+        expect_raises(WebSockets::Decoders::DecoderError, /field count/) do
+          decoder.decode(hostile)
+        end
+      end
+    end
+
+    describe "#decode with hostile frames" do
+      it "rejects a huge Base64 frame before decoding it" do
+        decoder = WebSockets::Decoders::BinaryDecoder.new
+        huge_frame = "AAAA" + "A" * 8_000_000
+
+        allocated = bytes_allocated_by do
+          expect_raises(WebSockets::Decoders::DecoderError, /frame exceeds/) do
+            decoder.decode(huge_frame)
+          end
+        end
+        allocated.should be < 1_048_576_u64
+      end
+
+      it "rejects trailing bytes after the declared fields" do
+        decoder = WebSockets::Decoders::BinaryDecoder.new
+        message = Base64.decode(decoder.encode({"event" => "message"}))
+        padded = Bytes.new(message.size + 4)
+        message.copy_to(padded)
+
+        expect_raises(WebSockets::Decoders::DecoderError, /trailing bytes/) do
+          decoder.decode(Base64.strict_encode(padded))
+        end
+      end
+
+      it "checks the decoded frame size exactly" do
+        frame = Base64.strict_encode(Bytes[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+
+        WebSockets::Decoders::BinaryDecoder.new(max_frame_bytes: 12).decode(frame)[""].as_s.should eq ""
+        expect_raises(WebSockets::Decoders::DecoderError, /frame exceeds 11 bytes/) do
+          WebSockets::Decoders::BinaryDecoder.new(max_frame_bytes: 11).decode(frame)
+        end
+      end
+
+      it "honors a smaller max_frame_bytes" do
+        decoder = WebSockets::Decoders::BinaryDecoder.new(max_frame_bytes: 8)
+        encoded = decoder.encode({"event" => "message"})
+
+        expect_raises(WebSockets::Decoders::DecoderError, /frame exceeds/) do
+          decoder.decode(encoded)
+        end
+      end
+    end
+
     describe "#encode with JSON::Any" do
       it "encodes a JSON::Any object" do
         decoder = WebSockets::Decoders::BinaryDecoder.new

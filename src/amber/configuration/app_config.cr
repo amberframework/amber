@@ -30,12 +30,20 @@ module Amber::Configuration
     @[YAML::Field(key: "static")]
     property static : StaticConfig = StaticConfig.new
 
+    @[YAML::Field(key: "params")]
+    property params : ParamsConfig = ParamsConfig.new
+
     @[YAML::Field(key: "secrets")]
     property secrets : Hash(String, String) = {} of String => String
 
-    # Custom configuration sections loaded at runtime.
+    # Custom configuration sections loaded at runtime, as the raw YAML of each
+    # section keyed by section name. Storing YAML rather than
+    # `YAML::Serializable` instances keeps Amber from deserializing through the
+    # union of every `YAML::Serializable` type in the program; that union
+    # includes application models (Grant models among them), and their YAML
+    # constructors may not compile.
     @[YAML::Field(ignore: true)]
-    property custom_configs : Hash(String, YAML::Serializable) = {} of String => YAML::Serializable
+    property custom_configs : Hash(String, String) = {} of String => String
 
     def initialize
     end
@@ -48,8 +56,20 @@ module Amber::Configuration
     # stripe = Amber.settings.custom(:stripe, MyApp::StripeConfig)
     # stripe.api_key # => "sk_test_..."
     # ```
+    #
+    # The section is deserialized as *type* on each call, so keep the result
+    # rather than calling this per request. When the YAML has no such section,
+    # the default instance given to `Amber::Configuration.register` is returned.
     def custom(key : Symbol, type : T.class) : T forall T
-      custom_configs[key.to_s].as(T)
+      key_name = key.to_s
+      if section_yaml = custom_configs[key_name]?
+        return T.from_yaml(section_yaml)
+      end
+
+      registered_default = Amber::Configuration.custom_config_defaults[key_name]?
+      return registered_default if registered_default.is_a?(T)
+
+      raise Amber::Exceptions::ConfigurationError.new("Custom config #{key_name} is not registered as #{T}")
     end
 
     # Run validation on all subsystem configurations.
@@ -83,6 +103,12 @@ module Amber::Configuration
 
       begin
         mailer.validate!
+      rescue ex : Amber::Exceptions::ConfigurationError
+        list_of_errors.concat(ex.list_of_errors)
+      end
+
+      begin
+        params.validate!
       rescue ex : Amber::Exceptions::ConfigurationError
         list_of_errors.concat(ex.list_of_errors)
       end

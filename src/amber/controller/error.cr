@@ -25,11 +25,18 @@ module Amber::Controller
         response_format
       end
 
+      # The response's media type: JSON or HTML when the first entry of the
+      # request's `Accept` header names one (parameters and letter case
+      # aside), and plain text otherwise. It is chosen from these three, so
+      # the client's header is never echoed back.
       private def content_type
-        if context.request.headers["Accept"]?
-          request.headers["Accept"].split(",").first
-        else
-          "text/plain"
+        accept = context.request.headers["Accept"]?
+        return "text/plain" unless accept
+
+        case accept.split(",").first.split(";").first.strip.downcase
+        when "application/json" then "application/json"
+        when "text/html"        then "text/html"
+        else                         "text/plain"
         end
       end
 
@@ -48,7 +55,7 @@ module Amber::Controller
         if Amber.env.development?
           Amber::Exceptions::Page.new(context, @ex)
         else
-          "<html><body><pre>#{@ex.message}</pre></body></html>"
+          "<html><body><pre>#{HTML.escape(@ex.message.to_s)}</pre></body></html>"
         end
       end
     end

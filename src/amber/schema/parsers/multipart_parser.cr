@@ -126,49 +126,77 @@ module Amber::Schema::Parser
     end
 
     # Parse multipart form data, handling both files and regular fields
-    def self.parse_multipart_request(request : HTTP::Request) : Hash(String, JSON::Any)
+    def self.parse_multipart_request(request : HTTP::Request, budget : Amber::Router::Parsers::ParamBudget = request.param_budget) : Hash(String, JSON::Any)
       result = {} of String => JSON::Any
+      request.guard_body_read { collect_multipart_parts(request, budget, result) }
+      result
+    end
 
-      HTTP::FormData.parse(request) do |upload|
-        next unless upload
-
+    private def self.collect_multipart_parts(request : HTTP::Request, budget : Amber::Router::Parsers::ParamBudget, result : Hash(String, JSON::Any)) : Nil
+      Amber::Router::Parsers::Multipart.each_part(request, budget.limits) do |upload|
+        budget.admit!(upload.name)
         filename = upload.filename
-        content = upload.body.gets_to_end
 
-        if filename.is_a?(String) && !filename.empty?
-          # This is a file upload
-          file_info = FileInfo.new(
-            filename: filename,
-            content_type: upload.headers["Content-Type"]?,
-            size: content.bytesize.to_u64,
-            content: content,
-            headers: upload.headers
-          )
-          QueryParser.set_nested_value(result, upload.name, file_info.to_json_any)
-        else
-          # This is a regular form field
-          QueryParser.set_nested_value(result, upload.name, QueryParser.parse_value(content))
+        # The key is checked, and its array slot reserved, before the part's
+        # body is read.
+        read = QueryParser.set_nested_value(result, upload.name, budget) do
+          if filename.is_a?(String) && !filename.empty?
+            # Held in memory, so bounded by `max_file_bytes`; the whole body
+            # is bounded by `max_multipart_body_bytes`.
+            content = budget.read_file(upload.body)
+            FileInfo.new(
+              filename: filename,
+              content_type: upload.headers["Content-Type"]?,
+              size: content.bytesize.to_u64,
+              content: content,
+              headers: upload.headers
+            ).to_json_any
+          else
+            QueryParser.parse_value(budget.read_value(upload.body))
+          end
+        end
+        # A skipped part (its key conflicts with an earlier value) is drained
+        # within its own cap, so parsing can continue.
+        unless read
+          if filename.is_a?(String) && !filename.empty?
+            budget.skip_bounded(upload.body, budget.limits.max_file_bytes, "max_file_bytes")
+          else
+            budget.skip_bounded(upload.body, budget.limits.max_value_bytes, "max_value_bytes")
+          end
         end
       end
-
-      result
     end
 
     # Builds schema data from the router's cached multipart parse. This keeps
     # file uploads available after routing and CSRF have inspected the request.
-    def self.parse_router_params(params : Amber::Router::Types::Params, files : Amber::Router::Types::Files) : Hash(String, JSON::Any)
-      result = QueryParser.parse_params_to_nested(params)
+    # Every field and file is admitted against a fresh budget built from
+    # *limits*.
+    def self.parse_router_params(params : Amber::Router::Types::Params, files : Amber::Router::Types::Files, limits : Amber::Configuration::ParamsConfig = Amber.settings.params) : Hash(String, JSON::Any)
+      budget = Amber::Router::Parsers::ParamBudget.new(limits)
+      params.each { |key, value| budget.admit!(key, value) }
+      files.each_key { |name| budget.admit!(name) }
+      parse_router_params(params, files, budget)
+    end
+
+    # Builds schema data from fields and files that *budget* already admitted
+    # (the request's own budget charged them while routing parsed the body).
+    # One budget covers fields and files, so padding stays cumulative.
+    def self.parse_router_params(params : Amber::Router::Types::Params, files : Amber::Router::Types::Files, budget : Amber::Router::Parsers::ParamBudget) : Hash(String, JSON::Any)
+      result = QueryParser.parse_admitted_params(params, budget)
 
       files.each do |name, upload|
-        content = ::File.read(upload.file.path)
-        file_info = FileInfo.new(
-          filename: upload.filename,
-          content_type: upload.headers["Content-Type"]?,
-          size: upload.size || content.bytesize.to_u64,
-          content: content,
-          headers: upload.headers
-        )
-        QueryParser.set_nested_value(result, name, file_info.to_json_any)
+        # The key is checked before the tempfile is read.
+        QueryParser.set_nested_value(result, name, budget) do
+          content = upload.open_tempfile { |file| budget.read_file(file) }
+          FileInfo.new(
+            filename: upload.filename,
+            content_type: upload.headers["Content-Type"]?,
+            # The bytes received, never the client's declared size.
+            size: content.bytesize.to_u64,
+            content: content,
+            headers: upload.headers
+          ).to_json_any
+        end
       end
 
       result

@@ -103,8 +103,12 @@ module Amber::Schema::COSE
     io.to_slice.dup
   end
 
-  def decrypt0(io : IO, provider : KeyProvider, external_aad = Bytes.empty) : Bytes
-    reader = CBOR::Reader.new(io)
+  # Decrypts a COSE_Encrypt0 message from *io*. With
+  # *max_document_body_bytes*, a longer message raises
+  # `Amber::Exceptions::ParameterLimitExceeded` before any declared length
+  # is allocated.
+  def decrypt0(io : IO, provider : KeyProvider, external_aad = Bytes.empty, max_document_body_bytes : Int32? = nil) : Bytes
+    reader = CBOR::Reader.new(io, document_limit: max_document_body_bytes)
     raise Error.new unless reader.read_tag == TAG_ENCRYPT0
     raise Error.new unless reader.read_array_size == 3
 
@@ -143,7 +147,7 @@ module Amber::Schema::COSE
       ciphertext,
       encryption_structure(protected_bytes, external_aad)
     ) || raise Error.new
-  rescue ex : Error
+  rescue ex : Error | Amber::Exceptions::ParameterLimitExceeded
     raise ex
   rescue
     raise Error.new

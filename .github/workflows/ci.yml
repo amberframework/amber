@@ -86,6 +86,10 @@ jobs:
         # specs (respond_with + others fail under --order random regardless of
         # recent changes). Tracked as a cleanup task before switching to random.
         run: crystal spec
+        env:
+          # Spec fixture programs build with the compiler that runs the suite
+          # (spec/support/fixture_compiler.cr).
+          CRYSTAL: crystal
 
       - name: Check formatting
         run: crystal tool format --check
@@ -155,6 +159,10 @@ jobs:
       - name: Run specs
         working-directory: amber
         run: crystal spec
+        env:
+          # Spec fixture programs build with the compiler that runs the suite
+          # (spec/support/fixture_compiler.cr).
+          CRYSTAL: crystal
 
       - name: Check formatting
         working-directory: amber

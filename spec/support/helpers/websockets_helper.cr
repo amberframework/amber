@@ -1,21 +1,24 @@
 module WebsocketsHelper
+  # Each socket writes its frames to its own in-memory IO. A socket that
+  # closes, or a heartbeat that pings, then never touches the spec
+  # runner's STDOUT, which the formatter still needs.
   def create_user_socket
     request = HTTP::Request.new("GET", "/")
-    ws = HTTP::WebSocket.new(STDOUT)
+    ws = HTTP::WebSocket.new(IO::Memory.new)
     client_socket = UserSocket.new(ws, create_context(request))
     return ws, client_socket
   end
 
   def create_user_socket_with_connection_id(connection_id : String)
     request = HTTP::Request.new("GET", "/")
-    ws = HTTP::WebSocket.new(STDOUT)
+    ws = HTTP::WebSocket.new(IO::Memory.new)
     client_socket = UserSocket.new(ws, create_context(request), connection_id)
     return ws, client_socket
   end
 
   def create_text_decoder_socket
     request = HTTP::Request.new("GET", "/")
-    ws = HTTP::WebSocket.new(STDOUT)
+    ws = HTTP::WebSocket.new(IO::Memory.new)
     client_socket = TextDecoderSocket.new(ws, create_context(request))
     return ws, client_socket
   end

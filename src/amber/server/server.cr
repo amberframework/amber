@@ -77,7 +77,7 @@ module Amber
 
     def start
       time = Time.local
-      Log.info { "#{version.colorize(:light_cyan)} serving application \"#{settings.name.capitalize}\" at #{host_url.colorize(:light_cyan).mode(:underline)}" }
+      Log.info { "#{paint(version, :light_cyan)} serving application \"#{settings.name.capitalize}\" at #{paint(host_url, :light_cyan).mode(:underline)}" }
       handler.prepare_pipelines
       server = HTTP::Server.new(handler)
 
@@ -101,8 +101,8 @@ module Amber
 
       loop do
         begin
-          Log.info { "Server started in #{Amber.env.colorize(:yellow)}." }
-          Log.info { "Startup Time #{Time.local - time}".colorize(:white) }
+          Log.info { "Server started in #{paint(Amber.env, :yellow)}." }
+          Log.info { paint("Startup Time #{Time.local - time}", :white) }
           server.listen
           break
         rescue e : IO::Error
@@ -130,6 +130,10 @@ module Amber
 
     def settings
       Amber.settings
+    end
+
+    private def paint(value, color)
+      Support::LogColor.paint(value, color, settings.logging.colorize)
     end
   end
 end
