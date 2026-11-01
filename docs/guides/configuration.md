@@ -165,9 +165,11 @@ group can connect: run the proxy as the application's user, or add the
 proxy's user to the application's group (for nginx on Debian, `www-data`).
 Put the socket in a directory the application owns, such as `/run/app/`,
 rather than a shared one like `/tmp`. The `<socket>.lock` file beside it is
-kept at mode `0600`; a lock file another user owns, or a lock another
-process holds for more than 10 seconds, fails the start with
-`Socket::BindError`. UNIX sockets are not supported on Windows. A
+created at mode `0600`; a lock file another user owns or other users may
+open, or a lock another process holds for more than 10 seconds, fails the start with
+`Socket::BindError`. UNIX sockets are not supported on Windows, and these
+three `server` settings need the V2 settings format: a flat V1 file that
+sets one, directly or through an `AMBER_SERVER_*` variable, fails the boot. A
 socket file left behind by a stopped
 server is replaced at boot;
 a socket another running server still accepts connections on is not, and the

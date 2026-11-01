@@ -31,12 +31,35 @@ module Amber::Environment
     end
 
     private def load_v1_settings(content : String) : Settings
+      check_v1_listener_settings!(content)
       settings = Settings.from_yaml(content)
       # V1 files keep their flat format, but request parameter limits are a
       # security boundary: apply the same overrides and validation as V2.
       Amber::Configuration::EnvOverride.apply_params(settings.params_config)
       settings.params_config.validate!
       settings
+    end
+
+    # Settings the flat V1 format cannot carry: in a V1 file they would be
+    # dropped without a word, leaving the defaults in force.
+    LIST_OF_V2_ONLY_SERVER_KEYS = %w(trusted_proxies trusted_proxy_headers unix_socket)
+
+    # Raises `Amber::Exceptions::ConfigurationError` when a V1 file names a
+    # `server.trusted_proxies`, `server.trusted_proxy_headers` or
+    # `server.unix_socket` setting, at its top level or through an
+    # `AMBER_SERVER_*` variable: an application that set one would keep
+    # serving with the defaults (for `unix_socket`, on TCP).
+    private def check_v1_listener_settings!(content : String) : Nil
+      list_of_top_level_keys = YAML.parse(content).as_h?.try(&.keys.map(&.to_s)) || [] of String
+      list_of_names = LIST_OF_V2_ONLY_SERVER_KEYS.select do |key|
+        list_of_top_level_keys.includes?(key) || ENV.has_key?("AMBER_SERVER_#{key.upcase}")
+      end
+      return if list_of_names.empty?
+
+      raise Amber::Exceptions::ConfigurationError.new(
+        "server.#{list_of_names.join(", server.")} needs the V2 settings format (a nested `server:` section); " \
+        "move #{@path}/#{@environment}.yml to V2 to set it"
+      )
     end
 
     private def load_v2_settings(content : String) : Settings

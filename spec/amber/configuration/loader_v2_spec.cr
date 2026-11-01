@@ -141,6 +141,17 @@ module Amber::Environment
     end
 
     describe "V1 YAML backward compatibility" do
+      it "rejects AMBER_SERVER_UNIX_SOCKET with a V1 file instead of serving on TCP" do
+        ENV["AMBER_SERVER_UNIX_SOCKET"] = "/run/app/app.sock"
+        begin
+          expect_raises(Amber::Exceptions::ConfigurationError, /server.unix_socket needs the V2 settings format/) do
+            Loader.new(:test, "./spec/support/config/").settings
+          end
+        ensure
+          ENV.delete("AMBER_SERVER_UNIX_SOCKET")
+        end
+      end
+
       it "still loads V1 format YAML files correctly" do
         loader = Loader.new(:test, "./spec/support/config/")
         settings = loader.settings

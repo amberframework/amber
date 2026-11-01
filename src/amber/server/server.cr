@@ -171,7 +171,6 @@ module Amber
         check_unix_socket_lock_file(lock_path, File.info?(lock_path, follow_symlinks: false))
         File.open(lock_path, "a", perm: UNIX_SOCKET_LOCK_MODE) do |lock_file|
           check_unix_socket_lock_file(lock_path, lock_file.info)
-          narrow_unix_socket_lock_mode(lock_path)
           hold_unix_socket_lock(lock_file, lock_path, lock_timeout) do
             remove_stale_unix_socket(socket_path)
             bind_unix_socket_with_mode(server, socket_path)
@@ -187,7 +186,10 @@ module Amber
     # :nodoc:
     #
     # Raises `Socket::BindError` unless *lock_info*, the lock file at
-    # *lock_path*, is absent or a regular file this process's user owns. It
+    # *lock_path*, is absent or a regular file this process's user owns and
+    # no group or other user may open. A wider mode is refused rather than
+    # narrowed: narrowing would not close a descriptor another user already
+    # holds, which could keep the lock forever. It
     # runs on the path before the file is opened, so a symlink, a FIFO (whose
     # open would block) or another user's file fails the start with this
     # error, and again on the opened descriptor, in case the path was
@@ -198,17 +200,12 @@ module Amber
       unless lock_info.type.file?
         raise Socket::BindError.new("server.unix_socket lock file #{lock_path} is not a regular file")
       end
-      return if lock_info.owner_id == LibC.getuid.to_s
+      unless lock_info.owner_id == LibC.getuid.to_s
+        raise Socket::BindError.new("server.unix_socket lock file #{lock_path} belongs to another user")
+      end
+      return if lock_info.permissions.value & 0o077 == 0
 
-      raise Socket::BindError.new("server.unix_socket lock file #{lock_path} belongs to another user")
-    end
-
-    # Narrows the lock file's mode to `UNIX_SOCKET_LOCK_MODE` when it is
-    # wider, so no other user can open it from now on.
-    private def self.narrow_unix_socket_lock_mode(lock_path : String) : Nil
-      return if File.info(lock_path).permissions.value == UNIX_SOCKET_LOCK_MODE
-
-      File.chmod(lock_path, UNIX_SOCKET_LOCK_MODE)
+      raise Socket::BindError.new("server.unix_socket lock file #{lock_path} may be opened by other users; delete it and start again")
     end
 
     # Interval between attempts to take a lock another start holds.

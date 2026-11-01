@@ -112,17 +112,35 @@ describe Amber::Server do
       end
     end
 
-    it "keeps the lock file readable and writable by its owner only" do
+    it "creates the lock file readable and writable by its owner only" do
       socket_path = File.tempname("amber-lock-mode", ".sock")
+      lock_path = "#{socket_path}.lock"
+      server = HTTP::Server.new { |context| context.response.print "ok" }
+      previous_umask = LibC.umask(0o000)
+      begin
+        Amber::Server.bind_unix_socket(server, socket_path)
+
+        File.info(lock_path).permissions.value.should eq Amber::Server::UNIX_SOCKET_LOCK_MODE
+      ensure
+        LibC.umask(previous_umask)
+        server.close
+        File.delete?(socket_path)
+        File.delete?(lock_path)
+      end
+    end
+
+    it "refuses a lock file that other users may open" do
+      socket_path = File.tempname("amber-lock-wide", ".sock")
       lock_path = "#{socket_path}.lock"
       server = HTTP::Server.new { |context| context.response.print "ok" }
       begin
         File.write(lock_path, "")
         File.chmod(lock_path, 0o644)
 
-        Amber::Server.bind_unix_socket(server, socket_path)
-
-        File.info(lock_path).permissions.value.should eq Amber::Server::UNIX_SOCKET_LOCK_MODE
+        expect_raises(Socket::BindError, /may be opened by other users/) do
+          Amber::Server.bind_unix_socket(server, socket_path)
+        end
+        File.exists?(socket_path).should be_false
       ensure
         server.close
         File.delete?(socket_path)
