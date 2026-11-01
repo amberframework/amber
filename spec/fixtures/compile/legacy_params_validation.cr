@@ -24,3 +24,25 @@ STDOUT.puts "rule_count=#{validator.rules.size}"
 STDOUT.puts "valid=#{valid}"
 STDOUT.puts "error_fields=#{validator.errors.map(&.param).join(",")}"
 STDOUT.puts "validated_fields=#{validator.params.keys.sort!.join(",")}"
+
+# A second call covers the rule options that the first leaves out: a blank
+# value accepted through `allow_blank: true`, and optional rules whose
+# parameter is present, so their blocks run (one passes, one fails).
+blank_request = HTTP::Request.new("GET", "/")
+blank_params = Amber::Router::Params.new(blank_request)
+blank_params["name"] = " "
+blank_params["middle"] = "x"
+blank_params["nickname"] = "kit"
+blank_validator = Amber::Validators::Params.new(blank_params)
+
+blank_validator.validation do
+  required(:name, allow_blank: true)
+  optional(:middle) { |value| value == "j" }
+  optional(:nickname) { |value| value == "kit" }
+end
+
+blank_valid = blank_validator.valid?
+
+STDOUT.puts "options.valid=#{blank_valid}"
+STDOUT.puts "options.error_fields=#{blank_validator.errors.map(&.param).join(",")}"
+STDOUT.puts "options.validated_fields=#{blank_validator.params.keys.sort!.join(",")}"

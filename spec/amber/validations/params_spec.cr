@@ -33,6 +33,9 @@ module Amber::Validators
           "valid=false",
           "error_fields=name",
           "validated_fields=last_name",
+          "options.valid=false",
+          "options.error_fields=middle",
+          "options.validated_fields=middle,name,nickname",
         ])
         compiler_output.should contain(
           "Warning: Deprecated Amber::Validators::Params#validation. " \
