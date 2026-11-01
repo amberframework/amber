@@ -154,9 +154,9 @@ Actions without a declared schema retain their existing params behavior.
 
 Amber parses JSON and form bodies (URL-encoded and multipart), plus bounded
 CBOR and COSE. XML is not parsed by default, so Amber applications do not link
-an XML library and a client cannot make the server parse an XML document. A
-request sent as `application/xml`, `text/xml`, or any `+xml` type is answered
-with 415.
+an XML library and a client cannot make the server parse an XML document. By
+default, an action bound to a request schema answers a body sent as
+`application/xml`, `text/xml`, or any `+xml` type with 415.
 
 An application that needs another body format registers a parser for that
 media type once at boot, then lists the media type in the action's schema.
