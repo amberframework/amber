@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Load custom config sections without deserializing through every
+  `YAML::Serializable` type. `AppConfig#custom_configs` now holds each
+  section as raw YAML (`Hash(String, String)`), `AppConfig#custom` reads it as
+  the requested type or returns the registered default, and an unregistered
+  key raises `Amber::Exceptions::ConfigurationError`. An app whose Grant models
+  have UUID columns compiles with custom config again.
+  `Amber::Configuration.load_custom_from_yaml` is removed.
+
 ## 2.0.0-beta.6 (2026-11-01)
 
 This release takes libxml2 out of every Amber V2 application. XML request

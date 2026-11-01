@@ -116,14 +116,25 @@ module Amber::Configuration
     end
 
     describe "#custom" do
-      it "retrieves a registered custom config" do
+      it "retrieves a custom config stored as raw YAML" do
         config = AppConfig.new
-        custom_instance = TestCustomConfig.new
-        custom_instance.test_value = "custom_value"
-        config.custom_configs["test_custom"] = custom_instance
+        config.custom_configs["test_custom"] = <<-YAML
+        test_value: custom_value
+        test_number: 77
+        YAML
 
         retrieved = config.custom(:test_custom, TestCustomConfig)
         retrieved.test_value.should eq "custom_value"
+        retrieved.test_number.should eq 77
+      end
+
+      it "falls back to the registered default custom config" do
+        Amber::Configuration.register_custom("test_custom_default", TestCustomConfig.new)
+        config = AppConfig.new
+
+        retrieved = config.custom(:test_custom_default, TestCustomConfig)
+        retrieved.test_value.should eq "default"
+        retrieved.test_number.should eq 42
       end
     end
   end

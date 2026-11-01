@@ -55,12 +55,7 @@ module Amber::Environment
       parsed = YAML.parse(content)
       Amber::Configuration.custom_config_defaults.each do |key, _default|
         if yaml_node = parsed[key]?
-          if loaded = Amber::Configuration.load_custom_from_yaml(key, yaml_node.to_yaml)
-            app_config.custom_configs[key] = loaded
-          end
-        else
-          # Use the default instance
-          app_config.custom_configs[key] = Amber::Configuration.custom_config_defaults[key]
+          app_config.custom_configs[key] = yaml_node.to_yaml
         end
       end
     end

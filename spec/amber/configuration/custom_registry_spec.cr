@@ -18,24 +18,24 @@ module Amber::Configuration
       Amber::Configuration.custom_config_defaults.has_key?("spec_custom").should be_true
     end
 
-    it "loads a custom config from YAML" do
+    it "loads a custom config section from YAML as its registered type" do
       Amber::Configuration.register_custom("spec_yaml_custom", SpecCustomConfig.new)
-
-      yaml = <<-YAML
+      config = AppConfig.new
+      config.custom_configs["spec_yaml_custom"] = <<-YAML
       api_key: "my-api-key"
       timeout: 60
       YAML
 
-      loaded = Amber::Configuration.load_custom_from_yaml("spec_yaml_custom", yaml)
-      loaded.should_not be_nil
-      loaded = loaded.not_nil!.as(SpecCustomConfig)
+      loaded = config.custom(:spec_yaml_custom, SpecCustomConfig)
+
       loaded.api_key.should eq "my-api-key"
       loaded.timeout.should eq 60
     end
 
-    it "returns nil for unregistered custom config keys" do
-      loaded = Amber::Configuration.load_custom_from_yaml("nonexistent_key", "key: value")
-      loaded.should be_nil
+    it "raises a configuration error for an unregistered custom config key" do
+      expect_raises(Amber::Exceptions::ConfigurationError, /nonexistent_key/) do
+        AppConfig.new.custom(:nonexistent_key, SpecCustomConfig)
+      end
     end
 
     it "provides defaults when YAML is not present" do
