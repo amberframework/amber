@@ -13,6 +13,15 @@ module Amber::Exceptions
     end
   end
 
+  # Raised on Windows, which has no credentials directory: the reader's
+  # guarantees rest on POSIX descriptor-relative opens. Register the section
+  # with `Amber::Configuration.register` and `AMBER_*` variables instead.
+  class CredentialsDirectoryUnsupported < CredentialsError
+    def initialize(directory : String)
+      super("Credentials directories are read on POSIX systems only; #{directory} was not read")
+    end
+  end
+
   # Raised when the process may not list the credentials directory.
   class CredentialsDirectoryUnreadable < CredentialsError
     def initialize(directory : String)
@@ -77,7 +86,8 @@ module Amber::Exceptions
 
   # Raised when the credential files cannot build the registered section
   # type, for example when a non-nilable field has no file and no default.
-  # The underlying YAML error is dropped because its message can quote a
+  # The underlying error, from YAML or from the type's own converter or
+  # `after_initialize`, is dropped because its message can quote a
   # credential value.
   class CredentialsDoNotFitSection < CredentialsError
     def initialize(type_name : String, directory : String)

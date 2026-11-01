@@ -35,6 +35,40 @@ struct SpecRequiredCredentials
   end
 end
 
+struct SpecTraversingCredentials
+  include YAML::Serializable
+
+  @[YAML::Field(key: "../escape")]
+  property escape : String = ""
+
+  def initialize
+  end
+end
+
+# A converter that rejects some values with an error quoting them, as an
+# application's own converter might.
+module SpecQuotingConverter
+  def self.from_yaml(ctx : YAML::ParseContext, node : YAML::Nodes::Node) : String
+    value = String.new(ctx, node)
+    raise ArgumentError.new("rejected #{value}") if value.starts_with?("agentc-placeholder:rejected")
+    value
+  end
+
+  def self.to_yaml(value : String, yaml : YAML::Nodes::Builder) : Nil
+    value.to_yaml(yaml)
+  end
+end
+
+struct SpecConvertedCredentials
+  include YAML::Serializable
+
+  @[YAML::Field(converter: SpecQuotingConverter)]
+  property api_token : String = ""
+
+  def initialize
+  end
+end
+
 # Builds a throwaway credentials directory and an "outside" directory
 # beside it, yields both, and removes them afterwards.
 private def with_scratch_directories(&)
@@ -258,6 +292,44 @@ module Amber::Configuration
           end
         end
       end
+
+      it "counts the name and contents against the total cap" do
+        with_scratch_directories do |credentials, _outside|
+          File.write(File.join(credentials, "api_key"), "k" * 20)
+
+          directory = CredentialsDirectory.new(credentials, maximum_file_size: 64_i64, maximum_total_size: 16_i64)
+          error = expect_raises(Amber::Exceptions::CredentialsDirectoryTooLarge) do
+            directory.read_credential("api_key")
+          end
+          error.message.to_s.should_not contain "k" * 20
+          expect_raises(Amber::Exceptions::CredentialsDirectoryTooLarge) do
+            directory.read_credential?("api_key")
+          end
+        end
+      end
+
+      it "reads through a directory path that is itself a symlink" do
+        with_scratch_directories do |credentials, outside|
+          File.write(File.join(credentials, "api_key"), "through-the-link")
+          linked_directory = File.join(outside, "linked_credentials")
+          File.symlink(credentials, linked_directory)
+
+          CredentialsDirectory.new(linked_directory).read_credential("api_key").should eq "through-the-link"
+        end
+      end
+
+      it "refuses a link to a link, even inside the directory" do
+        with_scratch_directories do |credentials, _outside|
+          File.write(File.join(credentials, "real_key"), "inside")
+          File.symlink("real_key", File.join(credentials, "first_link"))
+          File.symlink("first_link", File.join(credentials, "second_link"))
+
+          CredentialsDirectory.new(credentials).read_credential("first_link").should eq "inside"
+          expect_raises(Amber::Exceptions::CredentialSymlinkOutsideDirectory, /second_link/) do
+            CredentialsDirectory.new(credentials).read_credential("second_link")
+          end
+        end
+      end
     end
 
     describe "#read_into" do
@@ -312,6 +384,26 @@ module Amber::Configuration
           expect_raises(Amber::Exceptions::CredentialsDoNotFitSection) do
             CredentialsDirectory.new(credentials).read_into(SpecRequiredCredentials)
           end
+        end
+      end
+
+      it "raises CredentialsDoNotFitSection, not the converter's error that quotes the value" do
+        with_scratch_directories do |credentials, _outside|
+          File.write(File.join(credentials, "api_token"), "agentc-placeholder:rejected-token")
+
+          error = expect_raises(Amber::Exceptions::CredentialsDoNotFitSection, /SpecConvertedCredentials/) do
+            CredentialsDirectory.new(credentials).read_into(SpecConvertedCredentials)
+          end
+          error.message.to_s.should_not contain "rejected-token"
+          error.cause.should be_nil
+        end
+      end
+    end
+
+    describe "#read_for" do
+      it "raises CredentialPathTraversal for a declared key that is not a plain file name" do
+        expect_raises(Amber::Exceptions::CredentialPathTraversal, /escape/) do
+          CredentialsDirectory.new(FIXTURE_CREDENTIALS_DIRECTORY).read_for(SpecTraversingCredentials)
         end
       end
     end

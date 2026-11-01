@@ -147,7 +147,7 @@ asset manifest. Keep user uploads on a separate persistent-storage lifecycle.
 
 ## Environment Variable Overrides
 
-Every configuration property can be overridden with an environment variable. Environment variables always take highest priority, overriding both YAML file values and compiled-in defaults.
+The settings in the table below, and every field of a registered custom section, can be overridden with an environment variable. Environment variables always take highest priority, overriding both YAML file values and compiled-in defaults. The `static` and `secrets` sections take no environment overrides.
 
 The naming convention is `AMBER_{SECTION}_{KEY}`:
 
@@ -298,22 +298,23 @@ require "./initializers/**"
 
 ### Rules the Reader Enforces
 
-Each failure raises a named subclass of `Amber::Exceptions::CredentialsError`. Messages name the directory and the credential, never its value, and the reader does not log.
+Each failure raises a named subclass of `Amber::Exceptions::CredentialsError`. Messages name the directory and the credential, never its value, and the reader does not log. When the files cannot build the section type, the error from YAML or from the type's own converter or `after_initialize` is dropped, not chained, because it can quote a value.
 
 | Condition | Error |
 |-----------|-------|
 | Directory missing, or the path is not a directory | `CredentialsDirectoryNotFound` |
-| Directory cannot be listed | `CredentialsDirectoryUnreadable` |
-| Name is empty, `.`, `..`, longer than 255 bytes, or contains `/` or NUL (`read_credential`) | `CredentialPathTraversal` |
+| Directory cannot be opened or listed | `CredentialsDirectoryUnreadable` |
+| Running on Windows, which has no credentials directory | `CredentialsDirectoryUnsupported` |
+| Name is empty, `.`, `..`, longer than 255 bytes, or contains `/` or NUL (`read_credential`, or a key the section type declares) | `CredentialPathTraversal` |
 | No file for a requested name, or a dangling symlink | `CredentialNotFound` |
-| Symlink whose target is not a file directly inside the directory, or an entry that becomes a symlink before it is opened | `CredentialSymlinkOutsideDirectory` |
+| Symlink whose target is not a file directly inside the directory, a link to another link, or an entry that becomes a symlink before it is opened | `CredentialSymlinkOutsideDirectory` |
 | Entry is a subdirectory, FIFO, socket, or device | `CredentialNotARegularFile` |
 | File the process may not read | `CredentialUnreadable` |
 | File larger than the size cap (64 KiB by default) | `CredentialTooLarge` |
-| Names and contents of one read larger than the total cap (1 MiB by default) | `CredentialsDirectoryTooLarge` |
+| Names and contents of one read, a single `read_credential` included, larger than the total cap (1 MiB by default) | `CredentialsDirectoryTooLarge` |
 | Files cannot build the section type | `CredentialsDoNotFitSection` |
 
-A symlink is followed only when its target is a file directly inside the directory. Each file is opened without following a final symlink and without waiting on a FIFO, and its type and size are checked on the open file, so an entry swapped after it was listed is rejected rather than read. Pass different caps by name: `register_credentials(:credentials, AppCredentials, directory, maximum_file_size: 128_i64 * 1024, maximum_total_size: 2_i64 * 1024 * 1024)`.
+Each read opens the directory once and then lists, checks and opens every entry relative to that open directory (`openat`), so replacing the directory or one of its parents with a symlink part way through cannot redirect the read. A symlink is followed one step, and only when its target is a file directly inside the directory; that file is then opened by name through the open directory. Each file is opened without following a final symlink and without waiting on a FIFO, and its type and size are checked on the open file, so an entry swapped after it was listed is rejected rather than read. Pass different caps by name: `register_credentials(:credentials, AppCredentials, directory, maximum_file_size: 128_i64 * 1024, maximum_total_size: 2_i64 * 1024 * 1024)`.
 
 File contents are kept byte for byte, including a trailing newline, so write credential files without one (`printf '%s' "$secret" > secret_key_base`). Only the files the section declares are read: other files in the directory are neither read nor checked, and fields with no file keep their default.
 

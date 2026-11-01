@@ -46,6 +46,30 @@ struct SpecOverrideConfig
   end
 end
 
+# A converter that rejects some values with an error quoting them, as an
+# application's own converter might.
+module SpecOverrideQuotingConverter
+  def self.from_yaml(ctx : YAML::ParseContext, node : YAML::Nodes::Node) : String
+    value = String.new(ctx, node)
+    raise ArgumentError.new("rejected #{value}") if value.starts_with?("agentc-placeholder:rejected")
+    value
+  end
+
+  def self.to_yaml(value : String, yaml : YAML::Nodes::Builder) : Nil
+    value.to_yaml(yaml)
+  end
+end
+
+struct SpecOverrideConvertedConfig
+  include YAML::Serializable
+
+  @[YAML::Field(converter: SpecOverrideQuotingConverter)]
+  property api_token : String = ""
+
+  def initialize
+  end
+end
+
 # Registers a custom section and returns an AppConfig without its YAML,
 # as the loader leaves a section the environment file does not define.
 private def app_config_with_custom_section(section : String) : Amber::Configuration::AppConfig
@@ -376,6 +400,33 @@ module Amber::Configuration
             section.timeout.should eq 75
             section.api_key.should eq "agentc-placeholder:spec-yaml-key"
             section.signing_secret.should eq "agentc-placeholder:spec-yaml-signing-secret"
+          end
+        end
+
+        it "keeps a registered default's unserialized field when another field is overridden" do
+          registered_default = SpecOverrideConfig.new
+          registered_default.signing_secret = "agentc-placeholder:spec-registered-signing-secret"
+          registered_default.api_key = "agentc-placeholder:spec-registered-key"
+          Amber::Configuration.register_custom("spec_override_registered", registered_default)
+          with_env({"AMBER_SPEC_OVERRIDE_REGISTERED_TIMEOUT" => "20"}) do
+            config = AppConfig.new
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override_registered, SpecOverrideConfig)
+            section.timeout.should eq 20
+            section.api_key.should eq "agentc-placeholder:spec-registered-key"
+            section.signing_secret.should eq "agentc-placeholder:spec-registered-signing-secret"
+          end
+        end
+
+        it "raises a ConfigurationError, not the converter's error that quotes the value" do
+          Amber::Configuration.register_custom("spec_override_converted", SpecOverrideConvertedConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_CONVERTED_API_TOKEN" => "agentc-placeholder:rejected-override"}) do
+            config = AppConfig.new
+            error = expect_raises(Amber::Exceptions::ConfigurationError, /AMBER_SPEC_OVERRIDE_CONVERTED_API_TOKEN/) do
+              EnvOverride.apply_all(config)
+            end
+            error.message.to_s.should_not contain "rejected-override"
+            error.cause.should be_nil
           end
         end
 

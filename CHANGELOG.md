@@ -27,15 +27,18 @@
 - Add `Amber::Configuration::CredentialsDirectory` and
   `Amber::Configuration.register_credentials`, which read a systemd-style
   `$CREDENTIALS_DIRECTORY` (one file per credential) into a typed, registered
-  settings section. The reader rejects path traversal, symlinks outside the
-  directory, FIFOs and other special files, unreadable files, files over a
-  per-file cap, and directories over a total cap with named errors, opens
-  each file without following a final symlink, and never logs or quotes
-  values. A section reads only the files its type declares.
+  settings section. Each read opens the directory once and works relative
+  to that open directory. The reader rejects path traversal, symlinks
+  outside the directory, FIFOs and other special files, unreadable files,
+  files over a per-file cap, and reads over a total cap with named errors,
+  opens each file without following a final symlink, and never logs or
+  quotes values. A section reads only the files its type declares. Windows
+  raises `CredentialsDirectoryUnsupported`.
 - Extend the `AMBER_{SECTION}_{KEY}` environment override pass to registered
   custom sections, including nested sections that are nil or absent and
   nil-valued fields. Values follow the field's type as in the built-in pass,
-  and a section is rebuilt from the YAML or credentials it was loaded from.
+  and a section is rebuilt from the YAML or credentials it was loaded from,
+  or from every field of its registered default.
 - Raise a `ConfigurationError` when a credentials section is also defined in
   the environment YAML file.
 

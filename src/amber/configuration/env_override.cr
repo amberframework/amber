@@ -83,8 +83,10 @@ module Amber::Configuration
         section_yaml = YAML.build { |builder| mapping.to_yaml(builder) }
         begin
           Amber::Configuration.check_custom_yaml(section, section_yaml)
-        rescue YAML::ParseException
-          # Replaced, not chained: the parse error can quote the value.
+        rescue Exception
+          # Any error from reading the section as its type, whether from YAML
+          # or from the type's own converter or `after_initialize`, can quote
+          # the value, so it is replaced, not chained.
           raise Amber::Exceptions::ConfigurationError.new(
             "#{list_of_applied_variables.join(", ")}: value does not fit the field type in the #{section} section"
           )

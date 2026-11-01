@@ -56,5 +56,41 @@ module Amber::Configuration
       {% end %}
       list_of_fields
     end
+
+    # Writes *instance* as a YAML mapping of every field `YAML::Serializable`
+    # reads for its type, including fields marked `ignore_serialize`, so a
+    # section rebuilt from this YAML keeps every value *instance* holds.
+    # Nested sections are written the same way, and nil values are left out.
+    # The writer is typed to *T*, so it never dispatches over every
+    # `YAML::Serializable` type in the program.
+    def self.yaml_of(instance : T) : String forall T
+      nodes_builder = YAML::Nodes::Builder.new
+      write_every_field(instance, nodes_builder)
+      YAML.build { |builder| nodes_builder.document.to_yaml(builder) }
+    end
+
+    # :nodoc:
+    def self.write_every_field(instance : T, builder : YAML::Nodes::Builder) : Nil forall T
+      builder.mapping do
+        {% for ivar in T.instance_vars %}
+          {% field = ivar.annotation(::YAML::Field) %}
+          {% unless field && (field[:ignore] || field[:ignore_deserialize]) %}
+            {% key = field && field[:key] ? field[:key].id.stringify : ivar.name.stringify %}
+            {% types = ivar.type.union_types.reject { |type| type == ::Nil } %}
+            %value{ivar.name} = instance.@{{ ivar.name.id }}
+            unless %value{ivar.name}.nil?
+              {{ key }}.to_yaml(builder)
+              {% if field && field[:converter] %}
+                {{ field[:converter] }}.to_yaml(%value{ivar.name}, builder)
+              {% elsif types.size == 1 && types[0] < ::YAML::Serializable %}
+                write_every_field(%value{ivar.name}, builder)
+              {% else %}
+                %value{ivar.name}.to_yaml(builder)
+              {% end %}
+            end
+          {% end %}
+        {% end %}
+      end
+    end
   end
 end

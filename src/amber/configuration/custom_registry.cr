@@ -13,15 +13,16 @@ module Amber::Configuration
   # absent, and convert each value to its field's type.
   @@custom_config_fields = {} of String => Array(SectionField)
 
-  # Writes each registered default as YAML. The override pass starts from
-  # it when the environment file has no such section. Each writer is typed
+  # Writes each registered default as YAML, every field it reads included,
+  # so the override pass, which starts from it when the environment file
+  # has no such section, keeps the default's values. Each writer is typed
   # to its own section, so writing never dispatches over every
   # `YAML::Serializable` type in the program.
   @@custom_config_default_writers = {} of String => Proc(String)
 
-  # Reads YAML as each registered section's type, raising
-  # `YAML::ParseException` when it does not fit. Typed per section, like
-  # the writers, so it never reads through the `YAML::Serializable` union.
+  # Reads YAML as each registered section's type and raises when it does
+  # not fit. Typed per section, like the writers, so it never reads
+  # through the `YAML::Serializable` union.
   @@custom_config_checks = {} of String => Proc(String, Nil)
 
   # The values read for each credentials section, keyed by YAML key. The
@@ -55,7 +56,7 @@ module Amber::Configuration
   def self.register_custom(key : String, default_instance : T) : Nil forall T
     @@custom_config_defaults[key] = default_instance
     @@custom_config_fields[key] = SectionField.list_for(T)
-    @@custom_config_default_writers[key] = -> { default_instance.to_yaml }
+    @@custom_config_default_writers[key] = -> { SectionField.yaml_of(default_instance) }
     @@custom_config_checks[key] = ->(section_yaml : String) do
       T.from_yaml(section_yaml)
       nil
@@ -140,16 +141,18 @@ module Amber::Configuration
     @@custom_config_fields[key]?
   end
 
-  # Returns a registered section's default instance written as YAML, or nil
-  # when the section is not registered. :nodoc:
+  # Returns a registered section's default instance written as YAML, every
+  # field it reads included, or nil when the section is not registered.
+  # :nodoc:
   def self.custom_default_yaml(key : String) : String?
     if writer = @@custom_config_default_writers[key]?
       writer.call
     end
   end
 
-  # Raises `YAML::ParseException` when *section_yaml* does not read as the
-  # type registered for *key*. Does nothing for an unregistered key. :nodoc:
+  # Raises when *section_yaml* does not read as the type registered for
+  # *key*: a `YAML::ParseException`, or whatever the type's converter or
+  # `after_initialize` raises. Does nothing for an unregistered key. :nodoc:
   def self.check_custom_yaml(key : String, section_yaml : String) : Nil
     if check = @@custom_config_checks[key]?
       check.call(section_yaml)
