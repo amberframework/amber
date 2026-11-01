@@ -10,14 +10,13 @@ end
 
 # Compiles and runs a standalone program that calls the deprecated
 # `Params#validation` directly. A separate process keeps its deprecation
-# warning out of this suite's own build. `CRYSTAL` names the compiler when
-# set; otherwise the house toolchain, crystal-alpha, is used when installed.
+# warning out of this suite's own build. The compiler comes from
+# `FixtureCompiler.executable` (spec/support/fixture_compiler.cr).
 private def run_legacy_validation_fixture : {Process::Status, String, String}
-  compiler = ENV["CRYSTAL"]? || Process.find_executable("crystal-alpha") || "crystal"
-  fixture_path = "spec/fixtures/compile/legacy_params_validation.cr"
+  fixture_path = File.expand_path("../../fixtures/compile/legacy_params_validation.cr", __DIR__)
   program_output = IO::Memory.new
   compiler_output = IO::Memory.new
-  status = Process.run(compiler, ["run", "--no-color", fixture_path], output: program_output, error: compiler_output)
+  status = Process.run(FixtureCompiler.executable, ["run", "--no-color", fixture_path], output: program_output, error: compiler_output)
   {status, program_output.to_s, compiler_output.to_s}
 end
 
