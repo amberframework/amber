@@ -298,7 +298,7 @@ require "./initializers/**"
 
 ### Rules the Reader Enforces
 
-Each failure raises a named subclass of `Amber::Exceptions::CredentialsError`. Messages name the directory and the credential, never its value, and the reader does not log. When the files cannot build the section type, the error from YAML or from the type's own converter or `after_initialize` is dropped, not chained, because it can quote a value.
+Each failure to read raises a named subclass of `Amber::Exceptions::CredentialsError`; a size cap outside the allowed range raises `ArgumentError` when the reader is built. Messages name the directory and the credential, never its value, and the reader does not log. When the files cannot build the section type, the error from YAML or from the type's own converter or `after_initialize` is dropped, not chained, because it can quote a value.
 
 | Condition | Error |
 |-----------|-------|
@@ -314,7 +314,7 @@ Each failure raises a named subclass of `Amber::Exceptions::CredentialsError`. M
 | Names and contents of one read, a single `read_credential` included, larger than the total cap (1 MiB by default) | `CredentialsDirectoryTooLarge` |
 | Files cannot build the section type | `CredentialsDoNotFitSection` |
 
-Each read opens the directory once and then lists, checks and opens every entry relative to that open directory (`openat`), so replacing the directory or one of its parents with a symlink part way through cannot redirect the read. A symlink is followed one step, and only when its target is a file directly inside the directory; that file is then opened by name through the open directory. Each file is opened without following a final symlink and without waiting on a FIFO, and its type and size are checked on the open file, so an entry swapped after it was listed is rejected rather than read. A file is read no further than the smaller of the per-file cap and what the total cap still leaves. Pass different caps by name: `register_credentials(:credentials, AppCredentials, directory, maximum_file_size: 128_i64 * 1024, maximum_total_size: 2_i64 * 1024 * 1024)`.
+Each read opens the directory once and then lists, checks and opens every entry relative to that open directory (`openat`), so replacing the directory or one of its parents with a symlink part way through cannot redirect the read. A symlink is followed one step, and only when its target is a file directly inside the directory; that file is then opened by name through the open directory. Each file is opened without following a final symlink and without waiting on a FIFO, and its type and size are checked on the open file, so an entry swapped for a symlink, a FIFO or another special file after it was listed is rejected rather than read. A file is read no further than the smaller of the per-file cap and what the total cap still leaves. Pass different caps by name: `register_credentials(:credentials, AppCredentials, directory, maximum_file_size: 128_i64 * 1024, maximum_total_size: 2_i64 * 1024 * 1024)`.
 
 File contents are kept byte for byte, including a trailing newline, so write credential files without one (`printf '%s' "$secret" > secret_key_base`). Only the files the section declares are read: other files in the directory are neither read nor checked, and fields with no file keep their default.
 

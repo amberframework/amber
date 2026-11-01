@@ -92,7 +92,8 @@ module Amber::Configuration
     # Writes *instance* as a YAML mapping of the fields `YAML::Serializable`
     # reads for its type, including fields marked `ignore_serialize`, so a
     # section rebuilt from this YAML keeps the values *instance* holds.
-    # Nested sections are written the same way, and nil values are left out.
+    # Nested sections are written the same way, and a nil value is written
+    # as an explicit null.
     #
     # A field is written only when Amber knows how without asking the type to
     # serialize: its value is a `String`, `Bool`, integer, float, `Time` or
@@ -133,7 +134,14 @@ module Amber::Configuration
             {% end %}
             {% if writable %}
               %value{ivar.name} = instance.@{{ ivar.name.id }}
-              unless %value{ivar.name}.nil?
+              if %value{ivar.name}.nil?
+                {% if ivar.type.nilable? %}
+                  # Written as an explicit null, so a section rebuilt from
+                  # this YAML keeps nil instead of the declared default.
+                  {{ key }}.to_yaml(builder)
+                  nil.to_yaml(builder)
+                {% end %}
+              else
                 {{ key }}.to_yaml(builder)
                 {% if converter %}
                   {{ converter }}.to_yaml(%value{ivar.name}, builder)

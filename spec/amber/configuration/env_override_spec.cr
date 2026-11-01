@@ -148,6 +148,16 @@ struct SpecOverrideRatesConfig
   end
 end
 
+struct SpecOverrideNilDefaultConfig
+  include YAML::Serializable
+
+  property region : String? = "us-east"
+  property timeout : Int32 = 1
+
+  def initialize
+  end
+end
+
 class SpecOverrideTreeConfig
   include YAML::Serializable
 
@@ -589,6 +599,19 @@ module Amber::Configuration
             config.custom_configs["spec_override_rates"] = "rates:\n  usd: 1.5\n"
             EnvOverride.apply_all(config)
             config.custom(:spec_override_rates, SpecOverrideRatesConfig).rates.should eq({"usd" => 2.0})
+          end
+        end
+
+        it "keeps a nil the registered default holds when another field is overridden" do
+          default_instance = SpecOverrideNilDefaultConfig.new
+          default_instance.region = nil
+          Amber::Configuration.register_custom("spec_override_nil_default", default_instance)
+          with_env({"AMBER_SPEC_OVERRIDE_NIL_DEFAULT_TIMEOUT" => "7"}) do
+            config = AppConfig.new
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override_nil_default, SpecOverrideNilDefaultConfig)
+            section.timeout.should eq 7
+            section.region.should be_nil
           end
         end
 
