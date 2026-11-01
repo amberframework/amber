@@ -79,7 +79,10 @@ module Amber::Configuration
 
         prefix = "AMBER_#{env_name(section)}"
         # Most sections have no variable set; leave their YAML untouched.
-        next unless ENV.keys.any?(&.starts_with?("#{prefix}_"))
+        # Only a variable that names one of the section's fields counts, so
+        # an unrelated variable sharing the prefix never writes the default.
+        list_of_prefixed_variables = ENV.keys.select(&.starts_with?("#{prefix}_"))
+        next unless field_variable_set?(prefix, list_of_fields, list_of_prefixed_variables)
 
         mapping = section_mapping(config, section)
         list_of_applied_variables = [] of String
@@ -98,6 +101,23 @@ module Amber::Configuration
           )
         end
         config.custom_configs[section] = section_yaml
+      end
+    end
+
+    # Returns true when one of *list_of_variables* names a field of the
+    # section: a field's own variable, a variable of a nested section's
+    # field, or a variable for a key of a `Hash` field.
+    private def self.field_variable_set?(prefix : String, list_of_fields : Array(SectionField),
+                                         list_of_variables : Array(String)) : Bool
+      list_of_fields.any? do |field|
+        variable = "#{prefix}_#{env_name(field.key)}"
+        if field.value_kind.section?
+          field_variable_set?(variable, field.list_of_fields, list_of_variables)
+        elsif field.value_kind.mapping?
+          list_of_variables.any?(&.starts_with?("#{variable}_"))
+        else
+          list_of_variables.includes?(variable)
+        end
       end
     end
 
@@ -139,10 +159,14 @@ module Amber::Configuration
           if created_mapping && list_of_applied_variables.size > applied_before
             set_value(mapping, field.key, value_index, nested_mapping)
           end
-        elsif existing_value.is_a?(YAML::Nodes::Mapping)
-          # A hash-typed field: each of its existing keys takes a variable.
-          apply_to_mapping(existing_value, variable, untyped_fields_of(existing_value), list_of_applied_variables)
+        elsif field.value_kind.mapping?
+          # A `Hash` field: each key it already holds takes a variable.
+          if existing_value.is_a?(YAML::Nodes::Mapping)
+            apply_to_mapping(existing_value, variable, untyped_fields_of(existing_value), list_of_applied_variables)
+          end
         elsif override = ENV[variable]?
+          # Any other field takes its own variable whatever the YAML holds
+          # there, so a malformed value cannot hide the override.
           set_value(mapping, field.key, value_index, override_node(field.value_kind, variable, override))
           list_of_applied_variables << variable
         end

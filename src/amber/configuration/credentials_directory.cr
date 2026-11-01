@@ -99,8 +99,8 @@ module Amber::Configuration
         credentials = {} of String => String
         total_size = 0_i64
         list_of_names(open_directory).each do |name|
-          value = read_from(open_directory, name)
-          total_size = add_to_total(total_size, name, value)
+          value = read_from(open_directory, name, content_budget(total_size, name))
+          total_size += name.bytesize + value.bytesize
           credentials[name] = value
         end
         credentials
@@ -121,9 +121,7 @@ module Amber::Configuration
     # Reads one credential by name, or returns nil when no file has that name.
     def read_credential?(name : String) : String?
       with_open_directory do |open_directory|
-        value = read_from?(open_directory, name)
-        add_to_total(0_i64, name, value) if value
-        value
+        read_from?(open_directory, name, content_budget(0_i64, name))
       end
     end
 
@@ -139,9 +137,9 @@ module Amber::Configuration
         total_size = 0_i64
         SectionField.list_for(type).each do |field|
           name = field.key
-          value = read_from?(open_directory, name)
+          value = read_from?(open_directory, name, content_budget(total_size, name))
           next unless value
-          total_size = add_to_total(total_size, name, value)
+          total_size += name.bytesize + value.bytesize
           credentials[name] = value
         end
         credentials
@@ -190,12 +188,14 @@ module Amber::Configuration
       end
     end
 
-    private def add_to_total(total_size : Int64, name : String, value : String) : Int64
-      new_total = total_size + name.bytesize + value.bytesize
-      if new_total > maximum_total_size
-        raise Amber::Exceptions::CredentialsDirectoryTooLarge.new(directory, maximum_total_size)
-      end
-      new_total
+    # Returns how many bytes of contents the credential *name* may still
+    # have once *total_size* bytes are taken, so a read stops at the total
+    # cap instead of finding it afterwards. Raises when the name alone
+    # does not fit.
+    private def content_budget(total_size : Int64, name : String) : Int64
+      budget = maximum_total_size - total_size - name.bytesize
+      raise Amber::Exceptions::CredentialsDirectoryTooLarge.new(directory, maximum_total_size) if budget < 0
+      budget
     end
 
     # Opens the directory once for one read and yields it. Every later
@@ -215,14 +215,40 @@ module Amber::Configuration
         end
 
         directory_file = IO::FileDescriptor.new(descriptor)
-        begin
-          directory_info = directory_file.info
+        result = begin
+          directory_info = info_of_open_directory(directory_file)
           raise Amber::Exceptions::CredentialsDirectoryNotFound.new(directory) unless directory_info.directory?
           yield OpenDirectory.new(descriptor, directory_info)
-        ensure
-          directory_file.close
+        rescue failure
+          # The failure that stopped the read is the one reported; a close
+          # error after it is dropped.
+          close_after_failure(directory_file)
+          raise failure
         end
+        close_or_raise(directory_file) { Amber::Exceptions::CredentialsDirectoryUnreadable.new(directory) }
+        result
       {% end %}
+    end
+
+    private def info_of_open_directory(directory_file : IO::FileDescriptor) : File::Info
+      directory_file.info
+    rescue IO::Error
+      raise Amber::Exceptions::CredentialsDirectoryUnreadable.new(directory)
+    end
+
+    # Closes *file* after a read that succeeded, raising the named error the
+    # block builds when the close fails.
+    private def close_or_raise(file : IO::FileDescriptor, & : -> Exception) : Nil
+      file.close
+    rescue IO::Error
+      raise yield
+    end
+
+    # Closes *file* while another error is already being raised.
+    private def close_after_failure(file : IO::FileDescriptor) : Nil
+      file.close
+    rescue IO::Error
+      # Dropped: the error already being raised says what went wrong.
     end
 
     # Lists the entries of the open directory, counting their names toward
@@ -269,18 +295,18 @@ module Amber::Configuration
       {% end %}
     end
 
-    private def read_from(open_directory : OpenDirectory, name : String) : String
-      read_from?(open_directory, name) || raise Amber::Exceptions::CredentialNotFound.new(name, directory)
+    private def read_from(open_directory : OpenDirectory, name : String, content_budget : Int64) : String
+      read_from?(open_directory, name, content_budget) || raise Amber::Exceptions::CredentialNotFound.new(name, directory)
     end
 
-    private def read_from?(open_directory : OpenDirectory, name : String) : String?
+    private def read_from?(open_directory : OpenDirectory, name : String, content_budget : Int64) : String?
       unless plain_file_name?(name)
         raise Amber::Exceptions::CredentialPathTraversal.new(name, directory)
       end
       file = open_entry?(open_directory, name)
       return unless file
 
-      read_open_file(file, name)
+      read_open_file(file, name, content_budget)
     end
 
     private def plain_file_name?(name : String) : Bool
@@ -357,27 +383,45 @@ module Amber::Configuration
       raise Amber::Exceptions::CredentialSymlinkOutsideDirectory.new(name, directory)
     end
 
-    # Checks the open descriptor: it must be a regular file no larger than
-    # the cap. Reads at most one byte past the cap, so a file that grows
-    # after the check is still rejected instead of read whole.
-    private def read_open_file(file : IO::FileDescriptor, name : String) : String
+    # Reads the open credential file, then closes it.
+    private def read_open_file(file : IO::FileDescriptor, name : String, content_budget : Int64) : String
+      contents = begin
+        read_checked_contents(file, name, content_budget)
+      rescue failure
+        # The failure that stopped the read is the one reported; a close
+        # error after it is dropped.
+        close_after_failure(file)
+        raise failure
+      end
+      close_or_raise(file) { Amber::Exceptions::CredentialUnreadable.new(name, directory) }
+      contents
+    end
+
+    # Checks the open descriptor: it must be a regular file within the
+    # per-file cap and within *content_budget*, what the total cap leaves.
+    # Reads at most one byte past the smaller of the two, so a file that
+    # grows after the check is still rejected instead of read whole.
+    private def read_checked_contents(file : IO::FileDescriptor, name : String, content_budget : Int64) : String
       credential_file_info = file.info
       raise Amber::Exceptions::CredentialNotARegularFile.new(name, directory) unless credential_file_info.file?
-      if credential_file_info.size > maximum_file_size
-        raise Amber::Exceptions::CredentialTooLarge.new(name, directory, maximum_file_size)
-      end
+      ensure_within_caps(name, credential_file_info.size, content_budget)
 
       contents = IO::Memory.new
-      IO.copy(file, contents, maximum_file_size + 1)
-      if contents.size > maximum_file_size
-        raise Amber::Exceptions::CredentialTooLarge.new(name, directory, maximum_file_size)
-      end
+      IO.copy(file, contents, Math.min(maximum_file_size, content_budget) + 1)
+      ensure_within_caps(name, contents.size.to_i64, content_budget)
       contents.to_s
     rescue IO::Error
       # Not chained: a read error is no place for a credential's bytes.
       raise Amber::Exceptions::CredentialUnreadable.new(name, directory)
-    ensure
-      file.close
+    end
+
+    private def ensure_within_caps(name : String, size : Int64, content_budget : Int64) : Nil
+      if size > maximum_file_size
+        raise Amber::Exceptions::CredentialTooLarge.new(name, directory, maximum_file_size)
+      end
+      if size > content_budget
+        raise Amber::Exceptions::CredentialsDirectoryTooLarge.new(directory, maximum_total_size)
+      end
     end
   end
 end

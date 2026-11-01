@@ -19,6 +19,8 @@ module Amber::Configuration
       Decimal
       # A nested `YAML::Serializable` section.
       Section
+      # A `Hash` field: each key it already holds takes its own variable.
+      Mapping
       # Any other field: read as a plain YAML scalar.
       Other
     end
@@ -32,7 +34,12 @@ module Amber::Configuration
 
     # Lists the fields `YAML::Serializable` reads for *type*, honoring
     # `@[YAML::Field(key: ...)]` renames and skipping ignored fields.
-    def self.list_for(type : T.class) : Array(SectionField) forall T
+    #
+    # *list_of_enclosing_types* names the section types already being listed
+    # on the way down, so a section type nested inside itself is listed once
+    # along each path and listing ends.
+    def self.list_for(type : T.class, list_of_enclosing_types : Array(String) = [] of String) : Array(SectionField) forall T
+      list_of_enclosing_types = list_of_enclosing_types + [T.name]
       list_of_fields = [] of SectionField
       {% for ivar in T.instance_vars %}
         {% field = ivar.annotation(::YAML::Field) %}
@@ -48,13 +55,26 @@ module Amber::Configuration
           {% elsif types.size == 1 && types[0] < ::Float %}
             list_of_fields << SectionField.new({{ key }}, Kind::Decimal)
           {% elsif types.size == 1 && types[0] < ::YAML::Serializable %}
-            list_of_fields << SectionField.new({{ key }}, Kind::Section, list_for({{ types[0] }}))
+            list_of_fields << nested_section_field({{ key }}, {{ types[0] }}, list_of_enclosing_types)
+          {% elsif types.size == 1 && types[0] <= ::Hash %}
+            list_of_fields << SectionField.new({{ key }}, Kind::Mapping)
           {% else %}
             list_of_fields << SectionField.new({{ key }}, Kind::Other)
           {% end %}
         {% end %}
       {% end %}
       list_of_fields
+    end
+
+    # Describes a nested section field. When its type is already being
+    # listed further up the same path, the field is described without its
+    # own fields: that repeat takes no variables, and listing stops there.
+    private def self.nested_section_field(key : String, type : T.class, list_of_enclosing_types : Array(String)) : SectionField forall T
+      if list_of_enclosing_types.includes?(T.name)
+        SectionField.new(key, Kind::Section)
+      else
+        SectionField.new(key, Kind::Section, list_for(type, list_of_enclosing_types))
+      end
     end
 
     # Writes *instance* as a YAML mapping of the fields `YAML::Serializable`

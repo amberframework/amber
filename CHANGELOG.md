@@ -38,7 +38,9 @@
   custom sections, including nested sections that are nil or absent and
   nil-valued fields. Values follow the field's type as in the built-in pass,
   and a section is rebuilt from the YAML or credentials it was loaded from,
-  or from every field of its registered default.
+  or from its registered default: each field Amber can write as YAML keeps
+  the default's value, and any other field takes its declared default. A
+  `Hash` field takes a variable for each key it already holds.
 - Raise a `ConfigurationError` when a credentials section is also defined in
   the environment YAML file.
 

@@ -127,6 +127,16 @@ struct SpecOverrideHashConfig
   end
 end
 
+class SpecOverrideTreeConfig
+  include YAML::Serializable
+
+  property label : String = "root"
+  property child : SpecOverrideTreeConfig? = nil
+
+  def initialize
+  end
+end
+
 # Registers a custom section and returns an AppConfig without its YAML,
 # as the loader leaves a section the environment file does not define.
 private def app_config_with_custom_section(section : String) : Amber::Configuration::AppConfig
@@ -519,6 +529,38 @@ module Amber::Configuration
             config.custom_configs["spec_override_hash"] = "labels:\n  team: core\n"
             EnvOverride.apply_all(config)
             config.custom(:spec_override_hash, SpecOverrideHashConfig).labels.should eq({"team" => "ops"})
+          end
+        end
+
+        it "replaces a malformed mapping in a String field with the field's variable" do
+          Amber::Configuration.register_custom("spec_override_malformed", SpecOverrideConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_MALFORMED_API_KEY" => "agentc-placeholder:spec-replaced-key"}) do
+            config = AppConfig.new
+            config.custom_configs["spec_override_malformed"] = "api_key:\n  stray: value\n"
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override_malformed, SpecOverrideConfig)
+            section.api_key.should eq "agentc-placeholder:spec-replaced-key"
+          end
+        end
+
+        it "leaves a section alone when a variable shares its prefix but names no field" do
+          Amber::Configuration.register_custom("spec_override_quoting_unused", SpecOverrideQuotingDefaultConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_QUOTING_UNUSED_NOT_A_FIELD" => "1"}) do
+            config = AppConfig.new
+            EnvOverride.apply_all(config)
+            config.custom_configs.has_key?("spec_override_quoting_unused").should be_false
+          end
+        end
+
+        it "registers a section type nested inside itself and overrides its first level" do
+          Amber::Configuration.register_custom("spec_override_tree", SpecOverrideTreeConfig.new)
+          vars = {"AMBER_SPEC_OVERRIDE_TREE_LABEL" => "trunk", "AMBER_SPEC_OVERRIDE_TREE_CHILD_LABEL" => "leaf"}
+          with_env(vars) do
+            config = AppConfig.new
+            EnvOverride.apply_all(config)
+            section = config.custom(:spec_override_tree, SpecOverrideTreeConfig)
+            section.label.should eq "trunk"
+            section.child.should be_nil
           end
         end
 

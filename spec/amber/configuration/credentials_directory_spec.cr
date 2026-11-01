@@ -197,6 +197,16 @@ module Amber::Configuration
         end
       end
 
+      it "stops reading a file at what the total cap leaves, below the per-file cap" do
+        with_scratch_directories do |credentials, _outside|
+          File.write(File.join(credentials, "large_key"), "c" * 5000)
+
+          reader = CredentialsDirectory.new(credentials, maximum_file_size: 10_000_i64, maximum_total_size: 100_i64)
+          expect_raises(Amber::Exceptions::CredentialsDirectoryTooLarge) { reader.read }
+          expect_raises(Amber::Exceptions::CredentialsDirectoryTooLarge) { reader.read_credential("large_key") }
+        end
+      end
+
       it "raises CredentialNotARegularFile for a subdirectory" do
         with_scratch_directories do |credentials, _outside|
           Dir.mkdir(File.join(credentials, "nested"))
