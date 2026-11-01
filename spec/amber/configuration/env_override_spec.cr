@@ -127,6 +127,18 @@ struct SpecOverrideHashConfig
   end
 end
 
+struct SpecOverrideQuotingHashConfig
+  include YAML::Serializable
+
+  @[YAML::Field(converter: SpecOverrideQuotingWriter)]
+  property token : String = "agentc-placeholder:spec-quoted-default"
+
+  property labels : Hash(String, String) = {} of String => String
+
+  def initialize
+  end
+end
+
 class SpecOverrideTreeConfig
   include YAML::Serializable
 
@@ -549,6 +561,15 @@ module Amber::Configuration
             config = AppConfig.new
             EnvOverride.apply_all(config)
             config.custom_configs.has_key?("spec_override_quoting_unused").should be_false
+          end
+        end
+
+        it "leaves a section alone when a Hash key variable names no key and the default cannot be written" do
+          Amber::Configuration.register_custom("spec_override_quoting_hash", SpecOverrideQuotingHashConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_QUOTING_HASH_LABELS_UNKNOWN" => "1"}) do
+            config = AppConfig.new
+            EnvOverride.apply_all(config)
+            config.custom_configs.has_key?("spec_override_quoting_hash").should be_false
           end
         end
 

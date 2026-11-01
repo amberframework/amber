@@ -207,6 +207,24 @@ module Amber::Configuration
         end
       end
 
+      it "charges a name against the total cap only when its file exists" do
+        with_scratch_directories do |credentials, _outside|
+          reader = CredentialsDirectory.new(credentials, maximum_total_size: 2_i64)
+          reader.read_for(SpecAppCredentials).should be_empty
+          reader.read_credential?("absent_key").should be_nil
+        end
+      end
+
+      it "refuses a dangling link that points outside without checking the target" do
+        with_scratch_directories do |credentials, outside|
+          File.symlink(File.join(outside, "never_written"), File.join(credentials, "api_key"))
+
+          expect_raises(Amber::Exceptions::CredentialSymlinkOutsideDirectory) do
+            CredentialsDirectory.new(credentials).read_credential("api_key")
+          end
+        end
+      end
+
       it "raises CredentialNotARegularFile for a subdirectory" do
         with_scratch_directories do |credentials, _outside|
           Dir.mkdir(File.join(credentials, "nested"))

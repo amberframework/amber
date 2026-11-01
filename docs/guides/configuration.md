@@ -147,7 +147,7 @@ asset manifest. Keep user uploads on a separate persistent-storage lifecycle.
 
 ## Environment Variable Overrides
 
-The settings in the table below, and every field of a registered custom section, can be overridden with an environment variable. Environment variables always take highest priority, overriding both YAML file values and compiled-in defaults. The `static` and `secrets` sections take no environment overrides.
+The settings in the table below, and the scalar fields, nested sections and existing `Hash` keys of a registered custom section, can be overridden with an environment variable. Environment variables always take highest priority, overriding both YAML file values and compiled-in defaults. The `static` and `secrets` sections take no environment overrides.
 
 The naming convention is `AMBER_{SECTION}_{KEY}`:
 

@@ -82,9 +82,20 @@ module Amber::Configuration
         # Only a variable that names one of the section's fields counts, so
         # an unrelated variable sharing the prefix never writes the default.
         list_of_prefixed_variables = ENV.keys.select(&.starts_with?("#{prefix}_"))
-        next unless field_variable_set?(prefix, list_of_fields, list_of_prefixed_variables)
+        field_named = field_variable_set?(prefix, list_of_fields, list_of_prefixed_variables, count_mapping_keys: false)
+        unless field_named
+          # A variable under a `Hash` field's name counts only when the
+          # field holds that key, which only the section's YAML can tell.
+          next unless field_variable_set?(prefix, list_of_fields, list_of_prefixed_variables, count_mapping_keys: true)
+        end
 
-        mapping = section_mapping(config, section)
+        loaded_yaml = config.custom_configs[section]?
+        base_yaml = loaded_yaml || registered_default_yaml(section, raise_on_failure: field_named)
+        # A default that cannot be written leaves nothing for a Hash key
+        # variable to override; the section stays as registered.
+        next unless base_yaml
+
+        mapping = mapping_of(base_yaml)
         list_of_applied_variables = [] of String
         apply_to_mapping(mapping, prefix, list_of_fields, list_of_applied_variables)
         next if list_of_applied_variables.empty?
@@ -105,36 +116,34 @@ module Amber::Configuration
     end
 
     # Returns true when one of *list_of_variables* names a field of the
-    # section: a field's own variable, a variable of a nested section's
-    # field, or a variable for a key of a `Hash` field.
+    # section: a field's own variable or a variable of a nested section's
+    # field. With *count_mapping_keys*, a variable that starts with a `Hash`
+    # field's name counts too, since it may name one of the field's keys.
     private def self.field_variable_set?(prefix : String, list_of_fields : Array(SectionField),
-                                         list_of_variables : Array(String)) : Bool
+                                         list_of_variables : Array(String), *, count_mapping_keys : Bool) : Bool
       list_of_fields.any? do |field|
         variable = "#{prefix}_#{env_name(field.key)}"
         if field.value_kind.section?
-          field_variable_set?(variable, field.list_of_fields, list_of_variables)
+          field_variable_set?(variable, field.list_of_fields, list_of_variables, count_mapping_keys: count_mapping_keys)
         elsif field.value_kind.mapping?
-          list_of_variables.any?(&.starts_with?("#{variable}_"))
+          count_mapping_keys && list_of_variables.any?(&.starts_with?("#{variable}_"))
         else
           list_of_variables.includes?(variable)
         end
       end
     end
 
-    # Returns the mapping of a section's raw YAML, falling back to the
-    # registered default written as YAML when the section was not loaded.
-    private def self.section_mapping(config : AppConfig, section : String) : YAML::Nodes::Mapping
-      section_yaml = config.custom_configs[section]? || registered_default_yaml(section)
-      return YAML::Nodes::Mapping.new unless section_yaml
-
+    private def self.mapping_of(section_yaml : String) : YAML::Nodes::Mapping
       YAML::Nodes.parse(section_yaml).nodes.first?.as?(YAML::Nodes::Mapping) || YAML::Nodes::Mapping.new
     end
 
     # Writes a section's registered default as YAML. A converter's `to_yaml`
     # can quote the default's value, so its error is replaced, not chained.
-    private def self.registered_default_yaml(section : String) : String?
+    # With *raise_on_failure* false, a failure returns nil instead.
+    private def self.registered_default_yaml(section : String, *, raise_on_failure : Bool) : String?
       Amber::Configuration.custom_default_yaml(section)
     rescue Exception
+      return unless raise_on_failure
       raise Amber::Exceptions::ConfigurationError.new(
         "The registered default of the #{section} section could not be written as YAML"
       )

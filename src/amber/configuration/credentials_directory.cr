@@ -99,7 +99,7 @@ module Amber::Configuration
         credentials = {} of String => String
         total_size = 0_i64
         list_of_names(open_directory).each do |name|
-          value = read_from(open_directory, name, content_budget(total_size, name))
+          value = read_from(open_directory, name, total_size)
           total_size += name.bytesize + value.bytesize
           credentials[name] = value
         end
@@ -121,7 +121,7 @@ module Amber::Configuration
     # Reads one credential by name, or returns nil when no file has that name.
     def read_credential?(name : String) : String?
       with_open_directory do |open_directory|
-        read_from?(open_directory, name, content_budget(0_i64, name))
+        read_from?(open_directory, name, 0_i64)
       end
     end
 
@@ -137,7 +137,7 @@ module Amber::Configuration
         total_size = 0_i64
         SectionField.list_for(type).each do |field|
           name = field.key
-          value = read_from?(open_directory, name, content_budget(total_size, name))
+          value = read_from?(open_directory, name, total_size)
           next unless value
           total_size += name.bytesize + value.bytesize
           credentials[name] = value
@@ -267,7 +267,7 @@ module Amber::Configuration
           raise Amber::Exceptions::CredentialsDirectoryUnreadable.new(directory)
         end
 
-        begin
+        sorted_names = begin
           list_of_names = [] of String
           name_bytes = 0_i64
           loop do
@@ -289,24 +289,33 @@ module Amber::Configuration
             list_of_names << name
           end
           list_of_names.sort!
-        ensure
+        rescue failure
+          # The failure that stopped the listing is the one reported.
           LibC.closedir(listing)
+          raise failure
         end
+        if LibC.closedir(listing) != 0
+          raise Amber::Exceptions::CredentialsDirectoryUnreadable.new(directory)
+        end
+        sorted_names
       {% end %}
     end
 
-    private def read_from(open_directory : OpenDirectory, name : String, content_budget : Int64) : String
-      read_from?(open_directory, name, content_budget) || raise Amber::Exceptions::CredentialNotFound.new(name, directory)
+    private def read_from(open_directory : OpenDirectory, name : String, total_size : Int64) : String
+      read_from?(open_directory, name, total_size) || raise Amber::Exceptions::CredentialNotFound.new(name, directory)
     end
 
-    private def read_from?(open_directory : OpenDirectory, name : String, content_budget : Int64) : String?
+    # Reads the credential *name* when its file exists. *total_size* is what
+    # this read has already taken; a name counts toward the total cap only
+    # once its file is found.
+    private def read_from?(open_directory : OpenDirectory, name : String, total_size : Int64) : String?
       unless plain_file_name?(name)
         raise Amber::Exceptions::CredentialPathTraversal.new(name, directory)
       end
       file = open_entry?(open_directory, name)
       return unless file
 
-      read_open_file(file, name, content_budget)
+      read_open_file(file, name, total_size)
     end
 
     private def plain_file_name?(name : String) : Bool
@@ -378,15 +387,15 @@ module Amber::Configuration
         return target_name
       end
 
-      # A dangling link has no readable target, wherever it points.
-      return unless File.exists?(File.expand_path(target, directory))
+      # Refused without looking at the target, so the error says nothing
+      # about what exists outside the directory.
       raise Amber::Exceptions::CredentialSymlinkOutsideDirectory.new(name, directory)
     end
 
     # Reads the open credential file, then closes it.
-    private def read_open_file(file : IO::FileDescriptor, name : String, content_budget : Int64) : String
+    private def read_open_file(file : IO::FileDescriptor, name : String, total_size : Int64) : String
       contents = begin
-        read_checked_contents(file, name, content_budget)
+        read_checked_contents(file, name, content_budget(total_size, name))
       rescue failure
         # The failure that stopped the read is the one reported; a close
         # error after it is dropped.
