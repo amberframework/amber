@@ -95,8 +95,13 @@ puts Amber.env  # => "development"
 ### External Dependencies
 
 - **Grant ORM**: Separate shard — ActiveRecord-style ORM for V2 (publishing to the amberframework org soon)
+- **Micrate**: Separate shard (`amberframework/micrate`) — SQL migrations that Amber CLI runs as `amber database migrate`, `rollback`, and `status`
+- **Gemma**: Separate shard — file attachments, storage, and delivery; an ecosystem preview, not part of the web release gate
+- **Mica**: Separate shard (`amberframework/mica`, v0.1.0) — pure-Crystal parsing of untrusted input to published standards, under a work budget. Today it parses XML 1.0 and 1.1 with Namespaces (streaming reader, DOM, builder, XPath 1.0), with no C parsing library and no network or file access while parsing. It is the opt-in XML request parser: an app adds the shard and registers `Mica::XML::Fields.read` with `ParserRegistry.register_body_parser` (see `docs/guides/schema-api.md`). Amber itself does not depend on it.
 - **CLI**: Separate project (`amber_cli`) — not part of this repo
 - **Asset Pipeline**: Separate project (`amberframework/asset_pipeline`) — not part of this repo
+
+The website's crew page gives each boundary a character: Amber (framework), Grant (records), and Gemma (files): https://amberframework.org/characters
 
 ## Key File Paths
 
