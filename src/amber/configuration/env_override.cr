@@ -259,6 +259,9 @@ module Amber::Configuration
         # Comma-separated; an empty value trusts no proxy at all.
         config.trusted_proxies = v.split(',').map(&.strip).reject(&.empty?)
       end
+      if v = ENV["AMBER_SERVER_TRUSTED_PROXY_HEADERS"]?
+        config.trusted_proxy_headers = v.strip
+      end
       if v = ENV["AMBER_SERVER_UNIX_SOCKET"]?
         config.unix_socket = v.empty? ? nil : v
       end

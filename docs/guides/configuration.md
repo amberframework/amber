@@ -58,6 +58,7 @@ server:
   trusted_proxies:             # Proxies allowed to report the client's scheme
     - "127.0.0.0/8"            # and address (default: loopback only)
     - "::1"
+  trusted_proxy_headers: "x-forwarded"  # Headers those proxies write: "x-forwarded" or "forwarded"
   unix_socket: null            # Listen on this UNIX socket path instead of host/port
 ```
 
@@ -72,46 +73,67 @@ and CSRF cookies.
 
 `request.https?` is `true` when Amber terminates TLS itself (`server.ssl`),
 or when the request's immediate peer matches an entry in
-`server.trusted_proxies` and that proxy reported `https` through, in order:
+`server.trusted_proxies` and that proxy reported `https`.
 
-1. the `proto=` parameter of the last element of `Forwarded` (RFC 7239),
-2. the last value of `X-Forwarded-Proto`,
-3. the CGI-style `HTTPS: on` header.
+Amber reads only the header family your proxies write, named by
+`server.trusted_proxy_headers`:
 
-Each proxy appends its value to the end of these headers, so Amber reads the
-last one, which is the value the trusted hop wrote. Requests from any other
-peer keep their real scheme, whatever headers they carry.
+| `trusted_proxy_headers` | Scheme from | Client address from | Proxies |
+|-------------------------|-------------|---------------------|---------|
+| `"x-forwarded"` (default) | the last `X-Forwarded-Proto` value | `X-Forwarded-For` | Caddy, nginx, HAProxy, cloud load balancers, Cloudflare |
+| `"forwarded"` | the `proto=` of the last `Forwarded` element (RFC 7239) | `Forwarded: for=` | proxies configured to write RFC 7239 `Forwarded` |
 
-Entries are IP addresses or CIDR blocks. Pick the list for your deployment:
+A proxy rewrites only the family it manages and passes the other one
+through from the client unchanged, so believing both would let a client
+choose its own scheme and address. Each proxy appends its value to the end
+of its header, so Amber reads the last one, which is the value the trusted
+hop wrote. When the proxy sent that header, its value decides; only when it
+sent none does Amber read the CGI-style `HTTPS: on` header. Requests from
+any other peer keep their real scheme, whatever headers they carry.
+
+Entries are IP addresses or CIDR blocks of your proxies. Pick the list for
+your deployment:
 
 | Deployment | `trusted_proxies` |
 |------------|-------------------|
 | Caddy or nginx on the same host, forwarding to `127.0.0.1` | default (loopback) |
 | Proxy in another container or host on a private network | that network, e.g. `"10.0.0.0/8"` |
-| Platform router that is the only route to the app (e.g. DigitalOcean App Platform) | the platform's internal range, or `"0.0.0.0/0"` and `"::/0"` when the app port is unreachable any other way |
+| Platform router that is the only route to the app (e.g. DigitalOcean App Platform) | the private network the router connects from; log `request.remote_address` once to see it |
 | Cloudflare in front of a proxy on the host | default; let the local proxy pass Cloudflare's scheme through |
+
+List only addresses your proxies use. An entry that covers every address
+(`"0.0.0.0/0"`, `"::/0"`) is rejected: every client would become a trusted
+proxy. A block that clients share with your proxies has the same effect for
+those clients, so keep it as narrow as the proxies' own addresses.
 
 The same rule decides the client's IP address, `request.client_ip` (which
 the `Amber::Pipe::ClientIp` pipe stores in `context.client_ip`). From an
 untrusted peer it is the peer's own address, and forwarding headers are
-ignored. From a trusted proxy Amber reads the hops in `Forwarded: for=` (or,
-without that header, `X-Forwarded-For`) from the right, skips every hop that
-is itself a trusted proxy, and returns the first one that is not; a spoofed
-leftmost entry is never reached. A hop that is not an IP address ends the
-walk, and the nearest verified address is used. `ClientIp.new(["CF-Connecting-IP"])`
-reads a named header instead, under the same rule.
+ignored. From a trusted proxy Amber reads the hops in the configured header
+(`X-Forwarded-For`, or `Forwarded: for=`) from the right, skips every hop
+that is itself a trusted proxy, and returns the first one that is not; a
+spoofed leftmost entry is never reached. A hop that is not exactly an IP
+address, with an optional port, ends the walk, and the nearest verified
+address is used. When every hop is a trusted proxy, the farthest one is the
+client. `ClientIp.new(["CF-Connecting-IP"])` reads a named header instead,
+under the same rule.
 
 To put the proxy on a UNIX socket instead of loopback TCP, set
 `server.unix_socket` (for Caddy, `reverse_proxy unix//run/app.sock`). While
 it is set, every UNIX socket peer counts as a trusted proxy: the connection
 is local by construction and the socket file's permissions decide who may
-open it. A leftover socket file from a previous run is replaced at boot. It
-cannot be combined with `server.ssl` or a `process_count` above 1.
+open it. A socket file left behind by a stopped server is replaced at boot;
+a socket another running server still accepts connections on is not, and the
+start fails with `Socket::BindError`. It cannot be combined with
+`server.ssl` or a `process_count` above 1; the server checks this before it
+forks or binds.
 
 Set the list in YAML, in `config/settings.cr`
 (`settings.server.trusted_proxies = ["127.0.0.1", "10.0.0.0/8"]`), or with
 the comma-separated `AMBER_SERVER_TRUSTED_PROXIES` environment variable. An
-empty value trusts no proxy.
+empty value trusts no proxy. The list is replaced, not edited in place:
+`trusted_proxies` returns a copy, so assign a new array to change it. Each
+entry is checked when the settings load or the list is assigned.
 
 Validation rules:
 - `port` must be between 1 and 65535
@@ -119,8 +141,13 @@ Validation rules:
 - `secret_key_base` must be set in production
 - `secret_key_base` should be at least 32 characters when set
 - SSL files must exist when SSL is enabled
-- every `trusted_proxies` entry must be an IP address or CIDR block
-- `unix_socket` cannot be combined with `ssl` or a `process_count` above 1
+- every `trusted_proxies` entry must be an IP address or CIDR block that does
+  not cover every address, checked when the settings load or the list is
+  assigned
+- `trusted_proxy_headers` must be `"x-forwarded"` or `"forwarded"`, checked
+  the same way
+- `unix_socket` cannot be combined with `ssl` or a `process_count` above 1,
+  checked by `validate!` and again when the server starts
 
 ### SessionConfig
 
@@ -229,6 +256,7 @@ The naming convention is `AMBER_{SECTION}_{KEY}`:
 | `AMBER_SERVER_SSL_KEY_FILE` | `server.ssl.key_file` |
 | `AMBER_SERVER_SSL_CERT_FILE` | `server.ssl.cert_file` |
 | `AMBER_SERVER_TRUSTED_PROXIES` | `server.trusted_proxies` (comma-separated) |
+| `AMBER_SERVER_TRUSTED_PROXY_HEADERS` | `server.trusted_proxy_headers` |
 | `AMBER_SERVER_UNIX_SOCKET` | `server.unix_socket` |
 | `AMBER_DATABASE_URL` or `DATABASE_URL` | `database.url` |
 | `AMBER_SESSION_KEY` | `session.key` |

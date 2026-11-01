@@ -18,6 +18,9 @@ module Amber::Support
 
     private IPV4_MAPPED_PREFIX_LENGTH = 96
 
+    # `::ffff:0:0`, the start of the block that IPv4 addresses are mapped into.
+    private IPV4_MAPPED_NETWORK = AddressBytes.new { |index| index.in?(10..11) ? 0xff_u8 : 0_u8 }
+
     # The entry as it was written in the configuration.
     getter notation : String
 
@@ -59,6 +62,16 @@ module Amber::Support
       prefix_length += IPV4_MAPPED_PREFIX_LENGTH if is_ipv4
 
       new(notation, masked(bytes, prefix_length), prefix_length)
+    end
+
+    # Returns `true` when this network covers every IPv4 address or every
+    # IPv6 address, as `0.0.0.0/0`, `::/0` and `::/80` do. Such an entry
+    # would make every client a trusted proxy.
+    def covers_every_address? : Bool
+      return true if @prefix_length == 0
+      return false if @prefix_length > IPV4_MAPPED_PREFIX_LENGTH
+
+      self.class.masked(IPV4_MAPPED_NETWORK, @prefix_length) == @network
     end
 
     # Returns `true` when *address* falls inside this network. Peers that are

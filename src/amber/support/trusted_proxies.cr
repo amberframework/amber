@@ -2,11 +2,19 @@ require "./trusted_proxy_network"
 
 module Amber::Support
   # The set of peers Amber believes when they forward a client's scheme or
-  # address: the parsed `server.trusted_proxies` networks, plus every UNIX
-  # socket peer when Amber itself listens on a UNIX socket
+  # address, and the one header family those peers write.
+  #
+  # The peers are the parsed `server.trusted_proxies` networks, plus every
+  # UNIX socket peer when Amber itself listens on a UNIX socket
   # (`server.unix_socket`). A UNIX socket connection is local by construction,
   # and the socket file's permissions decide who may open it, so a proxy that
   # reaches Amber that way is as trustworthy as one on loopback.
+  #
+  # The header family comes from `server.trusted_proxy_headers`. A proxy
+  # rewrites only the family it manages and passes the other one through
+  # from the client unchanged, so Amber reads exactly one family:
+  # `X-Forwarded-For` / `X-Forwarded-Proto` by default, or RFC 7239
+  # `Forwarded` when *reads_forwarded_header* is `true`.
   #
   # ```
   # networks = ["127.0.0.0/8"].map { |notation| Amber::Support::TrustedProxyNetwork.parse(notation) }
@@ -16,8 +24,11 @@ module Amber::Support
   struct TrustedProxies
     getter list_of_networks : Array(TrustedProxyNetwork)
     getter? trusts_unix_socket_peers : Bool
+    getter? reads_forwarded_header : Bool
 
-    def initialize(@list_of_networks : Array(TrustedProxyNetwork), *, @trusts_unix_socket_peers : Bool)
+    def initialize(@list_of_networks : Array(TrustedProxyNetwork), *,
+                   @trusts_unix_socket_peers : Bool,
+                   @reads_forwarded_header : Bool = false)
     end
 
     # Returns `true` when *peer* is a trusted proxy. A request without a peer

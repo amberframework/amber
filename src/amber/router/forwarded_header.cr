@@ -31,24 +31,46 @@ module Amber::Router
 
     # Returns the IP address inside a forwarded node such as `192.0.2.7`,
     # `192.0.2.7:4711`, `2001:db8::7`, or `[2001:db8::7]:4711`, or `nil` when
-    # the node is not an IP address (`unknown`, an obfuscated `_hidden`
-    # identifier, or garbage).
+    # the node is not exactly one of those forms (`unknown`, an obfuscated
+    # `_hidden` identifier, a malformed port, text after the address, or
+    # garbage). A port may be a number up to 65535 or an RFC 7239 obfuscated
+    # port such as `_8080`.
     def self.node_address(node : String) : Socket::IPAddress?
-      text = unquoted(node.strip)
-      address_text =
-        if text.starts_with?('[')
-          closing = text.index(']')
-          return unless closing
-          text[1...closing]
-        elsif text.count(':') == 1
-          text.partition(':').first
-        else
-          text
-        end
-
-      return unless Socket::IPAddress.valid?(address_text)
+      address_text = node_host(unquoted(node.strip))
+      return unless address_text
 
       Socket::IPAddress.new(address_text, 0)
+    end
+
+    # Returns the address part of a node when the whole node is well formed.
+    private def self.node_host(text : String) : String?
+      if text.starts_with?('[')
+        closing = text.index(']')
+        return unless closing
+
+        port_part = text[(closing + 1)..]
+        return unless port_part.empty? || (port_part.starts_with?(':') && node_port?(port_part[1..]))
+
+        host = text[1...closing]
+        Socket::IPAddress.valid_v6?(host) ? host : nil
+      elsif text.count(':') == 1
+        host, _separator, port = text.partition(':')
+        return unless node_port?(port)
+
+        Socket::IPAddress.valid_v4?(host) ? host : nil
+      else
+        # An IPv4 address without a port, or an unbracketed IPv6 address as
+        # X-Forwarded-For writes it.
+        Socket::IPAddress.valid?(text) ? text : nil
+      end
+    end
+
+    private def self.node_port?(port : String) : Bool
+      if port.starts_with?('_')
+        port.size > 1 && port.each_char.skip(1).all? { |char| char.ascii_alphanumeric? || char.in?('.', '_', '-') }
+      else
+        port.size.in?(1..5) && port.each_char.all?(&.ascii_number?) && port.to_i <= 65_535
+      end
     end
 
     private def self.parameter_value(element : String, parameter_name : String) : String?

@@ -12,8 +12,13 @@ end
 
 private def scheme_of(request : HTTP::Request,
                       list_of_trusted_proxies = LOOPBACK_ONLY,
-                      server_terminates_tls : Bool = false) : String
-  trusted_proxies = Amber::Support::TrustedProxies.new(list_of_trusted_proxies, trusts_unix_socket_peers: false)
+                      server_terminates_tls : Bool = false,
+                      reads_forwarded_header : Bool = false) : String
+  trusted_proxies = Amber::Support::TrustedProxies.new(
+    list_of_trusted_proxies,
+    trusts_unix_socket_peers: false,
+    reads_forwarded_header: reads_forwarded_header
+  )
   Amber::Router::RequestScheme.resolve(request, trusted_proxies, server_terminates_tls)
 end
 
@@ -45,9 +50,31 @@ module Amber::Router
           scheme_of(request).should eq "http"
         end
 
-        it "honors the CGI-style HTTPS: on header" do
+        it "honors the CGI-style HTTPS: on header when the proxy sent no X-Forwarded-Proto" do
           request = request_from("127.0.0.1", HTTP::Headers{"HTTPS" => "on"})
           scheme_of(request).should eq "https"
+        end
+
+        it "ignores HTTPS: on when the proxy sent X-Forwarded-Proto" do
+          request = request_from("127.0.0.1", HTTP::Headers{"X-Forwarded-Proto" => "http", "HTTPS" => "on"})
+          scheme_of(request).should eq "http"
+        end
+
+        it "ignores HTTPS: on when the proxy's X-Forwarded-Proto is not http or https" do
+          request = request_from("127.0.0.1", HTTP::Headers{"X-Forwarded-Proto" => "gopher", "HTTPS" => "on"})
+          scheme_of(request).should eq "http"
+        end
+      end
+
+      context "when the proxy writes X-Forwarded-Proto (the default)" do
+        it "ignores a Forwarded header the client sent through the proxy" do
+          headers = HTTP::Headers{"Forwarded" => "proto=https", "X-Forwarded-Proto" => "http"}
+          scheme_of(request_from("127.0.0.1", headers)).should eq "http"
+        end
+
+        it "ignores Forwarded even when no X-Forwarded-Proto is present" do
+          request = request_from("127.0.0.1", HTTP::Headers{"Forwarded" => "proto=https"})
+          scheme_of(request).should eq "http"
         end
       end
 
@@ -78,30 +105,40 @@ module Amber::Router
         end
       end
 
-      context "with the RFC 7239 Forwarded header" do
+      context "when the proxy writes the RFC 7239 Forwarded header" do
         it "reads proto from a trusted proxy" do
           request = request_from("127.0.0.1", HTTP::Headers{"Forwarded" => "for=198.51.100.7;proto=https;host=example.com"})
-          scheme_of(request).should eq "https"
+          scheme_of(request, reads_forwarded_header: true).should eq "https"
         end
 
         it "reads a quoted, mixed-case proto parameter" do
           request = request_from("127.0.0.1", HTTP::Headers{"Forwarded" => %(for="[2001:db8::7]:4711";Proto="HTTPS")})
-          scheme_of(request).should eq "https"
+          scheme_of(request, reads_forwarded_header: true).should eq "https"
         end
 
-        it "takes Forwarded over X-Forwarded-Proto" do
-          headers = HTTP::Headers{"Forwarded" => "proto=https", "X-Forwarded-Proto" => "http"}
-          scheme_of(request_from("127.0.0.1", headers)).should eq "https"
+        it "ignores an X-Forwarded-Proto header the client sent through the proxy" do
+          headers = HTTP::Headers{"Forwarded" => "proto=http", "X-Forwarded-Proto" => "https"}
+          scheme_of(request_from("127.0.0.1", headers), reads_forwarded_header: true).should eq "http"
         end
 
-        it "falls back to X-Forwarded-Proto when the last element has no proto" do
-          headers = HTTP::Headers{"Forwarded" => "for=198.51.100.7", "X-Forwarded-Proto" => "https"}
-          scheme_of(request_from("127.0.0.1", headers)).should eq "https"
+        it "keeps the connection scheme when the last element has no proto" do
+          headers = HTTP::Headers{"Forwarded" => "for=198.51.100.7", "X-Forwarded-Proto" => "https", "HTTPS" => "on"}
+          scheme_of(request_from("127.0.0.1", headers), reads_forwarded_header: true).should eq "http"
+        end
+
+        it "honors HTTPS: on only when no Forwarded header is present" do
+          request = request_from("127.0.0.1", HTTP::Headers{"HTTPS" => "on"})
+          scheme_of(request, reads_forwarded_header: true).should eq "https"
         end
 
         it "keeps commas inside quoted values within one element" do
           request = request_from("127.0.0.1", HTTP::Headers{"Forwarded" => %(for="a,b";proto=https)})
-          scheme_of(request).should eq "https"
+          scheme_of(request, reads_forwarded_header: true).should eq "https"
+        end
+
+        it "takes the proto of the last Forwarded element" do
+          request = request_from("127.0.0.1", HTTP::Headers{"Forwarded" => "for=192.0.2.60;proto=http, for=10.0.0.4;proto=https"})
+          scheme_of(request, reads_forwarded_header: true).should eq "https"
         end
       end
 
@@ -121,11 +158,6 @@ module Amber::Router
           headers.add("X-Forwarded-Proto", "http")
           headers.add("X-Forwarded-Proto", "https")
           scheme_of(request_from("127.0.0.1", headers)).should eq "https"
-        end
-
-        it "takes the proto of the last Forwarded element" do
-          request = request_from("127.0.0.1", HTTP::Headers{"Forwarded" => "for=192.0.2.60;proto=http, for=10.0.0.4;proto=https"})
-          scheme_of(request).should eq "https"
         end
 
         it "trusts a platform load balancer once its network is listed" do
@@ -174,15 +206,32 @@ describe Amber::Router::Cookies::Store do
       set_cookie_lines.first.should contain "Secure"
     end
 
-    it "emits a Secure session cookie when the proxy sends Forwarded" do
-      request = request_from("127.0.0.1", HTTP::Headers{"Forwarded" => "for=198.51.100.7;proto=https"})
-      cookies = Amber::Router::Cookies::Store.build(request, "a" * 32)
+    it "emits a Secure session cookie when the proxy is set to send Forwarded" do
+      server_config = Amber.settings.server
+      begin
+        server_config.trusted_proxy_headers = "forwarded"
+        request = request_from("127.0.0.1", HTTP::Headers{"Forwarded" => "for=198.51.100.7;proto=https"})
+        cookies = Amber::Router::Cookies::Store.build(request, "a" * 32)
+        cookies.encrypted.set("amber.session", "session-id", http_only: true, secure: true)
+
+        response_headers = HTTP::Headers.new
+        cookies.write(response_headers)
+
+        (response_headers.get?("Set-Cookie") || [] of String).size.should eq 1
+      ensure
+        server_config.trusted_proxy_headers = "x-forwarded"
+      end
+    end
+
+    it "withholds a Secure cookie when a client sends Forwarded through a proxy that writes X-Forwarded-Proto" do
+      headers = HTTP::Headers{"Forwarded" => "proto=https", "X-Forwarded-Proto" => "http"}
+      cookies = Amber::Router::Cookies::Store.build(request_from("127.0.0.1", headers), "a" * 32)
       cookies.encrypted.set("amber.session", "session-id", http_only: true, secure: true)
 
       response_headers = HTTP::Headers.new
       cookies.write(response_headers)
 
-      (response_headers.get?("Set-Cookie") || [] of String).size.should eq 1
+      (response_headers.get?("Set-Cookie") || [] of String).should be_empty
     end
 
     it "withholds a Secure cookie from a spoofed header on plain HTTP" do

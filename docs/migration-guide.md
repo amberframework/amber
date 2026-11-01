@@ -504,9 +504,10 @@ a proxy the session cookie never arrived, so login and CSRF failed.
 Amber now answers "is this request HTTPS" in one place, `request.https?`,
 using the new `server.trusted_proxies` setting: a list of IP addresses and
 CIDR blocks, loopback only by default. When the immediate peer is in the
-list, Amber believes the scheme that proxy appended to `Forwarded`,
-`X-Forwarded-Proto`, or `HTTPS: on`. Requests from any other peer keep their
-real scheme.
+list, Amber believes the scheme that proxy appended to `X-Forwarded-Proto`
+(or, with `server.trusted_proxy_headers: "forwarded"`, to RFC 7239
+`Forwarded`), and reads `HTTPS: on` only when the proxy sent neither.
+Requests from any other peer keep their real scheme.
 
 What to change:
 
@@ -522,18 +523,23 @@ What to change:
        - "10.0.0.0/8"
    ```
 
-   or set `AMBER_SERVER_TRUSTED_PROXIES=10.0.0.0/8` in the deployment. When
-   the platform router is the only route to the app's port, `"0.0.0.0/0"`
-   and `"::/0"` are acceptable.
-3. **Delete any workaround pipe** that writes `HTTPS: on` into the request
+   or set `AMBER_SERVER_TRUSTED_PROXIES=10.0.0.0/8` in the deployment. List
+   only the network your proxies or platform router connect from; an entry
+   that covers every address (`"0.0.0.0/0"`, `"::/0"`) is rejected.
+3. **Proxy that writes RFC 7239 `Forwarded`** instead of `X-Forwarded-*`:
+   set `server.trusted_proxy_headers: "forwarded"` (or
+   `AMBER_SERVER_TRUSTED_PROXY_HEADERS=forwarded`). Amber reads only the
+   family you name, because a proxy passes the other one through from the
+   client.
+4. **Delete any workaround pipe** that writes `HTTPS: on` into the request
    (for example one that sets it unconditionally in production). The
    framework now reads the proxy's own header, and a pipe that writes the
    flag for every request would mark plain-HTTP requests as HTTPS.
 
 The same setting decides the client's IP address. `request.client_ip` and
 the `ClientIp` pipe now return the peer's own address for an untrusted peer,
-and for a trusted proxy the nearest untrusted hop in `Forwarded: for=` or
-`X-Forwarded-For`, read from the right. Earlier versions took the leftmost
+and for a trusted proxy the nearest untrusted hop in `X-Forwarded-For` (or
+`Forwarded: for=`), read from the right. Earlier versions took the leftmost
 `X-Forwarded-For` entry from any peer, which a client controls; if your app
 logged or rate-limited on that value, expect the real address now.
 

@@ -66,6 +66,7 @@ module Amber
     end
 
     def run
+      check_listener_settings!
       thread_count = settings.process_count
       if Cluster.master? && thread_count > 1
         thread_count.times { Cluster.fork }
@@ -76,13 +77,14 @@ module Amber
     end
 
     def start
+      check_listener_settings!
       time = Time.local
       Log.info { "#{paint(version, :light_cyan)} serving application \"#{settings.name.capitalize}\" at #{paint(host_url, :light_cyan).mode(:underline)}" }
       handler.prepare_pipelines
       server = HTTP::Server.new(handler)
 
       if socket_path = unix_socket_path
-        remove_stale_unix_socket(socket_path)
+        self.class.remove_stale_unix_socket(socket_path)
         server.bind_unix(socket_path)
       elsif ssl_enabled?
         ssl_config = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls
@@ -133,15 +135,46 @@ module Amber
       server_config.unix_socket if server_config.listens_on_unix_socket?
     end
 
+    # Raises `Amber::Exceptions::ConfigurationError` before the server forks
+    # or binds when `server.unix_socket` is combined with TLS or with more
+    # than one process. The settings are read as they stand at start, after
+    # the environment file, `AMBER_*` variables and `config/settings.cr`.
+    def check_listener_settings! : Nil
+      return unless unix_socket_path
+
+      Amber::Configuration::ServerConfig.check_unix_socket!(settings.server_terminates_tls?, settings.process_count)
+    end
+
+    # :nodoc:
+    #
     # A previous run leaves its socket file behind, and binding over it fails.
-    # Only a socket is removed; any other file at the path is left alone so
-    # that the bind reports the conflict.
-    private def remove_stale_unix_socket(socket_path : String) : Nil
+    # Only a socket that no server accepts connections on is removed: a socket
+    # another running server still listens on raises `Socket::BindError`
+    # instead of being taken over, and any other file at the path is left
+    # alone so that the bind reports the conflict.
+    def self.remove_stale_unix_socket(socket_path : String) : Nil
       socket_info = File.info?(socket_path, follow_symlinks: false)
       return unless socket_info
       return unless socket_info.type.socket?
 
+      if unix_socket_accepts_connections?(socket_path)
+        raise Socket::BindError.new("server.unix_socket #{socket_path} is in use by another running server")
+      end
+
       File.delete(socket_path)
+    end
+
+    # Returns `true` when a server accepts connections on *socket_path*, and
+    # `false` when the socket refuses them, which is what a socket file left
+    # behind by a stopped server does.
+    private def self.unix_socket_accepts_connections?(socket_path : String) : Bool
+      probe = UNIXSocket.new(socket_path)
+      probe.close
+      true
+    rescue error : Socket::ConnectError
+      raise error unless error.os_error == Errno::ECONNREFUSED
+
+      false
     end
 
     def ssl_enabled?

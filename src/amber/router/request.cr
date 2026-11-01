@@ -197,10 +197,10 @@ class HTTP::Request
   # `"http"`.
   #
   # Behind a TLS-terminating reverse proxy the connection Amber sees is plain
-  # HTTP, so the scheme the proxy reports (`Forwarded: proto=`,
-  # `X-Forwarded-Proto`, or `HTTPS: on`) is believed only when the immediate
-  # peer is a trusted proxy (`server.trusted_proxies`). See
-  # `Amber::Router::RequestScheme`.
+  # HTTP, so the scheme the proxy reports (`X-Forwarded-Proto`, or
+  # `Forwarded: proto=` when `server.trusted_proxy_headers` is
+  # `"forwarded"`) is believed only when the immediate peer is a trusted
+  # proxy (`server.trusted_proxies`). See `Amber::Router::RequestScheme`.
   def scheme : String
     Amber::Router::RequestScheme.resolve(self, trusted_proxies, Amber.settings.server_terminates_tls?)
   end
@@ -214,19 +214,22 @@ class HTTP::Request
   # Returns the IP address of the client, or `nil` when none is known.
   #
   # From an untrusted peer this is the peer's own address. From a trusted
-  # proxy it is the nearest untrusted hop in `Forwarded: for=` or
-  # `X-Forwarded-For`, read from the right. See `Amber::Router::ClientAddress`.
+  # proxy it is the nearest untrusted hop in `X-Forwarded-For` (or
+  # `Forwarded: for=`, per `server.trusted_proxy_headers`), read from the
+  # right. See `Amber::Router::ClientAddress`.
   def client_ip : Socket::IPAddress?
     Amber::Router::ClientAddress.resolve(self, trusted_proxies)
   end
 
-  # The proxies this application trusts, from `server.trusted_proxies` and
+  # The proxies this application trusts and the header family they write,
+  # from `server.trusted_proxies`, `server.trusted_proxy_headers` and
   # `server.unix_socket`.
   def trusted_proxies : Amber::Support::TrustedProxies
     server_config = Amber.settings.server
     Amber::Support::TrustedProxies.new(
       server_config.trusted_proxy_networks,
-      trusts_unix_socket_peers: server_config.listens_on_unix_socket?
+      trusts_unix_socket_peers: server_config.listens_on_unix_socket?,
+      reads_forwarded_header: server_config.reads_forwarded_header?
     )
   end
 

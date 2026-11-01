@@ -10,8 +10,10 @@ module Amber::Router
   # connection could have written them.
   #
   # When the peer is a trusted proxy, Amber reads the chain of hops that the
-  # proxies appended, from the `for=` parameters of `Forwarded` (RFC 7239)
-  # when that header is present, otherwise from `X-Forwarded-For`. It walks
+  # proxies appended, from the one header family they write
+  # (`server.trusted_proxy_headers`): `X-Forwarded-For` by default, or the
+  # `for=` parameters of RFC 7239 `Forwarded`. The other family is ignored,
+  # because a proxy passes it through from the client unchanged. Amber walks
   # the chain from the right, skipping hops that are themselves trusted
   # proxies, and returns the first address that is not. Entries to the left
   # of that address were written by the client or by an untrusted hop and are
@@ -36,7 +38,7 @@ module Amber::Router
       peer_address = peer.as?(Socket::IPAddress)
       return peer_address unless trusted_proxies.trusts?(peer)
 
-      list_of_hops = list_of_forwarded_hops(request.headers, list_of_header_names)
+      list_of_hops = list_of_forwarded_hops(request.headers, trusted_proxies, list_of_header_names)
       nearest_verified_address = peer_address
 
       list_of_hops.reverse_each do |hop|
@@ -50,7 +52,9 @@ module Amber::Router
       nearest_verified_address
     end
 
-    private def self.list_of_forwarded_hops(headers : ::HTTP::Headers, list_of_header_names : Array(String)?) : Array(String)
+    private def self.list_of_forwarded_hops(headers : ::HTTP::Headers,
+                                            trusted_proxies : Amber::Support::TrustedProxies,
+                                            list_of_header_names : Array(String)?) : Array(String)
       if list_of_header_names
         list_of_header_names.each do |header_name|
           list_of_values = ForwardedHeader.list_of_values(headers, header_name)
@@ -59,7 +63,7 @@ module Amber::Router
         return [] of String
       end
 
-      if headers.has_key?(ForwardedHeader::FORWARDED)
+      if trusted_proxies.reads_forwarded_header?
         # An element without `for=` is a hop whose address is unknown.
         ForwardedHeader.list_of_parameter_values(headers, "for").map { |value| value || "" }
       else

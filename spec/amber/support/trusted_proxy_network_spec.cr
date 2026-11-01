@@ -35,6 +35,23 @@ module Amber::Support
       end
     end
 
+    describe "#covers_every_address?" do
+      it "is true for blocks that cover every IPv4 or every IPv6 address" do
+        TrustedProxyNetwork.parse("0.0.0.0/0").covers_every_address?.should be_true
+        TrustedProxyNetwork.parse("::/0").covers_every_address?.should be_true
+        TrustedProxyNetwork.parse("::/80").covers_every_address?.should be_true
+        TrustedProxyNetwork.parse("::ffff:0:0/96").covers_every_address?.should be_true
+      end
+
+      it "is false for ordinary proxy networks" do
+        TrustedProxyNetwork.parse("10.0.0.0/8").covers_every_address?.should be_false
+        TrustedProxyNetwork.parse("0.0.0.0/1").covers_every_address?.should be_false
+        TrustedProxyNetwork.parse("::1").covers_every_address?.should be_false
+        TrustedProxyNetwork.parse("::/96").covers_every_address?.should be_false
+        TrustedProxyNetwork.parse("fd00::/8").covers_every_address?.should be_false
+      end
+    end
+
     describe "#includes?" do
       it "matches addresses inside an IPv4 block" do
         network = TrustedProxyNetwork.parse("10.0.0.0/8")

@@ -8,6 +8,10 @@ private def loopback_only : Amber::Support::TrustedProxies
   Amber::Support::TrustedProxies.new(networks("127.0.0.0/8", "::1"), trusts_unix_socket_peers: false)
 end
 
+private def loopback_writing_forwarded : Amber::Support::TrustedProxies
+  Amber::Support::TrustedProxies.new(networks("127.0.0.0/8", "::1"), trusts_unix_socket_peers: false, reads_forwarded_header: true)
+end
+
 private def request_from(peer : Socket::Address?, headers : HTTP::Headers = HTTP::Headers.new) : HTTP::Request
   request = HTTP::Request.new("GET", "/", headers)
   request.remote_address = peer
@@ -88,6 +92,23 @@ module Amber::Router
           client_address_of(request).should eq "198.51.100.7"
         end
 
+        it "treats a hop with text after the address or a bad port as malformed" do
+          ["198.51.100.7:bogus", "198.51.100.7:99999", "198.51.100.7:", "[2001:db8::7]junk", "[2001:db8::7]:x", "[198.51.100.7]"].each do |hop|
+            request = request_from(ip("127.0.0.1"), HTTP::Headers{"X-Forwarded-For" => hop})
+            client_address_of(request).should eq "127.0.0.1"
+          end
+        end
+
+        it "ignores a Forwarded header the client sent through the proxy" do
+          headers = HTTP::Headers{"Forwarded" => "for=6.6.6.6", "X-Forwarded-For" => "198.51.100.7"}
+          client_address_of(request_from(ip("127.0.0.1"), headers)).should eq "198.51.100.7"
+        end
+
+        it "ignores Forwarded even when no X-Forwarded-For is present" do
+          request = request_from(ip("127.0.0.1"), HTTP::Headers{"Forwarded" => "for=6.6.6.6"})
+          client_address_of(request).should eq "127.0.0.1"
+        end
+
         it "stops at a malformed hop and returns the nearest verified address" do
           trusted_proxies = Amber::Support::TrustedProxies.new(networks("127.0.0.0/8", "10.0.0.0/8"), trusts_unix_socket_peers: false)
           request = request_from(ip("127.0.0.1"), HTTP::Headers{"X-Forwarded-For" => "198.51.100.7, not-an-ip, 10.0.0.2"})
@@ -100,30 +121,35 @@ module Amber::Router
         end
       end
 
-      context "with the Forwarded header" do
+      context "when the proxy writes the Forwarded header" do
         it "reads for= from the right" do
           request = request_from(ip("127.0.0.1"), HTTP::Headers{"Forwarded" => "for=1.1.1.1, for=198.51.100.7;proto=https"})
-          client_address_of(request).should eq "198.51.100.7"
+          client_address_of(request, loopback_writing_forwarded).should eq "198.51.100.7"
         end
 
         it "reads a quoted, bracketed IPv6 node with a port" do
           request = request_from(ip("127.0.0.1"), HTTP::Headers{"Forwarded" => %(for="[2001:db8:cafe::17]:4711")})
-          client_address_of(request).should eq "2001:db8:cafe::17"
+          client_address_of(request, loopback_writing_forwarded).should eq "2001:db8:cafe::17"
         end
 
-        it "takes Forwarded over X-Forwarded-For" do
-          headers = HTTP::Headers{"Forwarded" => "for=198.51.100.7", "X-Forwarded-For" => "203.0.113.50"}
-          client_address_of(request_from(ip("127.0.0.1"), headers)).should eq "198.51.100.7"
+        it "accepts an obfuscated port" do
+          request = request_from(ip("127.0.0.1"), HTTP::Headers{"Forwarded" => %(for="198.51.100.7:_8080")})
+          client_address_of(request, loopback_writing_forwarded).should eq "198.51.100.7"
+        end
+
+        it "ignores an X-Forwarded-For header the client sent through the proxy" do
+          headers = HTTP::Headers{"Forwarded" => "for=198.51.100.7", "X-Forwarded-For" => "6.6.6.6"}
+          client_address_of(request_from(ip("127.0.0.1"), headers), loopback_writing_forwarded).should eq "198.51.100.7"
         end
 
         it "treats an obfuscated or unknown node as malformed" do
           request = request_from(ip("127.0.0.1"), HTTP::Headers{"Forwarded" => "for=198.51.100.7, for=unknown"})
-          client_address_of(request).should eq "127.0.0.1"
+          client_address_of(request, loopback_writing_forwarded).should eq "127.0.0.1"
         end
 
         it "treats an element without for= as malformed" do
           request = request_from(ip("127.0.0.1"), HTTP::Headers{"Forwarded" => "for=198.51.100.7, proto=https"})
-          client_address_of(request).should eq "127.0.0.1"
+          client_address_of(request, loopback_writing_forwarded).should eq "127.0.0.1"
         end
       end
 
