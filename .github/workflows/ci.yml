@@ -12,27 +12,71 @@ on:
       - master
       - v2-dev
 
+permissions:
+  contents: read
+
+# Supply-chain policy for this workflow: every action is pinned to a full
+# commit SHA, every compiler is an exact release checked against a sha256
+# (tarball) or a content digest (container image) before it runs, and
+# dependencies install from the committed shard.lock with --frozen. A hash
+# mismatch stops the job. To move to a new Crystal release, update the
+# version and both tarball hashes together.
+
 jobs:
   test:
-    name: Crystal ${{ matrix.crystal }} on ${{ matrix.os }}
+    name: Crystal 1.22.1 on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        crystal: [latest]
+        include:
+          - os: ubuntu-24.04
+            crystal_tarball: crystal-1.22.1-1-linux-x86_64-bundled.tar.gz
+            crystal_sha256: 8fe554e47ca8c669694956ad8b0fe5847a3304f154e7b52cbd49f5a9deac794d
+          - os: macos-15
+            crystal_tarball: crystal-1.22.1-1-darwin-universal.tar.gz
+            crystal_sha256: 8f2dc1ba8219bb2606a2390b11f903f70be346cfeae869557b7c927f37ed9023
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Crystal
-        uses: oprypin/install-crystal@v1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          crystal: ${{ matrix.crystal }}
+          persist-credentials: false
+
+      - name: Install Crystal 1.22.1 (sha256-verified)
+        env:
+          CRYSTAL_TARBALL: ${{ matrix.crystal_tarball }}
+          CRYSTAL_SHA256: ${{ matrix.crystal_sha256 }}
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/$CRYSTAL_TARBALL"
+          curl -fsSL --retry 3 -o "$archive" \
+            "https://github.com/crystal-lang/crystal/releases/download/1.22.1/$CRYSTAL_TARBALL"
+          echo "$CRYSTAL_SHA256  $archive" | shasum -a 256 -c -
+          tar -xzf "$archive" -C "$RUNNER_TEMP"
+          root="$RUNNER_TEMP/crystal-1.22.1-1"
+          # The darwin tarball keeps shards in embedded/bin. Each GITHUB_PATH
+          # line is prepended, so bin/ (written last) wins for `crystal`.
+          if [ -d "$root/embedded/bin" ]; then
+            echo "$root/embedded/bin" >> "$GITHUB_PATH"
+          fi
+          echo "$root/bin" >> "$GITHUB_PATH"
+
+      - name: Confirm compiler and shards versions
+        run: |
+          set -euo pipefail
+          test "$(command -v crystal)" = "$RUNNER_TEMP/crystal-1.22.1-1/bin/crystal"
+          case "$(command -v shards)" in
+            "$RUNNER_TEMP/crystal-1.22.1-1/"*) ;;
+            *) echo "shards does not come from the verified tarball" >&2; exit 1 ;;
+          esac
+          crystal --version
+          shards --version
+          crystal --version | grep -q '^Crystal 1\.22\.1 '
+          shards --version | grep -q '^Shards 0\.20\.0 '
 
       - name: Install dependencies
-        run: shards install
+        run: shards install --frozen
 
       - name: Check Amber V2 beta contract
         run: scripts/check_beta_contract.sh
@@ -44,4 +88,74 @@ jobs:
         run: crystal spec
 
       - name: Check formatting
+        run: crystal tool format --check
+
+  crystal-alpha:
+    # The same suite on crystal-alpha, the crimson-knight/crystal fork. The
+    # fork publishes no prebuilt compiler, so this job builds it from an exact
+    # commit (git verifies every object against that SHA, and the tree hash is
+    # checked too) inside the official Crystal 1.22.1 build image, pinned by
+    # digest, which supplies the bootstrap compiler, shards and LLVM.
+    name: crystal-alpha 1.21.0-incremental-1 on ubuntu-24.04
+    runs-on: ubuntu-24.04
+    container:
+      image: crystallang/crystal:1.22.1-build@sha256:037cc42d8a270f73754aeeca48cb2fcdaa5f883b24a7751ad994bd0fc465cee2
+    env:
+      CRYSTAL_ALPHA_COMMIT: 9c1e8ec64f6be6343e90d3979bc9536c4b050292 # tag v1.21.0-incremental-1
+      CRYSTAL_ALPHA_TREE: 4fdb7a4f547b5b6f6390f34279ac8a1ee60e7327
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: amber
+          persist-credentials: false
+
+      - name: Checkout crystal-alpha source at the pinned commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: crimson-knight/crystal
+          ref: 9c1e8ec64f6be6343e90d3979bc9536c4b050292 # v1.21.0-incremental-1
+          path: crystal-alpha
+          persist-credentials: false
+
+      - name: Verify crystal-alpha commit and tree
+        working-directory: crystal-alpha
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$PWD"
+          test "$(git rev-parse HEAD)" = "$CRYSTAL_ALPHA_COMMIT"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$CRYSTAL_ALPHA_TREE"
+          test -z "$(git status --porcelain)"
+
+      - name: Build crystal-alpha
+        working-directory: crystal-alpha
+        run: |
+          set -euo pipefail
+          make crystal release=1 interpreter=1 FLAGS=--no-debug \
+            CRYSTAL_CONFIG_BUILD_COMMIT="${CRYSTAL_ALPHA_COMMIT:0:7}"
+          echo "$PWD/bin" >> "$GITHUB_PATH"
+
+      - name: Confirm compiler version
+        run: |
+          set -euo pipefail
+          crystal --version
+          crystal --version | grep -q '^Crystal 1\.21\.0 \[9c1e8ec\]'
+
+      - name: Install dependencies
+        working-directory: amber
+        run: shards install --frozen
+
+      - name: Check Amber V2 beta contract
+        working-directory: amber
+        run: scripts/check_beta_contract.sh
+
+      - name: Run specs
+        working-directory: amber
+        run: crystal spec
+
+      - name: Check formatting
+        working-directory: amber
         run: crystal tool format --check

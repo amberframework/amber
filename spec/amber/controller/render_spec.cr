@@ -6,7 +6,7 @@ include RenderFixtures
 module Amber::Controller
   describe Base do
     describe "#render" do
-      request = HTTP::Request.new("GET", "")
+      request = HTTP::Request.new("GET", "/")
       context = create_context(request)
 
       it "renders html from ecr template" do
