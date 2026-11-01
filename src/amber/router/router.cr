@@ -93,8 +93,9 @@ module Amber
       # app without one matches exactly as before. A declared route whose
       # request constraint rejected `request` in step 1 is not offered again,
       # neither in step 3 nor in step 2 through another expansion of the same
-      # route (`get "/notes(.md)"` also matches `/notes`); the path is then
-      # not found.
+      # route (`get "/notes(.md)"` also matches `/notes`). A different route
+      # that matches the path without the extension still answers; when none
+      # does, the path is not found.
       def match(http_verb, resource, request : HTTP::Request? = nil) : RoutedResult(Route)
         extension = content_ext(resource)
         return find_route(http_verb, resource) unless extension
