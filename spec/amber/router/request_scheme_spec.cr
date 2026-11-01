@@ -45,14 +45,19 @@ module Amber::Router
           scheme_of(request_from("127.0.0.1")).should eq "http"
         end
 
+        it "keeps the connection scheme when the last X-Forwarded-Proto value is empty" do
+          request = request_from("127.0.0.1", HTTP::Headers{"X-Forwarded-Proto" => "https,"})
+          scheme_of(request).should eq "http"
+        end
+
         it "ignores a forwarded value that is not http or https" do
           request = request_from("127.0.0.1", HTTP::Headers{"X-Forwarded-Proto" => "gopher"})
           scheme_of(request).should eq "http"
         end
 
-        it "honors the CGI-style HTTPS: on header when the proxy sent no X-Forwarded-Proto" do
+        it "ignores the CGI-style HTTPS: on header, which a proxy passes through from the client" do
           request = request_from("127.0.0.1", HTTP::Headers{"HTTPS" => "on"})
-          scheme_of(request).should eq "https"
+          scheme_of(request).should eq "http"
         end
 
         it "ignores HTTPS: on when the proxy sent X-Forwarded-Proto" do
@@ -126,9 +131,9 @@ module Amber::Router
           scheme_of(request_from("127.0.0.1", headers), reads_forwarded_header: true).should eq "http"
         end
 
-        it "honors HTTPS: on only when no Forwarded header is present" do
+        it "ignores HTTPS: on when no Forwarded header is present" do
           request = request_from("127.0.0.1", HTTP::Headers{"HTTPS" => "on"})
-          scheme_of(request, reads_forwarded_header: true).should eq "https"
+          scheme_of(request, reads_forwarded_header: true).should eq "http"
         end
 
         it "keeps commas inside quoted values within one element" do

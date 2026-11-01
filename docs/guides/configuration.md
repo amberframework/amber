@@ -87,9 +87,10 @@ A proxy rewrites only the family it manages and passes the other one
 through from the client unchanged, so believing both would let a client
 choose its own scheme and address. Each proxy appends its value to the end
 of its header, so Amber reads the last one, which is the value the trusted
-hop wrote. When the proxy sent that header, its value decides; only when it
-sent none does Amber read the CGI-style `HTTPS: on` header. Requests from
-any other peer keep their real scheme, whatever headers they carry.
+hop wrote. A missing header, or a value other than `http` or `https`, keeps
+the connection's own scheme. Amber reads no other header for the scheme,
+including the CGI-style `HTTPS: on`. Requests from any other peer keep their
+real scheme, whatever headers they carry.
 
 Entries are IP addresses or CIDR blocks of your proxies. Pick the list for
 your deployment:
@@ -99,7 +100,7 @@ your deployment:
 | Caddy or nginx on the same host, forwarding to `127.0.0.1` | default (loopback) |
 | Proxy in another container or host on a private network | that network, e.g. `"10.0.0.0/8"` |
 | Platform router that is the only route to the app (e.g. DigitalOcean App Platform) | the private network the router connects from; log `request.remote_address` once to see it |
-| Cloudflare in front of a proxy on the host | default; let the local proxy pass Cloudflare's scheme through |
+| Cloudflare in front of Caddy on the host | default; configure Caddy as shown below |
 
 List only addresses your proxies use. An entry that covers every address
 (`"0.0.0.0/0"`, `"::/0"`) is rejected: every client would become a trusted
@@ -115,8 +116,37 @@ that is itself a trusted proxy, and returns the first one that is not; a
 spoofed leftmost entry is never reached. A hop that is not exactly an IP
 address, with an optional port, ends the walk, and the nearest verified
 address is used. When every hop is a trusted proxy, the farthest one is the
-client. `ClientIp.new(["CF-Connecting-IP"])` reads a named header instead,
-under the same rule.
+client. An empty hop also ends the walk.
+
+When a CDN such as Cloudflare sits in front of Caddy, Caddy is Amber's only
+peer, so the CDN's own headers reach Amber only as Caddy passes them on.
+Let Caddy decide who the client is, and keep Amber's loopback default:
+
+```caddyfile
+{
+  servers {
+    trusted_proxies static <Cloudflare's published IP ranges>
+    client_ip_headers Cf-Connecting-Ip
+  }
+}
+
+example.com {
+  reverse_proxy 127.0.0.1:3000 {
+    header_up X-Forwarded-For {client_ip}
+  }
+}
+```
+
+With Cloudflare's ranges trusted, Caddy resolves `{client_ip}` to the
+visitor and keeps the `X-Forwarded-Proto` Cloudflare sent; a client that
+reaches Caddy directly gets its own address and scheme. Use Cloudflare's Full
+(strict) TLS mode so the hop from Cloudflare to Caddy is HTTPS too.
+
+`ClientIp.new(["X-Real-IP"])` reads a named header instead, under the same
+rule. Name a header only when your proxy sets it on every request, which
+overwrites any value a client sent (for Caddy, `header_up X-Real-IP
+{client_ip}`); a proxy passes other headers through from the client
+unchanged.
 
 To put the proxy on a UNIX socket instead of loopback TCP, set
 `server.unix_socket` (for Caddy, `reverse_proxy unix//run/app.sock`). While

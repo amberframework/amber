@@ -30,6 +30,11 @@ module Amber::Support
     private def initialize(@notation : String, @network : AddressBytes, @prefix_length : Int32)
     end
 
+    # Copies *list_of_networks* into a slice that raises on any write.
+    def self.read_only_slice(list_of_networks : Array(TrustedProxyNetwork)) : Slice(TrustedProxyNetwork)
+      Slice.new(list_of_networks.size, read_only: true) { |index| list_of_networks[index] }
+    end
+
     # Parses *notation* into a network, raising
     # `Amber::Exceptions::ConfigurationError` when it is not an IP address or
     # CIDR block.

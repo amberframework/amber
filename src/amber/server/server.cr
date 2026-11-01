@@ -84,8 +84,7 @@ module Amber
       server = HTTP::Server.new(handler)
 
       if socket_path = unix_socket_path
-        self.class.remove_stale_unix_socket(socket_path)
-        server.bind_unix(socket_path)
+        self.class.bind_unix_socket(server, socket_path)
       elsif ssl_enabled?
         ssl_config = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls
         server.bind_tls Amber.settings.host, Amber.settings.port, ssl_config, settings.port_reuse
@@ -143,6 +142,22 @@ module Amber
       return unless unix_socket_path
 
       Amber::Configuration::ServerConfig.check_unix_socket!(settings.server_terminates_tls?, settings.process_count)
+    end
+
+    # :nodoc:
+    #
+    # Binds *server* to the UNIX socket at *socket_path*, replacing a socket
+    # file a stopped server left behind. The check, the removal and the bind
+    # run under an exclusive lock on `<socket_path>.lock`, so two servers
+    # starting on one path at once cannot both see the old socket as stale
+    # and one remove the socket the other has just bound.
+    def self.bind_unix_socket(server : HTTP::Server, socket_path : String) : Socket::UNIXAddress
+      File.open("#{socket_path}.lock", "a") do |lock_file|
+        lock_file.flock_exclusive do
+          remove_stale_unix_socket(socket_path)
+          server.bind_unix(socket_path)
+        end
+      end
     end
 
     # :nodoc:

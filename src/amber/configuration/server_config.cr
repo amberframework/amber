@@ -46,7 +46,7 @@ module Amber::Configuration
     # they read `@trusted_proxy_snapshot`, which is rebuilt from it at load
     # and on every assignment.
     @[YAML::Field(key: "trusted_proxies")]
-    @trusted_proxy_notations : Array(String) = DEFAULT_TRUSTED_PROXIES.dup
+    @list_of_trusted_proxy_notations : Array(String) = DEFAULT_TRUSTED_PROXIES.dup
 
     # Which forwarding headers the trusted proxies write: `"x-forwarded"`
     # (the default) or `"forwarded"`. See `#trusted_proxy_headers=`.
@@ -66,7 +66,7 @@ module Amber::Configuration
     # list or the new one, never a list in the middle of an edit.
     private class TrustedProxySnapshot
       getter list_of_notations : Array(String)
-      getter list_of_networks : Array(Amber::Support::TrustedProxyNetwork)
+      getter list_of_networks : Slice(Amber::Support::TrustedProxyNetwork)
 
       # Parses *list_of_notations*, raising
       # `Amber::Exceptions::ConfigurationError` naming the first entry that is
@@ -82,10 +82,10 @@ module Amber::Configuration
           end
           network
         end
-        new(list_of_notations.dup, list_of_networks)
+        new(list_of_notations.dup, Amber::Support::TrustedProxyNetwork.read_only_slice(list_of_networks))
       end
 
-      private def initialize(@list_of_notations : Array(String), @list_of_networks : Array(Amber::Support::TrustedProxyNetwork))
+      private def initialize(@list_of_notations : Array(String), @list_of_networks : Slice(Amber::Support::TrustedProxyNetwork))
       end
     end
 
@@ -98,7 +98,7 @@ module Amber::Configuration
     # Validates the forwarding settings read from YAML, so a bad entry fails
     # while the settings load rather than on a request.
     def after_initialize
-      @trusted_proxy_snapshot = TrustedProxySnapshot.parse(@trusted_proxy_notations)
+      @trusted_proxy_snapshot = TrustedProxySnapshot.parse(@list_of_trusted_proxy_notations)
       self.class.check_trusted_proxy_headers!(@trusted_proxy_headers)
     end
 
@@ -121,14 +121,14 @@ module Amber::Configuration
     # address or CIDR block, or is a `/0` block that trusts every address.
     def trusted_proxies=(list_of_notations : Array(String)) : Array(String)
       snapshot = TrustedProxySnapshot.parse(list_of_notations)
-      @trusted_proxy_notations = snapshot.list_of_notations.dup
+      @list_of_trusted_proxy_notations = snapshot.list_of_notations.dup
       @trusted_proxy_snapshot = snapshot
       list_of_notations
     end
 
-    # Returns the trusted proxies parsed into networks. The array belongs to
-    # an immutable snapshot; do not modify it.
-    def trusted_proxy_networks : Array(Amber::Support::TrustedProxyNetwork)
+    # Returns the trusted proxies parsed into networks, as a read-only slice
+    # of the current snapshot: writing to it raises.
+    def trusted_proxy_networks : Slice(Amber::Support::TrustedProxyNetwork)
       @trusted_proxy_snapshot.list_of_networks
     end
 

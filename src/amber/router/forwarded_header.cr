@@ -21,12 +21,13 @@ module Amber::Router
     end
 
     # Returns the comma-separated values of *header_name* across all of its
-    # header lines, stripped, with empty values dropped.
+    # header lines, stripped. An empty value stays in its position, so a
+    # malformed hop is never skipped over to reach a value further away.
     def self.list_of_values(headers : ::HTTP::Headers, header_name : String) : Array(String)
       header_lines = headers.get?(header_name)
       return [] of String unless header_lines
 
-      header_lines.join(',').split(',').map(&.strip).reject(&.empty?)
+      header_lines.join(',').split(',').map(&.strip)
     end
 
     # Returns the IP address inside a forwarded node such as `192.0.2.7`,

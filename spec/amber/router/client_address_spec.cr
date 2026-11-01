@@ -99,6 +99,13 @@ module Amber::Router
           end
         end
 
+        it "stops at an empty hop instead of skipping over it" do
+          ["6.6.6.6,", "6.6.6.6, ", "6.6.6.6,,"].each do |header_value|
+            request = request_from(ip("127.0.0.1"), HTTP::Headers{"X-Forwarded-For" => header_value})
+            client_address_of(request).should eq "127.0.0.1"
+          end
+        end
+
         it "ignores a Forwarded header the client sent through the proxy" do
           headers = HTTP::Headers{"Forwarded" => "for=6.6.6.6", "X-Forwarded-For" => "198.51.100.7"}
           client_address_of(request_from(ip("127.0.0.1"), headers)).should eq "198.51.100.7"

@@ -6,6 +6,15 @@ end
 
 module Amber::Support
   describe TrustedProxies do
+    describe "#list_of_networks" do
+      it "is read-only, so request-time trust cannot be edited in place" do
+        trusted_proxies = TrustedProxies.new([TrustedProxyNetwork.parse("127.0.0.0/8")], trusts_unix_socket_peers: false)
+        expect_raises(Exception, /read-only/i) do
+          trusted_proxies.list_of_networks[0] = TrustedProxyNetwork.parse("0.0.0.0/1")
+        end
+      end
+    end
+
     describe "#trusts?" do
       it "trusts a peer inside a listed network" do
         trusted_proxies = TrustedProxies.new(loopback_networks, trusts_unix_socket_peers: false)

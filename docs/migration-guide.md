@@ -506,8 +506,7 @@ using the new `server.trusted_proxies` setting: a list of IP addresses and
 CIDR blocks, loopback only by default. When the immediate peer is in the
 list, Amber believes the scheme that proxy appended to `X-Forwarded-Proto`
 (or, with `server.trusted_proxy_headers: "forwarded"`, to RFC 7239
-`Forwarded`), and reads `HTTPS: on` only when the proxy sent neither.
-Requests from any other peer keep their real scheme.
+`Forwarded`). Requests from any other peer keep their real scheme.
 
 What to change:
 
@@ -532,9 +531,10 @@ What to change:
    family you name, because a proxy passes the other one through from the
    client.
 4. **Delete any workaround pipe** that writes `HTTPS: on` into the request
-   (for example one that sets it unconditionally in production). The
-   framework now reads the proxy's own header, and a pipe that writes the
-   flag for every request would mark plain-HTTP requests as HTTPS.
+   (for example one that sets it unconditionally in production). Amber no
+   longer reads `HTTPS: on` at all; it reads the proxy's own
+   `X-Forwarded-Proto`. If your proxy sends only `HTTPS: on`, configure it
+   to send `X-Forwarded-Proto` instead.
 
 The same setting decides the client's IP address. `request.client_ip` and
 the `ClientIp` pipe now return the peer's own address for an untrusted peer,
@@ -546,9 +546,10 @@ logged or rate-limited on that value, expect the real address now.
 A proxy can also reach Amber over a UNIX socket: set `server.unix_socket`,
 and UNIX socket peers are trusted while it is set.
 
-One behavior changes: `HTTPS: on` is now believed only from a trusted peer.
-A workaround pipe that sets it still works while the proxy's address is in
-`trusted_proxies`, so you can upgrade first and delete the pipe afterward.
+One behavior changes: `HTTPS: on` no longer marks a request as HTTPS, from
+any peer, because a proxy passes it through from the client unchanged.
+Behind Caddy, nginx or a cloud load balancer nothing else changes, since
+they send `X-Forwarded-Proto`.
 
 See the [configuration guide](guides/configuration.md#running-behind-a-tls-terminating-proxy)
 for the full rules.
@@ -600,6 +601,6 @@ is published.
 - [ ] Update session configuration to use adapter pattern
 - [ ] Remove any direct `require "redis"`, `require "amber_router"`, or `require "kilt"` statements
 - [ ] Add database drivers explicitly to shard.yml if needed
-- [ ] Behind a TLS-terminating proxy, set `server.trusted_proxies` to the proxy's addresses and delete any pipe that writes `HTTPS: on`
+- [ ] Behind a TLS-terminating proxy, set `server.trusted_proxies` to the proxy's addresses, make sure it sends `X-Forwarded-Proto`, and delete any pipe that writes `HTTPS: on`
 - [ ] Test all routes and templates
 - [ ] (Optional) Start migrating controller actions to use Schema API

@@ -75,6 +75,47 @@ describe Amber::Server do
     end
   end
 
+  describe ".bind_unix_socket" do
+    it "binds over a stale socket while holding the path's lock file" do
+      socket_path = File.tempname("amber-bind", ".sock")
+      server = HTTP::Server.new { |context| context.response.print "ok" }
+      begin
+        leave_stale_socket(socket_path)
+        Amber::Server.bind_unix_socket(server, socket_path)
+
+        File.exists?("#{socket_path}.lock").should be_true
+        File.info(socket_path, follow_symlinks: false).type.socket?.should be_true
+      ensure
+        server.close
+        File.delete?(socket_path)
+        File.delete?("#{socket_path}.lock")
+      end
+    end
+
+    it "refuses a path another server is bound to and leaves that server running" do
+      socket_path = File.tempname("amber-bind-busy", ".sock")
+      first_server = HTTP::Server.new { |context| context.response.print "first" }
+      second_server = HTTP::Server.new { |context| context.response.print "second" }
+      begin
+        Amber::Server.bind_unix_socket(first_server, socket_path)
+        spawn(name: "first unix socket spec server") { first_server.listen }
+        Fiber.yield
+
+        expect_raises(Socket::BindError, /in use by another running server/) do
+          Amber::Server.bind_unix_socket(second_server, socket_path)
+        end
+
+        response = HTTP::Client.new(UNIXSocket.new(socket_path)).get("/")
+        response.body.should eq "first"
+      ensure
+        first_server.close
+        second_server.close
+        File.delete?(socket_path)
+        File.delete?("#{socket_path}.lock")
+      end
+    end
+  end
+
   describe "#check_listener_settings!" do
     it "rejects a UNIX socket with more than one process before the server forks" do
       with_listener_settings(unix_socket: "/run/app.sock", process_count: 2) do

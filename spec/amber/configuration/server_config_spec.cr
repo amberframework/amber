@@ -38,6 +38,14 @@ module Amber::Configuration
         config.trusted_proxies.should eq ["127.0.0.0/8", "10.0.0.0/8"]
       end
 
+      it "hands out the parsed networks read-only" do
+        config = ServerConfig.new
+        expect_raises(Exception, /read-only/i) do
+          config.trusted_proxy_networks[0] = Amber::Support::TrustedProxyNetwork.parse("0.0.0.0/1")
+        end
+        config.trusted_proxy_networks.first.notation.should eq "127.0.0.0/8"
+      end
+
       it "returns a copy, so editing it cannot change the trusted list" do
         config = ServerConfig.new
         list_of_notations = config.trusted_proxies

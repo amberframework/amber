@@ -22,13 +22,26 @@ module Amber::Support
   # trusted_proxies.trusts?(Socket::IPAddress.new("127.0.0.1", 0)) # => true
   # ```
   struct TrustedProxies
-    getter list_of_networks : Array(TrustedProxyNetwork)
+    # The trusted networks. The slice is read-only: writing to it raises.
+    getter list_of_networks : Slice(TrustedProxyNetwork)
     getter? trusts_unix_socket_peers : Bool
     getter? reads_forwarded_header : Bool
 
-    def initialize(@list_of_networks : Array(TrustedProxyNetwork), *,
+    def initialize(@list_of_networks : Slice(TrustedProxyNetwork), *,
                    @trusts_unix_socket_peers : Bool,
                    @reads_forwarded_header : Bool = false)
+    end
+
+    # Builds the set from *list_of_networks*, copying it into a read-only
+    # slice.
+    def self.new(list_of_networks : Array(TrustedProxyNetwork), *,
+                 trusts_unix_socket_peers : Bool,
+                 reads_forwarded_header : Bool = false) : self
+      new(
+        TrustedProxyNetwork.read_only_slice(list_of_networks),
+        trusts_unix_socket_peers: trusts_unix_socket_peers,
+        reads_forwarded_header: reads_forwarded_header
+      )
     end
 
     # Returns `true` when *peer* is a trusted proxy. A request without a peer
