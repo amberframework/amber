@@ -10,8 +10,6 @@ module Amber::Router
   end
 
   class Params
-    Log = ::Log.for(self)
-
     TYPE_EXT_REGEX   = Amber::Support::MimeTypes::TYPE_EXT_REGEX
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     MULTIPART_FORM   = "multipart/form-data"
@@ -21,10 +19,9 @@ module Amber::Router
     @multipart : Types::Params?
     @json : Types::Params?
     @form : HTTP::Params?
-
-    # Tempfile holding the raw multipart body so it can be replayed to the
-    # controller. Deleted by #cleanup_uploads at request teardown.
-    @body_spool : ::File?
+    # The tempfile copy of a multipart body that `request.body` was rewound
+    # to after parsing; see `Parsers::Multipart.parse`.
+    @body_copy : ::File?
 
     def initialize(@request : HTTP::Request)
     end
@@ -43,42 +40,43 @@ module Amber::Router
       @files ||= Types::Files.new
     end
 
+    # Deletes the tempfiles behind `files` and the multipart body copy, if
+    # the body was parsed, then empties `files`. It reads only what was
+    # already parsed, so it never parses a body itself. A file that cannot
+    # be deleted is logged and kept for
+    # `Amber::Router::File.retry_leftover_deletions`, so the rest are still
+    # removed and the request's own error, if any, is kept.
+    def delete_uploaded_files : Nil
+      if uploaded_files = @files
+        uploaded_files.each_value do |uploaded_file|
+          uploaded_file.delete_tempfile
+        rescue ex : IO::Error
+          Amber::Router::File::Log.warn(exception: ex) { "Could not delete the upload tempfile #{uploaded_file.path}; retrying later" }
+          uploaded_file.defer_deletion
+        end
+        uploaded_files.clear
+      end
+
+      if body_copy = @body_copy
+        @body_copy = nil
+        Amber::Router::File.discard(body_copy)
+      end
+    end
+
     # Returns parsed URL-encoded form parameters, reusing the cached body parse.
     # Schema request parsing uses this after routing has inspected `_method`.
     def form_params : HTTP::Params
       form
     end
 
+    # Whether the request body is URL-encoded form data.
+    def url_encoded_form? : Bool
+      !!content_type?(URL_ENCODED_FORM)
+    end
+
     # Returns parsed multipart fields, reusing the cached body parse.
     def multipart_params : Types::Params
       multipart
-    end
-
-    # Delete every tempfile this request spooled: the uploaded files themselves,
-    # and the spool holding the raw multipart body when one was made.
-    #
-    # Deliberately reads only ALREADY-parsed state. It must never call #files or
-    # #multipart, which would trigger a parse during teardown — on a request
-    # whose body has since been consumed that would raise.
-    #
-    # Best effort throughout: teardown must never raise into the request cycle.
-    def cleanup_uploads : Nil
-      if uploaded_files = @files
-        uploaded_files.each_value(&.cleanup)
-        uploaded_files.clear
-      end
-
-      if spool = @body_spool
-        @body_spool = nil
-        release_body_spool(spool)
-      end
-    end
-
-    private def release_body_spool(spool : ::File) : Nil
-      spool.close
-      ::File.delete?(spool.path)
-    rescue error : IO::Error
-      Log.warn(exception: error) { "Could not delete the multipart body spool #{spool.path}" }
     end
 
     def []=(key : Types::Key, value)
@@ -129,21 +127,29 @@ module Amber::Router
       @request.query_params
     end
 
-    private def form
+    private def form : HTTP::Params
       return HTTP::Params.parse("") unless content_type?(URL_ENCODED_FORM)
-      @form ||= Parsers::FormData.parse(@request)
+      @request.raise_body_rejection!
+      if parsed = @form
+        return parsed
+      end
+      @form = parse_body { Parsers::FormData.parse(@request) }
     end
 
     private def form_value?(key : String) : String?
       return unless content_type?(URL_ENCODED_FORM)
-      (@form ||= Parsers::FormData.parse(@request))[key]?
+      form[key]?
     end
 
-    private def multipart
-      return @multipart.not_nil! if @multipart
+    private def multipart : Types::Params
+      @request.raise_body_rejection!
+      if parsed = @multipart
+        return parsed
+      end
       return Types::Params.new unless content_type?(MULTIPART_FORM)
-      @multipart, @files, @body_spool = Parsers::Multipart.parse(@request)
-      @multipart.not_nil!
+
+      fields, @files, @body_copy = parse_body { Parsers::Multipart.parse(@request) }
+      @multipart = fields
     end
 
     private def multipart_value?(key : String) : String?
@@ -151,9 +157,19 @@ module Amber::Router
       multipart[key]?
     end
 
-    private def json
+    private def json : Types::Params
       return Types::Params.new unless content_type?(APPLICATION_JSON)
-      @json ||= Parsers::JSON.parse(@request)
+      @request.raise_body_rejection!
+      if parsed = @json
+        return parsed
+      end
+      @json = parse_body { Parsers::JSON.parse(@request) }
+    end
+
+    # Parses the body through `HTTP::Request#guard_body_read`, so a rejected
+    # body is rejected again on every later read.
+    private def parse_body(& : -> T) : T forall T
+      @request.guard_body_read { yield }
     end
 
     private def json_value?(key : String) : String?
@@ -165,8 +181,26 @@ module Amber::Router
       @request.matched_route.params
     end
 
-    private def content_type?(header_type)
-      @request.headers["Content-Type"]?.try &.starts_with?(header_type)
+    # Whether *content_type*'s media type, the part before any `;`
+    # parameters, is *expected*, compared without regard to letter case.
+    # `Application/X-WWW-Form-Urlencoded; charset=utf-8` is a URL-encoded
+    # form; `application/x-www-form-urlencodedx` is not.
+    def self.media_type?(content_type : String?, expected : String) : Bool
+      return false unless content_type
+      media_type_end = content_type.byte_index(';') || content_type.bytesize
+      media_type = content_type.byte_slice(0, media_type_end).strip
+      media_type.compare(expected, case_insensitive: true) == 0
+    end
+
+    private def content_type?(header_type : String) : Bool
+      content_type = @request.headers["Content-Type"]?
+      if header_type == APPLICATION_JSON
+        # JSON keeps its prefix match, as before this change.
+        return false unless content_type
+        return content_type.starts_with?(header_type)
+      end
+
+      self.class.media_type?(content_type, header_type)
     end
   end
 end
