@@ -6,6 +6,7 @@ module Amber::Router
       formdata = <<-FORMDATA
     -----------------------------735323031399963166993862150
     Content-Disposition: form-data; name="yourfile.txt"; filename="/home/somewhere/yourfile.txt"
+
     text
     -----------------------------735323031399963166993862150--
     FORMDATA
