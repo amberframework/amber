@@ -28,4 +28,4 @@ dependencies:
     version: 0.30.0
   mica:
     github: amberframework/mica
-    commit: 2a4ab10d58963fb3ff408951206534a024cab147
+    version: 0.1.0

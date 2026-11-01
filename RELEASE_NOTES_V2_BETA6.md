@@ -24,7 +24,9 @@ XML still links no XML library.
 
 ## Turning XML back on with Mica
 
-Add Mica to `shard.yml`:
+Add Mica v0.1.0
+([release](https://github.com/amberframework/mica/releases/tag/v0.1.0),
+commit `6a4866e`) to `shard.yml`:
 
 ```yaml
 dependencies:
@@ -104,8 +106,9 @@ invalid email with 422; malformed XML with 400 and its position; an external
 entity and a billion-laughs body with 400 at the `<!DOCTYPE` (byte 0); and
 `application/xhtml+xml` with 415 (`results/after.smoke.txt`).
 
-Measured on 2026-11-01 with Amber `b9d246ba` and Mica `2a4ab10`
-(see `../shard.lock`).
+Measured on 2026-11-01 with Amber `b9d246ba` and Mica `2a4ab10`, now
+`c11b6cc` after a history rewrite that left file contents identical. The
+sample now pins Mica v0.1.0 (`6a4866e`; see `../shard.lock`).
 
 ## Upgrade
 

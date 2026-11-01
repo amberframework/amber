@@ -22,8 +22,8 @@ shards:
 
   mica:
     git: https://github.com/amberframework/mica.git
-    version: 0.1.0+git.commit.2a4ab10d58963fb3ff408951206534a024cab147
-    checksum: git-tree:bf6eea0e95b923abb49ef61bb864f710dd2f1b0e
+    version: 0.1.0
+    checksum: git-tree:6e9f3506210f1580c813c475c170362b5412dca7
 
   pg:
     git: https://github.com/will/crystal-pg.git
