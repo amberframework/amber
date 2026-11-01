@@ -28,8 +28,11 @@ module Amber::Configuration
     getter key : String
     getter value_kind : Kind
     getter list_of_fields : Array(SectionField)
+    # For a `Hash` field, the kind of each value it holds.
+    getter entry_kind : Kind
 
-    def initialize(@key : String, @value_kind : Kind, @list_of_fields : Array(SectionField) = [] of SectionField)
+    def initialize(@key : String, @value_kind : Kind, @list_of_fields : Array(SectionField) = [] of SectionField,
+                   @entry_kind : Kind = Kind::Other)
     end
 
     # Lists the fields `YAML::Serializable` reads for *type*, honoring
@@ -57,7 +60,16 @@ module Amber::Configuration
           {% elsif types.size == 1 && types[0] < ::YAML::Serializable %}
             list_of_fields << nested_section_field({{ key }}, {{ types[0] }}, list_of_enclosing_types)
           {% elsif types.size == 1 && types[0] <= ::Hash %}
-            list_of_fields << SectionField.new({{ key }}, Kind::Mapping)
+            {% entries = types[0].type_vars[1].union_types.reject { |type| type == ::Nil } %}
+            {% if entries.size == 1 && entries[0] == ::String %}
+              list_of_fields << SectionField.new({{ key }}, Kind::Mapping, entry_kind: Kind::Text)
+            {% elsif entries.size == 1 && entries[0] == ::Bool %}
+              list_of_fields << SectionField.new({{ key }}, Kind::Mapping, entry_kind: Kind::Flag)
+            {% elsif entries.size == 1 && entries[0] < ::Float %}
+              list_of_fields << SectionField.new({{ key }}, Kind::Mapping, entry_kind: Kind::Decimal)
+            {% else %}
+              list_of_fields << SectionField.new({{ key }}, Kind::Mapping)
+            {% end %}
           {% else %}
             list_of_fields << SectionField.new({{ key }}, Kind::Other)
           {% end %}

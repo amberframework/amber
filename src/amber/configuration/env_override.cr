@@ -171,7 +171,7 @@ module Amber::Configuration
         elsif field.value_kind.mapping?
           # A `Hash` field: each key it already holds takes a variable.
           if existing_value.is_a?(YAML::Nodes::Mapping)
-            apply_to_mapping(existing_value, variable, untyped_fields_of(existing_value), list_of_applied_variables)
+            apply_to_mapping(existing_value, variable, fields_of_entries(existing_value, field.entry_kind), list_of_applied_variables)
           end
         elsif override = ENV[variable]?
           # Any other field takes its own variable whatever the YAML holds
@@ -223,11 +223,13 @@ module Amber::Configuration
       nil
     end
 
-    private def self.untyped_fields_of(mapping : YAML::Nodes::Mapping) : Array(SectionField)
+    # Describes each key a `Hash` field holds as a field of the Hash's value
+    # kind, so its variable converts the way a field of that type does.
+    private def self.fields_of_entries(mapping : YAML::Nodes::Mapping, entry_kind : SectionField::Kind) : Array(SectionField)
       list_of_fields = [] of SectionField
       mapping.nodes.each_slice(2) do |(key_node, _value_node)|
         if key_node.is_a?(YAML::Nodes::Scalar)
-          list_of_fields << SectionField.new(key_node.value, SectionField::Kind::Other)
+          list_of_fields << SectionField.new(key_node.value, entry_kind)
         end
       end
       list_of_fields

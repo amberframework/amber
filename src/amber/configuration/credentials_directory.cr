@@ -378,18 +378,27 @@ module Amber::Configuration
 
       target = String.new(buffer[0, target_size])
       target_name = File.basename(target)
+      # Checked before anything is opened or looked up: a target such as
+      # `..` names no file of this directory.
+      unless plain_file_name?(target_name) && !target.ends_with?('/')
+        raise Amber::Exceptions::CredentialSymlinkOutsideDirectory.new(name, directory)
+      end
       # A bare file name names an entry of this same directory.
       return target_name unless target.includes?('/')
 
+      # A path is accepted only when its directory is, as written, this
+      # directory, so nothing outside is looked up to decide.
       target_directory = File.expand_path(File.dirname(target), directory)
-      target_directory_info = File.info?(target_directory)
-      if target_directory_info && target_directory_info.same_file?(open_directory.info) && plain_file_name?(target_name)
-        return target_name
-      end
-
-      # Refused without looking at the target, so the error says nothing
-      # about what exists outside the directory.
+      return target_name if target_directory == File.expand_path(directory) || target_directory == real_directory_path
       raise Amber::Exceptions::CredentialSymlinkOutsideDirectory.new(name, directory)
+    end
+
+    # The directory's own path with symlinks resolved, or nil when it cannot
+    # be resolved, so a link written with either path is recognized.
+    private def real_directory_path : String?
+      File.realpath(directory)
+    rescue File::Error
+      nil
     end
 
     # Reads the open credential file, then closes it.

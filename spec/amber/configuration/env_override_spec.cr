@@ -139,6 +139,15 @@ struct SpecOverrideQuotingHashConfig
   end
 end
 
+struct SpecOverrideRatesConfig
+  include YAML::Serializable
+
+  property rates : Hash(String, Float64) = {} of String => Float64
+
+  def initialize
+  end
+end
+
 class SpecOverrideTreeConfig
   include YAML::Serializable
 
@@ -570,6 +579,16 @@ module Amber::Configuration
             config = AppConfig.new
             EnvOverride.apply_all(config)
             config.custom_configs.has_key?("spec_override_quoting_hash").should be_false
+          end
+        end
+
+        it "converts a Hash key's variable like a field of the Hash's value type" do
+          Amber::Configuration.register_custom("spec_override_rates", SpecOverrideRatesConfig.new)
+          with_env({"AMBER_SPEC_OVERRIDE_RATES_RATES_USD" => "2"}) do
+            config = AppConfig.new
+            config.custom_configs["spec_override_rates"] = "rates:\n  usd: 1.5\n"
+            EnvOverride.apply_all(config)
+            config.custom(:spec_override_rates, SpecOverrideRatesConfig).rates.should eq({"usd" => 2.0})
           end
         end
 

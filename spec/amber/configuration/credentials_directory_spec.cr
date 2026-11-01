@@ -225,6 +225,16 @@ module Amber::Configuration
         end
       end
 
+      it "refuses a link to the parent directory before opening anything" do
+        with_scratch_directories do |credentials, _outside|
+          File.symlink("..", File.join(credentials, "api_key"))
+
+          expect_raises(Amber::Exceptions::CredentialSymlinkOutsideDirectory) do
+            CredentialsDirectory.new(credentials).read_credential("api_key")
+          end
+        end
+      end
+
       it "raises CredentialNotARegularFile for a subdirectory" do
         with_scratch_directories do |credentials, _outside|
           Dir.mkdir(File.join(credentials, "nested"))
