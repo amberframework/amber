@@ -42,26 +42,39 @@ module Amber::Environment
     private def load_v2_settings(content : String) : Settings
       app_config = Amber::Configuration::AppConfig.from_yaml(content)
 
+      # Load any registered custom configs from the YAML first, so the
+      # environment variable pass reaches them as well as built-in sections.
+      load_custom_configs(content, app_config)
+
       # Apply environment variable overrides
       Amber::Configuration::EnvOverride.apply_all(app_config)
 
       # Reject unusable parameter limits at boot rather than on the first request.
       app_config.params.validate!
 
-      # Load any registered custom configs from the YAML
-      load_custom_configs(content, app_config)
-
       # Build a Settings instance backed by the AppConfig
       settings = build_settings_from_app_config(app_config)
       settings
     end
 
-    # Load custom configuration sections from the YAML content
-    # and store them in the AppConfig.
+    # Stores each registered custom section in the AppConfig as raw YAML:
+    # the section's mapping from the environment file, or the values read
+    # for a credentials section. A section with neither stays absent, and
+    # `AppConfig#custom` returns its registered default.
     private def load_custom_configs(content : String, app_config : Amber::Configuration::AppConfig)
       parsed = YAML.parse(content)
-      Amber::Configuration.custom_config_defaults.each do |key, _default|
-        if yaml_node = parsed[key]?
+      Amber::Configuration.custom_config_defaults.each_key do |key|
+        yaml_node = parsed[key]?
+        if credential_yaml = Amber::Configuration.credential_source(key)
+          if yaml_node
+            # Credentials come from the credentials directory only; a YAML
+            # copy would either be ignored or replace them silently.
+            raise Amber::Exceptions::ConfigurationError.new(
+              "#{key} is loaded from the credentials directory; remove the #{key} section from #{yml_settings_file}"
+            )
+          end
+          app_config.custom_configs[key] = credential_yaml
+        elsif yaml_node
           app_config.custom_configs[key] = yaml_node.to_yaml
         end
       end
