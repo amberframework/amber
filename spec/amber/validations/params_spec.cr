@@ -1,14 +1,56 @@
 require "../../spec_helper"
 
+# Applies legacy rules exactly as the deprecated `Params#validation` entry
+# point does. The rule engine stays covered for V2 migration compatibility
+# while the suite itself compiles without deprecation warnings.
+private def apply_legacy_rules(validator : Amber::Validators::Params, &) : Amber::Validators::Params
+  with Amber::Validators::ValidationBuilder.new(validator) yield
+  validator
+end
+
+# Compiles and runs a standalone program that calls the deprecated
+# `Params#validation` directly. A separate process keeps its deprecation
+# warning out of this suite's own build. The compiler comes from
+# `FixtureCompiler.executable` (spec/support/fixture_compiler.cr).
+private def run_legacy_validation_fixture : {Process::Status, String, String}
+  fixture_path = File.expand_path("../../fixtures/compile/legacy_params_validation.cr", __DIR__)
+  program_output = IO::Memory.new
+  compiler_output = IO::Memory.new
+  status = Process.run(FixtureCompiler.executable, ["run", "--no-color", fixture_path], output: program_output, error: compiler_output)
+  {status, program_output.to_s, compiler_output.to_s}
+end
+
 module Amber::Validators
   describe Params do
     describe "#validation" do
+      it "applies its rules, returns the validator, and warns app authors" do
+        status, program_output, compiler_output = run_legacy_validation_fixture
+
+        status.success?.should be_true, failure_message: compiler_output
+        program_output.lines.should eq([
+          "returns_self=true",
+          "rule_count=3",
+          "valid=false",
+          "error_fields=name",
+          "validated_fields=last_name",
+          "options.valid=false",
+          "options.error_fields=middle",
+          "options.validated_fields=middle,name,nickname",
+        ])
+        compiler_output.should contain(
+          "Warning: Deprecated Amber::Validators::Params#validation. " \
+          "Use Amber::Schema controller contracts; legacy params validation remains available for V2 migration compatibility"
+        )
+      end
+    end
+
+    describe "legacy validation rules" do
       context "required params" do
         context "when missing" do
           it "is not valid and has 2 errors" do
             validator = Validators::Params.new(params_builder(""))
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               required(:name) { true }
               required("last_name") { true }
             end
@@ -23,7 +65,7 @@ module Amber::Validators
             http_params = params_builder("name=elias&last_name=perez&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               required(:name) { |v| !v.nil? }
               required("last_name") { |v| !v.nil? }
             end
@@ -38,7 +80,7 @@ module Amber::Validators
             http_params = params_builder("name=&last_name=perez&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               required(:name) { |v| !v.empty? }
               required("last_name") { |v| !v.nil? }
             end
@@ -54,7 +96,7 @@ module Amber::Validators
             http_params = params_builder("name=elias&last_name=perez&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               required(:name)
               required(:last_name)
             end
@@ -67,7 +109,7 @@ module Amber::Validators
             http_params = params_builder("last_name=perez&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               required(:name)
               required(:last_name)
             end
@@ -80,7 +122,7 @@ module Amber::Validators
             http_params = params_builder("name= &last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               required(:name)
               required(:last_name)
             end
@@ -93,7 +135,7 @@ module Amber::Validators
             http_params = params_builder("name= &last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               required(:name, allow_blank: true)
               required(:last_name, allow_blank: true)
             end
@@ -110,7 +152,7 @@ module Amber::Validators
             http_params = params_builder("last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               optional(:name) { true }
             end
 
@@ -122,7 +164,7 @@ module Amber::Validators
             http_params = params_builder("last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               optional(:name) { true }
             end
 
@@ -134,7 +176,7 @@ module Amber::Validators
             http_params = params_builder("name= &last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               optional(:name) { true }
               optional(:last_name) { true }
             end
@@ -149,7 +191,7 @@ module Amber::Validators
             http_params = params_builder("name=asdf")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               optional(:name) { false }
             end
 
@@ -161,7 +203,7 @@ module Amber::Validators
             http_params = params_builder("last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               optional(:name) { false }
             end
 
@@ -173,7 +215,7 @@ module Amber::Validators
             http_params = params_builder("name=&last_name= &middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               optional(:name) { false }
               optional(:last_name) { false }
             end
@@ -186,7 +228,7 @@ module Amber::Validators
             http_params = params_builder("name=%20&last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               optional(:name, allow_blank: false) { false }
               optional(:last_name, allow_blank: false) { false }
             end
@@ -201,7 +243,7 @@ module Amber::Validators
             http_params = params_builder("last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               optional(:name)
             end
 
@@ -213,7 +255,7 @@ module Amber::Validators
             http_params = params_builder("name=asdf&last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               optional(:name)
             end
 
@@ -225,7 +267,7 @@ module Amber::Validators
             http_params = params_builder("name=%20&last_name=&middle=j")
             validator = Validators::Params.new(http_params)
 
-            validator.validation do
+            apply_legacy_rules(validator) do
               optional(:name)
             end
 
@@ -239,7 +281,7 @@ module Amber::Validators
         it "returns false for the given block" do
           params = params_builder("name=john&number=1&price=3.45&list=[1,2,3]")
           validator = Validators::Params.new(params)
-          validator.validation do
+          apply_legacy_rules(validator) do
             required(:name) { |f| !f.to_s.empty? }
             required(:number) { |f| f.as(String).to_i > 0 }
             required(:price) { |f| f.as(String).to_f == 3.45 }
@@ -259,7 +301,7 @@ module Amber::Validators
         http_params = params_builder("name=john&last_name=doe&middle=j")
         validator = Validators::Params.new(http_params)
 
-        validator.validation do
+        apply_legacy_rules(validator) do
           required("name") { |v| v.nil? }
           required("last_name") { |v| !v.nil? }
         end
@@ -271,7 +313,7 @@ module Amber::Validators
         http_params = params_builder("name=elias")
         validator = Validators::Params.new(http_params)
 
-        validator.validation do
+        apply_legacy_rules(validator) do
           required("nonexisting") { |v| !v.nil? }
         end
 
@@ -282,7 +324,7 @@ module Amber::Validators
         http_params = params_builder("name=elias&last_name=perez&middle=j")
         validator = Validators::Params.new(http_params)
 
-        validator.validation do
+        apply_legacy_rules(validator) do
           required("name") { |v| !v.nil? }
           required("last_name") { |v| !v.nil? }
         end
@@ -296,7 +338,7 @@ module Amber::Validators
         http_params = params_builder("name=&last_name=&middle=j")
         validator = Validators::Params.new(http_params)
 
-        validator.validation do
+        apply_legacy_rules(validator) do
           required("name") { |v| !v.to_s.empty? }
           required("last_name") { |v| !v.to_s.empty? }
         end
@@ -311,7 +353,7 @@ module Amber::Validators
         validator = Validators::Params.new(http_params)
         result : Hash(String, String) = {"name" => "elias", "last_name" => "perez"}
 
-        validator.validation do
+        apply_legacy_rules(validator) do
           required("name") { |v| !v.nil? }
           required("last_name") { |v| !v.nil? }
         end
@@ -324,7 +366,7 @@ module Amber::Validators
         validator = Validators::Params.new(http_params)
         result : Hash(String, String) = {"name" => "elias"}
 
-        validator.validation do
+        apply_legacy_rules(validator) do
           required("name") { |v| !v.nil? }
           optional("last_name")
         end
@@ -337,7 +379,7 @@ module Amber::Validators
         validator = Validators::Params.new(http_params)
         result : Hash(String, String) = {"name" => "elias", "last_name" => "perez"}
 
-        validator.validation do
+        apply_legacy_rules(validator) do
           required("name") { |v| !v.nil? }
           optional("last_name")
         end
