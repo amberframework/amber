@@ -42,6 +42,16 @@ class HTTP::Request
     @params ||= Amber::Router::Params.new(self)
   end
 
+  # Release any tempfiles spooled while parsing this request — uploaded files
+  # and the raw multipart body spool. Called at teardown from
+  # Amber::Pipe::Pipeline#call.
+  #
+  # Reads the @params ivar directly instead of calling #params: teardown must
+  # not CREATE a parser for a request that never had one.
+  def cleanup_uploads : Nil
+    @params.try(&.cleanup_uploads)
+  end
+
   def port
     # Try to extract port from the Host header first
     if host_with_port = headers["Host"]?

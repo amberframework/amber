@@ -47,6 +47,22 @@ module Amber::Environment
     property ssl_key_file : String?
     property ssl_cert_file : String?
 
+    # Largest multipart body, in bytes, that Amber will spool to a tempfile so
+    # the raw request body can still be read after the form has been parsed.
+    #
+    # Parsing a multipart form consumes the body, and Amber parses it before
+    # user code runs (the CSRF plug looks for `_csrf` in params), so without a
+    # spool a controller reads request.body and gets "". Spooling costs one
+    # tempfile and one extra copy per request, so it is capped: above this size,
+    # or when Content-Length is absent, nothing is spooled and the body stays
+    # drained — the behavior Amber has always had.
+    #
+    # 8 MB by default: comfortably covers ordinary forms, including one with a
+    # photo or PDF attached, which is where a controller plausibly wants both
+    # the parsed params and the raw body. Large uploads keep the zero-copy
+    # streaming path and pay nothing. Set to 0 to disable restoration entirely.
+    property multipart_body_restore_limit : Int64 = 8_i64 * 1024 * 1024
+
     @[YAML::Field(key: "logging")]
     property logging_config : Hash(String, String | Bool | Array(String)) = Logging::DEFAULTS
 
