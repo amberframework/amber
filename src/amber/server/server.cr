@@ -150,6 +150,10 @@ module Amber
     # scheme and client address.
     UNIX_SOCKET_MODE = 0o660
 
+    # Access mode of the `<socket>.lock` file that serializes binds: only the
+    # server's own user may open it, so no one else can hold the lock.
+    UNIX_SOCKET_LOCK_MODE = 0o600
+
     # :nodoc:
     #
     # Binds *server* to the UNIX socket at *socket_path*, replacing a socket
@@ -160,11 +164,28 @@ module Amber
     # created with `UNIX_SOCKET_MODE`, so no connection is accepted under a
     # wider mode first.
     def self.bind_unix_socket(server : HTTP::Server, socket_path : String) : Socket::UNIXAddress
-      File.open("#{socket_path}.lock", "a") do |lock_file|
+      lock_path = "#{socket_path}.lock"
+      File.open(lock_path, "a", perm: UNIX_SOCKET_LOCK_MODE) do |lock_file|
+        secure_unix_socket_lock(lock_path)
         lock_file.flock_exclusive do
           remove_stale_unix_socket(socket_path)
           bind_unix_socket_with_mode(server, socket_path)
         end
+      end
+    end
+
+    # Raises `Socket::BindError` when the lock file at *lock_path* belongs to
+    # another user, and narrows its mode to `UNIX_SOCKET_LOCK_MODE` when it
+    # is wider, so no other user can open it and hold the lock to stop the
+    # server from starting.
+    private def self.secure_unix_socket_lock(lock_path : String) : Nil
+      lock_info = File.info(lock_path)
+      unless lock_info.owner_id == LibC.getuid.to_s
+        raise Socket::BindError.new("server.unix_socket lock file #{lock_path} belongs to another user")
+      end
+
+      unless lock_info.permissions.value == UNIX_SOCKET_LOCK_MODE
+        File.chmod(lock_path, UNIX_SOCKET_LOCK_MODE)
       end
     end
 

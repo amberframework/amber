@@ -164,7 +164,9 @@ open it. Amber creates the socket with mode `0660`, so only its own user and
 group can connect: run the proxy as the application's user, or add the
 proxy's user to the application's group (for nginx on Debian, `www-data`).
 Put the socket in a directory the application owns, such as `/run/app/`,
-rather than a shared one like `/tmp`. A socket file left behind by a stopped
+rather than a shared one like `/tmp`. The `<socket>.lock` file beside it is
+kept at mode `0600`, and a lock file another user owns fails the start. A
+socket file left behind by a stopped
 server is replaced at boot;
 a socket another running server still accepts connections on is not, and the
 start fails with `Socket::BindError`. It cannot be combined with
