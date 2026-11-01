@@ -163,29 +163,76 @@ module Amber
     # and one remove the socket the other has just bound. The socket is
     # created with `UNIX_SOCKET_MODE`, so no connection is accepted under a
     # wider mode first.
-    def self.bind_unix_socket(server : HTTP::Server, socket_path : String) : Socket::UNIXAddress
-      lock_path = "#{socket_path}.lock"
-      File.open(lock_path, "a", perm: UNIX_SOCKET_LOCK_MODE) do |lock_file|
-        secure_unix_socket_lock(lock_path)
-        lock_file.flock_exclusive do
-          remove_stale_unix_socket(socket_path)
-          bind_unix_socket_with_mode(server, socket_path)
+    def self.bind_unix_socket(server : HTTP::Server, socket_path : String, lock_timeout : Time::Span = UNIX_SOCKET_LOCK_TIMEOUT) : Socket::UNIXAddress
+      {% if flag?(:win32) %}
+        raise Socket::BindError.new("server.unix_socket is not supported on Windows")
+      {% else %}
+        lock_path = "#{socket_path}.lock"
+        check_unix_socket_lock_owner(lock_path)
+        File.open(lock_path, "a", perm: UNIX_SOCKET_LOCK_MODE) do |lock_file|
+          check_unix_socket_lock_owner(lock_path)
+          narrow_unix_socket_lock_mode(lock_path)
+          hold_unix_socket_lock(lock_file, lock_path, lock_timeout) do
+            remove_stale_unix_socket(socket_path)
+            bind_unix_socket_with_mode(server, socket_path)
+          end
         end
-      end
+      {% end %}
     end
 
-    # Raises `Socket::BindError` when the lock file at *lock_path* belongs to
-    # another user, and narrows its mode to `UNIX_SOCKET_LOCK_MODE` when it
-    # is wider, so no other user can open it and hold the lock to stop the
-    # server from starting.
-    private def self.secure_unix_socket_lock(lock_path : String) : Nil
-      lock_info = File.info(lock_path)
-      unless lock_info.owner_id == LibC.getuid.to_s
-        raise Socket::BindError.new("server.unix_socket lock file #{lock_path} belongs to another user")
+    # How long a start waits for another start to release the bind lock
+    # before it fails with `Socket::BindError`.
+    UNIX_SOCKET_LOCK_TIMEOUT = 10.seconds
+
+    # :nodoc:
+    #
+    # Raises `Socket::BindError` when the lock file at *lock_path* exists and
+    # belongs to another user. It runs before the file is opened, so the
+    # start fails with this error rather than a permission error, and again
+    # once it is open, in case the file was replaced in between.
+    def self.check_unix_socket_lock_owner(lock_path : String) : Nil
+      lock_info = File.info?(lock_path, follow_symlinks: false)
+      return unless lock_info
+      return if lock_info.owner_id == LibC.getuid.to_s
+
+      raise Socket::BindError.new("server.unix_socket lock file #{lock_path} belongs to another user")
+    end
+
+    # Narrows the lock file's mode to `UNIX_SOCKET_LOCK_MODE` when it is
+    # wider, so no other user can open it from now on.
+    private def self.narrow_unix_socket_lock_mode(lock_path : String) : Nil
+      return if File.info(lock_path).permissions.value == UNIX_SOCKET_LOCK_MODE
+
+      File.chmod(lock_path, UNIX_SOCKET_LOCK_MODE)
+    end
+
+    # Interval between attempts to take a lock another start holds.
+    UNIX_SOCKET_LOCK_RETRY_INTERVAL = 50.milliseconds
+
+    # Runs the block while holding an exclusive lock on *lock_file*. A start
+    # that cannot take the lock within *lock_timeout*, because another
+    # process holds it, raises `Socket::BindError` instead of waiting
+    # forever.
+    private def self.hold_unix_socket_lock(lock_file : File, lock_path : String, lock_timeout : Time::Span, & : -> Socket::UNIXAddress) : Socket::UNIXAddress
+      attempts_left = (lock_timeout / UNIX_SOCKET_LOCK_RETRY_INTERVAL).ceil.to_i
+      loop do
+        begin
+          lock_file.flock_exclusive(blocking: false)
+          break
+        rescue error : IO::Error
+          raise error unless error.os_error == Errno::EWOULDBLOCK
+          if attempts_left <= 0
+            raise Socket::BindError.new("server.unix_socket lock file #{lock_path} is held by another process")
+          end
+          attempts_left -= 1
+          sleep UNIX_SOCKET_LOCK_RETRY_INTERVAL
+        end
       end
 
-      unless lock_info.permissions.value == UNIX_SOCKET_LOCK_MODE
-        File.chmod(lock_path, UNIX_SOCKET_LOCK_MODE)
+      begin
+        yield
+      ensure
+        lock_file.flock_unlock
       end
     end
 

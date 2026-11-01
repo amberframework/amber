@@ -1,5 +1,7 @@
 require "../../spec_helper"
 
+{% skip_file if flag?(:win32) %}
+
 # Binds a socket file at *socket_path* and closes it without listening or
 # deleting the file, as a server that stopped without cleaning up leaves it.
 private def leave_stale_socket(socket_path : String) : Nil
@@ -121,6 +123,35 @@ describe Amber::Server do
         Amber::Server.bind_unix_socket(server, socket_path)
 
         File.info(lock_path).permissions.value.should eq Amber::Server::UNIX_SOCKET_LOCK_MODE
+      ensure
+        server.close
+        File.delete?(socket_path)
+        File.delete?(lock_path)
+      end
+    end
+
+    it "fails with Socket::BindError when another user owns the lock file" do
+      # The root directory belongs to root; the check cannot be shown as root.
+      next if LibC.getuid == 0
+
+      expect_raises(Socket::BindError, /belongs to another user/) do
+        Amber::Server.check_unix_socket_lock_owner("/")
+      end
+    end
+
+    it "gives up with Socket::BindError when another process holds the lock too long" do
+      socket_path = File.tempname("amber-lock-held", ".sock")
+      lock_path = "#{socket_path}.lock"
+      server = HTTP::Server.new { |context| context.response.print "ok" }
+      begin
+        File.open(lock_path, "a", perm: 0o600) do |holder|
+          holder.flock_exclusive do
+            expect_raises(Socket::BindError, /held by another process/) do
+              Amber::Server.bind_unix_socket(server, socket_path, lock_timeout: 200.milliseconds)
+            end
+          end
+        end
+        File.exists?(socket_path).should be_false
       ensure
         server.close
         File.delete?(socket_path)
