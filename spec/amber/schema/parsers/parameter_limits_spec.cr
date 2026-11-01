@@ -268,4 +268,24 @@ describe "an application-registered body parser" do
       Amber::Schema::Parser::ParserRegistry.request_body_parsers.delete(media_type)
     end
   end
+
+  it "rejects an over-limit body even when the parser reads only its first byte" do
+    media_type = "application/x-amber-prefix-test"
+    Amber::Schema::Parser::ParserRegistry.register_body_parser(media_type) do |body|
+      {"first" => JSON::Any.new(body.read_byte.to_s)}
+    end
+    begin
+      config = Amber::Configuration::ParamsConfig.new
+      config.max_document_body_bytes = 16
+      request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => media_type}, "x" * 17)
+      request.param_budget = Amber::Router::Parsers::ParamBudget.new(config)
+
+      error = expect_raises(Amber::Schema::RequestParseError) do
+        Amber::Schema::Parser::ParserRegistry.parse_request(request)
+      end
+      error.code.should eq "parameter_limit_exceeded"
+    ensure
+      Amber::Schema::Parser::ParserRegistry.request_body_parsers.delete(media_type)
+    end
+  end
 end

@@ -78,8 +78,9 @@ module Amber::Router::Parsers
       return if declared_length > restore_limit || declared_length > limits.max_multipart_body_bytes
 
       body_copy = ::File.tempfile("amber-multipart-body", dir: Amber::Router::File.upload_directory)
-      body_copy_identity = body_copy.info
+      body_copy_identity = nil
       begin
+        body_copy_identity = body_copy.info
         copied_length = ::IO.copy(body, body_copy, declared_length + 1)
         body_copy.flush
         body_copy.rewind

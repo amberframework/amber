@@ -22,7 +22,23 @@ private def multipart_body(boundary : String, list_of_parts : Array(Tuple(String
 end
 
 private def multipart_post(body : String, boundary : String = "AmberBudgetBoundary") : HTTP::Request
-  HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"}, body)
+  # Content-Length is set as a client sets it, so every Crystal version
+  # builds the same request (it decides whether Amber copies the body).
+  headers = HTTP::Headers{
+    "Content-Type"   => "multipart/form-data; boundary=#{boundary}",
+    "Content-Length" => body.bytesize.to_s,
+  }
+  HTTP::Request.new("POST", "/", headers, body)
+end
+
+# Parses *body* as a multipart request with the default limits, and deletes
+# the body copy Amber makes for restoring `request.body`, which these specs
+# do not read.
+private def parse_multipart(body : String, boundary : String = "AmberBudgetBoundary") : Tuple(Amber::Router::Types::Params, Amber::Router::Types::Files)
+  budget = Amber::Router::Parsers::ParamBudget.new(Amber::Configuration::ParamsConfig.new)
+  fields, files, body_copy = Amber::Router::Parsers::Multipart.parse(multipart_post(body, boundary), budget)
+  Amber::Router::File.discard(body_copy) if body_copy
+  {fields, files}
 end
 
 # Reads *first*, then makes *directory* read-only, then reads *rest*.
@@ -198,7 +214,7 @@ module Amber::Router::Parsers
 
     it "parses an ordinary multipart body with a file and a field" do
       body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}, {"note", nil, "hello"}])
-      fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
+      fields, files = parse_multipart(body)
 
       fields["note"].should eq "hello"
       ::File.read(files["doc"].path).should eq "file body"
@@ -209,7 +225,7 @@ module Amber::Router::Parsers
       body = multipart_body("AmberBudgetBoundary", [{"doc", "first.txt", "first"}, {"doc", "second.txt", "second"}])
       before = upload_tempfile_count
 
-      _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
+      _fields, files = parse_multipart(body)
 
       files.size.should eq 1
       ::File.read(files["doc"].path).should eq "second"
@@ -232,7 +248,7 @@ module Amber::Router::Parsers
     it "reports the bytes received, not the client's declared size" do
       boundary = "AmberBudgetBoundary"
       body = "--#{boundary}\r\nContent-Disposition: form-data; name=\"doc\"; filename=\"a.txt\"; size=1\r\n\r\n#{"x" * 4_096}\r\n--#{boundary}--\r\n"
-      fields, files = Multipart.parse(multipart_post(body, boundary), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
+      fields, files = parse_multipart(body, boundary)
 
       files["doc"].size.should eq 4_096
       schema_data = Amber::Schema::Parser::MultipartParser.parse_router_params(fields, files)
@@ -605,7 +621,7 @@ module Amber::Router::Parsers
 
     it "holds no open handle until the action calls file" do
       body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
-      _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
+      _fields, files = parse_multipart(body)
 
       files["doc"].open_tempfile(&.gets_to_end).should eq "file body"
       handle = files["doc"].file
@@ -616,7 +632,7 @@ module Amber::Router::Parsers
 
     it "refuses to read a tempfile whose path now names another file" do
       body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
-      _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
+      _fields, files = parse_multipart(body)
       path = files["doc"].path
       # Written while the tempfile still exists, so it has its own inode.
       replacement = "#{path}.replacement"
@@ -701,14 +717,18 @@ module Amber::Router::Parsers
 
     it "leaves a file that replaced the tempfile's path during cleanup" do
       body = multipart_body("AmberBudgetBoundary", [{"doc", "a.txt", "file body"}])
-      _fields, files = Multipart.parse(multipart_post(body), ParamBudget.new(Amber::Configuration::ParamsConfig.new))
+      _fields, files = parse_multipart(body)
       path = files["doc"].path
-      ::File.delete(path)
+      # Moving the tempfile aside, rather than deleting it, keeps its inode
+      # in use, so the replacement is a different file on every file system.
+      moved_path = "#{path}.moved"
+      ::File.rename(path, moved_path)
       ::File.write(path, "replacement")
 
       files["doc"].delete_tempfile
       ::File.read(path).should eq "replacement"
       ::File.delete(path)
+      ::File.delete(moved_path)
     end
 
     it "keeps uploads in a directory closed to other users" do

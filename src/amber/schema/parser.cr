@@ -34,7 +34,9 @@ module Amber::Schema
       #
       # The schema for the action must also list the media type in its
       # `content_type` declaration. A parser that raises answers the request
-      # with 400 `invalid_request_body`. The parser reads the body through a
+      # with 400 `invalid_request_body`, and the response includes the
+      # exception's message, so raise messages a client may read (a parse
+      # position, not a file path or a secret). The parser reads the body through a
       # stream capped at `params.max_document_body_bytes`; a longer body is
       # answered with 400 `parameter_limit_exceeded`. Media types without a
       # registered parser keep their default answer; XML types are answered
@@ -168,14 +170,17 @@ module Amber::Schema
       # Runs an application-registered parser, reporting its failure as a
       # malformed request body rather than a server error. The parser reads
       # the body through a `BoundedIO` capped at `max_document_body_bytes`,
-      # so a registered format is bounded like JSON, CBOR and COSE bodies.
+      # and whatever it leaves unread is drained through the same cap, so a
+      # parser that stops early cannot accept a body over the limit.
       private def self.parse_with_registered_parser(request : HTTP::Request, request_body_parser : RequestBodyParser) : Hash(String, JSON::Any)
         request_body = request.body
         return {} of String => JSON::Any unless request_body
 
         max_bytes = max_document_body_bytes(request).to_i64
         bounded_body = Amber::Router::Parsers::BoundedIO.new(request_body, max_bytes, "max_document_body_bytes")
-        request_body_parser.call(bounded_body)
+        fields = request_body_parser.call(bounded_body)
+        bounded_body.skip_to_end
+        fields
       rescue ex : RequestParseError
         raise ex
       rescue ex : Amber::Exceptions::BadRequest

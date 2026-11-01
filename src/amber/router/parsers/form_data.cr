@@ -23,7 +23,7 @@ module Amber::Router::Parsers
         return parse_stream(request, body, budget)
       end
 
-      recorder = RecordingReader.new(body)
+      recorder = RecordingReader.new(body, first_block_bytes: RecordingReader.first_block_bytes(declared_length))
       form = parse_stream(request, recorder, budget)
       request.body = recorder.recorded_body
       form
@@ -68,16 +68,25 @@ module Amber::Router::Parsers
 
     # Reads *io* and keeps every byte it hands out, so a parsed body can be
     # put back into the request. Whatever reads through it bounds the copy.
-    # The bytes are kept in fixed 64 KiB blocks, so keeping them allocates
+    # The first block fits the declared length (at least 512 bytes, at most
+    # 64 KiB) and later blocks are 64 KiB, so keeping the bytes allocates
     # about as much as was read, with no growth by doubling.
     private class RecordingReader < IO
-      private BLOCK_BYTES = 65_536
+      private BLOCK_BYTES          = 65_536
+      private SMALLEST_BLOCK       =    512
+      private UNKNOWN_LENGTH_BLOCK =  4_096
 
       @list_of_blocks = [] of Bytes
       @block : Bytes = Bytes.empty
       @block_used = 0
 
-      def initialize(@io : IO)
+      def initialize(@io : IO, @first_block_bytes : Int32)
+      end
+
+      # The first block's size for a body of *declared_length* bytes.
+      def self.first_block_bytes(declared_length : Int64?) : Int32
+        return UNKNOWN_LENGTH_BLOCK unless declared_length
+        declared_length.clamp(SMALLEST_BLOCK.to_i64, BLOCK_BYTES.to_i64).to_i32
       end
 
       def read(slice : Bytes) : Int32
@@ -104,7 +113,7 @@ module Amber::Router::Parsers
         remaining = bytes
         until remaining.empty?
           if @block_used == @block.size
-            @block = Bytes.new(BLOCK_BYTES)
+            @block = Bytes.new(@list_of_blocks.empty? ? @first_block_bytes : BLOCK_BYTES)
             @block_used = 0
             @list_of_blocks << @block
           end
