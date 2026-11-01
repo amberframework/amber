@@ -9,6 +9,7 @@ class HTTP::Request
   OVERRIDE_HEADER = "X-HTTP-Method-Override"
 
   @matched_route : Amber::Router::RoutedResult(Amber::Route)?
+  @request_constraint_accepted_match : Amber::Router::RoutedResult(Amber::Route)?
   @requested_method : String?
   @effective_method : String?
   @params : Amber::Router::Params?
@@ -210,6 +211,34 @@ class HTTP::Request
 
   def matched_route
     @matched_route ||= router.match_by_request(self)
+  end
+
+  # Runs the block with *candidate* standing as the matched route, then
+  # restores the previous value. The router uses it to evaluate a request
+  # constraint that reads route parameters before the match is final.
+  def matching_candidate(candidate : Amber::Router::RoutedResult(Amber::Route), & : -> T) : T forall T
+    previous_match = @matched_route
+    @matched_route = candidate
+    begin
+      yield
+    ensure
+      @matched_route = previous_match
+    end
+  end
+
+  # Records that the request constraint of *match*'s route accepted this
+  # request while the router chose that route.
+  def request_constraint_accepted!(match : Amber::Router::RoutedResult(Amber::Route)) : Nil
+    @request_constraint_accepted_match = match
+  end
+
+  # Whether the router's accepted check belongs to *match*, the very result
+  # object, so `Amber::Pipe::Pipeline` need not ask that constraint again.
+  # A check recorded for any other lookup vouches for nothing.
+  def request_constraint_accepted?(match : Amber::Router::RoutedResult(Amber::Route)) : Bool
+    accepted_match = @request_constraint_accepted_match
+    return false unless accepted_match
+    accepted_match.same?(match)
   end
 
   private def router
