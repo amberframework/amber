@@ -15,6 +15,7 @@ This guide covers every breaking change between Amber V1 (1.4.x) and Amber V2, w
 | Import paths changed | Require statements | Low |
 | Configuration restructured | YAML config files | Medium |
 | Session security updated | Session configuration | Low |
+| HTTPS decided by trusted proxies | Apps behind a TLS-terminating proxy | Low |
 
 ## 1. CLI Extracted from the Framework
 
@@ -493,6 +494,68 @@ V2 updates the default session configuration for improved security:
 
 Review your session configuration and update as needed.
 
+## 10. HTTPS Behind a Reverse Proxy
+
+Production sessions use `Secure` cookies, and Amber emits a `Secure` cookie
+only on a request it considers HTTPS. Earlier V2 betas considered a request
+HTTPS only when it carried the header `HTTPS: on`, which TLS-terminating
+proxies (Caddy, nginx, DigitalOcean App Platform, Cloudflare) do not send.
+They send `X-Forwarded-Proto: https` or `Forwarded: proto=https`. Behind such
+a proxy the session cookie never arrived, so login and CSRF failed.
+
+Amber now answers "is this request HTTPS" in one place, `request.https?`,
+using the new `server.trusted_proxies` setting: a list of IP addresses and
+CIDR blocks, loopback only by default. When the immediate peer is in the
+list, Amber believes the scheme that proxy appended to `X-Forwarded-Proto`
+(or, with `server.trusted_proxy_headers: "forwarded"`, to RFC 7239
+`Forwarded`). Requests from any other peer keep their real scheme.
+
+What to change:
+
+1. **Proxy on the same host** (Caddy or nginx forwarding to `127.0.0.1`):
+   nothing to configure; the default trusts loopback.
+2. **Proxy elsewhere** (App Platform, a load balancer, a proxy container):
+   list its addresses.
+
+   ```yaml
+   # config/environments/production.yml
+   server:
+     trusted_proxies:
+       - "10.0.0.0/8"
+   ```
+
+   or set `AMBER_SERVER_TRUSTED_PROXIES=10.0.0.0/8` in the deployment. List
+   only the network your proxies or platform router connect from; an entry
+   that covers every address (`"0.0.0.0/0"`, `"::/0"`) is rejected.
+3. **Proxy that writes RFC 7239 `Forwarded`** instead of `X-Forwarded-*`:
+   set `server.trusted_proxy_headers: "forwarded"` (or
+   `AMBER_SERVER_TRUSTED_PROXY_HEADERS=forwarded`). Amber reads only the
+   family you name, because a proxy passes the other one through from the
+   client.
+4. **Delete any workaround pipe** that writes `HTTPS: on` into the request
+   (for example one that sets it unconditionally in production). Amber no
+   longer reads `HTTPS: on` at all; it reads the proxy's own
+   `X-Forwarded-Proto`. If your proxy sends only `HTTPS: on`, configure it
+   to send `X-Forwarded-Proto` instead.
+
+The same setting decides the client's IP address. `request.client_ip` and
+the `ClientIp` pipe now return the peer's own address for an untrusted peer,
+and for a trusted proxy the nearest untrusted hop in `X-Forwarded-For` (or
+`Forwarded: for=`), read from the right. Earlier versions took the leftmost
+`X-Forwarded-For` entry from any peer, which a client controls; if your app
+logged or rate-limited on that value, expect the real address now.
+
+A proxy can also reach Amber over a UNIX socket: set `server.unix_socket`,
+and UNIX socket peers are trusted while it is set.
+
+One behavior changes: `HTTPS: on` no longer marks a request as HTTPS, from
+any peer, because a proxy passes it through from the client unchanged.
+Behind Caddy, nginx or a cloud load balancer nothing else changes, since
+they send `X-Forwarded-Proto`.
+
+See the [configuration guide](guides/configuration.md#running-behind-a-tls-terminating-proxy)
+for the full rules.
+
 ## Dependency Changes Summary
 
 ### Remove from shard.yml
@@ -540,5 +603,6 @@ is published.
 - [ ] Update session configuration to use adapter pattern
 - [ ] Remove any direct `require "redis"`, `require "amber_router"`, or `require "kilt"` statements
 - [ ] Add database drivers explicitly to shard.yml if needed
+- [ ] Behind a TLS-terminating proxy, set `server.trusted_proxies` to the proxy's addresses, make sure it sends `X-Forwarded-Proto`, and delete any pipe that writes `HTTPS: on`
 - [ ] Test all routes and templates
 - [ ] (Optional) Start migrating controller actions to use Schema API

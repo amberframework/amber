@@ -186,6 +186,54 @@ module Amber::Configuration
         end
       end
 
+      it "overrides server.trusted_proxies from AMBER_SERVER_TRUSTED_PROXIES" do
+        with_env({"AMBER_SERVER_TRUSTED_PROXIES" => "127.0.0.1, 10.0.0.0/8"}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.server.trusted_proxies.should eq ["127.0.0.1", "10.0.0.0/8"]
+        end
+      end
+
+      it "trusts no proxy when AMBER_SERVER_TRUSTED_PROXIES is empty" do
+        with_env({"AMBER_SERVER_TRUSTED_PROXIES" => ""}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.server.trusted_proxies.should be_empty
+        end
+      end
+
+      it "overrides server.trusted_proxy_headers from AMBER_SERVER_TRUSTED_PROXY_HEADERS" do
+        with_env({"AMBER_SERVER_TRUSTED_PROXY_HEADERS" => "forwarded"}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.server.reads_forwarded_header?.should be_true
+        end
+      end
+
+      it "rejects an unknown AMBER_SERVER_TRUSTED_PROXY_HEADERS value" do
+        with_env({"AMBER_SERVER_TRUSTED_PROXY_HEADERS" => "x-real-ip"}) do
+          expect_raises(Amber::Exceptions::ConfigurationError, /trusted_proxy_headers/) do
+            EnvOverride.apply_all(AppConfig.new)
+          end
+        end
+      end
+
+      it "rejects an AMBER_SERVER_TRUSTED_PROXIES entry that trusts every address" do
+        with_env({"AMBER_SERVER_TRUSTED_PROXIES" => "0.0.0.0/0"}) do
+          expect_raises(Amber::Exceptions::ConfigurationError, /trusts every address/) do
+            EnvOverride.apply_all(AppConfig.new)
+          end
+        end
+      end
+
+      it "overrides server.unix_socket from AMBER_SERVER_UNIX_SOCKET" do
+        with_env({"AMBER_SERVER_UNIX_SOCKET" => "/run/app.sock"}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.server.unix_socket.should eq "/run/app.sock"
+        end
+      end
+
       it "overrides server.port from AMBER_SERVER_PORT" do
         with_env({"AMBER_SERVER_PORT" => "8080"}) do
           config = AppConfig.new

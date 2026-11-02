@@ -66,6 +66,7 @@ module Amber
     end
 
     def run
+      check_listener_settings!
       thread_count = settings.process_count
       if Cluster.master? && thread_count > 1
         thread_count.times { Cluster.fork }
@@ -76,12 +77,15 @@ module Amber
     end
 
     def start
+      check_listener_settings!
       time = Time.local
       Log.info { "#{paint(version, :light_cyan)} serving application \"#{settings.name.capitalize}\" at #{paint(host_url, :light_cyan).mode(:underline)}" }
       handler.prepare_pipelines
       server = HTTP::Server.new(handler)
 
-      if ssl_enabled?
+      if socket_path = unix_socket_path
+        self.class.bind_unix_socket(server, socket_path)
+      elsif ssl_enabled?
         ssl_config = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls
         server.bind_tls Amber.settings.host, Amber.settings.port, ssl_config, settings.port_reuse
       else
@@ -107,7 +111,7 @@ module Amber
           break
         rescue e : IO::Error
           Log.error(exception: e) { "Restarting server..." }
-          sleep 1
+          sleep 1.second
         end
       end
     end
@@ -117,7 +121,183 @@ module Amber
     end
 
     def host_url
-      "#{scheme}://#{settings.host}:#{settings.port}"
+      if socket_path = unix_socket_path
+        "unix://#{socket_path}"
+      else
+        "#{scheme}://#{settings.host}:#{settings.port}"
+      end
+    end
+
+    # The `server.unix_socket` path, when the server listens on one.
+    private def unix_socket_path : String?
+      server_config = settings.server
+      server_config.unix_socket if server_config.listens_on_unix_socket?
+    end
+
+    # Raises `Amber::Exceptions::ConfigurationError` before the server forks
+    # or binds when `server.unix_socket` is combined with TLS or with more
+    # than one process. The settings are read as they stand at start, after
+    # the environment file, `AMBER_*` variables and `config/settings.cr`.
+    def check_listener_settings! : Nil
+      return unless unix_socket_path
+
+      Amber::Configuration::ServerConfig.check_unix_socket!(settings.server_terminates_tls?, settings.process_count)
+    end
+
+    # Access mode of the socket file `server.unix_socket` creates: its owner
+    # and group may connect, and no one else. Every peer on the socket is a
+    # trusted proxy, so a wider mode would let any local user forge the
+    # scheme and client address.
+    UNIX_SOCKET_MODE = 0o660
+
+    # Access mode of the `<socket>.lock` file that serializes binds: only the
+    # server's own user may open it, so no one else can hold the lock.
+    UNIX_SOCKET_LOCK_MODE = 0o600
+
+    # :nodoc:
+    #
+    # Binds *server* to the UNIX socket at *socket_path*, replacing a socket
+    # file a stopped server left behind. The check, the removal and the bind
+    # run under an exclusive lock on `<socket_path>.lock`, so two servers
+    # starting on one path at once cannot both see the old socket as stale
+    # and one remove the socket the other has just bound. The socket is
+    # created with `UNIX_SOCKET_MODE`, so no connection is accepted under a
+    # wider mode first.
+    def self.bind_unix_socket(server : HTTP::Server, socket_path : String, lock_timeout : Time::Span = UNIX_SOCKET_LOCK_TIMEOUT) : Socket::UNIXAddress
+      {% if flag?(:win32) %}
+        raise Socket::BindError.new("server.unix_socket is not supported on Windows")
+      {% else %}
+        lock_path = "#{socket_path}.lock"
+        check_unix_socket_lock_file(lock_path, File.info?(lock_path, follow_symlinks: false))
+        lock_file = open_unix_socket_lock(lock_path)
+        begin
+          check_unix_socket_lock_file(lock_path, lock_file.info)
+          hold_unix_socket_lock(lock_file, lock_path, lock_timeout) do
+            remove_stale_unix_socket(socket_path)
+            bind_unix_socket_with_mode(server, socket_path)
+          end
+        ensure
+          lock_file.close
+        end
+      {% end %}
+    end
+
+    # Opens the lock file at *lock_path* for appending, creating it with
+    # `UNIX_SOCKET_LOCK_MODE`, in one step that neither follows a symlink nor
+    # waits: a symlink, or a FIFO no process reads, put at the path after the
+    # check fails the start with `Socket::BindError` instead of redirecting
+    # or blocking it.
+    private def self.open_unix_socket_lock(lock_path : String) : IO::FileDescriptor
+      open_flags = LibC::O_WRONLY | LibC::O_CREAT | LibC::O_APPEND | LibC::O_NOFOLLOW | LibC::O_NONBLOCK | LibC::O_CLOEXEC
+      file_descriptor = LibC.open(lock_path.check_no_null_byte, open_flags, UNIX_SOCKET_LOCK_MODE)
+      if file_descriptor < 0
+        raise Socket::BindError.new("server.unix_socket lock file #{lock_path} cannot be opened: #{Errno.value.message}")
+      end
+
+      IO::FileDescriptor.new(handle: file_descriptor)
+    end
+
+    # How long a start waits for another start to release the bind lock
+    # before it fails with `Socket::BindError`.
+    UNIX_SOCKET_LOCK_TIMEOUT = 10.seconds
+
+    # :nodoc:
+    #
+    # Raises `Socket::BindError` unless *lock_info*, the lock file at
+    # *lock_path*, is absent or a regular file this process's user owns and
+    # no group or other user may open. A wider mode is refused rather than
+    # narrowed: narrowing would not close a descriptor another user already
+    # holds, which could keep the lock forever. It
+    # runs on the path before the file is opened, so a symlink, a FIFO (whose
+    # open would block) or another user's file fails the start with this
+    # error, and again on the opened descriptor, in case the path was
+    # replaced in between.
+    def self.check_unix_socket_lock_file(lock_path : String, lock_info : File::Info?) : Nil
+      return unless lock_info
+
+      unless lock_info.type.file?
+        raise Socket::BindError.new("server.unix_socket lock file #{lock_path} is not a regular file")
+      end
+      unless lock_info.owner_id == LibC.getuid.to_s
+        raise Socket::BindError.new("server.unix_socket lock file #{lock_path} belongs to another user")
+      end
+      return if lock_info.permissions.value & 0o077 == 0
+
+      raise Socket::BindError.new("server.unix_socket lock file #{lock_path} may be opened by other users; delete it and start again")
+    end
+
+    # Interval between attempts to take a lock another start holds.
+    UNIX_SOCKET_LOCK_RETRY_INTERVAL = 50.milliseconds
+
+    # Runs the block while holding an exclusive lock on *lock_file*. A start
+    # that cannot take the lock within *lock_timeout*, because another
+    # process holds it, raises `Socket::BindError` instead of waiting
+    # forever.
+    private def self.hold_unix_socket_lock(lock_file : IO::FileDescriptor, lock_path : String, lock_timeout : Time::Span, & : -> Socket::UNIXAddress) : Socket::UNIXAddress
+      attempts_left = (lock_timeout / UNIX_SOCKET_LOCK_RETRY_INTERVAL).ceil.to_i
+      loop do
+        begin
+          lock_file.flock_exclusive(blocking: false)
+          break
+        rescue error : IO::Error
+          raise error unless error.os_error == Errno::EWOULDBLOCK
+          if attempts_left <= 0
+            raise Socket::BindError.new("server.unix_socket lock file #{lock_path} is held by another process")
+          end
+          attempts_left -= 1
+          sleep UNIX_SOCKET_LOCK_RETRY_INTERVAL
+        end
+      end
+
+      begin
+        yield
+      ensure
+        lock_file.flock_unlock
+      end
+    end
+
+    # Binds with a process umask that leaves the socket file at
+    # `UNIX_SOCKET_MODE`, then restores the umask. The umask is
+    # process-wide; this runs once, at start, before requests are served.
+    private def self.bind_unix_socket_with_mode(server : HTTP::Server, socket_path : String) : Socket::UNIXAddress
+      previous_umask = LibC.umask(0o777 & ~UNIX_SOCKET_MODE)
+      begin
+        server.bind_unix(socket_path)
+      ensure
+        LibC.umask(previous_umask)
+      end
+    end
+
+    # :nodoc:
+    #
+    # A previous run leaves its socket file behind, and binding over it fails.
+    # Only a socket that no server accepts connections on is removed: a socket
+    # another running server still listens on raises `Socket::BindError`
+    # instead of being taken over, and any other file at the path is left
+    # alone so that the bind reports the conflict.
+    def self.remove_stale_unix_socket(socket_path : String) : Nil
+      socket_info = File.info?(socket_path, follow_symlinks: false)
+      return unless socket_info
+      return unless socket_info.type.socket?
+
+      if unix_socket_accepts_connections?(socket_path)
+        raise Socket::BindError.new("server.unix_socket #{socket_path} is in use by another running server")
+      end
+
+      File.delete(socket_path)
+    end
+
+    # Returns `true` when a server accepts connections on *socket_path*, and
+    # `false` when the socket refuses them, which is what a socket file left
+    # behind by a stopped server does.
+    private def self.unix_socket_accepts_connections?(socket_path : String) : Bool
+      probe = UNIXSocket.new(socket_path)
+      probe.close
+      true
+    rescue error : Socket::ConnectError
+      raise error unless error.os_error == Errno::ECONNREFUSED
+
+      false
     end
 
     def ssl_enabled?
