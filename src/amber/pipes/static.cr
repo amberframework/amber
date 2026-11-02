@@ -6,6 +6,22 @@ module Amber
     # response headers, and gives content-addressed files an immutable cache
     # policy. A content-addressed filename ends in a SHA-256 fragment, for
     # example `app-0123456789abcdef.css`.
+    #
+    # An application with its own cache policy, for example a fingerprint
+    # scheme other than Amber's, overrides `#cache_control` in a subclass. The
+    # hook runs only for a file this pipe serves. A `Cache-Control` that an
+    # earlier handler already set on the response is kept as it is.
+    #
+    # ```
+    # class AppStatic < Amber::Pipe::Static
+    #   SHORT_FINGERPRINT = /-[0-9a-f]{8}\.[^\/]+$/i
+    #
+    #   protected def cache_control(request_path : String) : String
+    #     return IMMUTABLE_CACHE_CONTROL if request_path.matches?(SHORT_FINGERPRINT)
+    #     super
+    #   end
+    # end
+    # ```
     class Static < HTTP::StaticFileHandler
       FINGERPRINT_PATTERN = /-[0-9a-f]{16,64}\.[^\/]+$/i
 
@@ -53,6 +69,7 @@ module Amber
 
       @public_dir : Path
       @headers : HTTP::Headers
+      @configured_cache_control : String?
 
       # Sets the default behavior for static file serving to _NOT_ list the
       # directory contents. Headers from `Amber.settings.static.headers` are
@@ -68,28 +85,41 @@ module Amber
         (headers || Amber.settings.static.headers).each do |name, value|
           @headers[name] = value
         end
+        # `#cache_control` applies the configured Cache-Control. HTTP::Headers
+        # matches the name the way a response does (any case, `_` or `-`).
+        @configured_cache_control = @headers["Cache-Control"]?
+        @headers.delete("Cache-Control")
 
         register_portable_mime_types
         super(public_dir, fallthrough: !!fallthrough, directory_listing: !!directory_listing)
       end
 
       def call(context : HTTP::Server::Context) : Nil
-        apply_asset_headers(context) if static_file?(context.request.path)
+        # HTTP::StaticFileHandler serves files to GET and HEAD only; any other
+        # method gets 405 or goes to the next handler without asset headers.
+        if serves_method?(context.request.method) && static_file?(context.request.path)
+          apply_asset_headers(context)
+        end
         super
       end
 
       private def apply_asset_headers(context : HTTP::Server::Context) : Nil
+        policy_chosen_by_application = context.response.headers.has_key?("Cache-Control")
         @headers.each do |name, values|
           context.response.headers[name] = values
         end
 
-        context.response.headers["Cache-Control"] = if fingerprinted?(context.request.path)
-                                                      IMMUTABLE_CACHE_CONTROL
-                                                    else
-                                                      @headers["Cache-Control"]? || REVALIDATE_CACHE_CONTROL
-                                                    end
+        # A Cache-Control that an earlier handler set is the application's
+        # decision and stays as it is.
+        unless policy_chosen_by_application
+          context.response.headers["Cache-Control"] = cache_control(context.request.path)
+        end
         context.response.headers["X-Content-Type-Options"] ||= "nosniff"
         add_vary_accept_encoding(context.response.headers)
+      end
+
+      private def serves_method?(method : String) : Bool
+        method == "GET" || method == "HEAD"
       end
 
       private def static_file?(request_path : String) : Bool
@@ -103,6 +133,19 @@ module Amber
         File.file?(@public_dir.join(expanded_path.to_kind(Path::Kind.native)))
       rescue URI::Error
         false
+      end
+
+      # Returns the `Cache-Control` value for a static file at *request_path*.
+      #
+      # A content-addressed filename (see `FINGERPRINT_PATTERN`) is cached as
+      # immutable; any other file gets the configured static `Cache-Control`,
+      # or `no-cache`. Override it in a subclass to apply another policy.
+      protected def cache_control(request_path : String) : String
+        if fingerprinted?(request_path)
+          IMMUTABLE_CACHE_CONTROL
+        else
+          @configured_cache_control || REVALIDATE_CACHE_CONTROL
+        end
       end
 
       private def fingerprinted?(path : String) : Bool

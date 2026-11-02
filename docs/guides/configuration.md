@@ -136,10 +136,19 @@ static:
 
 `Amber::Pipe::Static` applies these headers to existing static files. A
 fingerprinted filename such as
-`app-0123456789abcdef0123456789abcdef.css` always receives
+`app-0123456789abcdef0123456789abcdef.css` receives
 `Cache-Control: public, max-age=31536000, immutable`; an unfingerprinted file
 uses the configured policy, or `no-cache` when no policy is configured. Amber
 also returns `X-Content-Type-Options: nosniff` and `Vary: Accept-Encoding`.
+
+A `Cache-Control` that an earlier handler already set on the response takes
+precedence over all of these, and Amber leaves it as it is.
+
+An application with its own cache policy, such as a different fingerprint
+scheme, subclasses `Amber::Pipe::Static` and overrides
+`#cache_control(request_path)`. The hook runs only for a file the pipe
+serves, so a path that falls through to a controller keeps the controller's
+own policy.
 
 Put build-authored CSS, JavaScript, images, fonts, and downloads under
 `app/assets/`, compile them to `public/assets/`, and resolve them through the
