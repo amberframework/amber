@@ -556,6 +556,31 @@ they send `X-Forwarded-Proto`.
 See the [configuration guide](guides/configuration.md#running-behind-a-tls-terminating-proxy)
 for the full rules.
 
+## 11. Security Headers Pipe
+
+V2 adds `Amber::Pipe::SecurityHeaders`. It sends `X-Content-Type-Options`,
+`X-Frame-Options`, a `frame-ancestors` `Content-Security-Policy`,
+`Referrer-Policy` and, on HTTPS requests, `Strict-Transport-Security` for
+this host. `Permissions-Policy` and `Cross-Origin-Opener-Policy` are opt-in.
+Its values come from the typed `security_headers` settings section; see the
+configuration guide. Plug it into each browser, API and static pipeline
+right after `Amber::Pipe::Logger` (before `Static` in a static pipeline):
+
+```crystal
+pipeline :web do
+  plug Amber::Pipe::Error.new
+  plug Amber::Pipe::Logger.new
+  plug Amber::Pipe::SecurityHeaders.new
+  # ...
+end
+```
+
+An app that set these headers in its own pipe or a controller filter moves
+the values to `security_headers:` in `config/environments/<env>.yml` and
+removes that code in the same change. The pipe leaves a header that an
+earlier pipe set as it is, but code that runs after it and uses
+`headers.add` sends a second value; `headers["Name"] = value` replaces it.
+
 ## Dependency Changes Summary
 
 ### Remove from shard.yml
@@ -601,6 +626,7 @@ is published.
 - [ ] Update `LAYOUT` constant to `"application.ecr"`
 - [ ] Restructure `config/environments/*.yml` files to use typed sections
 - [ ] Update session configuration to use adapter pattern
+- [ ] Plug `Amber::Pipe::SecurityHeaders` into each browser, API and static pipeline
 - [ ] Remove any direct `require "redis"`, `require "amber_router"`, or `require "kilt"` statements
 - [ ] Add database drivers explicitly to shard.yml if needed
 - [ ] Behind a TLS-terminating proxy, set `server.trusted_proxies` to the proxy's addresses, make sure it sends `X-Forwarded-Proto`, and delete any pipe that writes `HTTPS: on`

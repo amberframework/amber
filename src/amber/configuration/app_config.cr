@@ -33,6 +33,9 @@ module Amber::Configuration
     @[YAML::Field(key: "params")]
     property params : ParamsConfig = ParamsConfig.new
 
+    @[YAML::Field(key: "security_headers")]
+    property security_headers : SecurityHeadersConfig = SecurityHeadersConfig.new
+
     @[YAML::Field(key: "secrets")]
     property secrets : Hash(String, String) = {} of String => String
 
@@ -44,6 +47,19 @@ module Amber::Configuration
     # constructors may not compile.
     @[YAML::Field(ignore: true)]
     property custom_configs : Hash(String, String) = {} of String => String
+
+    # Returns the top-level keys a V2 settings file may use for the sections
+    # this class reads.
+    def self.list_of_section_names : Array(String)
+      list_of_section_names = [] of String
+      {% for ivar in @type.instance_vars %}
+        {% field = ivar.annotation(YAML::Field) %}
+        {% unless field && field[:ignore] %}
+          list_of_section_names << {{ (field && field[:key]) || ivar.name.stringify }}
+        {% end %}
+      {% end %}
+      list_of_section_names
+    end
 
     def initialize
     end
@@ -109,6 +125,12 @@ module Amber::Configuration
 
       begin
         params.validate!
+      rescue ex : Amber::Exceptions::ConfigurationError
+        list_of_errors.concat(ex.list_of_errors)
+      end
+
+      begin
+        security_headers.validate!
       rescue ex : Amber::Exceptions::ConfigurationError
         list_of_errors.concat(ex.list_of_errors)
       end
