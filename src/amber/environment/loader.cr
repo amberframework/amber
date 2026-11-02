@@ -1,3 +1,5 @@
+require "levenshtein"
+
 module Amber::Environment
   class Loader
     def initialize(@environment : Amber::Environment::EnvType = Amber.env.to_s,
@@ -32,6 +34,7 @@ module Amber::Environment
 
     private def load_v1_settings(content : String) : Settings
       check_v1_listener_settings!(content)
+      check_v1_security_headers!(content)
       settings = Settings.from_yaml(content)
       # V1 files keep their flat format, but request parameter limits are a
       # security boundary: apply the same overrides and validation as V2.
@@ -62,7 +65,45 @@ module Amber::Environment
       )
     end
 
+    # The flat V1 format has no `security_headers` section, so its values
+    # and `AMBER_SECURITY_HEADERS_*` overrides would be dropped without a
+    # word. Raises `Amber::Exceptions::ConfigurationError` when either is
+    # present, including a key one or two letters from `security_headers`.
+    private def check_v1_security_headers!(content : String) : Nil
+      list_of_top_level_keys = YAML.parse(content).as_h?.try(&.keys.map(&.to_s)) || [] of String
+      sets_section = list_of_top_level_keys.any? do |key|
+        !Levenshtein.find(key, ["security_headers"], tolerance: 2).nil?
+      end
+      sets_override = ENV.keys.any?(&.starts_with?("AMBER_SECURITY_HEADERS_"))
+      return unless sets_section || sets_override
+
+      raise Amber::Exceptions::ConfigurationError.new(
+        "security_headers needs the V2 settings format (a nested `server:` section); " \
+        "move #{@path}/#{@environment}.yml to V2 to set it"
+      )
+    end
+
+    # Raises `Amber::Exceptions::ConfigurationError` for a top-level key that
+    # is one or two letters from a section name, such as `security_headders`:
+    # the section it meant would keep its defaults without a word. Other
+    # unknown keys are left alone, so an application may keep its own.
+    private def check_section_names!(content : String) : Nil
+      list_of_top_level_keys = YAML.parse(content).as_h?.try(&.keys.map(&.to_s)) || [] of String
+      list_of_known_names = Amber::Configuration::AppConfig.list_of_section_names +
+                            Amber::Configuration.custom_config_defaults.keys
+      list_of_errors = [] of String
+      list_of_top_level_keys.each do |key|
+        next if list_of_known_names.includes?(key)
+
+        if intended_name = Levenshtein.find(key, list_of_known_names, tolerance: 2)
+          list_of_errors << "unknown settings section `#{key}`; did you mean `#{intended_name}`?"
+        end
+      end
+      raise Amber::Exceptions::ConfigurationError.new(list_of_errors) unless list_of_errors.empty?
+    end
+
     private def load_v2_settings(content : String) : Settings
+      check_section_names!(content)
       app_config = Amber::Configuration::AppConfig.from_yaml(content)
 
       # Load any registered custom configs from the YAML first, so the
@@ -74,6 +115,10 @@ module Amber::Environment
 
       # Reject unusable parameter limits at boot rather than on the first request.
       app_config.params.validate!
+
+      # Reject a security header value with a line break while the settings
+      # load, so a bad value fails the boot instead of every response.
+      app_config.security_headers.validate!
 
       # Build a Settings instance backed by the AppConfig
       settings = build_settings_from_app_config(app_config)

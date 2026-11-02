@@ -41,6 +41,7 @@ The `Amber::Configuration::AppConfig` class holds all configuration sections:
 | `jobs` | `JobsConfig` | Background jobs |
 | `mailer` | `MailerConfig` | Email delivery |
 | `static` | `StaticConfig` | Static file serving |
+| `security_headers` | `SecurityHeadersConfig` | Response headers sent by `Amber::Pipe::SecurityHeaders` |
 | `secrets` | `Hash(String, String)` | Key-value secret storage |
 
 ### ServerConfig
@@ -288,6 +289,105 @@ Put build-authored CSS, JavaScript, images, fonts, and downloads under
 `app/assets/`, compile them to `public/assets/`, and resolve them through the
 asset manifest. Keep user uploads on a separate persistent-storage lifecycle.
 
+### SecurityHeadersConfig
+
+```yaml
+security_headers:
+  content_type_options: "nosniff"                         # X-Content-Type-Options
+  frame_options: "DENY"                                   # X-Frame-Options
+  content_security_policy: "frame-ancestors 'none'"       # Content-Security-Policy
+  referrer_policy: "strict-origin-when-cross-origin"      # Referrer-Policy
+  permissions_policy: ""                                  # Permissions-Policy (off)
+  cross_origin_opener_policy: ""                          # Cross-Origin-Opener-Policy (off)
+  strict_transport_security: "max-age=63072000"           # HTTPS requests only
+```
+
+`Amber::Pipe::SecurityHeaders` sends these headers. The values above are the
+defaults, so an application that plugs the pipe and leaves the section out
+gets every header whose default is not empty; name only the keys you change.
+An empty string turns that one header off. `Amber::Pipe::Static` sends
+`X-Content-Type-Options: nosniff` on the files it serves on its own, whatever
+this section says, unless `static.headers` sets `X-Content-Type-Options`
+itself.
+
+The defaults have two effects a page can notice. `frame_options: "DENY"` and
+`frame-ancestors 'none'` stop every site, the application included, from
+showing its pages in a frame; set `"SAMEORIGIN"` and `"frame-ancestors
+'self'"` for an application that frames its own pages. On HTTPS,
+`Strict-Transport-Security` makes browsers use HTTPS for the host for two
+years, so serve it over HTTPS before turning HTTPS on in production. A
+misspelled key in the section fails the boot, and so does a top-level key
+one or two letters from a section name, such as `security_headders`. The
+section needs the V2 settings format: a flat V1 file that names it, or an
+`AMBER_SECURITY_HEADERS_*` variable set beside one, fails the boot as well,
+as does an `AMBER_SECURITY_HEADERS_*` variable that names no setting.
+
+Two headers are off by default because their strict values break ordinary
+features; turn them on once you know the application does not use what they
+block:
+
+- `permissions_policy` denies browser features. `"accelerometer=(), camera=(),
+  geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(),
+  usb=()"` suits an application with no camera, location or in-page payment
+  (an Apple Pay or Google Pay button needs `payment`).
+- `cross_origin_opener_policy: "same-origin"` cuts the link between a page and
+  a popup from another site. Leave it off when the application signs users in
+  or takes payments through a popup, or is opened as one.
+
+- `strict_transport_security` is sent only when `HTTP::Request#https?` is
+  true, the same test the cookie jar uses to send `Secure` cookies: Amber
+  terminates TLS itself (both `server.ssl` files are set), or a trusted
+  proxy (`server.trusted_proxies`) reports that the client used HTTPS. See
+  [Running behind a TLS-terminating proxy](#running-behind-a-tls-terminating-proxy).
+- The default `strict_transport_security` pins this host to HTTPS for two
+  years and leaves sibling subdomains alone. Once every subdomain of the
+  domain is served over HTTPS, add `includeSubDomains`
+  (`"max-age=63072000; includeSubDomains"`); a browser that sees it refuses
+  plain HTTP on all of them for the whole `max-age`, and the setting cannot
+  be withdrawn from browsers that already have it.
+- The default `content_security_policy` carries only `frame-ancestors`, so it
+  does not restrict scripts, styles, or images. An application with a full
+  policy puts it here, keeping a `frame-ancestors` directive in it.
+- The pipe never replaces a header that is already on the response: a pipe
+  plugged earlier keeps its value, and a controller that assigns one of these
+  headers with `response.headers["Name"] = value` has the final word.
+  `headers.add` appends a second value instead of replacing the pipe's.
+- A value with a line break or another control character that HTTP headers
+  refuse raises `Amber::Exceptions::ConfigurationError` when the settings
+  load or the value is assigned, so it fails the boot instead of a response.
+- Some responses are produced before any pipeline's pipes run. A request
+  whose route constraint fails gets the headers of the `SecurityHeaders`
+  pipe plugged into that route's pipeline (none when that pipeline plugs
+  none). A request that matches no route, and every WebSocket handshake,
+  belong to no pipeline, even when an HTTP route also matches the path:
+  when the application plugs `SecurityHeaders` into any pipeline, they get
+  the application-wide `security_headers` settings. That covers the 101
+  that accepts a handshake, the 426 for an unsupported version and the 400
+  for a handshake without a `Sec-WebSocket-Key`.
+
+Plug the pipe early in every browser, API and static pipeline, after `Error`
+and `Logger` and before `Static`. It writes its headers before the rest of
+the pipeline runs, so the error pages `Error` renders for a failing
+controller, and the files and 404s the static pipeline serves, carry them
+too:
+
+```crystal
+pipeline :web do
+  plug Amber::Pipe::Error.new
+  plug Amber::Pipe::Logger.new
+  plug Amber::Pipe::SecurityHeaders.new
+  plug Amber::Pipe::Session.new
+  plug Amber::Pipe::Flash.new
+  plug Amber::Pipe::CSRF.new
+end
+
+pipeline :static do
+  plug Amber::Pipe::Error.new
+  plug Amber::Pipe::SecurityHeaders.new
+  plug Amber::Pipe::Static.new("./public")
+end
+```
+
 ## Environment Variable Overrides
 
 The settings in the table below, and the scalar fields, nested sections and existing `Hash` keys of a registered custom section, can be overridden with an environment variable. Environment variables always take highest priority, overriding both YAML file values and compiled-in defaults. The `static` and `secrets` sections take no environment overrides.
@@ -330,6 +430,15 @@ The naming convention is `AMBER_{SECTION}_{KEY}`:
 | `AMBER_MAILER_SMTP_PASSWORD` | `mailer.smtp.password` |
 | `AMBER_MAILER_SMTP_USE_TLS` | `mailer.smtp.use_tls` |
 | `AMBER_MAILER_SMTP_HELO_DOMAIN` | `mailer.smtp.helo_domain` |
+| `AMBER_SECURITY_HEADERS_CONTENT_TYPE_OPTIONS` | `security_headers.content_type_options` |
+| `AMBER_SECURITY_HEADERS_FRAME_OPTIONS` | `security_headers.frame_options` |
+| `AMBER_SECURITY_HEADERS_CONTENT_SECURITY_POLICY` | `security_headers.content_security_policy` |
+| `AMBER_SECURITY_HEADERS_REFERRER_POLICY` | `security_headers.referrer_policy` |
+| `AMBER_SECURITY_HEADERS_PERMISSIONS_POLICY` | `security_headers.permissions_policy` |
+| `AMBER_SECURITY_HEADERS_CROSS_ORIGIN_OPENER_POLICY` | `security_headers.cross_origin_opener_policy` |
+| `AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY` | `security_headers.strict_transport_security` |
+
+A `security_headers` variable set to an empty string turns that header off.
 
 Boolean environment variables accept `"true"`, `"1"`, `"yes"` (case-insensitive) as true. All other values are treated as false.
 
@@ -547,6 +656,9 @@ mailer:
     use_tls: true
     helo_domain: "myapp.com"
 
+security_headers:
+  content_security_policy: "default-src 'self'; frame-ancestors 'none'"
+
 secrets:
   api_key: "secret_api_key_here"
 ```
@@ -563,6 +675,7 @@ secrets:
 - `src/amber/configuration/jobs_config.cr` -- JobsConfig
 - `src/amber/configuration/mailer_config.cr` -- MailerConfig
 - `src/amber/configuration/static_config.cr` -- StaticConfig
+- `src/amber/configuration/security_headers_config.cr` -- SecurityHeadersConfig
 - `src/amber/configuration/env_override.cr` -- Environment variable override logic
 - `src/amber/configuration/custom_registry.cr` -- Custom config registration
 - `src/amber/configuration/credentials_directory.cr` -- Credentials directory reader

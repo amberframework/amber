@@ -206,7 +206,9 @@ class HTTP::Request
   end
 
   # Returns `true` when the client reached the application over HTTPS. This
-  # is the one place Amber answers that question; see `#scheme`.
+  # is the one place Amber answers that question: the cookie jar's `Secure`
+  # flag and `Amber::Pipe::SecurityHeaders`' `Strict-Transport-Security`
+  # header both ask it, so they always agree. See `#scheme`.
   def https? : Bool
     scheme == Amber::Router::RequestScheme::HTTPS
   end

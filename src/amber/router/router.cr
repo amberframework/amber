@@ -15,15 +15,24 @@ module Amber
         @named_routes = {} of Symbol => Route
         @extension_routes_drawn = false
         @socket_routes = Array(NamedTuple(path: String, handler: WebSockets::Server::Handler)).new
+        @socket_route_constraints = {} of WebSockets::Server::Handler => Constraint
         @scope = Scope.new
       end
 
+      # Returns the handler of the first socket route whose path is
+      # *request*'s and whose constraint, if it was declared in a
+      # `constraint` block, *request* meets. Raises
+      # `Exceptions::RouteNotFound` when there is none.
       def get_socket_handler(request) : WebSockets::Server::Handler
-        if socket_route = @socket_routes.find { |registered| registered[:path] == request.path }
-          socket_route.[:handler]
-        else
-          raise Exceptions::RouteNotFound.new(request)
+        socket_route = @socket_routes.find do |candidate_route|
+          next false unless candidate_route[:path] == request.path
+
+          constraint = @socket_route_constraints[candidate_route[:handler]]?
+          constraint.nil? || constraint.matches?(request)
         end
+        raise Exceptions::RouteNotFound.new(request) unless socket_route
+
+        socket_route[:handler]
       end
 
       # This registers all the routes for the application
@@ -53,6 +62,18 @@ module Amber
 
       def route_defined?(request)
         match_by_request(request).found?
+      end
+
+      # Holds the socket route served by *handler* to *constraint*, the
+      # `constraint` block its `websocket` line sits in.
+      def constrain_socket_route(handler : WebSockets::Server::Handler, constraint : Constraint) : Nil
+        @socket_route_constraints[handler] = constraint
+      end
+
+      # Returns the constraint the socket route served by *handler* was
+      # declared under, or `nil` when it was declared outside any.
+      def socket_route_constraint(handler : WebSockets::Server::Handler) : Constraint?
+        @socket_route_constraints[handler]?
       end
 
       def socket_route_defined?(request)
