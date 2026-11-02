@@ -163,6 +163,27 @@ module Amber
         response.headers.get("Cache-Control").should eq ["private, max-age=60"]
       end
 
+      it "attaches no asset headers to a method other than GET or HEAD" do
+        filename = "app-0123456789abcdef.css"
+        file = File.join(File.expand_path(TEST_PUBLIC_PATH), filename)
+        File.write(file, "body {}")
+
+        begin
+          refused = create_request_and_return_io(Static.new(PUBLIC_PATH), HTTP::Request.new("POST", "/#{filename}"))
+          refused.status_code.should eq 405
+          refused.headers["Cache-Control"]?.should be_nil
+
+          static = Static.new PUBLIC_PATH, fallthrough: true
+          static.next = DynamicAnswer.new
+          passed_on = create_request_and_return_io(static, HTTP::Request.new("POST", "/#{filename}"))
+          passed_on.body.should eq "dynamic"
+          passed_on.headers["Cache-Control"]?.should be_nil
+          passed_on.headers["X-Content-Type-Options"]?.should be_nil
+        ensure
+          File.delete?(file)
+        end
+      end
+
       it "leaves Cache-Control to the next handler when no file matches" do
         static = StaticWithShortFingerprints.new PUBLIC_PATH, fallthrough: true
         static.next = DynamicAnswer.new

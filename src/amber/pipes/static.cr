@@ -95,7 +95,11 @@ module Amber
       end
 
       def call(context : HTTP::Server::Context) : Nil
-        apply_asset_headers(context) if static_file?(context.request.path)
+        # HTTP::StaticFileHandler serves files to GET and HEAD only; any other
+        # method gets 405 or goes to the next handler without asset headers.
+        if serves_method?(context.request.method) && static_file?(context.request.path)
+          apply_asset_headers(context)
+        end
         super
       end
 
@@ -112,6 +116,10 @@ module Amber
         end
         context.response.headers["X-Content-Type-Options"] ||= "nosniff"
         add_vary_accept_encoding(context.response.headers)
+      end
+
+      private def serves_method?(method : String) : Bool
+        method == "GET" || method == "HEAD"
       end
 
       private def static_file?(request_path : String) : Bool
