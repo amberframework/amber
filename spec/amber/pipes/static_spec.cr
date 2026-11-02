@@ -7,14 +7,23 @@ module Amber
   module Pipe
     TEST_PUBLIC_PATH = "spec/support/sample/public"
 
-    # A static pipe that decides Cache-Control in its own `call` before Amber
-    # serves the file, as an app with its own asset manifest does.
-    class StaticWithPolicyInCall < Static
-      APP_CACHE_CONTROL = "public, max-age=300, s-maxage=3600"
+    # An application handler ahead of the static pipe that marks every
+    # response private.
+    class PrivateResponses
+      include HTTP::Handler
 
       def call(context : HTTP::Server::Context) : Nil
-        context.response.headers["Cache-Control"] = APP_CACHE_CONTROL
-        super
+        context.response.headers["Cache-Control"] = "private, no-store"
+        call_next(context)
+      end
+    end
+
+    # Stands in for the controller that answers a path with no static file.
+    class DynamicAnswer
+      include HTTP::Handler
+
+      def call(context : HTTP::Server::Context) : Nil
+        context.response.print "dynamic"
       end
     end
 
@@ -126,14 +135,42 @@ module Amber
         end
       end
 
-      it "keeps a Cache-Control that a subclass set before serving the file" do
-        request = HTTP::Request.new("GET", "/index.html")
-        static = StaticWithPolicyInCall.new PUBLIC_PATH, headers: {"Cache-Control" => "no-store"}
+      it "keeps a Cache-Control that an earlier handler set" do
+        filename = "app-0123456789abcdef.css"
+        file = File.join(File.expand_path(TEST_PUBLIC_PATH), filename)
+        File.write(file, "body {}")
 
-        response = create_request_and_return_io(static, request)
+        begin
+          {"Cache-Control", "cache-control", "Cache_Control"}.each do |configured_name|
+            earlier_handler = PrivateResponses.new
+            earlier_handler.next = Static.new PUBLIC_PATH, headers: {configured_name => "public, max-age=60"}
 
-        response.headers["Cache-Control"].should eq StaticWithPolicyInCall::APP_CACHE_CONTROL
-        response.headers["X-Content-Type-Options"].should eq "nosniff"
+            response = create_request_and_return_io(earlier_handler, HTTP::Request.new("GET", "/#{filename}"))
+
+            response.headers.get("Cache-Control").should eq ["private, no-store"]
+            response.headers["X-Content-Type-Options"].should eq "nosniff"
+          end
+        ensure
+          File.delete?(file)
+        end
+      end
+
+      it "applies a configured Cache-Control spelled in any case or with underscores" do
+        static = Static.new PUBLIC_PATH, headers: {"cache_control" => "private, max-age=60"}
+
+        response = create_request_and_return_io(static, HTTP::Request.new("GET", "/index.html"))
+
+        response.headers.get("Cache-Control").should eq ["private, max-age=60"]
+      end
+
+      it "leaves Cache-Control to the next handler when no file matches" do
+        static = StaticWithShortFingerprints.new PUBLIC_PATH, fallthrough: true
+        static.next = DynamicAnswer.new
+
+        response = create_request_and_return_io(static, HTTP::Request.new("GET", "/account-0123abcd.css"))
+
+        response.body.should eq "dynamic"
+        response.headers["Cache-Control"]?.should be_nil
       end
 
       it "lets a subclass supply its cache policy through #cache_control" do

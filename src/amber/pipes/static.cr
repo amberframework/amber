@@ -7,12 +7,10 @@ module Amber
     # policy. A content-addressed filename ends in a SHA-256 fragment, for
     # example `app-0123456789abcdef.css`.
     #
-    # An application chooses its own cache policy in one of two ways:
-    #
-    # - Set `Cache-Control` on the response before calling `super` in a
-    #   subclass's `call`; Amber keeps a value that is already there.
-    # - Override `#cache_control` to return the policy for a request path,
-    #   for example for a fingerprint scheme other than Amber's.
+    # An application with its own cache policy, for example a fingerprint
+    # scheme other than Amber's, overrides `#cache_control` in a subclass. The
+    # hook runs only for a file this pipe serves. A `Cache-Control` that an
+    # earlier handler already set on the response is kept as it is.
     #
     # ```
     # class AppStatic < Amber::Pipe::Static
@@ -71,6 +69,7 @@ module Amber
 
       @public_dir : Path
       @headers : HTTP::Headers
+      @configured_cache_control : String?
 
       # Sets the default behavior for static file serving to _NOT_ list the
       # directory contents. Headers from `Amber.settings.static.headers` are
@@ -86,6 +85,10 @@ module Amber
         (headers || Amber.settings.static.headers).each do |name, value|
           @headers[name] = value
         end
+        # `#cache_control` applies the configured Cache-Control. HTTP::Headers
+        # matches the name the way a response does (any case, `_` or `-`).
+        @configured_cache_control = @headers["Cache-Control"]?
+        @headers.delete("Cache-Control")
 
         register_portable_mime_types
         super(public_dir, fallthrough: !!fallthrough, directory_listing: !!directory_listing)
@@ -99,13 +102,11 @@ module Amber
       private def apply_asset_headers(context : HTTP::Server::Context) : Nil
         policy_chosen_by_application = context.response.headers.has_key?("Cache-Control")
         @headers.each do |name, values|
-          # `#cache_control` decides Cache-Control below.
-          next if name.compare("Cache-Control", case_insensitive: true) == 0
           context.response.headers[name] = values
         end
 
-        # A Cache-Control set on the response before this pipe ran, for
-        # example by a subclass's `call`, is the application's decision.
+        # A Cache-Control that an earlier handler set is the application's
+        # decision and stays as it is.
         unless policy_chosen_by_application
           context.response.headers["Cache-Control"] = cache_control(context.request.path)
         end
@@ -135,7 +136,7 @@ module Amber
         if fingerprinted?(request_path)
           IMMUTABLE_CACHE_CONTROL
         else
-          @headers["Cache-Control"]? || REVALIDATE_CACHE_CONTROL
+          @configured_cache_control || REVALIDATE_CACHE_CONTROL
         end
       end
 
