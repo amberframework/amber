@@ -6,6 +6,32 @@ include RouterHelper
 module Amber
   module Pipe
     TEST_PUBLIC_PATH = "spec/support/sample/public"
+
+    # A static pipe that decides Cache-Control in its own `call` before Amber
+    # serves the file, as an app with its own asset manifest does.
+    class StaticWithPolicyInCall < Static
+      APP_CACHE_CONTROL = "public, max-age=300, s-maxage=3600"
+
+      def call(context : HTTP::Server::Context) : Nil
+        context.response.headers["Cache-Control"] = APP_CACHE_CONTROL
+        super
+      end
+    end
+
+    # A static pipe whose fingerprints are 8 hex characters, so it supplies
+    # its own cache policy through the `cache_control` hook.
+    class StaticWithShortFingerprints < Static
+      SHORT_FINGERPRINT = /-[0-9a-f]{8}\.[^\/]+$/i
+
+      protected def cache_control(request_path : String) : String
+        if request_path.matches?(SHORT_FINGERPRINT)
+          IMMUTABLE_CACHE_CONTROL
+        else
+          "public, max-age=60"
+        end
+      end
+    end
+
     describe Static do
       it "renders html" do
         request = HTTP::Request.new("GET", "/index.html")
@@ -95,6 +121,34 @@ module Amber
           response = create_request_and_return_io(static, request)
 
           response.headers["Cache-Control"].should eq Static::IMMUTABLE_CACHE_CONTROL
+        ensure
+          File.delete?(file)
+        end
+      end
+
+      it "keeps a Cache-Control that a subclass set before serving the file" do
+        request = HTTP::Request.new("GET", "/index.html")
+        static = StaticWithPolicyInCall.new PUBLIC_PATH, headers: {"Cache-Control" => "no-store"}
+
+        response = create_request_and_return_io(static, request)
+
+        response.headers["Cache-Control"].should eq StaticWithPolicyInCall::APP_CACHE_CONTROL
+        response.headers["X-Content-Type-Options"].should eq "nosniff"
+      end
+
+      it "lets a subclass supply its cache policy through #cache_control" do
+        filename = "app-0123abcd.css"
+        file = File.join(File.expand_path(TEST_PUBLIC_PATH), filename)
+        File.write(file, "body {}")
+
+        begin
+          static = StaticWithShortFingerprints.new PUBLIC_PATH, headers: {"Cache-Control" => "no-store"}
+
+          fingerprinted = create_request_and_return_io(static, HTTP::Request.new("GET", "/#{filename}"))
+          fingerprinted.headers["Cache-Control"].should eq Static::IMMUTABLE_CACHE_CONTROL
+
+          plain = create_request_and_return_io(static, HTTP::Request.new("GET", "/index.html"))
+          plain.headers["Cache-Control"].should eq "public, max-age=60"
         ensure
           File.delete?(file)
         end

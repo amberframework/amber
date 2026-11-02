@@ -6,6 +6,24 @@ module Amber
     # response headers, and gives content-addressed files an immutable cache
     # policy. A content-addressed filename ends in a SHA-256 fragment, for
     # example `app-0123456789abcdef.css`.
+    #
+    # An application chooses its own cache policy in one of two ways:
+    #
+    # - Set `Cache-Control` on the response before calling `super` in a
+    #   subclass's `call`; Amber keeps a value that is already there.
+    # - Override `#cache_control` to return the policy for a request path,
+    #   for example for a fingerprint scheme other than Amber's.
+    #
+    # ```
+    # class AppStatic < Amber::Pipe::Static
+    #   SHORT_FINGERPRINT = /-[0-9a-f]{8}\.[^\/]+$/i
+    #
+    #   protected def cache_control(request_path : String) : String
+    #     return IMMUTABLE_CACHE_CONTROL if request_path.matches?(SHORT_FINGERPRINT)
+    #     super
+    #   end
+    # end
+    # ```
     class Static < HTTP::StaticFileHandler
       FINGERPRINT_PATTERN = /-[0-9a-f]{16,64}\.[^\/]+$/i
 
@@ -79,15 +97,18 @@ module Amber
       end
 
       private def apply_asset_headers(context : HTTP::Server::Context) : Nil
+        policy_chosen_by_application = context.response.headers.has_key?("Cache-Control")
         @headers.each do |name, values|
+          # `#cache_control` decides Cache-Control below.
+          next if name.compare("Cache-Control", case_insensitive: true) == 0
           context.response.headers[name] = values
         end
 
-        context.response.headers["Cache-Control"] = if fingerprinted?(context.request.path)
-                                                      IMMUTABLE_CACHE_CONTROL
-                                                    else
-                                                      @headers["Cache-Control"]? || REVALIDATE_CACHE_CONTROL
-                                                    end
+        # A Cache-Control set on the response before this pipe ran, for
+        # example by a subclass's `call`, is the application's decision.
+        unless policy_chosen_by_application
+          context.response.headers["Cache-Control"] = cache_control(context.request.path)
+        end
         context.response.headers["X-Content-Type-Options"] ||= "nosniff"
         add_vary_accept_encoding(context.response.headers)
       end
@@ -103,6 +124,19 @@ module Amber
         File.file?(@public_dir.join(expanded_path.to_kind(Path::Kind.native)))
       rescue URI::Error
         false
+      end
+
+      # Returns the `Cache-Control` value for a static file at *request_path*.
+      #
+      # A content-addressed filename (see `FINGERPRINT_PATTERN`) is cached as
+      # immutable; any other file gets the configured static `Cache-Control`,
+      # or `no-cache`. Override it in a subclass to apply another policy.
+      protected def cache_control(request_path : String) : String
+        if fingerprinted?(request_path)
+          IMMUTABLE_CACHE_CONTROL
+        else
+          @headers["Cache-Control"]? || REVALIDATE_CACHE_CONTROL
+        end
       end
 
       private def fingerprinted?(path : String) : Bool

@@ -141,6 +141,12 @@ fingerprinted filename such as
 uses the configured policy, or `no-cache` when no policy is configured. Amber
 also returns `X-Content-Type-Options: nosniff` and `Vary: Accept-Encoding`.
 
+An application with its own cache policy, such as a different fingerprint
+scheme, subclasses `Amber::Pipe::Static` and either overrides
+`#cache_control(request_path)` or sets `Cache-Control` on the response before
+calling `super` in `call`. Amber keeps a `Cache-Control` that is already on
+the response.
+
 Put build-authored CSS, JavaScript, images, fonts, and downloads under
 `app/assets/`, compile them to `public/assets/`, and resolve them through the
 asset manifest. Keep user uploads on a separate persistent-storage lifecycle.
