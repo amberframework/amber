@@ -158,7 +158,9 @@ class HTTP::Request
     return IO::Memory.new(Bytes.empty) unless query_start
 
     query_end = target.index(FRAGMENT_START, query_start + 1) || target.size
-    IO::Memory.new(target[query_start + 1, query_end - query_start - 1], writable: false)
+    # Read-only, passed positionally: Crystal 1.20 names the parameter
+    # `writeable` and 1.21 `writable`.
+    IO::Memory.new(target[query_start + 1, query_end - query_start - 1], false)
   end
 
   # Closes and removes the tempfiles of this request's uploads. Amber calls
