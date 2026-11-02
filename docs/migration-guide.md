@@ -44,7 +44,9 @@ crystal spec
 amber watch
 ```
 
-The generated project pins Amber `2.0.0-beta.7` and uses ECR. See the
+The generated project uses ECR. Amber CLI 2.0.8 pins it to `2.0.0-beta.7`;
+change `version:` in its `shard.yml` to `2.0.0-beta.8` and run
+`minecart update amber`. See the
 [beta installation guide](beta-installation.md) for direct binary installation,
 supported platforms, and the exact verification procedure. New web apps use
 Grant with SQLite and Micrate migrations by default. Authentication generators
@@ -72,7 +74,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.7
+    version: 2.0.0-beta.8
   # No redis dependency needed for default configuration
 ```
 
@@ -357,7 +359,7 @@ dependencies:
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.7
+    version: 2.0.0-beta.8
   pg:
     github: will/crystal-pg
   granite:
@@ -508,7 +510,7 @@ Review your session configuration and update as needed.
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.7
+    version: 2.0.0-beta.8
 ```
 
 ### Add to shard.yml (as needed)
@@ -528,7 +530,7 @@ is published.
 ## Migration Checklist
 
 - [ ] Install Amber CLI 2.0.8 or newer from `amberframework/amber_cli`
-- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.7` and remove bundled dependencies
+- [ ] Update `shard.yml` to point to `amberframework/amber` at `2.0.0-beta.8` and remove bundled dependencies
 - [ ] Run `shards install`
 - [ ] Replace `YAML.mapping` with `YAML::Serializable` in all custom types
 - [ ] Rename all `.slang` templates to `.ecr` and convert syntax

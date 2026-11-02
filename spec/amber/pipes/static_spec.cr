@@ -6,6 +6,41 @@ include RouterHelper
 module Amber
   module Pipe
     TEST_PUBLIC_PATH = "spec/support/sample/public"
+
+    # An application handler ahead of the static pipe that marks every
+    # response private.
+    class PrivateResponses
+      include HTTP::Handler
+
+      def call(context : HTTP::Server::Context) : Nil
+        context.response.headers["Cache-Control"] = "private, no-store"
+        call_next(context)
+      end
+    end
+
+    # Stands in for the controller that answers a path with no static file.
+    class DynamicAnswer
+      include HTTP::Handler
+
+      def call(context : HTTP::Server::Context) : Nil
+        context.response.print "dynamic"
+      end
+    end
+
+    # A static pipe whose fingerprints are 8 hex characters, so it supplies
+    # its own cache policy through the `cache_control` hook.
+    class StaticWithShortFingerprints < Static
+      SHORT_FINGERPRINT = /-[0-9a-f]{8}\.[^\/]+$/i
+
+      protected def cache_control(request_path : String) : String
+        if request_path.matches?(SHORT_FINGERPRINT)
+          IMMUTABLE_CACHE_CONTROL
+        else
+          "public, max-age=60"
+        end
+      end
+    end
+
     describe Static do
       it "renders html" do
         request = HTTP::Request.new("GET", "/index.html")
@@ -95,6 +130,83 @@ module Amber
           response = create_request_and_return_io(static, request)
 
           response.headers["Cache-Control"].should eq Static::IMMUTABLE_CACHE_CONTROL
+        ensure
+          File.delete?(file)
+        end
+      end
+
+      it "keeps a Cache-Control that an earlier handler set" do
+        filename = "app-0123456789abcdef.css"
+        file = File.join(File.expand_path(TEST_PUBLIC_PATH), filename)
+        File.write(file, "body {}")
+
+        begin
+          {"Cache-Control", "cache-control", "Cache_Control"}.each do |configured_name|
+            earlier_handler = PrivateResponses.new
+            earlier_handler.next = Static.new PUBLIC_PATH, headers: {configured_name => "public, max-age=60"}
+
+            response = create_request_and_return_io(earlier_handler, HTTP::Request.new("GET", "/#{filename}"))
+
+            response.headers.get("Cache-Control").should eq ["private, no-store"]
+            response.headers["X-Content-Type-Options"].should eq "nosniff"
+          end
+        ensure
+          File.delete?(file)
+        end
+      end
+
+      it "applies a configured Cache-Control spelled in any case or with underscores" do
+        static = Static.new PUBLIC_PATH, headers: {"cache_control" => "private, max-age=60"}
+
+        response = create_request_and_return_io(static, HTTP::Request.new("GET", "/index.html"))
+
+        response.headers.get("Cache-Control").should eq ["private, max-age=60"]
+      end
+
+      it "attaches no asset headers to a method other than GET or HEAD" do
+        filename = "app-0123456789abcdef.css"
+        file = File.join(File.expand_path(TEST_PUBLIC_PATH), filename)
+        File.write(file, "body {}")
+
+        begin
+          refused = create_request_and_return_io(Static.new(PUBLIC_PATH), HTTP::Request.new("POST", "/#{filename}"))
+          refused.status_code.should eq 405
+          refused.headers["Cache-Control"]?.should be_nil
+
+          static = Static.new PUBLIC_PATH, fallthrough: true
+          static.next = DynamicAnswer.new
+          passed_on = create_request_and_return_io(static, HTTP::Request.new("POST", "/#{filename}"))
+          passed_on.body.should eq "dynamic"
+          passed_on.headers["Cache-Control"]?.should be_nil
+          passed_on.headers["X-Content-Type-Options"]?.should be_nil
+        ensure
+          File.delete?(file)
+        end
+      end
+
+      it "leaves Cache-Control to the next handler when no file matches" do
+        static = StaticWithShortFingerprints.new PUBLIC_PATH, fallthrough: true
+        static.next = DynamicAnswer.new
+
+        response = create_request_and_return_io(static, HTTP::Request.new("GET", "/account-0123abcd.css"))
+
+        response.body.should eq "dynamic"
+        response.headers["Cache-Control"]?.should be_nil
+      end
+
+      it "lets a subclass supply its cache policy through #cache_control" do
+        filename = "app-0123abcd.css"
+        file = File.join(File.expand_path(TEST_PUBLIC_PATH), filename)
+        File.write(file, "body {}")
+
+        begin
+          static = StaticWithShortFingerprints.new PUBLIC_PATH, headers: {"Cache-Control" => "no-store"}
+
+          fingerprinted = create_request_and_return_io(static, HTTP::Request.new("GET", "/#{filename}"))
+          fingerprinted.headers["Cache-Control"].should eq Static::IMMUTABLE_CACHE_CONTROL
+
+          plain = create_request_and_return_io(static, HTTP::Request.new("GET", "/index.html"))
+          plain.headers["Cache-Control"].should eq "public, max-age=60"
         ensure
           File.delete?(file)
         end

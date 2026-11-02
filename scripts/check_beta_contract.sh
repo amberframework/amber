@@ -3,12 +3,12 @@ set -euo pipefail
 
 shard_version="$(awk '/^version:/ { print $2; exit }' shard.yml)"
 source_version="$(sed -n 's/.*VERSION = "\([^"]*\)".*/\1/p' src/amber/version.cr)"
-test "$shard_version" = "2.0.0-beta.7"
+test "$shard_version" = "2.0.0-beta.8"
 test "$source_version" = "$shard_version"
 
-files=(README.md docs/README.md docs/getting-started.md docs/beta-installation.md docs/migration-guide.md RELEASE_NOTES_V2_BETA7.md)
+files=(README.md docs/README.md docs/getting-started.md docs/beta-installation.md docs/migration-guide.md RELEASE_NOTES_V2_BETA8.md)
 grep -F 'brew install amberframework/amber_cli/amber_cli' docs/beta-installation.md
-grep -F 'version: 2.0.0-beta.7' docs/getting-started.md
+grep -F 'version: 2.0.0-beta.8' docs/getting-started.md
 grep -F 'version=v2.0.8' docs/beta-installation.md
 grep -F 'git checkout v2.0.8' docs/beta-installation.md
 grep -F 'Amber CLI 2.0.8 or newer' docs/getting-started.md docs/migration-guide.md

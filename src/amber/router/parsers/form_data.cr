@@ -104,7 +104,9 @@ module Amber::Router::Parsers
         last_index = @list_of_blocks.size - 1
         list_of_readers = @list_of_blocks.map_with_index do |block, index|
           used = index == last_index ? @block_used : block.size
-          IO::Memory.new(block[0, used], writable: false).as(IO)
+          # Read-only, passed positionally: Crystal 1.20 names the parameter
+          # `writeable` and 1.21 `writable`.
+          IO::Memory.new(block[0, used], false).as(IO)
         end
         ChainedReader.new(list_of_readers)
       end
