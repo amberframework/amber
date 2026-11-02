@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.0.0-beta.8 (2026-11-01)
+
+This release builds on every Crystal version that `shard.yml` declares and
+lets an application set its own cache policy for static files. See
+`RELEASE_NOTES_V2_BETA8.md`.
+
+- Compile on Crystal 1.20 again (#1434, #1436). Beta.7 passed `writable:`
+  to `IO::Memory.new`, a parameter name that Crystal 1.21 introduced; both
+  calls pass the read-only flag positionally. CI now runs the suite on
+  Crystal 1.20.0, the lowest version `shard.yml` declares.
+- `Amber::Pipe::Static` keeps a `Cache-Control` that an earlier handler set,
+  and takes its own policy from a protected `#cache_control(request_path)`
+  hook that a subclass can override (#1435, #1437). Without either, the
+  policy is the same as before: immutable for a 16 to 64 character hex
+  fingerprint, otherwise the configured static `Cache-Control` or
+  `no-cache`. A configured `Cache-Control` is matched in any spelling
+  `HTTP::Headers` accepts.
+- `Amber::Pipe::Static` adds asset headers to GET and HEAD requests only, the
+  methods it serves; a POST to a static path no longer receives an immutable
+  `Cache-Control` on its 405 or on the response of a following handler.
+
 ## 2.0.0-beta.7 (2026-11-01)
 
 This release makes the fixes that AgentC applications carried on a fork

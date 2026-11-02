@@ -5,7 +5,7 @@
 # paste the output into the release notes, so an installer can download the
 # asset and check its sha256, or compare the tree hash with a checkout.
 #
-# Usage: scripts/release_checksums.sh v2.0.0-beta.7
+# Usage: scripts/release_checksums.sh v2.0.0-beta.8
 set -euo pipefail
 
 ref="${1:?usage: scripts/release_checksums.sh <tag-or-commit>}"
