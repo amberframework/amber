@@ -74,7 +74,7 @@ module Amber
           token = CSRF.token(context)
           Session.new.call(context)
 
-          request2 = HTTP::Request.new("POST", "/?_csrf=#{token}", context.response.headers)
+          request2 = HTTP::Request.new("POST", "/?_csrf=#{token}", browser_headers_after(context.response.headers))
 
           context2 = create_context(request2)
 

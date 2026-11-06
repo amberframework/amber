@@ -20,15 +20,7 @@ module Amber::Router::Cookies
       cookies = {} of String => HTTP::Cookie
       if values = headers.get?("Cookie")
         values.each do |header|
-          HTTP::Cookie::Parser.parse_cookies(header) do |cookie|
-            cookies[cookie.name] = cookie
-          end
-        end
-      end
-
-      if values = headers.get?("Set-Cookie")
-        values.each do |header|
-          HTTP::Cookie::Parser.parse_cookies(header) do |cookie|
+          HeaderParser.each_cookie(header) do |cookie|
             cookies[cookie.name] = cookie
           end
         end
