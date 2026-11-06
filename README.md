@@ -99,6 +99,8 @@ available for the stable V1 release.
 
 ## Installation & Usage
 
+New to Amber V2? Start with the [onboarding guide](https://github.com/amberframework/amber_cli/blob/main/docs/ONBOARDING.md): tools, a first app, verified dependencies, and the rules your editor and assistant get.
+
 Install the standalone CLI with Homebrew on macOS or Linux:
 
 ```bash
