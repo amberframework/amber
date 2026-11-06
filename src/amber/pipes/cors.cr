@@ -17,6 +17,8 @@ module Amber
     end
 
     class CORS < Base
+      alias OriginRule = Proc(String, Bool)
+      alias OriginList = Array(String | OriginRule)
       alias OriginType = Array(String | Regex)
       FORBIDDEN     = "Forbidden for invalid origins, methods or headers"
       ALLOW_METHODS = %w(POST PUT PATCH DELETE)
@@ -26,7 +28,7 @@ module Amber
       @origin : Origin
 
       def initialize(
-        @origins : OriginType = ["*", %r()],
+        @origins : OriginList = OriginList{"*"},
         @methods = ALLOW_METHODS,
         @headers = ALLOW_HEADERS,
         @credentials = false,
@@ -35,6 +37,44 @@ module Amber
         @vary : String? = nil,
       )
         @origin = Origin.new(origins)
+      end
+
+      # Lists plain origins. An app that uses this form links no regex engine.
+      def self.new(
+        origins : Array(String),
+        methods = ALLOW_METHODS,
+        headers = ALLOW_HEADERS,
+        credentials = false,
+        max_age : Int32? = 0,
+        expose_headers : Array(String)? = nil,
+        vary : String? = nil,
+      )
+        origin_rules = OriginList.new(origins.size)
+        origins.each { |origin| origin_rules << origin }
+
+        new(origin_rules, methods, headers, credentials, max_age, expose_headers, vary)
+      end
+
+      # Accepts `Regex` origins. This overload compiles only in an app that calls
+      # it, so an app that lists plain origins links no regex engine.
+      def self.new(
+        origins : OriginType,
+        methods = ALLOW_METHODS,
+        headers = ALLOW_HEADERS,
+        credentials = false,
+        max_age : Int32? = 0,
+        expose_headers : Array(String)? = nil,
+        vary : String? = nil,
+      )
+        origin_rules = OriginList.new(origins.size)
+        origins.each do |origin|
+          origin_rules << case origin
+          in String then origin
+          in Regex  then OriginRule.new { |request_origin| origin.matches?(request_origin) }
+          end
+        end
+
+        new(origin_rules, methods, headers, credentials, max_age, expose_headers, vary)
       end
 
       def call(context : HTTP::Server::Context)
@@ -116,7 +156,7 @@ module Amber
     struct Origin
       getter request_origin : String?
 
-      def initialize(@origins : CORS::OriginType)
+      def initialize(@origins : CORS::OriginList)
       end
 
       def match?(request)
@@ -124,10 +164,13 @@ module Amber
         return false unless origin_header?(request)
         return true if any_origin?
 
+        origin_from_request = request_origin
+        return false unless origin_from_request
+
         @origins.any? do |origin|
           case origin
-          when String then origin == request_origin
-          when Regex  then origin =~ request_origin
+          in String           then origin == origin_from_request
+          in CORS::OriginRule then origin.call(origin_from_request)
           end
         end
       end
