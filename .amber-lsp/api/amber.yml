@@ -22,9 +22,9 @@ notes:
   - symbol: Amber::Controller::SchemaIntegration#raw_params
     text: "`raw_params` is a protected controller method returning `Amber::Router::Params`."
   - symbol: Amber::Controller::SchemaParamsWrapper#validation
-    text: "`SchemaParamsWrapper#validation` takes a block and returns `Amber::Validators::Params`; define rules in the block and call `validate!` on the returned validator."
+    text: "`SchemaParamsWrapper#validation` takes a block and returns `Amber::Validators::Params`; define rules in the block and call `validate!` on the returned validator. Deprecated for new code: use Amber::Schema controller contracts."
   - symbol: Amber::Validators::Params#validation
-    text: "`Amber::Validators::Params#validation(&)` takes a rule-building block and returns the same validator. It has no positional Definition argument."
+    text: "`Amber::Validators::Params#validation(&)` takes a rule-building block and returns the same validator. It has no positional Definition argument. Deprecated for new code: use Amber::Schema controller contracts."
   - symbol: Amber::Validators::Params#validate!
     text: "`validate!` returns `Hash(String, String?)` when all rules pass and raises `Amber::Exceptions::Validator::ValidationFailed` when validation fails."
   - symbol: Amber::Validators::Params#valid?

@@ -28,7 +28,12 @@ compile_probe() {
 }
 
 while IFS= read -r probe_path; do
-  compile_probe "$probe_path"
+  # This probe exercises the deprecated legacy params API on purpose.
+  if [[ "$probe_path" == */note_params_validation.cr ]]; then
+    compile_probe "$probe_path" --warnings none
+  else
+    compile_probe "$probe_path"
+  fi
 done < <(find "$probe_directory" -type f -name '*.cr' ! -name 'probe_support.cr' -print | sort)
 
 if output=$(crystal-alpha spec --no-color -Dwithout_mt "$repository_root/spec/amber/public_api_return_types_spec.cr" 2>&1); then
@@ -47,7 +52,7 @@ elif (( error_count > 0 )); then
   printf 'Probe compile result: RED (errors=%d, warnings=%d, probes=%d)\n' "$error_count" "$warning_count" "$probe_count"
   exit 1
 elif (( warning_count > 0 )); then
-  printf 'Probe compile result: YELLOW (errors=0, warnings=%d, probes=%d)\n' "$error_count" "$warning_count" "$probe_count"
+  printf 'Probe compile result: YELLOW (errors=0, warnings=%d, probes=%d)\n' "$warning_count" "$probe_count"
   exit 1
 else
   printf 'Probe compile result: GREEN (errors=0, warnings=0, probes=%d)\n' "$probe_count"

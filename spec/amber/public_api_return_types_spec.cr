@@ -37,10 +37,6 @@ describe "Amber public API return types" do
   it "declares validator and schema-wrapper return types" do
     context = Amber::Testing::ContextBuilder.new.query_param("name", "Ada").build
     params = Amber::Validators::Params.new(context.params)
-    params.validation do
-      required(:name) { |value| value.size > 1 }
-    end
-    typeof(params.validation { required(:name) }).should eq(Amber::Validators::Params)
     typeof(params.valid?).should eq(Bool)
     typeof(params.validate!).should eq(Hash(String, String?))
     typeof(params.add_rule(Amber::Validators::BaseRule.new(:name, nil))).should eq(Array(Amber::Validators::BaseRule))
@@ -59,7 +55,6 @@ describe "Amber public API return types" do
     )
     typeof(wrapper["name"]).should eq(String)
     typeof(wrapper["missing"]?).should eq(String?)
-    typeof(wrapper.validation { required(:name) }).should eq(Amber::Validators::Params)
     typeof(wrapper.to_h).should eq(Hash(String, String?))
     typeof(wrapper.to_unsafe_h).should eq(Hash(String, String))
   end
