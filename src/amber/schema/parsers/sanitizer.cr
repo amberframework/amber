@@ -64,9 +64,9 @@ module Amber::Schema::Parser
       when Option::Uppercase
         text.upcase
       when Option::RemoveNonPrintable
-        text.gsub(/[^\x20-\x7E]/, "")
+        remove_non_printable(text)
       when Option::NormalizeWhitespace
-        text.gsub(/\s+/, " ").strip
+        normalize_whitespace(text)
       else
         text
       end
@@ -74,7 +74,32 @@ module Amber::Schema::Parser
 
     private def remove_html_tags(text : String) : String
       # Simple HTML tag removal (not perfect but good for basic cases)
-      text.gsub(/<[^>]*>/, "")
+      Support::TextMatching.remove_tags(text)
+    end
+
+    # Keeps only printable ASCII (space through `~`).
+    private def remove_non_printable(text : String) : String
+      String.build(text.bytesize) do |io|
+        text.each_char do |char|
+          io << char if ' ' <= char <= '~'
+        end
+      end
+    end
+
+    # Collapses each whitespace run to one space and trims both ends.
+    private def normalize_whitespace(text : String) : String
+      String.build(text.bytesize) do |io|
+        pending_space = false
+        text.each_char do |char|
+          if Support::TextMatching.whitespace?(char)
+            pending_space = true
+          else
+            io << ' ' if pending_space && io.bytesize > 0
+            pending_space = false
+            io << char
+          end
+        end
+      end
     end
 
     # Factory methods for common sanitizers

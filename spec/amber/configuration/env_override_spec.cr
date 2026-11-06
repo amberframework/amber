@@ -456,6 +456,24 @@ module Amber::Configuration
         end
       end
 
+      context "with a custom section whose name holds characters other than A-Z and 0-9" do
+        it "spells each of them as _ in the variable name, after upcasing" do
+          with_env({"AMBER_SPEC_OVERRIDE_V2_API_KEY" => "agentc-placeholder:dashed-key"}) do
+            config = app_config_with_custom_section("spec-override.v2")
+            EnvOverride.apply_all(config)
+            config.custom(:"spec-override.v2", SpecOverrideConfig).api_key.should eq "agentc-placeholder:dashed-key"
+          end
+        end
+
+        it "replaces a non-ASCII letter with one _ per character" do
+          with_env({"AMBER_SPEC__N__API_KEY" => "agentc-placeholder:unicode-key"}) do
+            config = app_config_with_custom_section("spec_ünï")
+            EnvOverride.apply_all(config)
+            config.custom(:"spec_ünï", SpecOverrideConfig).api_key.should eq "agentc-placeholder:unicode-key"
+          end
+        end
+      end
+
       context "with a registered custom section" do
         it "overrides a String field from AMBER_{SECTION}_{KEY}" do
           with_env({"AMBER_SPEC_OVERRIDE_API_KEY" => "agentc-placeholder:spec-env-key"}) do

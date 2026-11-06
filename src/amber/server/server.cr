@@ -61,8 +61,12 @@ module Amber
       initialize_adapters
     end
 
+    @project_name : String?
+
+    # Returns the app name with every character that is not a letter, number,
+    # mark or underscore replaced by `_`, downcased.
     def project_name
-      @project_name ||= settings.name.gsub(/\W/, "_").downcase
+      @project_name ||= settings.name.gsub { |char| Support::TextMatching.word_character?(char) ? char : '_' }.downcase
     end
 
     def run

@@ -14,16 +14,15 @@ module Amber
     #
     # ```
     # class AppStatic < Amber::Pipe::Static
-    #   SHORT_FINGERPRINT = /-[0-9a-f]{8}\.[^\/]+$/i
-    #
     #   protected def cache_control(request_path : String) : String
-    #     return IMMUTABLE_CACHE_CONTROL if request_path.matches?(SHORT_FINGERPRINT)
+    #     return IMMUTABLE_CACHE_CONTROL if Static.fingerprinted?(request_path, hex_lengths: 8..8)
     #     super
     #   end
     # end
     # ```
     class Static < HTTP::StaticFileHandler
-      FINGERPRINT_PATTERN = /-[0-9a-f]{16,64}\.[^\/]+$/i
+      # How many hex digits a content-addressed filename carries after its dash.
+      FINGERPRINT_HEX_LENGTHS = 16..64
 
       IMMUTABLE_CACHE_CONTROL  = "public, max-age=31536000, immutable"
       REVALIDATE_CACHE_CONTROL = "no-cache"
@@ -137,19 +136,46 @@ module Amber
 
       # Returns the `Cache-Control` value for a static file at *request_path*.
       #
-      # A content-addressed filename (see `FINGERPRINT_PATTERN`) is cached as
+      # A content-addressed filename (see `.fingerprinted?`) is cached as
       # immutable; any other file gets the configured static `Cache-Control`,
       # or `no-cache`. Override it in a subclass to apply another policy.
       protected def cache_control(request_path : String) : String
-        if fingerprinted?(request_path)
+        if Static.fingerprinted?(request_path)
           IMMUTABLE_CACHE_CONTROL
         else
           @configured_cache_control || REVALIDATE_CACHE_CONTROL
         end
       end
 
-      private def fingerprinted?(path : String) : Bool
-        !!path.match(FINGERPRINT_PATTERN)
+      # Returns `true` when the last segment of *path* holds a dash, then a run
+      # of hex digits (either case) whose length is in *hex_lengths*, then a
+      # dot with at least one character after it, as in
+      # `app-0123456789abcdef.css` or `app-0123456789abcdef.min.css`.
+      #
+      # ```
+      # Amber::Pipe::Static.fingerprinted?("/assets/app-0123456789abcdef.css") # => true
+      # Amber::Pipe::Static.fingerprinted?("/assets/app.css")                  # => false
+      # Amber::Pipe::Static.fingerprinted?("/a/app-0123abcd.js", 8..8)         # => true
+      # ```
+      def self.fingerprinted?(path : String, hex_lengths : Range(Int32, Int32) = FINGERPRINT_HEX_LENGTHS) : Bool
+        # A name that is not valid UTF-8 is never content-addressed output.
+        return false unless path.valid_encoding?
+
+        file_name = path.rpartition('/').last
+        size = file_name.bytesize
+        offset = 0
+        while dash = file_name.byte_index('-', offset)
+          hex_end = dash + 1
+          while hex_end < size && file_name.byte_at(hex_end).unsafe_chr.hex?
+            hex_end += 1
+          end
+          # The digits must run straight into a dot that has a character after it.
+          if hex_lengths.includes?(hex_end - dash - 1) && hex_end + 1 < size && file_name.byte_at(hex_end) == '.'.ord
+            return true
+          end
+          offset = dash + 1
+        end
+        false
       end
 
       private def add_vary_accept_encoding(headers : HTTP::Headers) : Nil
