@@ -52,7 +52,17 @@ variants:
 /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)
 ```
 
-The binary served `GET /items/42` with `item 42` and `GET /` with 200.
+The binary served `GET /items/42` with `item 42` and `GET /` with 200. These
+app builds are debug builds (no `--release`); linkage is decided by which `lib`
+bindings the program reaches, not by optimization, and the `--release`
+controls below agree.
+
+After PR 1 (the same app on this branch, Amber `1d88adeb`, lock checksum
+`git-tree:533c9636e0e73fada71e71f6009a9c4a56c69c09`) `otool -L` prints the
+same eight libraries: the router no longer needs PCRE2, but the cookie store,
+the responders, `server.cr:65` and `env_override.cr:244` are still on every
+app's path (section 2). The router on its own is clean; see the last two rows
+of the next table.
 
 Control programs, same compiler, `--release`:
 

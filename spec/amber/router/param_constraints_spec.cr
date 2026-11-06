@@ -84,6 +84,12 @@ module Amber::Router
         ticket_code.matches?("ÄBC").should be_false
       end
 
+      it "leaves out the end of an exclusive range" do
+        a_to_c = ParamConstraints::CharacterRun.new("a_to_c", 'a'...'d')
+        a_to_c.matches?("abc").should be_true
+        a_to_c.matches?("abcd").should be_false
+      end
+
       it "refuses characters outside ASCII and empty ranges" do
         expect_raises(ArgumentError, "outside ASCII") { ParamConstraints::CharacterRun.new("accented", 'é') }
         expect_raises(ArgumentError, "is empty") { ParamConstraints::CharacterRun.new("backwards", 'z'..'a') }

@@ -31,10 +31,10 @@ module Amber::Router::ParamConstraints
       low_bits = 0_u64
       high_bits = 0_u64
       characters.each do |entry|
-        first, last = entry.is_a?(Char) ? {entry, entry} : {entry.begin, entry.end}
-        raise ArgumentError.new("#{@label}: #{first.inspect}..#{last.inspect} is empty") if first > last
-        raise ArgumentError.new("#{@label}: #{last.inspect} is outside ASCII") unless last.ascii?
-        (first.ord..last.ord).each do |code|
+        codes = entry.is_a?(Char) ? entry.ord..entry.ord : Range.new(entry.begin.ord, entry.end.ord, entry.excludes_end?)
+        raise ArgumentError.new("#{@label}: #{entry.inspect} is empty") if codes.empty?
+        raise ArgumentError.new("#{@label}: #{entry.inspect} is outside ASCII") if codes.max >= 128
+        codes.each do |code|
           if code < 64
             low_bits |= 1_u64 << code
           else

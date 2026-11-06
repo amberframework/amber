@@ -17,7 +17,7 @@
   `NUMERIC.with_length(3)`, which matches only three digits.
   `CONSTRAINT_PRESETS` now holds these rules, and an unknown preset symbol
   raises `ParamConstraints::UnknownPresetError` when routes are drawn.
-- Rule-checked lookups are 15 to 25% faster and allocate 32 bytes less,
+- Rule-checked lookups are 15 to 27% faster, and a hit allocates 32 bytes less,
   because the built-in rules read the path in place
   (`benchmarks/router_constraints.cr`).
 - `HTTP::Request#port` reads a `Host` header without a regex. A bare IPv6
