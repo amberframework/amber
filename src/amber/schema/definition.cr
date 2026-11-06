@@ -209,6 +209,10 @@ module Amber::Schema
       {% required = options[:required] || false %}
       {% default = options[:default] %}
       {% source = options[:source] || "::Amber::Schema::ParamSource::Body" %}
+      {% if options[:pattern] || options[:filename_pattern] ||
+              (options[:format] && !%w(email url uri uuid iso8601 datetime date time ipv4 ipv6 hostname).includes?(options[:format])) %}
+        ::Amber::Schema::PatternEngine.use_regex
+      {% end %}
       
       # Field will be stored in class variable
       
@@ -863,8 +867,7 @@ module Amber::Schema
       # Pattern validation (regex)
       if pattern = options["pattern"]?
         if string_value = value.as_s?
-          regex = Regex.new(pattern.as_s)
-          unless string_value.matches?(regex)
+          unless PatternEngine.matches?(pattern.as_s, string_value)
             @errors << ::Amber::Schema::InvalidFormatError.new(field_name, "pattern #{pattern}", string_value)
           end
         end
@@ -884,7 +887,7 @@ module Amber::Schema
 
       case format
       when "email"
-        unless string_value.matches?(/\A[^@\s]+@[^@\s]+\.[^@\s]+\z/)
+        unless ::Amber::Support::TextFormats.loose_email?(string_value)
           @errors << ::Amber::Schema::InvalidFormatError.new(field_name, "email", string_value)
         end
       when "url", "uri"
@@ -923,24 +926,25 @@ module Amber::Schema
           @errors << ::Amber::Schema::InvalidFormatError.new(field_name, "time (HH:MM[:SS])", string_value)
         end
       when "ipv4"
-        unless string_value.matches?(/\A((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\z/)
+        unless ::Amber::Support::TextFormats.ipv4?(string_value)
           @errors << ::Amber::Schema::InvalidFormatError.new(field_name, "IPv4 address", string_value)
         end
       when "ipv6"
-        unless string_value.matches?(/\A(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\z/)
+        unless ::Amber::Support::TextFormats.ipv6?(string_value)
           @errors << ::Amber::Schema::InvalidFormatError.new(field_name, "IPv6 address", string_value)
         end
       when "hostname"
-        unless string_value.matches?(/\A[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\z/)
+        unless ::Amber::Support::TextFormats.hostname?(string_value)
           @errors << ::Amber::Schema::InvalidFormatError.new(field_name, "hostname", string_value)
         end
       else
         # Custom format - treat as regex pattern
         begin
-          regex = Regex.new(format)
-          unless string_value.matches?(regex)
+          unless PatternEngine.matches?(format, string_value)
             @errors << ::Amber::Schema::InvalidFormatError.new(field_name, format, string_value)
           end
+        rescue missing_engine : PatternEngine::MissingEngineError
+          raise missing_engine
         rescue
           # Invalid regex format
           @errors << ::Amber::Schema::CustomValidationError.new(field_name, "Invalid format specification: #{format}", "invalid_format")

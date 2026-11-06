@@ -49,10 +49,14 @@ module Amber::Schema
 
     macro validates_format(field, format)
       {% format_value = format.is_a?(SymbolLiteral) ? format.id.stringify : format %}
+      {% unless %w(email url uri uuid iso8601 datetime date time ipv4 ipv6 hostname).includes?(format_value) %}
+        ::Amber::Schema::PatternEngine.use_regex
+      {% end %}
       @@fields[{{field.id.stringify}}].options["format"] = JSON::Any.new({{format_value}})
     end
 
     macro validates_pattern(field, pattern, message = nil)
+      ::Amber::Schema::PatternEngine.use_regex
       @@fields[{{field.id.stringify}}].options["pattern"] = JSON::Any.new({{pattern}})
     end
 

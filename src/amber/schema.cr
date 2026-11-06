@@ -2,6 +2,7 @@
 # Provides request/response validation and parsing capabilities
 
 # Include all schema components
+require "./schema/pattern_engine"
 require "./schema/definition"
 require "./schema/result"
 require "./schema/errors"
