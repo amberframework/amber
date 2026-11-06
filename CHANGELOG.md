@@ -16,12 +16,15 @@
   `{"cart" => /\d\d\d/}`, which matched `he110`, becomes
   `NUMERIC.with_length(3)`, which matches only three digits.
   `CONSTRAINT_PRESETS` now holds these rules, and an unknown preset symbol
-  raises `ParamConstraints::UnknownPresetError` when routes are drawn.
+  raises `ParamConstraints::UnknownPresetError` when routes are drawn. The
+  character presets are ASCII: `:numeric` no longer matches other scripts'
+  digits (`١٢`), which the Unicode-aware `\d` did, and the response-extension
+  check no longer finds `.json` before a trailing newline, which `$` did.
 - Rule-checked lookups are 15 to 27% faster, and a hit allocates 32 bytes less,
   because the built-in rules read the path in place
   (`benchmarks/router_constraints.cr`).
 - `HTTP::Request#port` reads a `Host` header without a regex. A bare IPv6
-  literal (`[::1]`) no longer reports port 1, and non-digit or out-of-range
+  literal (`[::1]`) or an unbracketed one (`::1`) no longer reports port 1, and non-digit or out-of-range
   port text falls back to the request URI's port instead of raising or
   reading a prefix.
 - `Amber::Router::Router::PATH_EXT_REGEX` is replaced by `PATH_EXTENSIONS`

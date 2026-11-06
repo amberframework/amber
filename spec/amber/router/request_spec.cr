@@ -208,6 +208,7 @@ module Amber::Router
 
       it "finds no port in a bare IPv6 literal or a host without one" do
         HTTP::Request.new("GET", "/", HTTP::Headers{"Host" => "[::1]"}).port.should be_nil
+        HTTP::Request.new("GET", "/", HTTP::Headers{"Host" => "::1"}).port.should be_nil
         HTTP::Request.new("GET", "/", HTTP::Headers{"Host" => "example.com"}).port.should be_nil
         HTTP::Request.new("GET", "/", HTTP::Headers{"Host" => "example.com:"}).port.should be_nil
       end

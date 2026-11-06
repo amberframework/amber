@@ -10,12 +10,18 @@ module Amber::Router::ParamConstraints
   struct OneOf
     include Amber::Router::ParamConstraint
 
-    getter list_of_values : Array(String)
+    @list_of_values : Array(String)
     @set_of_values : Set(String)
 
     def initialize(*values : String)
       @list_of_values = values.to_a
       @set_of_values = @list_of_values.to_set
+    end
+
+    # The values this rule accepts, in the order given. A copy: changing it does
+    # not change the rule.
+    def list_of_values : Array(String)
+      @list_of_values.dup
     end
 
     def matches?(segment : String) : Bool

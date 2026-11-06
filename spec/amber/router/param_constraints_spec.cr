@@ -145,6 +145,13 @@ module Amber::Router
         state.matches?("archived").should be_false
         state.to_s.should eq "one_of(draft|published)"
       end
+
+      it "hands out a copy of its values" do
+        state = ParamConstraints::OneOf.new("draft")
+        state.list_of_values << "published"
+        state.list_of_values.should eq ["draft"]
+        state.to_s.should eq "one_of(draft)"
+      end
     end
 
     describe "custom rules" do

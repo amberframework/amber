@@ -194,8 +194,10 @@ class HTTP::Request
   # bracketed IPv6 literal (`"[::1]"`) leave no port, because the text after
   # the last one is not all digits.
   private def host_header_port(host_with_port : String) : Int32?
-    _host, separator, port_text = host_with_port.rpartition(':')
+    host, separator, port_text = host_with_port.rpartition(':')
     return if separator.empty? || port_text.empty?
+    # An unbracketed IPv6 address (`"::1"`) has colons but no port.
+    return if host.includes?(':') && !host.starts_with?('[')
     return unless port_text.each_char.all?(&.ascii_number?)
     port_text.to_i?
   end
