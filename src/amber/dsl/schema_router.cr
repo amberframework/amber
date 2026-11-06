@@ -19,7 +19,7 @@ module Amber::DSL
 
     # Enhanced route macro that works exactly like the regular router
     # Schema annotation processing happens inside the controller
-    macro route(verb, resource, controller, action, constraints = {} of String => Regex, route_name = nil)
+    macro route(verb, resource, controller, action, constraints = {} of String => Amber::Router::ParamConstraint, route_name = nil)
       %handler = ->(context : HTTP::Server::Context){
         controller = {{controller.id}}.new(context)
         controller.run_before_filter({{action}}) unless context.content
@@ -92,7 +92,7 @@ module Amber::DSL
     end
 
     {% for verb in RESOURCES %}
-      macro {{verb.id}}(resource, controller, action, constraints = {} of String => Regex, route_name = nil)
+      macro {{verb.id}}(resource, controller, action, constraints = {} of String => Amber::Router::ParamConstraint, route_name = nil)
         route {{verb}}, \{{resource}}, \{{controller}}, \{{action}}, \{{constraints}}, \{{route_name}}
         {% if verb == :get %}
         route :head, \{{resource}}, \{{controller}}, \{{action}}, \{{constraints}}
@@ -103,7 +103,7 @@ module Amber::DSL
       end
     {% end %}
 
-    macro resources(resource, controller, only = nil, except = nil, constraints = {} of String => Regex)
+    macro resources(resource, controller, only = nil, except = nil, constraints = {} of String => Amber::Router::ParamConstraint)
       {% actions = [:index, :new, :create, :show, :edit, :update, :destroy] %}
 
       {% if only %}
@@ -117,7 +117,7 @@ module Amber::DSL
       {% end %}
     end
 
-    private macro define_action(path, controller, action, constraints = {} of String => Regex)
+    private macro define_action(path, controller, action, constraints = {} of String => Amber::Router::ParamConstraint)
       {% if action == :index %}
         get "/{{path.id}}", {{controller}}, :index, {{constraints}}
       {% elsif action == :show %}

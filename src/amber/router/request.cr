@@ -180,13 +180,24 @@ class HTTP::Request
   def port
     # Try to extract port from the Host header first
     if host_with_port = headers["Host"]?
-      if match = host_with_port.match(/.*:(\d+)/)
-        return match[1].to_i
+      if port_in_host = host_header_port(host_with_port)
+        return port_in_host
       end
     end
 
     # Fall back to parsed_uri for absolute-URI resources
     parsed_uri.port
+  end
+
+  # The port a `Host` header names after its last colon (`"example.com:8080"`,
+  # `"[::1]:8080"`), or `nil` when the header names none. The colons inside a
+  # bracketed IPv6 literal (`"[::1]"`) leave no port, because the text after
+  # the last one is not all digits.
+  private def host_header_port(host_with_port : String) : Int32?
+    _host, separator, port_text = host_with_port.rpartition(':')
+    return if separator.empty? || port_text.empty?
+    return unless port_text.each_char.all?(&.ascii_number?)
+    port_text.to_i?
   end
 
   def url

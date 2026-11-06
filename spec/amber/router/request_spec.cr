@@ -196,5 +196,26 @@ module Amber::Router
         origin_request.port.should be_nil
       end
     end
+
+    describe "#port from the Host header" do
+      it "reads the port after the host name" do
+        HTTP::Request.new("GET", "/", HTTP::Headers{"Host" => "example.com:8080"}).port.should eq 8080
+      end
+
+      it "reads the port after a bracketed IPv6 literal" do
+        HTTP::Request.new("GET", "/", HTTP::Headers{"Host" => "[::1]:3000"}).port.should eq 3000
+      end
+
+      it "finds no port in a bare IPv6 literal or a host without one" do
+        HTTP::Request.new("GET", "/", HTTP::Headers{"Host" => "[::1]"}).port.should be_nil
+        HTTP::Request.new("GET", "/", HTTP::Headers{"Host" => "example.com"}).port.should be_nil
+        HTTP::Request.new("GET", "/", HTTP::Headers{"Host" => "example.com:"}).port.should be_nil
+      end
+
+      it "finds no port in non-digit or out-of-range text" do
+        HTTP::Request.new("GET", "/", HTTP::Headers{"Host" => "example.com:80a"}).port.should be_nil
+        HTTP::Request.new("GET", "/", HTTP::Headers{"Host" => "example.com:99999999999"}).port.should be_nil
+      end
+    end
   end
 end

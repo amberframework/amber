@@ -6,7 +6,10 @@ module Amber
   module Router
     # This is the main application handler all routers should finally hit this handler.
     class Router
-      PATH_EXT_REGEX = Controller::Helpers::Responders::Content::TYPE_EXT_REGEX
+      # The response extensions a path can end in, dot included (`".json"`),
+      # one per `Content::TYPE` key. No key is a dotted suffix of another, so
+      # at most one of them ends any path.
+      PATH_EXTENSIONS = Controller::Helpers::Responders::Content::TYPE.keys.map { |key| ".#{key}" }
       property :routes, :routes_hash, :socket_routes, :scope
 
       def initialize
@@ -235,7 +238,7 @@ module Amber
       # included (`".md"`), or `nil`.
       private def content_ext(path : String) : String?
         return unless path.includes?('.')
-        path.match(PATH_EXT_REGEX).try(&.[0])
+        PATH_EXTENSIONS.find { |extension| path.ends_with?(extension) }
       end
 
       # True when the matched pattern (verb, scope and resource, with optional
@@ -279,7 +282,7 @@ module Amber
       private def spells_extension?(trail : String) : Bool
         trail.delete("()").split('/').any? do |segment|
           next false if segment.starts_with?(':') || segment.starts_with?('*')
-          PATH_EXT_REGEX.matches?(segment)
+          PATH_EXTENSIONS.any? { |extension| segment.ends_with?(extension) }
         end
       end
     end

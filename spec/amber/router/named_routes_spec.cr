@@ -30,7 +30,7 @@ module Amber::Router
         # Register a route with multiple params for this test
         handler = ->(_context : HTTP::Server::Context) { }
         route = Route.new("GET", "/orgs/:org_id/members/:id", handler, :show, :web,
-          Scope.new, "MemberController", {} of String => Regex, :org_member)
+          Scope.new, "MemberController", {} of String => Amber::Router::ParamConstraint, :org_member)
         Amber::Server.router.add(route)
 
         NamedRoutes.path(:org_member, org_id: "42", id: "7").should eq "/orgs/42/members/7"

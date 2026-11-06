@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+- Route parameter constraints are typed rules instead of `Regex`, and the
+  router (`src/amber/router/**`) uses no regular-expression engine; a program
+  that uses only `Amber::Router::RouteSet` no longer links libpcre2. A route
+  names a preset (`{"id" => :numeric}`; also `:uuid`, `:slug`, `:alpha`,
+  `:alnum`, `:hex`), passes a rule from `Amber::Router::ParamConstraints`
+  (`NUMERIC.with_length(3)`, `OneOf.new("draft", "published")`,
+  `CharacterRun.new(...)`, `Custom.new("label") { |segment| ... }`), or its own
+  type that includes `Amber::Router::ParamConstraint`. **Breaking:** a
+  `Regex` constraint no longer compiles; replace `{"id" => /\d+/}` with
+  `{"id" => :numeric}` (see "URL Parameter Constraints" in
+  `docs/guides/routing.md`). A rule judges the whole segment, so
+  `{"cart" => /\d\d\d/}`, which matched `he110`, becomes
+  `NUMERIC.with_length(3)`, which matches only three digits.
+  `CONSTRAINT_PRESETS` now holds these rules, and an unknown preset symbol
+  raises `ParamConstraints::UnknownPresetError` when routes are drawn.
+- Rule-checked lookups are 15 to 25% faster and allocate 32 bytes less,
+  because the built-in rules read the path in place
+  (`benchmarks/router_constraints.cr`).
+- `HTTP::Request#port` reads a `Host` header without a regex. A bare IPv6
+  literal (`[::1]`) no longer reports port 1, and non-digit or out-of-range
+  port text falls back to the request URI's port instead of raising or
+  reading a prefix.
+- `Amber::Router::Router::PATH_EXT_REGEX` is replaced by `PATH_EXTENSIONS`
+  (`[".html", ".json", ...]`, from `Content::TYPE`), and
+  `Amber::Router::Params::TYPE_EXT_REGEX`, an unused alias of
+  `Amber::Support::MimeTypes::TYPE_EXT_REGEX`, is removed.
+
 ## 2.0.0-beta.9 (2026-11-06)
 
 This release adds trusted proxies, a UNIX socket listener and a security headers
