@@ -45,6 +45,55 @@ module Amber::Environment
     end
 
     describe "V2 YAML loading" do
+      it "loads security_headers overrides and keeps defaults for unnamed keys" do
+        settings = Loader.new(:v2_security_headers, "./spec/support/config/").settings
+        security_headers = settings.security_headers
+
+        security_headers.frame_options.should eq "SAMEORIGIN"
+        security_headers.content_security_policy.should eq "frame-ancestors 'self'"
+        security_headers.permissions_policy.should eq ""
+        security_headers.strict_transport_security.should eq "max-age=31536000"
+        security_headers.content_type_options.should eq "nosniff"
+      end
+
+      it "rejects a security_headers value with a line break while loading" do
+        expect_raises(Amber::Exceptions::ConfigurationError, /security_headers\.referrer_policy/) do
+          Loader.new(:v2_security_headers_invalid, "./spec/support/config/").settings
+        end
+      end
+
+      it "rejects a misspelled AMBER_SECURITY_HEADERS_ variable and names the one it meant" do
+        ENV["AMBER_SECURITY_HEADERS_CONTENT_SECURITY_POLCY"] = "default-src 'self'"
+        begin
+          expect_raises(Amber::Exceptions::ConfigurationError, /did you mean AMBER_SECURITY_HEADERS_CONTENT_SECURITY_POLICY/) do
+            Loader.new(:v2_security_headers, "./spec/support/config/").settings
+          end
+        ensure
+          ENV.delete("AMBER_SECURITY_HEADERS_CONTENT_SECURITY_POLCY")
+        end
+      end
+
+      it "rejects a line break that arrives through an AMBER_SECURITY_HEADERS_ variable" do
+        previous_value = ENV["AMBER_SECURITY_HEADERS_FRAME_OPTIONS"]?
+        ENV["AMBER_SECURITY_HEADERS_FRAME_OPTIONS"] = "DENY\nX-Injected: 1"
+        begin
+          expect_raises(Amber::Exceptions::ConfigurationError, /security_headers\.frame_options/) do
+            Loader.new(:v2_security_headers, "./spec/support/config/").settings
+          end
+        ensure
+          if previous_value
+            ENV["AMBER_SECURITY_HEADERS_FRAME_OPTIONS"] = previous_value
+          else
+            ENV.delete("AMBER_SECURITY_HEADERS_FRAME_OPTIONS")
+          end
+        end
+      end
+
+      it "uses secure security_headers defaults when the YAML has no section" do
+        settings = Loader.new(:v2_minimal, "./spec/support/config/").settings
+        settings.security_headers.frame_options.should eq "DENY"
+      end
+
       it "loads a V2 YAML file and returns a Settings instance" do
         loader = Loader.new(:v2_test, "./spec/support/config/")
         settings = loader.settings
@@ -114,6 +163,44 @@ module Amber::Environment
         settings.pubsub[:adapter].should eq "memory"
       end
 
+      it "rejects a top-level key one or two letters from a section name" do
+        dir = File.tempname("amber-loader-misspelled")
+        config_path = File.join(dir, "misspelled.yml")
+        Dir.mkdir_p(dir)
+        File.write(config_path, <<-YAML)
+        name: misspelled_app
+        server:
+          secret_key_base: "agentc-placeholder:local-dev-only-at-least-32-chars"
+        security_headders:
+          strict_transport_security: ""
+        YAML
+
+        expect_raises(Amber::Exceptions::ConfigurationError, /security_headders.*security_headers/) do
+          Loader.new(:misspelled, dir).settings
+        end
+      ensure
+        File.delete(config_path) if config_path && File.exists?(config_path)
+        Dir.delete(dir) if dir && Dir.exists?(dir)
+      end
+
+      it "leaves a top-level key alone when it resembles no section name" do
+        dir = File.tempname("amber-loader-own-key")
+        config_path = File.join(dir, "own_key.yml")
+        Dir.mkdir_p(dir)
+        File.write(config_path, <<-YAML)
+        name: own_key_app
+        server:
+          secret_key_base: "agentc-placeholder:local-dev-only-at-least-32-chars"
+        feature_flags:
+          beta_checkout: true
+        YAML
+
+        Loader.new(:own_key, dir).settings.name.should eq "own_key_app"
+      ensure
+        File.delete(config_path) if config_path && File.exists?(config_path)
+        Dir.delete(dir) if dir && Dir.exists?(dir)
+      end
+
       it "loads custom config sections lazily by concrete type" do
         Amber::Configuration.register_custom("spec_loader_custom", LoaderCustomConfig.new)
         dir = File.tempname("amber-loader-custom")
@@ -141,6 +228,73 @@ module Amber::Environment
     end
 
     describe "V1 YAML backward compatibility" do
+      it "rejects AMBER_SERVER_UNIX_SOCKET with a V1 file instead of serving on TCP" do
+        ENV["AMBER_SERVER_UNIX_SOCKET"] = "/run/app/app.sock"
+        begin
+          expect_raises(Amber::Exceptions::ConfigurationError, /server.unix_socket needs the V2 settings format/) do
+            Loader.new(:test, "./spec/support/config/").settings
+          end
+        ensure
+          ENV.delete("AMBER_SERVER_UNIX_SOCKET")
+        end
+      end
+
+      it "rejects a security_headers section in a V1 file instead of dropping it" do
+        dir = File.tempname("amber-loader-v1-headers")
+        config_path = File.join(dir, "v1_headers.yml")
+        Dir.mkdir_p(dir)
+        File.write(config_path, <<-YAML)
+        name: v1_headers_app
+        host: localhost
+        port: 3000
+        security_headers:
+          strict_transport_security: ""
+        YAML
+
+        expect_raises(Amber::Exceptions::ConfigurationError, /V2 settings format/) do
+          Loader.new(:v1_headers, dir).settings
+        end
+      ensure
+        File.delete(config_path) if config_path && File.exists?(config_path)
+        Dir.delete(dir) if dir && Dir.exists?(dir)
+      end
+
+      it "rejects a misspelled security_headers section in a V1 file" do
+        dir = File.tempname("amber-loader-v1-misspelled")
+        config_path = File.join(dir, "v1_misspelled.yml")
+        Dir.mkdir_p(dir)
+        File.write(config_path, <<-YAML)
+        name: v1_misspelled_app
+        host: localhost
+        port: 3000
+        security_headders:
+          strict_transport_security: ""
+        YAML
+
+        expect_raises(Amber::Exceptions::ConfigurationError, /V2 settings format/) do
+          Loader.new(:v1_misspelled, dir).settings
+        end
+      ensure
+        File.delete(config_path) if config_path && File.exists?(config_path)
+        Dir.delete(dir) if dir && Dir.exists?(dir)
+      end
+
+      it "rejects an AMBER_SECURITY_HEADERS_ variable with a V1 file" do
+        previous_value = ENV["AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY"]?
+        ENV["AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY"] = ""
+        begin
+          expect_raises(Amber::Exceptions::ConfigurationError, /V2 settings format/) do
+            Loader.new(:test, "./spec/support/config/").settings
+          end
+        ensure
+          if previous_value
+            ENV["AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY"] = previous_value
+          else
+            ENV.delete("AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY")
+          end
+        end
+      end
+
       it "still loads V1 format YAML files correctly" do
         loader = Loader.new(:test, "./spec/support/config/")
         settings = loader.settings

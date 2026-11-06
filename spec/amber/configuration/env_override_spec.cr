@@ -178,11 +178,96 @@ end
 module Amber::Configuration
   describe EnvOverride do
     describe ".apply_all" do
+      it "overrides security_headers.frame_options from AMBER_SECURITY_HEADERS_FRAME_OPTIONS" do
+        with_env({"AMBER_SECURITY_HEADERS_FRAME_OPTIONS" => "SAMEORIGIN"}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.security_headers.frame_options.should eq "SAMEORIGIN"
+        end
+      end
+
+      it "overrides every security_headers key from its AMBER_SECURITY_HEADERS_ variable" do
+        with_env({
+          "AMBER_SECURITY_HEADERS_CONTENT_TYPE_OPTIONS"       => "nosniff-test",
+          "AMBER_SECURITY_HEADERS_CONTENT_SECURITY_POLICY"    => "frame-ancestors 'self'",
+          "AMBER_SECURITY_HEADERS_REFERRER_POLICY"            => "no-referrer",
+          "AMBER_SECURITY_HEADERS_PERMISSIONS_POLICY"         => "camera=(self)",
+          "AMBER_SECURITY_HEADERS_CROSS_ORIGIN_OPENER_POLICY" => "same-origin-allow-popups",
+          "AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY"  => "max-age=600",
+        }) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          security_headers = config.security_headers
+          security_headers.content_type_options.should eq "nosniff-test"
+          security_headers.content_security_policy.should eq "frame-ancestors 'self'"
+          security_headers.referrer_policy.should eq "no-referrer"
+          security_headers.permissions_policy.should eq "camera=(self)"
+          security_headers.cross_origin_opener_policy.should eq "same-origin-allow-popups"
+          security_headers.strict_transport_security.should eq "max-age=600"
+        end
+      end
+
+      it "turns a security header off with an empty AMBER_SECURITY_HEADERS_ value" do
+        with_env({"AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY" => ""}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.security_headers.sends_strict_transport_security?.should be_false
+        end
+      end
+
       it "overrides server.host from AMBER_SERVER_HOST" do
         with_env({"AMBER_SERVER_HOST" => "0.0.0.0"}) do
           config = AppConfig.new
           EnvOverride.apply_all(config)
           config.server.host.should eq "0.0.0.0"
+        end
+      end
+
+      it "overrides server.trusted_proxies from AMBER_SERVER_TRUSTED_PROXIES" do
+        with_env({"AMBER_SERVER_TRUSTED_PROXIES" => "127.0.0.1, 10.0.0.0/8"}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.server.trusted_proxies.should eq ["127.0.0.1", "10.0.0.0/8"]
+        end
+      end
+
+      it "trusts no proxy when AMBER_SERVER_TRUSTED_PROXIES is empty" do
+        with_env({"AMBER_SERVER_TRUSTED_PROXIES" => ""}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.server.trusted_proxies.should be_empty
+        end
+      end
+
+      it "overrides server.trusted_proxy_headers from AMBER_SERVER_TRUSTED_PROXY_HEADERS" do
+        with_env({"AMBER_SERVER_TRUSTED_PROXY_HEADERS" => "forwarded"}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.server.reads_forwarded_header?.should be_true
+        end
+      end
+
+      it "rejects an unknown AMBER_SERVER_TRUSTED_PROXY_HEADERS value" do
+        with_env({"AMBER_SERVER_TRUSTED_PROXY_HEADERS" => "x-real-ip"}) do
+          expect_raises(Amber::Exceptions::ConfigurationError, /trusted_proxy_headers/) do
+            EnvOverride.apply_all(AppConfig.new)
+          end
+        end
+      end
+
+      it "rejects an AMBER_SERVER_TRUSTED_PROXIES entry that trusts every address" do
+        with_env({"AMBER_SERVER_TRUSTED_PROXIES" => "0.0.0.0/0"}) do
+          expect_raises(Amber::Exceptions::ConfigurationError, /trusts every address/) do
+            EnvOverride.apply_all(AppConfig.new)
+          end
+        end
+      end
+
+      it "overrides server.unix_socket from AMBER_SERVER_UNIX_SOCKET" do
+        with_env({"AMBER_SERVER_UNIX_SOCKET" => "/run/app.sock"}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.server.unix_socket.should eq "/run/app.sock"
         end
       end
 

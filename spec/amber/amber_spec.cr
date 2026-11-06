@@ -32,6 +32,18 @@ describe Amber do
   end
 
   describe Amber::Server do
+    describe "#host_url" do
+      it "names the UNIX socket when server.unix_socket is set" do
+        server_config = Amber.settings.server
+        begin
+          server_config.unix_socket = "/run/app.sock"
+          Amber::Server.instance.host_url.should eq "unix:///run/app.sock"
+        ensure
+          server_config.unix_socket = nil
+        end
+      end
+    end
+
     describe ".configure" do
       it "overrides current environment settings" do
         Amber.env = :test

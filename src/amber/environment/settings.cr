@@ -86,6 +86,12 @@ module Amber::Environment
       @secret_key_base = Random::Secure.urlsafe_base64(32)
     end
 
+    # Returns `true` when Amber itself terminates TLS, which is when both
+    # `server.ssl` files are configured.
+    def server_terminates_tls? : Bool
+      !ssl_key_file.nil? && !ssl_cert_file.nil?
+    end
+
     def session
       {
         :key     => @session_config["key"].to_s,
@@ -172,6 +178,12 @@ module Amber::Environment
     # Returns the typed request parameter limits.
     def params : Amber::Configuration::ParamsConfig
       to_app_config.params
+    end
+
+    # Returns the typed security headers configuration read by
+    # `Amber::Pipe::SecurityHeaders`.
+    def security_headers : Amber::Configuration::SecurityHeadersConfig
+      to_app_config.security_headers
     end
 
     # Returns the full AppConfig, building it from V1 properties if needed.

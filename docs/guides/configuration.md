@@ -41,6 +41,7 @@ The `Amber::Configuration::AppConfig` class holds all configuration sections:
 | `jobs` | `JobsConfig` | Background jobs |
 | `mailer` | `MailerConfig` | Email delivery |
 | `static` | `StaticConfig` | Static file serving |
+| `security_headers` | `SecurityHeadersConfig` | Response headers sent by `Amber::Pipe::SecurityHeaders` |
 | `secrets` | `Hash(String, String)` | Key-value secret storage |
 
 ### ServerConfig
@@ -55,7 +56,134 @@ server:
   ssl:
     key_file: "config/ssl/key.pem"   # SSL private key path
     cert_file: "config/ssl/cert.pem" # SSL certificate path
+  trusted_proxies:             # Proxies allowed to report the client's scheme
+    - "127.0.0.0/8"            # and address (default: loopback only)
+    - "::1"
+  trusted_proxy_headers: "x-forwarded"  # Headers those proxies write: "x-forwarded" or "forwarded"
+  unix_socket: null            # Listen on this UNIX socket path instead of host/port
 ```
+
+#### Running behind a TLS-terminating proxy
+
+When Caddy, nginx, a cloud load balancer, or a CDN terminates TLS and
+forwards plain HTTP to Amber, the connection Amber sees is HTTP. Amber
+decides whether a request is HTTPS with one method, `request.https?` (and
+`request.scheme`), and everything that depends on the answer uses it,
+including whether the cookie jar emits `Secure` cookies such as the session
+and CSRF cookies.
+
+`request.https?` is `true` when Amber terminates TLS itself (`server.ssl`),
+or when the request's immediate peer matches an entry in
+`server.trusted_proxies` and that proxy reported `https`.
+
+Amber reads only the header family your proxies write, named by
+`server.trusted_proxy_headers`:
+
+| `trusted_proxy_headers` | Scheme from | Client address from | Proxies |
+|-------------------------|-------------|---------------------|---------|
+| `"x-forwarded"` (default) | the last `X-Forwarded-Proto` value | `X-Forwarded-For` | Caddy, nginx, HAProxy, cloud load balancers, Cloudflare |
+| `"forwarded"` | the `proto=` of the last `Forwarded` element (RFC 7239) | `Forwarded: for=` | proxies configured to write RFC 7239 `Forwarded` |
+
+A proxy rewrites only the family it manages and passes the other one
+through from the client unchanged, so believing both would let a client
+choose its own scheme and address. Each proxy appends its value to the end
+of its header, so Amber reads the last one, which is the value the trusted
+hop wrote. A missing header, or a value other than `http` or `https`, keeps
+the connection's own scheme. Amber reads no other header for the scheme,
+including the CGI-style `HTTPS: on`. Requests from any other peer keep their
+real scheme, whatever headers they carry.
+
+Entries are IP addresses or CIDR blocks of your proxies. Pick the list for
+your deployment:
+
+| Deployment | `trusted_proxies` |
+|------------|-------------------|
+| Caddy or nginx on the same host, forwarding to `127.0.0.1` | default (loopback) |
+| Proxy in another container or host on a private network | that network, e.g. `"10.0.0.0/8"` |
+| Platform router that is the only route to the app (e.g. DigitalOcean App Platform) | the private network the router connects from; log `request.remote_address` once to see it |
+| Cloudflare in front of Caddy on the host | default; configure Caddy as shown below |
+
+The loopback default trusts every process on the host, not only the proxy:
+any local program that connects to Amber's port directly can set its own
+scheme and client address. That is sound on a host or container that runs
+only your application and its proxy. On a host shared with other users or
+untrusted programs, set `server.unix_socket` instead, so only the proxy's
+user or group can connect, or set `trusted_proxies` to `[]` and send the
+proxy's traffic over an address only it can reach.
+
+List only addresses your proxies use. An entry that covers every address
+(`"0.0.0.0/0"`, `"::/0"`) is rejected: every client would become a trusted
+proxy. A block that clients share with your proxies has the same effect for
+those clients, so keep it as narrow as the proxies' own addresses.
+
+The same rule decides the client's IP address, `request.client_ip` (which
+the `Amber::Pipe::ClientIp` pipe stores in `context.client_ip`). From an
+untrusted peer it is the peer's own address, and forwarding headers are
+ignored. From a trusted proxy Amber reads the hops in the configured header
+(`X-Forwarded-For`, or `Forwarded: for=`) from the right, skips every hop
+that is itself a trusted proxy, and returns the first one that is not; a
+spoofed leftmost entry is never reached. A hop that is not exactly an IP
+address, with an optional port, ends the walk, and the nearest verified
+address is used. When every hop is a trusted proxy, the farthest one is the
+client. An empty hop also ends the walk.
+
+When a CDN such as Cloudflare sits in front of Caddy, Caddy is Amber's only
+peer, so the CDN's own headers reach Amber only as Caddy passes them on.
+Let Caddy decide who the client is, and keep Amber's loopback default:
+
+```caddyfile
+{
+  servers {
+    trusted_proxies static <Cloudflare's published IP ranges>
+    client_ip_headers Cf-Connecting-Ip
+  }
+}
+
+example.com {
+  reverse_proxy 127.0.0.1:3000 {
+    header_up X-Forwarded-For {client_ip}
+  }
+}
+```
+
+With Cloudflare's ranges trusted, Caddy resolves `{client_ip}` to the
+visitor and keeps the `X-Forwarded-Proto` Cloudflare sent; a client that
+reaches Caddy directly gets its own address and scheme. Use Cloudflare's Full
+(strict) TLS mode so the hop from Cloudflare to Caddy is HTTPS too.
+
+`ClientIp.new(["X-Real-IP"])` reads a named header instead, under the same
+rule. Name a header only when your proxy sets it on every request, which
+overwrites any value a client sent (for Caddy, `header_up X-Real-IP
+{client_ip}`); a proxy passes other headers through from the client
+unchanged.
+
+To put the proxy on a UNIX socket instead of loopback TCP, set
+`server.unix_socket` (for Caddy, `reverse_proxy unix//run/app.sock`). While
+it is set, every UNIX socket peer counts as a trusted proxy: the connection
+is local by construction and the socket file's permissions decide who may
+open it. Amber creates the socket with mode `0660`, so only its own user and
+group can connect: run the proxy as the application's user, or add the
+proxy's user to the application's group (for nginx on Debian, `www-data`).
+Put the socket in a directory the application owns, such as `/run/app/`,
+rather than a shared one like `/tmp`. The `<socket>.lock` file beside it is
+created at mode `0600`; a lock file another user owns or other users may
+open, or a lock another process holds for more than 10 seconds, fails the start with
+`Socket::BindError`. UNIX sockets are not supported on Windows, and these
+three `server` settings need the V2 settings format: a flat V1 file that
+sets one, directly or through an `AMBER_SERVER_*` variable, fails the boot. A
+socket file left behind by a stopped
+server is replaced at boot;
+a socket another running server still accepts connections on is not, and the
+start fails with `Socket::BindError`. It cannot be combined with
+`server.ssl` or a `process_count` above 1; the server checks this before it
+forks or binds.
+
+Set the list in YAML, in `config/settings.cr`
+(`settings.server.trusted_proxies = ["127.0.0.1", "10.0.0.0/8"]`), or with
+the comma-separated `AMBER_SERVER_TRUSTED_PROXIES` environment variable. An
+empty value trusts no proxy. The list is replaced, not edited in place:
+`trusted_proxies` returns a copy, so assign a new array to change it. Each
+entry is checked when the settings load or the list is assigned.
 
 Validation rules:
 - `port` must be between 1 and 65535
@@ -63,6 +191,13 @@ Validation rules:
 - `secret_key_base` must be set in production
 - `secret_key_base` should be at least 32 characters when set
 - SSL files must exist when SSL is enabled
+- every `trusted_proxies` entry must be an IP address or CIDR block that does
+  not cover every address, checked when the settings load or the list is
+  assigned
+- `trusted_proxy_headers` must be `"x-forwarded"` or `"forwarded"`, checked
+  the same way
+- `unix_socket` cannot be combined with `ssl` or a `process_count` above 1,
+  checked by `validate!` and again when the server starts
 
 ### SessionConfig
 
@@ -154,6 +289,105 @@ Put build-authored CSS, JavaScript, images, fonts, and downloads under
 `app/assets/`, compile them to `public/assets/`, and resolve them through the
 asset manifest. Keep user uploads on a separate persistent-storage lifecycle.
 
+### SecurityHeadersConfig
+
+```yaml
+security_headers:
+  content_type_options: "nosniff"                         # X-Content-Type-Options
+  frame_options: "DENY"                                   # X-Frame-Options
+  content_security_policy: "frame-ancestors 'none'"       # Content-Security-Policy
+  referrer_policy: "strict-origin-when-cross-origin"      # Referrer-Policy
+  permissions_policy: ""                                  # Permissions-Policy (off)
+  cross_origin_opener_policy: ""                          # Cross-Origin-Opener-Policy (off)
+  strict_transport_security: "max-age=63072000"           # HTTPS requests only
+```
+
+`Amber::Pipe::SecurityHeaders` sends these headers. The values above are the
+defaults, so an application that plugs the pipe and leaves the section out
+gets every header whose default is not empty; name only the keys you change.
+An empty string turns that one header off. `Amber::Pipe::Static` sends
+`X-Content-Type-Options: nosniff` on the files it serves on its own, whatever
+this section says, unless `static.headers` sets `X-Content-Type-Options`
+itself.
+
+The defaults have two effects a page can notice. `frame_options: "DENY"` and
+`frame-ancestors 'none'` stop every site, the application included, from
+showing its pages in a frame; set `"SAMEORIGIN"` and `"frame-ancestors
+'self'"` for an application that frames its own pages. On HTTPS,
+`Strict-Transport-Security` makes browsers use HTTPS for the host for two
+years, so serve it over HTTPS before turning HTTPS on in production. A
+misspelled key in the section fails the boot, and so does a top-level key
+one or two letters from a section name, such as `security_headders`. The
+section needs the V2 settings format: a flat V1 file that names it, or an
+`AMBER_SECURITY_HEADERS_*` variable set beside one, fails the boot as well,
+as does an `AMBER_SECURITY_HEADERS_*` variable that names no setting.
+
+Two headers are off by default because their strict values break ordinary
+features; turn them on once you know the application does not use what they
+block:
+
+- `permissions_policy` denies browser features. `"accelerometer=(), camera=(),
+  geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(),
+  usb=()"` suits an application with no camera, location or in-page payment
+  (an Apple Pay or Google Pay button needs `payment`).
+- `cross_origin_opener_policy: "same-origin"` cuts the link between a page and
+  a popup from another site. Leave it off when the application signs users in
+  or takes payments through a popup, or is opened as one.
+
+- `strict_transport_security` is sent only when `HTTP::Request#https?` is
+  true, the same test the cookie jar uses to send `Secure` cookies: Amber
+  terminates TLS itself (both `server.ssl` files are set), or a trusted
+  proxy (`server.trusted_proxies`) reports that the client used HTTPS. See
+  [Running behind a TLS-terminating proxy](#running-behind-a-tls-terminating-proxy).
+- The default `strict_transport_security` pins this host to HTTPS for two
+  years and leaves sibling subdomains alone. Once every subdomain of the
+  domain is served over HTTPS, add `includeSubDomains`
+  (`"max-age=63072000; includeSubDomains"`); a browser that sees it refuses
+  plain HTTP on all of them for the whole `max-age`, and the setting cannot
+  be withdrawn from browsers that already have it.
+- The default `content_security_policy` carries only `frame-ancestors`, so it
+  does not restrict scripts, styles, or images. An application with a full
+  policy puts it here, keeping a `frame-ancestors` directive in it.
+- The pipe never replaces a header that is already on the response: a pipe
+  plugged earlier keeps its value, and a controller that assigns one of these
+  headers with `response.headers["Name"] = value` has the final word.
+  `headers.add` appends a second value instead of replacing the pipe's.
+- A value with a line break or another control character that HTTP headers
+  refuse raises `Amber::Exceptions::ConfigurationError` when the settings
+  load or the value is assigned, so it fails the boot instead of a response.
+- Some responses are produced before any pipeline's pipes run. A request
+  whose route constraint fails gets the headers of the `SecurityHeaders`
+  pipe plugged into that route's pipeline (none when that pipeline plugs
+  none). A request that matches no route, and every WebSocket handshake,
+  belong to no pipeline, even when an HTTP route also matches the path:
+  when the application plugs `SecurityHeaders` into any pipeline, they get
+  the application-wide `security_headers` settings. That covers the 101
+  that accepts a handshake, the 426 for an unsupported version and the 400
+  for a handshake without a `Sec-WebSocket-Key`.
+
+Plug the pipe early in every browser, API and static pipeline, after `Error`
+and `Logger` and before `Static`. It writes its headers before the rest of
+the pipeline runs, so the error pages `Error` renders for a failing
+controller, and the files and 404s the static pipeline serves, carry them
+too:
+
+```crystal
+pipeline :web do
+  plug Amber::Pipe::Error.new
+  plug Amber::Pipe::Logger.new
+  plug Amber::Pipe::SecurityHeaders.new
+  plug Amber::Pipe::Session.new
+  plug Amber::Pipe::Flash.new
+  plug Amber::Pipe::CSRF.new
+end
+
+pipeline :static do
+  plug Amber::Pipe::Error.new
+  plug Amber::Pipe::SecurityHeaders.new
+  plug Amber::Pipe::Static.new("./public")
+end
+```
+
 ## Environment Variable Overrides
 
 The settings in the table below, and the scalar fields, nested sections and existing `Hash` keys of a registered custom section, can be overridden with an environment variable. Environment variables always take highest priority, overriding both YAML file values and compiled-in defaults. The `static` and `secrets` sections take no environment overrides.
@@ -170,6 +404,9 @@ The naming convention is `AMBER_{SECTION}_{KEY}`:
 | `AMBER_SERVER_SECRET_KEY_BASE` | `server.secret_key_base` |
 | `AMBER_SERVER_SSL_KEY_FILE` | `server.ssl.key_file` |
 | `AMBER_SERVER_SSL_CERT_FILE` | `server.ssl.cert_file` |
+| `AMBER_SERVER_TRUSTED_PROXIES` | `server.trusted_proxies` (comma-separated) |
+| `AMBER_SERVER_TRUSTED_PROXY_HEADERS` | `server.trusted_proxy_headers` |
+| `AMBER_SERVER_UNIX_SOCKET` | `server.unix_socket` |
 | `AMBER_DATABASE_URL` or `DATABASE_URL` | `database.url` |
 | `AMBER_SESSION_KEY` | `session.key` |
 | `AMBER_SESSION_STORE` | `session.store` |
@@ -193,6 +430,15 @@ The naming convention is `AMBER_{SECTION}_{KEY}`:
 | `AMBER_MAILER_SMTP_PASSWORD` | `mailer.smtp.password` |
 | `AMBER_MAILER_SMTP_USE_TLS` | `mailer.smtp.use_tls` |
 | `AMBER_MAILER_SMTP_HELO_DOMAIN` | `mailer.smtp.helo_domain` |
+| `AMBER_SECURITY_HEADERS_CONTENT_TYPE_OPTIONS` | `security_headers.content_type_options` |
+| `AMBER_SECURITY_HEADERS_FRAME_OPTIONS` | `security_headers.frame_options` |
+| `AMBER_SECURITY_HEADERS_CONTENT_SECURITY_POLICY` | `security_headers.content_security_policy` |
+| `AMBER_SECURITY_HEADERS_REFERRER_POLICY` | `security_headers.referrer_policy` |
+| `AMBER_SECURITY_HEADERS_PERMISSIONS_POLICY` | `security_headers.permissions_policy` |
+| `AMBER_SECURITY_HEADERS_CROSS_ORIGIN_OPENER_POLICY` | `security_headers.cross_origin_opener_policy` |
+| `AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY` | `security_headers.strict_transport_security` |
+
+A `security_headers` variable set to an empty string turns that header off.
 
 Boolean environment variables accept `"true"`, `"1"`, `"yes"` (case-insensitive) as true. All other values are treated as false.
 
@@ -410,6 +656,9 @@ mailer:
     use_tls: true
     helo_domain: "myapp.com"
 
+security_headers:
+  content_security_policy: "default-src 'self'; frame-ancestors 'none'"
+
 secrets:
   api_key: "secret_api_key_here"
 ```
@@ -426,6 +675,7 @@ secrets:
 - `src/amber/configuration/jobs_config.cr` -- JobsConfig
 - `src/amber/configuration/mailer_config.cr` -- MailerConfig
 - `src/amber/configuration/static_config.cr` -- StaticConfig
+- `src/amber/configuration/security_headers_config.cr` -- SecurityHeadersConfig
 - `src/amber/configuration/env_override.cr` -- Environment variable override logic
 - `src/amber/configuration/custom_registry.cr` -- Custom config registration
 - `src/amber/configuration/credentials_directory.cr` -- Credentials directory reader

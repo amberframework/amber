@@ -61,9 +61,17 @@ module Amber::DSL
     # Scopes all routes defined in the block to require the given constraint.
     def constraint(constraint_object : Amber::Router::Constraint, &)
       previous_constraint = @_active_constraint
-      @_active_constraint = constraint_object
-      with self yield
-      @_active_constraint = previous_constraint
+      # An inner block narrows the outer one: a route in both must meet both.
+      @_active_constraint = if previous_constraint
+                              Amber::Router::Constraints::All.new([previous_constraint, constraint_object] of Amber::Router::Constraint)
+                            else
+                              constraint_object
+                            end
+      begin
+        with self yield
+      ensure
+        @_active_constraint = previous_constraint
+      end
     end
 
     # API versioning macro
@@ -130,8 +138,14 @@ module Amber::DSL
       {% end %}
     end
 
+    # Declares a WebSocket endpoint at *path*. Inside a `constraint` block,
+    # a handshake that fails the constraint gets a 404.
     def websocket(path, app_socket)
-      Amber::WebSockets::Server.create_endpoint(path, app_socket)
+      socket_handler = Amber::WebSockets::Server.create_endpoint(path, app_socket)
+      if constraint = @_active_constraint
+        Amber::Server.router.constrain_socket_route(socket_handler, constraint)
+      end
+      socket_handler
     end
   end
 end

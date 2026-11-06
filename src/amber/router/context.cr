@@ -87,8 +87,20 @@ class HTTP::Server::Context
     request.valid_route?
   end
 
-  protected def process_websocket_request
-    request.process_websocket.call(self)
+  # Hands the handshake to *socket_handler*, the socket route the pipeline
+  # selected, so a route constraint runs once per handshake. A handshake with a
+  # supported version and no `Sec-WebSocket-Key` gets its 400 here, so the
+  # headers already on the response stay; `HTTP::WebSocketHandler` would
+  # clear them.
+  protected def process_websocket_request(socket_handler : Amber::WebSockets::Server::Handler)
+    if request.headers["Sec-WebSocket-Version"]? == HTTP::WebSocket::Protocol::VERSION &&
+       !request.headers.has_key?("Sec-WebSocket-Key")
+      response.status = :bad_request
+      response.content_type = "text/plain"
+      response.print "400 Bad Request\n"
+    else
+      socket_handler.call(self)
+    end
   end
 
   protected def process_request
