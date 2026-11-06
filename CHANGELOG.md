@@ -1,5 +1,39 @@
 # Changelog
 
+## Unreleased
+
+- A JSON API built on Amber no longer reaches `Regex` on its request path, so
+  with the router and fixed-pattern changes it links no PCRE2 on stock Crystal.
+  The `Cookie` header, form keys, form values, named schema formats, backtrace
+  frames and `String#url?` are read by hand-written checks (`HeaderParser`,
+  `FormKey`, `Amber::Support::TextFormats`). Each format check is tested against
+  the pattern it replaced on 40,000 generated strings.
+- An app that uses a pattern still links PCRE2, and only that app: `pattern:`,
+  `filename_pattern:` and a custom `format:` on a schema field, a `Regex` passed
+  to `Validator::Pattern`, `Validator::Format` or `Pipe::CORS`, and the
+  locale-based `String` checks.
+- `Validator::Format` with `FormatType::URL` answers in linear time. The pattern
+  it replaces raised `Regex::Error` (match limit exceeded) on short crafted input.
+- One malformed cookie no longer fails a request: that pair is left out and the
+  others are kept. Otherwise the parser finds the same cookies as
+  `request.cookies`, tested on 60,000 generated headers.
+- The exception page colors source lines with `ExceptionPage::CodeColoring`, so
+  apps no longer compile the compiler's lexer.
+- **Breaking:** a `Set-Cookie` header on a request is ignored. Browsers never send
+  one, and specs that replayed response headers as a request must send `Cookie`.
+- **Breaking:** `Validator::Format::PATTERNS` is removed.
+  `Backtracer::Configuration#app_dirs_pattern` becomes the prefix list
+  `list_of_app_directories`, and `modules_path_pattern` becomes the prefix
+  `modules_directory`. `Pipe::CORS#origins` holds strings and
+  `OriginRule` procs. `CORS.new` accepts `CORS::OriginType` as before, and now
+  also `Array(String)`, the form that links no regex engine. The pipe copies its
+  origin list when it is built, so add origins before that; `cors.origins << regex`
+  no longer compiles.
+- **Breaking:** a phone number or the host of a `FormatType::URL` value accepts
+  ASCII digits only. The old patterns also accepted other scripts' digits (`١٢`).
+- The schema examples move from `src/amber/schema/examples` to `examples/schema`,
+  so `require "amber"` no longer compiles them.
+
 ## 2.0.0-beta.9 (2026-11-06)
 
 This release adds trusted proxies, a UNIX socket listener and a security headers
