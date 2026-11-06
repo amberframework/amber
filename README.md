@@ -9,7 +9,7 @@ _Amber makes building web applications fast, simple, and enjoyable - with fewer 
 
 # Welcome! Introducing Amber
 
-**Amber 2.0.0-beta.8 is available for testing.** It is a pre-release: use it
+**Amber 2.0.0-beta.9 is available for testing.** It is a pre-release: use it
 for evaluation and new projects that can tolerate breaking changes, not for
 production workloads. The supported beta path is an ECR web application
 created by the standalone [Amber CLI](https://github.com/amberframework/amber_cli).
@@ -118,14 +118,13 @@ crystal spec
 amber watch
 ```
 
-Point `shard.yml` at this framework beta (Amber CLI 2.0.8 generates
-`2.0.0-beta.7`; change the version after `amber new`):
+The generated `shard.yml` pins this framework beta:
 
 ```yaml
 dependencies:
   amber:
     github: amberframework/amber
-    version: 2.0.0-beta.8
+    version: 2.0.0-beta.9
 ```
 
 [Read the complete beta installation guide](docs/beta-installation.md),

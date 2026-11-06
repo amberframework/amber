@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.0-beta.9 (2026-11-06)
+
+This release adds trusted proxies, a UNIX socket listener and a security headers
+pipe, and ships Amber's rules and guides with the framework. See
+`RELEASE_NOTES_V2_BETA9.md`.
+
+- `server.trusted_proxies` decides the client IP and HTTPS from listed proxies
+  only; applications can listen on a UNIX socket (#1415).
+- `Amber::Pipe::SecurityHeaders`, with a typed `security_headers` section (#1422).
+- `.amber-lsp/packs/amber_v2.yml`: rule pack and session guidance for amber-lsp.
+- `.amber-lsp/api/amber.yml`: API card for `amber-lsp lookup`. Public params and
+  validator methods declare concrete return types.
+- `ai_docs` installs every guide in `docs/guides/`, with an `amber-guides` skill.
+
 ## 2.0.0-beta.8 (2026-11-01)
 
 This release builds on every Crystal version that `shard.yml` declares and
