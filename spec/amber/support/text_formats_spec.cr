@@ -58,7 +58,7 @@ describe Amber::Support::TextFormats do
   end
 
   it "answers web address as the former pattern did" do
-    pieces = COMMON_PIECES + ["http://", "https://", "http", "a", "Z", "0", "example", "com", ".co", "..", " x", "/path", "‿", "⁀", "＿", "﹏", "é", "́"]
+    pieces = COMMON_PIECES + ["http://", "https://", "http", "a", "Z", "0", "example", "com", ".co", "..", " x", "/path", "é"]
     assert_same_answers(FORMER_WEB_ADDRESS, pieces, ["example.com", "http://a.co/b c", "a.b", ".co", "a..", "A.com", "a.COM", "https://x.y.z/_-", "http:a.co", "a.co/"]) { |text| text_formats.web_address?(text) }
   end
 
@@ -103,6 +103,14 @@ describe Amber::Support::TextFormats do
   it "accepts only ASCII digits in a phone number and a web host" do
     text_formats.phone?("١٢٣٤٥٦٧").should be_false
     text_formats.web_address?("١.com").should be_false
+  end
+
+  # What the former pattern answered for these depended on the PCRE2 version linked:
+  # newer ones count them in `\w`. The check answers the same on every build.
+  it "accepts connector punctuation and combining marks in a web address path" do
+    {"‿", "⁀", "＿", "﹏", "́"}.each do |char|
+      text_formats.web_address?("example.co/a#{char}b").should be_true
+    end
   end
 
   it "answers a long hostile address in linear time" do
