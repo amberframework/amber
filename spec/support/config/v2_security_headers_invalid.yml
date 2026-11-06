@@ -1,0 +1,8 @@
+name: v2_security_headers_invalid_app
+
+server:
+  host: "localhost"
+  port: 3000
+
+security_headers:
+  referrer_policy: "no-referrer\r\nSet-Cookie: injected=1"

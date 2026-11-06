@@ -1,3 +1,5 @@
+require "levenshtein"
+
 module Amber::Configuration
   module EnvOverride
     # Apply environment variable overrides to an AppConfig instance,
@@ -41,6 +43,9 @@ module Amber::Configuration
 
       # Request parameter limits
       apply_params(config.params)
+
+      # Security headers section
+      apply_security_headers(config.security_headers)
 
       # Registered custom sections, including credentials sections
       apply_custom(config)
@@ -255,6 +260,16 @@ module Amber::Configuration
       if v = ENV["AMBER_SERVER_SECRET_KEY_BASE"]?
         config.secret_key_base = v
       end
+      if v = ENV["AMBER_SERVER_TRUSTED_PROXIES"]?
+        # Comma-separated; an empty value trusts no proxy at all.
+        config.trusted_proxies = v.split(',').map(&.strip).reject(&.empty?)
+      end
+      if v = ENV["AMBER_SERVER_TRUSTED_PROXY_HEADERS"]?
+        config.trusted_proxy_headers = v.strip
+      end
+      if v = ENV["AMBER_SERVER_UNIX_SOCKET"]?
+        config.unix_socket = v.empty? ? nil : v
+      end
     end
 
     private def self.apply_server_ssl(config : SSLConfig) : Nil
@@ -409,6 +424,64 @@ module Amber::Configuration
       end
       if v = ENV["AMBER_PARAMS_MAX_DOCUMENT_BODY_BYTES"]?
         config.max_document_body_bytes = v.to_i
+      end
+    end
+
+    SECURITY_HEADERS_PREFIX = "AMBER_SECURITY_HEADERS_"
+
+    # The `AMBER_SECURITY_HEADERS_*` variables this module reads.
+    LIST_OF_SECURITY_HEADERS_VARIABLES = %w(
+      AMBER_SECURITY_HEADERS_CONTENT_TYPE_OPTIONS
+      AMBER_SECURITY_HEADERS_FRAME_OPTIONS
+      AMBER_SECURITY_HEADERS_CONTENT_SECURITY_POLICY
+      AMBER_SECURITY_HEADERS_REFERRER_POLICY
+      AMBER_SECURITY_HEADERS_PERMISSIONS_POLICY
+      AMBER_SECURITY_HEADERS_CROSS_ORIGIN_OPENER_POLICY
+      AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY
+    )
+
+    # Raises `Amber::Exceptions::ConfigurationError` for a variable under
+    # `AMBER_SECURITY_HEADERS_` that names no setting, such as a misspelled
+    # `AMBER_SECURITY_HEADERS_CONTENT_SECURITY_POLCY`: the header it meant
+    # would keep its default without a word.
+    def self.check_security_headers_variables! : Nil
+      list_of_errors = [] of String
+      ENV.keys.each do |variable_name|
+        next unless variable_name.starts_with?(SECURITY_HEADERS_PREFIX)
+        next if LIST_OF_SECURITY_HEADERS_VARIABLES.includes?(variable_name)
+
+        message = "unknown environment variable #{variable_name}"
+        if intended_name = Levenshtein.find(variable_name, LIST_OF_SECURITY_HEADERS_VARIABLES, tolerance: 3)
+          message += "; did you mean #{intended_name}?"
+        end
+        list_of_errors << message
+      end
+      raise Amber::Exceptions::ConfigurationError.new(list_of_errors) unless list_of_errors.empty?
+    end
+
+    # An empty value is a valid override: it turns that header off.
+    private def self.apply_security_headers(config : SecurityHeadersConfig) : Nil
+      check_security_headers_variables!
+      if v = ENV["AMBER_SECURITY_HEADERS_CONTENT_TYPE_OPTIONS"]?
+        config.content_type_options = v
+      end
+      if v = ENV["AMBER_SECURITY_HEADERS_FRAME_OPTIONS"]?
+        config.frame_options = v
+      end
+      if v = ENV["AMBER_SECURITY_HEADERS_CONTENT_SECURITY_POLICY"]?
+        config.content_security_policy = v
+      end
+      if v = ENV["AMBER_SECURITY_HEADERS_REFERRER_POLICY"]?
+        config.referrer_policy = v
+      end
+      if v = ENV["AMBER_SECURITY_HEADERS_PERMISSIONS_POLICY"]?
+        config.permissions_policy = v
+      end
+      if v = ENV["AMBER_SECURITY_HEADERS_CROSS_ORIGIN_OPENER_POLICY"]?
+        config.cross_origin_opener_policy = v
+      end
+      if v = ENV["AMBER_SECURITY_HEADERS_STRICT_TRANSPORT_SECURITY"]?
+        config.strict_transport_security = v
       end
     end
 

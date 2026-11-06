@@ -44,7 +44,7 @@ module Amber::Router::Cookies
              {% else %}
                request.host
              {% end %}
-      secure = (headers["HTTPS"]? == "on")
+      secure = request.https?
       new(host, secret, secure).tap do |store|
         store.update(from_headers(headers))
       end

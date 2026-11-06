@@ -9,6 +9,7 @@ Amber::Server.configure do
   pipeline :web do
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Logger.new
+    plug Amber::Pipe::SecurityHeaders.new
     plug Amber::Pipe::Session.new
     plug Amber::Pipe::Flash.new
     plug Amber::Pipe::CSRF.new
@@ -143,6 +144,7 @@ Amber::Server.configure do
   pipeline :web do
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Logger.new
+    plug Amber::Pipe::SecurityHeaders.new
     plug Amber::Pipe::Session.new
     plug Amber::Pipe::Flash.new
     plug Amber::Pipe::CSRF.new
@@ -151,7 +153,14 @@ Amber::Server.configure do
   pipeline :api do
     plug Amber::Pipe::Error.new
     plug Amber::Pipe::Logger.new
+    plug Amber::Pipe::SecurityHeaders.new
     plug Amber::Pipe::CORS.new
+  end
+
+  pipeline :static do
+    plug Amber::Pipe::Error.new
+    plug Amber::Pipe::SecurityHeaders.new
+    plug Amber::Pipe::Static.new("./public")
   end
 
   # Assign routes to pipelines
@@ -163,6 +172,10 @@ Amber::Server.configure do
   routes :api do
     get "/api/items", Api::ItemsController, :index
     post "/api/items", Api::ItemsController, :create
+  end
+
+  routes :static do
+    get "/*", Amber::Controller::Static, :index
   end
 end
 ```
@@ -177,6 +190,7 @@ end
 | `Amber::Pipe::Flash` | Flash messages |
 | `Amber::Pipe::CSRF` | CSRF protection |
 | `Amber::Pipe::CORS` | Cross-Origin Resource Sharing |
+| `Amber::Pipe::SecurityHeaders` | Browser security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Content-Security-Policy: frame-ancestors`, `Referrer-Policy`, `Strict-Transport-Security` on HTTPS requests, and opt-in `Permissions-Policy` and `Cross-Origin-Opener-Policy`); values from the `security_headers` settings section |
 | `Amber::Pipe::Static` | Static file serving |
 | `Amber::Pipe::PoweredByAmber` | Adds X-Powered-By header |
 | `Amber::Pipe::ClientIp` | Client IP detection |
@@ -325,6 +339,14 @@ routes :web do
   websocket "/admin/ws", AdminSocket
 end
 ```
+
+A `websocket` line inside a `constraint` block is held to that constraint:
+a handshake that fails it gets a 404. Nested `constraint` blocks combine,
+so a route inside both must meet both, and two sockets may share a path
+under different constraints. A socket declared outside any `constraint`
+block, on a path an HTTP route also matches, is held to that HTTP route's
+constraint; a socket declared inside one is held only to its own blocks, so
+put every constraint a socket needs around its `websocket` line.
 
 See the [WebSockets Guide](websockets.md) for full WebSocket documentation.
 

@@ -1,0 +1,5 @@
+version: 2.0
+shards:
+  amber:
+    path: ../..
+    version: 2.0.0-dev

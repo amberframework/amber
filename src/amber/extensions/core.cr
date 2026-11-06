@@ -14,3 +14,7 @@ end
 class HTTP::Server::Context
   include Amber::Extensions::HTTPServerContext
 end
+
+class HTTP::Server::Response
+  include Amber::Extensions::HTTPServerResponse
+end

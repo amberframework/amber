@@ -1,0 +1,74 @@
+pack: amber/v2
+library: amber
+version: 1.0.0
+
+modes:
+  always:
+    context: |
+      This is an Amber V2 app. Build it this way:
+      - Models inherit from Grant::Base. Migrations run through `amber database migrate`.
+      - Views are ECR. Request contracts are Amber::Schema types.
+      - Every incoming payload is parsed straight into a JSON::Serializable type with
+        sentinel defaults, and outgoing JSON is a Serializable type too.
+      - Narrow nil with `if value = maybe`, or raise a named error.
+      - Application output goes through Log with the block form.
+      - App settings live in config/environments/<env>.yml and config/initializers/*.cr.
+        shard.yml holds package metadata only.
+      - Browser, API and static pipelines plug Amber::Pipe::SecurityHeaders.
+      - Behind a proxy, list it in server.trusted_proxies.
+      - Before calling a library method, run `amber-lsp lookup Type#method`.
+
+rules:
+  - id: amber/models-inherit-grant
+    modes: [always]
+    severity: error
+    applies_to: ["src/**", "config/**", "spec/**"]
+    message: "Inherit from Grant::Base; Grant is the Amber V2 ORM."
+    check:
+      kind: line_regex
+      pattern: '^\s*[^#\s].*\bGranite::'
+
+  - id: amber/security-headers-pipe
+    modes: [always]
+    severity: error
+    applies_to: ["src/**", "config/**"]
+    message: "Plug Amber::Pipe::SecurityHeaders, the Amber V2 security headers pipe."
+    check:
+      kind: line_regex
+      pattern: '^\s*[^#\s].*\bAmber::Pipe::SecureHeaders\b'
+
+  - id: amber/views-are-ecr
+    modes: [always]
+    severity: error
+    applies_to: ["src/**"]
+    message: "Write this view as ECR; Amber V2 renders .ecr templates."
+    check:
+      kind: line_regex
+      pattern: '^\s*[^#\s].*\.(slang|liquid)["'']'
+
+  - id: amber/json-perimeter
+    modes: [always]
+    severity: warning
+    applies_to: ["src/**"]
+    message: "Parse this payload straight into a JSON::Serializable type with sentinel defaults."
+    check:
+      kind: line_regex
+      pattern: '^\s*[^#\s].*(\bJSON\.parse\b|\bJSON::Any\b|\.as_(h|a|s|i|i64|f|bool)\??(\s|\)|\.|$))'
+
+  - id: amber/narrow-nil
+    modes: [always]
+    severity: warning
+    applies_to: ["src/**"]
+    message: "Narrow with `if value = maybe`, or raise a named error."
+    check:
+      kind: line_regex
+      pattern: '^\s*[^#\s].*\.not_nil!'
+
+  - id: amber/output-through-log
+    modes: [always]
+    severity: warning
+    applies_to: ["src/**"]
+    message: "Send this through Log with the block form: Log.info { \"message\" }."
+    check:
+      kind: line_regex
+      pattern: '^\s*(puts|pp?)(\s|\()'

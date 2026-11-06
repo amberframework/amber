@@ -11,6 +11,141 @@ module Amber::Configuration
         config.process_count.should eq 1
         config.secret_key_base.should eq ""
       end
+
+      it "trusts only loopback proxies" do
+        ServerConfig.new.trusted_proxies.should eq ["127.0.0.0/8", "::1"]
+      end
+    end
+
+    describe "#trusted_proxies" do
+      it "deserializes a list of addresses and CIDR blocks" do
+        yaml = <<-YAML
+        trusted_proxies:
+          - "127.0.0.1"
+          - "10.0.0.0/8"
+        YAML
+
+        ServerConfig.from_yaml(yaml).trusted_proxies.should eq ["127.0.0.1", "10.0.0.0/8"]
+      end
+
+      it "reparses the networks when a new list is assigned" do
+        config = ServerConfig.new
+        peer = Socket::IPAddress.new("10.0.0.5", 0)
+        config.trusted_proxy_networks.any?(&.includes?(peer)).should be_false
+
+        config.trusted_proxies = ["127.0.0.0/8", "10.0.0.0/8"]
+        config.trusted_proxy_networks.any?(&.includes?(peer)).should be_true
+        config.trusted_proxies.should eq ["127.0.0.0/8", "10.0.0.0/8"]
+      end
+
+      it "hands out the parsed networks read-only" do
+        config = ServerConfig.new
+        expect_raises(Exception, /read-only/i) do
+          config.trusted_proxy_networks[0] = Amber::Support::TrustedProxyNetwork.parse("0.0.0.0/1")
+        end
+        config.trusted_proxy_networks.first.notation.should eq "127.0.0.0/8"
+      end
+
+      it "returns a copy, so editing it cannot change the trusted list" do
+        config = ServerConfig.new
+        list_of_notations = config.trusted_proxies
+        list_of_notations << "10.0.0.0/8"
+
+        config.trusted_proxies.should eq ["127.0.0.0/8", "::1"]
+        config.trusted_proxy_networks.size.should eq 2
+      end
+
+      it "keeps the list it was given when the caller edits that array later" do
+        config = ServerConfig.new
+        list_of_notations = ["10.0.0.0/8"]
+        config.trusted_proxies = list_of_notations
+        list_of_notations << "192.0.2.0/24"
+
+        config.trusted_proxies.should eq ["10.0.0.0/8"]
+      end
+
+      it "rejects a block that trusts every address" do
+        ["0.0.0.0/0", "::/0"].each do |notation|
+          config = ServerConfig.new
+          expect_raises(Amber::Exceptions::ConfigurationError, /trusts every address/) do
+            config.trusted_proxies = ["127.0.0.1", notation]
+          end
+          config.trusted_proxies.should eq ["127.0.0.0/8", "::1"]
+        end
+      end
+
+      it "rejects a bad entry while YAML loads" do
+        expect_raises(Amber::Exceptions::ConfigurationError, /"proxy.internal"/) do
+          ServerConfig.from_yaml(%(trusted_proxies: ["proxy.internal"]))
+        end
+        expect_raises(Amber::Exceptions::ConfigurationError, /trusts every address/) do
+          ServerConfig.from_yaml(%(trusted_proxies: ["0.0.0.0/0"]))
+        end
+      end
+
+      it "rejects server.unix_socket together with server.ssl" do
+        config = ServerConfig.new
+        config.unix_socket = "/run/app.sock"
+        config.ssl.key_file = __FILE__
+        config.ssl.cert_file = __FILE__
+
+        expect_raises(Amber::Exceptions::ConfigurationError, /unix_socket/) do
+          config.validate!
+        end
+      end
+
+      it "rejects server.unix_socket with more than one process" do
+        config = ServerConfig.new
+        config.unix_socket = "/run/app.sock"
+        config.process_count = 2
+
+        expect_raises(Amber::Exceptions::ConfigurationError, /unix_socket/) do
+          config.validate!
+        end
+      end
+
+      it "listens on a UNIX socket only when a path is set" do
+        config = ServerConfig.new
+        config.listens_on_unix_socket?.should be_false
+        config.unix_socket = ""
+        config.listens_on_unix_socket?.should be_false
+        config.unix_socket = "/run/app.sock"
+        config.listens_on_unix_socket?.should be_true
+      end
+
+      it "rejects an entry that is not an address when it is assigned" do
+        config = ServerConfig.new
+
+        expect_raises(Amber::Exceptions::ConfigurationError, /trusted_proxies/) do
+          config.trusted_proxies = ["proxy.internal"]
+        end
+      end
+    end
+
+    describe "#trusted_proxy_headers" do
+      it "reads X-Forwarded-* headers by default" do
+        config = ServerConfig.new
+        config.trusted_proxy_headers.should eq "x-forwarded"
+        config.reads_forwarded_header?.should be_false
+      end
+
+      it "reads the Forwarded header when set to forwarded" do
+        config = ServerConfig.from_yaml(%(trusted_proxy_headers: "forwarded"))
+        config.trusted_proxy_headers.should eq "forwarded"
+        config.reads_forwarded_header?.should be_true
+      end
+
+      it "rejects any other value while YAML loads and when assigned" do
+        expect_raises(Amber::Exceptions::ConfigurationError, /trusted_proxy_headers/) do
+          ServerConfig.from_yaml(%(trusted_proxy_headers: "both"))
+        end
+
+        config = ServerConfig.new
+        expect_raises(Amber::Exceptions::ConfigurationError, /trusted_proxy_headers/) do
+          config.trusted_proxy_headers = "x-real-ip"
+        end
+        config.trusted_proxy_headers.should eq "x-forwarded"
+      end
     end
 
     describe "YAML deserialization" do
