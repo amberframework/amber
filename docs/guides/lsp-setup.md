@@ -96,6 +96,18 @@ The LSP ships with 15 built-in convention rules:
 
 ---
 
+## Rule packs
+
+Libraries ship rules with their code, and `amber-lsp` loads them from
+`lib/<shard>/.amber-lsp/packs/*.yml` with no setup. Amber's pack checks for Grant
+models, the V2 security headers pipe, ECR views, the JSON perimeter, nil narrowing
+and output through `Log`. Grant's pack checks tenant scoping, and turns on when
+the app uses `multitenant` or `Grant::SchemaTenant`.
+
+Run `amber-lsp context` to print the packs that apply and their guidance. The
+assistant hooks print the same text at the start of each session. Disable or
+re-rank a pack's rule by its id in `.amber-lsp.yml`, as shown below.
+
 ## Configuration
 
 ### `.amber-lsp.yml`
