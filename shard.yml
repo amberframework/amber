@@ -17,4 +17,13 @@ development_dependencies:
 
 ai_docs:
   include:
+    - docs/guides/action-helpers.md
+    - docs/guides/background-jobs.md
+    - docs/guides/configuration.md
     - docs/guides/lsp-setup.md
+    - docs/guides/mailer.md
+    - docs/guides/markdown.md
+    - docs/guides/routing.md
+    - docs/guides/schema-api.md
+    - docs/guides/testing.md
+    - docs/guides/websockets.md
