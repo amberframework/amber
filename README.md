@@ -38,6 +38,8 @@ Read Amber documentation on https://docs.amberframework.org/amber
 
 ## Installation & Usage
 
+> This branch is Amber 1.x, which takes only fixes for apps that stop compiling or running. New work uses Amber V2: start with the [onboarding guide](https://github.com/amberframework/amber_cli/blob/main/docs/ONBOARDING.md).
+
 #### Homebrew (macOS/Linux)
 
 ```
