@@ -118,7 +118,7 @@ An action bound to a request schema answers an `application/xml`, `text/xml` or 
 
    ```yaml
        version: 0.1.1+git.commit.80f4b7a4d3f3365fadda160554bf68001b394a82
-       checksum: git-tree:22075f8ddb2d5874bdf260f0e4b00a3927d0515d
+       checksum: sha256-v2:f13de354cf66409ccbc1e975f08b23e230620fc895309d057b7ba79aa07ce4e4
    ```
 
    Later installs run `minecart install --frozen`.
