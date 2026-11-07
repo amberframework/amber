@@ -16,6 +16,8 @@ modes:
         shard.yml holds package metadata only.
       - Browser, API and static pipelines plug Amber::Pipe::SecurityHeaders.
       - Behind a proxy, list it in server.trusted_proxies.
+      - Route rules are typed: `{"id" => :numeric}`. Named schema formats such as
+        `format: "email"` use no regex engine; `pattern:` links one.
       - Before calling a library method, run `amber-lsp lookup Type#method`.
 
 rules:

@@ -1,7 +1,9 @@
 # Plan: an Amber V2 app that links no regex engine and no C parsing library
 
-Status: draft, 2026-11-06. Owner: Amber V2 maintainers. First PR: the router
-(this branch, `feature/router-typed-constraints`).
+Status, 2026-11-07: PCRE2 is done for a JSON API. Beta.10 ships it without Mica:
+cookies and form keys use `HeaderParser` and `FormKey`, named formats use
+`TextFormats`, and `scripts/check_linkage.sh` gates it in CI. libyaml, and PCRE2
+in apps using Grant or Markdown, remain. Grant's query code is the next site.
 
 ## Goal
 

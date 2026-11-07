@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.0-beta.10 (2026-11-07)
 
 - A JSON API built on Amber no longer reaches `Regex` on its request path, so
   with the router and fixed-pattern changes it links no PCRE2 on stock Crystal.
