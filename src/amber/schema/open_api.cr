@@ -278,8 +278,8 @@ module Amber::Schema::OpenAPI
     when "Time"    then {"type" => JSON::Any.new("string"), "format" => JSON::Any.new("date-time")}
     when "UUID"    then {"type" => JSON::Any.new("string"), "format" => JSON::Any.new("uuid")}
     else
-      if match = type.match(/^Array\((.+)\)$/)
-        {"type" => JSON::Any.new("array"), "items" => JSON::Any.new(type_schema(match[1]))}
+      if element_type = TypeNames.array_element_type(type)
+        {"type" => JSON::Any.new("array"), "items" => JSON::Any.new(type_schema(element_type))}
       else
         {"type" => JSON::Any.new("object")}
       end
@@ -315,7 +315,37 @@ module Amber::Schema::OpenAPI
     "#{controller.gsub("::", "_")}_#{action}"
   end
 
+  # Rewrites each route parameter (`:id`, a colon then an ASCII letter or
+  # underscore, then letters, digits and underscores) as `{id}`. A colon that
+  # starts no name stays as it is.
   private def open_api_path(path : String) : String
-    path.gsub(/:([A-Za-z_][A-Za-z0-9_]*)/, "{\\1}")
+    return path unless path.includes?(':')
+
+    String.build(path.bytesize + 2) do |io|
+      reader = Char::Reader.new(path)
+      while reader.has_next?
+        char = reader.current_char
+        reader.next_char
+        name_start = reader.pos
+        if char == ':' && reader.has_next? && parameter_name_start?(reader.current_char)
+          while reader.has_next? && parameter_name_char?(reader.current_char)
+            reader.next_char
+          end
+          io << '{'
+          io.write(path.to_slice[name_start, reader.pos - name_start])
+          io << '}'
+        else
+          io << char
+        end
+      end
+    end
+  end
+
+  private def parameter_name_start?(char : Char) : Bool
+    char.ascii_letter? || char == '_'
+  end
+
+  private def parameter_name_char?(char : Char) : Bool
+    char.ascii_alphanumeric? || char == '_'
   end
 end

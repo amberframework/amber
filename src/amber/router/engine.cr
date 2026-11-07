@@ -1,3 +1,4 @@
+require "./param_constraints"
 require "./engine/route_set"
 require "./engine/routed_result"
 require "./engine/segment"

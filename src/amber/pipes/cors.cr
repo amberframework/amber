@@ -68,9 +68,10 @@ module Amber
       )
         origin_rules = OriginList.new(origins.size)
         origins.each do |origin|
-          origin_rules << case origin
-          in String then origin
-          in Regex  then OriginRule.new { |request_origin| origin.matches?(request_origin) }
+          if origin.is_a?(String)
+            origin_rules << origin
+          else
+            origin_rules << OriginRule.new { |request_origin| origin.matches?(request_origin) }
           end
         end
 
@@ -168,10 +169,7 @@ module Amber
         return false unless origin_from_request
 
         @origins.any? do |origin|
-          case origin
-          in String           then origin == origin_from_request
-          in CORS::OriginRule then origin.call(origin_from_request)
-          end
+          origin.is_a?(String) ? origin == origin_from_request : origin.call(origin_from_request)
         end
       end
 

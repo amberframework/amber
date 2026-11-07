@@ -2,6 +2,10 @@ require "../../spec_helper"
 
 module Amber::Pipe
   describe CORS do
+    it "allows any origin by default" do
+      CORS.new.origins.should eq CORS::OriginType{"*"}
+    end
+
     it "supports simple CORS requests" do
       context = cors_context("GET", "Origin": "http://localhost:3000")
       cors_add_next(CORS.new).call(context)

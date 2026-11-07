@@ -1,3 +1,5 @@
+require "./text_matching"
+
 module Amber
   module Support
     module Inflector
@@ -13,10 +15,8 @@ module Amber
         end
 
         # Apply rules in order (most specific first)
-        SINGULAR_RULES.each do |pattern, replacement|
-          if word.matches?(pattern)
-            return word.sub(pattern, replacement)
-          end
+        SINGULAR_RULES.each do |rule|
+          return rule.apply(word) if rule.applies_to?(word)
         end
 
         word
@@ -45,18 +45,57 @@ module Amber
         "oxen"     => "ox",
       }
 
+      # A suffix rule: a word that ends in `suffix` (in any case), after a
+      # character that `preceding` allows, swaps that suffix for
+      # `replacement`.
+      struct SingularRule
+        # Which character may stand just before the suffix.
+        enum Preceding
+          Anything
+          Vowel
+          AnythingButS
+        end
+
+        getter suffix : String
+        getter replacement : String
+        getter preceding : Preceding
+
+        def initialize(@suffix : String, @replacement : String, @preceding : Preceding = Preceding::Anything)
+        end
+
+        def applies_to?(word : String) : Bool
+          return false unless TextMatching.ends_with_ignoring_case?(word, suffix)
+          return true if preceding.anything?
+
+          before_index = word.size - suffix.size - 1
+          return false if before_index < 0
+          before = word.char_at(before_index)
+          if preceding.vowel?
+            "aeiou".each_char.any? { |vowel| TextMatching.same_ignoring_case?(before, vowel) }
+          else
+            !TextMatching.same_ignoring_case?(before, 's')
+          end
+        end
+
+        # Returns *word* with its suffix replaced; call it only when
+        # `applies_to?` holds.
+        def apply(word : String) : String
+          word[0, word.size - suffix.size] + replacement
+        end
+      end
+
       # Rules ordered from most specific to least specific
       SINGULAR_RULES = [
-        {/ies\z/i, "y"},              # categories -> category,eries -> ery
-        {/ves\z/i, "fe"},             # wives -> wife, knives -> knife
-        {/([aeiou])ses\z/i, "\\1se"}, # cases -> case, databases -> database
-        {/sses\z/i, "ss"},            # addresses -> address, dresses -> dress
-        {/([^s])ses\z/i, "\\1se"},    # responses -> response
-        {/xes\z/i, "x"},              # boxes -> box, indexes -> index
-        {/zes\z/i, "ze"},             # freezes -> freeze
-        {/ches\z/i, "ch"},            # matches -> match, batches -> batch
-        {/shes\z/i, "sh"},            # dishes -> dish, crashes -> crash
-        {/s\z/i, ""},                 # users -> user, posts -> post (most common)
+        SingularRule.new("ies", "y"),                                         # categories -> category,eries -> ery
+        SingularRule.new("ves", "fe"),                                        # wives -> wife, knives -> knife
+        SingularRule.new("ses", "se", SingularRule::Preceding::Vowel),        # cases -> case, databases -> database
+        SingularRule.new("sses", "ss"),                                       # addresses -> address, dresses -> dress
+        SingularRule.new("ses", "se", SingularRule::Preceding::AnythingButS), # responses -> response
+        SingularRule.new("xes", "x"),                                         # boxes -> box, indexes -> index
+        SingularRule.new("zes", "ze"),                                        # freezes -> freeze
+        SingularRule.new("ches", "ch"),                                       # matches -> match, batches -> batch
+        SingularRule.new("shes", "sh"),                                       # dishes -> dish, crashes -> crash
+        SingularRule.new("s", ""),                                            # users -> user, posts -> post (most common)
       ]
     end
   end

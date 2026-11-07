@@ -4,6 +4,8 @@ module Amber
   struct Route
     property :handler, :action, :verb, :resource, :valve, :params, :scope, :controller, :constraints, :name
     property request_constraint : Router::Constraint?
+    # Each route parameter's rule, keyed by parameter name.
+    @constraints : Hash(String, Router::ParamConstraint)
 
     def initialize(@verb : String,
                    @resource : String,
@@ -12,10 +14,11 @@ module Amber
                    @valve : Symbol = :web,
                    @scope : Router::Scope = Router::Scope.new,
                    @controller : String = "",
-                   @constraints : Hash = {} of String => Regex,
+                   constraints : Hash | NamedTuple = {} of String => Router::ParamConstraint,
                    @name : Symbol? = nil,
                    @request_constraint : Router::Constraint? = nil)
       @params = {} of String => String
+      @constraints = Router::ParamConstraints.normalize(constraints)
     end
 
     def to_json

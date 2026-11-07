@@ -10,7 +10,6 @@ module Amber::Router
   end
 
   class Params
-    TYPE_EXT_REGEX   = Amber::Support::MimeTypes::TYPE_EXT_REGEX
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     MULTIPART_FORM   = "multipart/form-data"
     APPLICATION_JSON = "application/json"

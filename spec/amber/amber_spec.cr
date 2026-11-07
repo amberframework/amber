@@ -111,3 +111,17 @@ describe Amber do
     end
   end
 end
+
+describe Amber::Server do
+  describe "#project_name" do
+    it "replaces each character that is not a letter, number, mark or underscore with _ and downcases" do
+      original_name = Amber.settings.name
+      begin
+        Amber.settings.name = "My-App.v2 Café_Ünï‿x é 日本!"
+        Amber::Server.new.project_name.should eq "my_app_v2_café_ünï‿x_é_日本_"
+      ensure
+        Amber.settings.name = original_name
+      end
+    end
+  end
+end

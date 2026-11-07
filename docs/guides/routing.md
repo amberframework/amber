@@ -211,7 +211,7 @@ routes :web do
     get "/items", Api::ItemsController, :index
   end
 
-  constraint(Amber::Router::Constraints::Header.new("X-Api-Key", /^sk_/)) do
+  constraint(Amber::Router::Constraints::Header.new("X-Api-Version", "2")) do
     resources "items", Api::ItemsController
   end
 
@@ -232,14 +232,75 @@ end
 
 ### URL Parameter Constraints
 
-Route-level parameter constraints use regex patterns:
+A route can require each of its parameters to have a given shape. The last
+argument of a route (or `constraints:` on `resources`) maps a parameter name to
+a rule. A rule judges the whole raw segment, before percent-decoding, and a
+request whose segment fails it does not match the route, so the router tries
+the next one.
 
 ```crystal
 routes :web do
-  get "/users/:id", UsersController, :show, constraints: {"id" => /\d+/}
-  get "/posts/:slug", PostsController, :show, constraints: {"slug" => /[a-z0-9\-]+/}
+  get "/users/:id", UsersController, :show, {"id" => :numeric}
+  get "/posts/:slug", PostsController, :show, {slug: :slug}
+  get "/objects/:key", ObjectsController, :show, {"key" => :uuid}
+  get "/codes/:code", CodesController, :show,
+    {"code" => Amber::Router::ParamConstraints::NUMERIC.with_length(3)}
+  get "/posts/:state", PostsController, :index,
+    {"state" => Amber::Router::ParamConstraints::OneOf.new("draft", "published")}
+  resources "orders", OrdersController, constraints: {"id" => :numeric}
 end
 ```
+
+| Preset | Matches |
+|--------|---------|
+| `:numeric` | one or more ASCII digits |
+| `:alpha` | one or more ASCII letters |
+| `:alnum` | one or more ASCII letters and digits |
+| `:hex` | one or more hexadecimal digits, either case |
+| `:slug` | lowercase `a-z0-9` runs joined by single hyphens (`my-post-2`) |
+| `:uuid` | a hyphenated UUID, either case |
+
+Each preset is also a constant in `Amber::Router::ParamConstraints`
+(`NUMERIC`, `ALPHA`, `ALNUM`, `HEX`, `SLUG`, `UUID`). The character presets
+take `with_length(n)` or `with_length(min, max)`, and
+`ParamConstraints::CharacterRun.new("ticket_code", 'A'..'Z', '_')` builds a
+rule from your own ASCII characters. A symbol that is not a preset raises
+`ParamConstraints::UnknownPresetError` when the routes are drawn.
+
+For any other shape, write a rule. A one-off rule can be a block:
+
+```crystal
+json_file = Amber::Router::ParamConstraints::Custom.new("json_file", &.ends_with?(".json"))
+get "/files/:name", FilesController, :show, {"name" => json_file}
+```
+
+A rule you reuse reads better as its own type:
+
+```crystal
+struct EvenPageNumber
+  include Amber::Router::ParamConstraint
+
+  def matches?(segment : String) : Bool
+    if page_number = segment.to_i?
+      page_number.even?
+    else
+      false
+    end
+  end
+
+  # The label route listings show for this rule.
+  def to_s(io : IO) : Nil
+    io << "even_page_number"
+  end
+end
+
+get "/pages/:number", PagesController, :show, {"number" => EvenPageNumber.new}
+```
+
+The built-in rules read each byte of the segment once, so the router's
+matching time grows linearly with the path's length and Amber's router uses no
+regular-expression engine. Keep custom rules linear too: they run on every
+request that reaches their segment.
 
 ## API Versioning
 

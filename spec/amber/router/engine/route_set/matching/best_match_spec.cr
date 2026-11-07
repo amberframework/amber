@@ -18,7 +18,7 @@ describe "best-match routing" do
     router = build do
       add "/get/domains/mine", :my_domains
       add "/get/domains/:id", :a_domain
-      add "/get/posts/:page", :numeric_post, {page: /\A\d+\z/}
+      add "/get/posts/:page", :numeric_post, {page: :numeric}
       add "/get/products/*path", :products_slug
       add "/get/products/*path/with_name", :products_slug_with_name
       add "/get/books/:id/authors/:author_id", :book_author
@@ -58,8 +58,8 @@ describe "best-match routing" do
       add "/get/posts(/:id)", :optional_post
       add "/get/posts/:id/edit", :edit_post
       add "/get/items/:id", :generic_item
-      add "/get/items/:page", :numeric_item, {page: /\A\d+\z/}
-      add "/get/items/:slug", :slug_item, {slug: /\A\w+-\w+\z/}
+      add "/get/items/:page", :numeric_item, {page: :numeric}
+      add "/get/items/:slug", :slug_item, {slug: :slug}
     end
 
     %w(

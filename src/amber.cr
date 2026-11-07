@@ -7,6 +7,7 @@ require "ecr"
 
 require "./amber/version"
 require "./amber/support/text_formats"
+require "./amber/support/text_matching"
 require "./amber/assets"
 require "./amber/support/inflector"
 require "./amber/support/log_color"

@@ -29,7 +29,7 @@ module Amber
           router = Router.new
           handler = ->(_context : HTTP::Server::Context) { }
 
-          route = Route.new("GET", "/users", handler, :index, :web, Scope.new, "UserController", {} of String => Regex, :users)
+          route = Route.new("GET", "/users", handler, :index, :web, Scope.new, "UserController", {} of String => Amber::Router::ParamConstraint, :users)
           router.add(route)
 
           routes = router.all_routes
@@ -52,11 +52,11 @@ module Amber
           router = Router.new
           handler = ->(_context : HTTP::Server::Context) { }
 
-          route = Route.new("GET", "/posts/:slug", handler, :show, :web, Scope.new, "PostController", {"slug" => /\w+/})
+          route = Route.new("GET", "/posts/:slug", handler, :show, :web, Scope.new, "PostController", {"slug" => :slug})
           router.add(route)
 
           routes = router.all_routes
-          routes.first.constraints["slug"].should eq "(?-imsx:\\w+)"
+          routes.first.constraints["slug"].should eq "slug"
         end
       end
 
@@ -89,7 +89,7 @@ module Amber
           router = Router.new
           handler = ->(_context : HTTP::Server::Context) { }
 
-          route = Route.new("GET", "/users", handler, :index, :web, Scope.new, "UserController", {} of String => Regex, :users)
+          route = Route.new("GET", "/users", handler, :index, :web, Scope.new, "UserController", {} of String => Amber::Router::ParamConstraint, :users)
           router.add(route)
 
           found = router.match_by_name(:users)
@@ -113,7 +113,7 @@ module Amber
 
       it "stores a named symbol" do
         handler = ->(_context : HTTP::Server::Context) { }
-        route = Route.new("GET", "/users", handler, :index, :web, Router::Scope.new, "UserController", {} of String => Regex, :users)
+        route = Route.new("GET", "/users", handler, :index, :web, Router::Scope.new, "UserController", {} of String => Amber::Router::ParamConstraint, :users)
         route.name.should eq :users
       end
     end
@@ -121,7 +121,7 @@ module Amber
     describe "#to_json with name" do
       it "includes name when present" do
         handler = ->(_context : HTTP::Server::Context) { }
-        route = Route.new("GET", "/users", handler, :index, :web, Router::Scope.new, "UserController", {} of String => Regex, :users)
+        route = Route.new("GET", "/users", handler, :index, :web, Router::Scope.new, "UserController", {} of String => Amber::Router::ParamConstraint, :users)
         json = route.to_json
         parsed = JSON.parse(json)
         parsed["name"].should eq "users"

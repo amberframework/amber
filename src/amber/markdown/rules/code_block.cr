@@ -2,20 +2,57 @@ module Amber::Markdown::Rule
   struct CodeBlock
     include Rule
 
-    CODE_FENCE         = /^`{3,}(?!.*`)|^~{3,}/
-    CLOSING_CODE_FENCE = /^(?:`{3,}|~{3,})(?= *$)/
+    # Returns the length of the opening code fence that starts *text*, or
+    # `nil`: three or more backticks with no backtick after them on the line,
+    # or three or more tildes.
+    def self.opening_fence_length(text : String) : Int32?
+      fence_size = fence_run_size(text)
+      return unless fence_size
+      return fence_size if text.byte_at(0) == '~'.ord
+
+      line_end = text.byte_index('\n', fence_size) || text.bytesize
+      next_backtick = text.byte_index('`', fence_size)
+      fence_size unless next_backtick && next_backtick < line_end
+    end
+
+    # Returns the length of the closing code fence that starts *text*, or
+    # `nil`: three or more backticks or tildes followed only by spaces, up to
+    # the end of the text or a final newline.
+    def self.closing_fence_length(text : String) : Int32?
+      fence_size = fence_run_size(text)
+      return unless fence_size
+
+      index = fence_size
+      while index < text.bytesize && text.byte_at(index) == ' '.ord
+        index += 1
+      end
+      at_end = index == text.bytesize || (index == text.bytesize - 1 && text.byte_at(index) == '\n'.ord)
+      fence_size if at_end
+    end
+
+    # The length of the run of backticks or tildes that starts *text*, when
+    # it is at least three long.
+    private def self.fence_run_size(text : String) : Int32?
+      return if text.empty?
+      fence_byte = text.byte_at(0)
+      return unless fence_byte == '`'.ord || fence_byte == '~'.ord
+
+      size = 1
+      while size < text.bytesize && text.byte_at(size) == fence_byte
+        size += 1
+      end
+      size if size >= 3
+    end
 
     def match(parser : Parser, container : Node) : MatchValue
-      if !parser.indented &&
-         (match = parser.line[parser.next_nonspace..-1].match(CODE_FENCE))
+      line_from_content = parser.line[parser.next_nonspace..-1]
+      if !parser.indented && (fence_length = CodeBlock.opening_fence_length(line_from_content))
         # fenced
-        fence_length = match[0].size
-
         parser.close_unmatched_blocks
         node = parser.add_child(Node::Type::CodeBlock, parser.next_nonspace)
         node.fenced = true
         node.fence_length = fence_length
-        node.fence_char = match[0][0].to_s
+        node.fence_char = line_from_content[0].to_s
         node.fence_offset = parser.indent
 
         parser.advance_next_nonspace
@@ -40,11 +77,11 @@ module Amber::Markdown::Rule
       indent = parser.indent
       if container.fenced?
         # fenced
-        match = indent <= 3 &&
-                line[parser.next_nonspace]? == container.fence_char[0] &&
-                line[parser.next_nonspace..-1].match(CLOSING_CODE_FENCE)
+        closing_length = if indent <= 3 && line[parser.next_nonspace]? == container.fence_char[0]
+                           CodeBlock.closing_fence_length(line[parser.next_nonspace..-1])
+                         end
 
-        if match && match.as(Regex::MatchData)[0].size >= container.fence_length
+        if closing_length && closing_length >= container.fence_length
           # closing fence - we're at end of line, so we can return
           parser.token(container, parser.current_line)
           return ContinueStatus::Return
