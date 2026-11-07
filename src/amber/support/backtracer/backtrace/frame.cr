@@ -83,19 +83,28 @@ module Backtracer
 
     # Returns name of the shard from which this frame originated.
     #
-    # See `Configuration#modules_path_pattern`
+    # See `Configuration#modules_directory`
     def shard_name : String?
-      relative_path
-        .try(&.match(configuration.modules_path_pattern))
-        .try(&.["name"])
+      path = relative_path
+      modules_directory = configuration.modules_directory
+      return nil unless path && path.starts_with?(modules_directory)
+
+      name_start = modules_directory.bytesize
+      name_end = path.byte_index('/', name_start)
+      return nil if name_end.nil? || name_end == name_start || name_end + 1 == path.bytesize
+
+      path.byte_slice(name_start, name_end - name_start)
     end
 
     # Returns `true` if this frame originated from the app source code,
     # `false` otherwise.
     #
-    # See `Configuration#app_dirs_pattern`
+    # See `Configuration#list_of_app_directories`
     def in_app? : Bool
-      !!(relative_path.try(&.matches?(configuration.app_dirs_pattern)))
+      path = relative_path
+      return false unless path
+
+      configuration.list_of_app_directories.any? { |directory| path.starts_with?(directory) }
     end
 
     # Returns `Context` record consisting of 3 elements - an array of context lines

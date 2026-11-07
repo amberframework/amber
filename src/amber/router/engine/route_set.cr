@@ -14,7 +14,7 @@ module Amber::Router
   # route_set.add "/get/users/:id/books", :users_books
   # route_set.add "/get/*/slug", :slug
   # route_set.add "/get/*", :catch_all
-  # route_set.add "/get/posts/:page", :pages, {"page" => /\d+/}
+  # route_set.add "/get/posts/:page", :pages, {"page" => :numeric}
   #
   # route_set.formatted_s # => a textual representation of the routing tree
   #
@@ -52,7 +52,7 @@ module Amber::Router
     end
 
     # Look for or create a subtree matching a given segment.
-    private def find_subtree!(segment : String, constraints : Hash(String, Regex)) : Segment(T)
+    private def find_subtree!(segment : String, constraints : Hash(String, ParamConstraint)) : Segment(T)
       if subtree = find_subtree segment
         subtree
       else
@@ -513,7 +513,7 @@ module Amber::Router
       offset
     end
 
-    private def add_route(path, payload : T, constraints : Hash(String, Regex)) : Nil
+    private def add_route(path, payload : T, constraints : Hash(String, ParamConstraint)) : Nil
       if path.includes?('(') || path.includes?(')')
         paths = parse_subpaths path
       else
@@ -527,14 +527,11 @@ module Amber::Router
       end
     end
 
-    # Add a route to the tree.
-    def add(path, payload : T, constraints : Hash(String, Regex) = {} of String => Regex) : Nil
-      add_route path, payload, constraints
-    end
-
-    # ditto
-    def add(path, payload : T, constraints : Hash(Symbol, Regex) | NamedTuple) : Nil
-      add_route path, payload, constraints.to_h.transform_keys(&.to_s)
+    # Add a route to the tree. *constraints* maps a parameter name (String or
+    # Symbol) to a `ParamConstraint` or a preset symbol such as `:numeric`;
+    # see `ParamConstraints.normalize`.
+    def add(path, payload : T, constraints : Hash | NamedTuple = {} of String => ParamConstraint) : Nil
+      add_route path, payload, ParamConstraints.normalize(constraints)
     end
 
     private def decode_if_escaped(value : String) : String
@@ -547,7 +544,7 @@ module Amber::Router
 
     # Recursively find or create subtrees matching a given path, and store the
     # application route at the leaf. Uses an index to avoid O(n) Array#shift.
-    protected def add(url_segments : Array(String), route : T, full_path : String, constraints : Hash(String, Regex), priority : Int32 = 0, index : Int32 = 0) : Nil
+    protected def add(url_segments : Array(String), route : T, full_path : String, constraints : Hash(String, ParamConstraint), priority : Int32 = 0, index : Int32 = 0) : Nil
       @min_priority = priority if priority < @min_priority
 
       if index >= url_segments.size

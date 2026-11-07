@@ -116,6 +116,20 @@ module Amber::Controller
           context.response.status_code.should eq 200
         end
 
+        it "reads the response type after the last dot of the path" do
+          expected_result = %({"type":"json","name":"Amberator"})
+          context.request.path = "/response/v1.2/1.json"
+          ResponsesController.new(context).index.should eq expected_result
+          context.response.headers["Content-Type"].should eq "application/json; charset=utf-8"
+        end
+
+        it "uses the Accept header when the text after the last dot is no response type" do
+          context.request.headers["Accept"] = "application/xml, application/json"
+          context.request.path = "/response/1.json.bak"
+          ResponsesController.new(context).index.should eq "<xml><body><h1>Sort of xml</h1></body></xml>"
+          context.response.headers["Content-Type"].should eq "application/xml"
+        end
+
         it "responds with xml for path.xml" do
           expected_result = "<xml><body><h1>Sort of xml</h1></body></xml>"
           context.request.path = "/response/1.xml"

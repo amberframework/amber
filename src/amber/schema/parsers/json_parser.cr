@@ -191,7 +191,7 @@ module Amber::Schema::Parser
     # Parse bracket notation keys with array index support
     private def self.parse_bracket_notation(hash : Hash(String, JSON::Any), key : String, value : String | Hash(String, JSON::Any), budget : Amber::Router::Parsers::ParamBudget)
       # Parse keys like: user[profile][name] or items[0] or tags[1][name]
-      parts = key.split(/[\[\]]/).reject(&.empty?)
+      parts = FormKey.segments(key)
       # Only bracketed segments are indices; the base name is a plain field.
       parts.skip(1).each { |part| budget.check_segment!(part) }
 
@@ -310,7 +310,7 @@ module Amber::Schema::Parser
     # checked: its length, its depth, and its bracketed segments.
     private def self.check_array_key!(key : String, budget : Amber::Router::Parsers::ParamBudget) : Nil
       budget.check_key_shape!(key)
-      key.split(/[\[\]]/).reject(&.empty?).skip(1).each { |segment| budget.check_segment!(segment) }
+      FormKey.segments(key).skip(1).each { |segment| budget.check_segment!(segment) }
     end
 
     # Returns the container at *index*, replacing the null that padding put
@@ -324,7 +324,7 @@ module Amber::Schema::Parser
     # Helper method to check if a string represents a number
     private def self.is_numeric?(str : String?) : Bool
       return false unless str
-      !!(str =~ /^\d+$/)
+      FormKey.digits?(str)
     end
 
     # Parse dot notation keys
@@ -367,12 +367,12 @@ module Amber::Schema::Parser
         return JSON::Any.new(nil) if value.downcase == "null"
 
         # Try integer (including negative)
-        if value =~ /^-?\d+$/ && (int_value = value.to_i64?)
+        if FormKey.integer?(value) && (int_value = value.to_i64?)
           return JSON::Any.new(int_value)
         end
 
         # Try float (including scientific notation)
-        if value =~ /^-?\d*\.?\d+([eE][+-]?\d+)?$/ && (float_value = value.to_f64?)
+        if FormKey.decimal?(value) && (float_value = value.to_f64?)
           return JSON::Any.new(float_value)
         end
 

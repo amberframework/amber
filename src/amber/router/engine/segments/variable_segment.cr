@@ -1,24 +1,29 @@
 module Amber::Router
   class VariableSegment(T) < Segment(T)
-    @has_constraint : Bool
     @parameter : String
+    @constraint : ParamConstraint?
 
-    def initialize(segment, @pattern : Regex? = nil)
+    def initialize(segment, @constraint : ParamConstraint? = nil)
       super segment
       @parameter = segment[1..-1]
-      @has_constraint = !@pattern.nil?
     end
 
     @[AlwaysInline]
     def match?(segment : String) : Bool
-      return true unless @has_constraint
-      !!(segment =~ @pattern)
+      if constraint = @constraint
+        constraint.matches?(segment)
+      else
+        true
+      end
     end
 
     @[AlwaysInline]
     def match_span?(path : String, byte_offset : Int32, bytesize : Int32) : Bool
-      return true unless @has_constraint
-      match?(path.byte_slice(byte_offset, bytesize))
+      if constraint = @constraint
+        constraint.matches_span?(path, byte_offset, bytesize)
+      else
+        true
+      end
     end
 
     def parametric? : Bool

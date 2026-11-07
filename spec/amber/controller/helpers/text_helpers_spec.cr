@@ -185,5 +185,108 @@ module Amber::Controller::Helpers
         controller.escape_html("plain text").should eq "plain text"
       end
     end
+
+    # Expected values below are what the Regex implementations (Amber
+    # 2.0.0-beta.9) returned for the same input.
+    describe "#highlight, edge cases" do
+      it "matches case-insensitively by simple case folding" do
+        controller.highlight("Ruſt rust RUST", "rust").should eq "<mark>Ruſt</mark> <mark>rust</mark> <mark>RUST</mark>"
+      end
+
+      it "compares character by character, so ß does not match SS" do
+        controller.highlight("Straße STRASSE", "ß").should eq "Stra<mark>ß</mark>e STRASSE"
+      end
+
+      it "does not match a dotted capital I for i" do
+        controller.highlight("İstanbul istanbul", "i").should eq "İstanbul <mark>i</mark>stanbul"
+      end
+
+      it "finds a match that starts inside a failed partial match" do
+        controller.highlight("aaab AAAB", "aab").should eq "a<mark>aab</mark> A<mark>AAB</mark>"
+      end
+
+      it "does not overlap matches" do
+        controller.highlight("aaa", "aa").should eq "<mark>aa</mark>a"
+      end
+
+      it "marks the empty text around every character for an empty phrase" do
+        controller.highlight("ab", "").should eq "<mark></mark>a<mark></mark>b<mark></mark>"
+      end
+
+      it "matches an escaped phrase against the escaped text" do
+        controller.highlight("Tom & Jerry", "&").should eq "Tom <mark>&amp;</mark> Jerry"
+        controller.highlight("x<y", "<").should eq "x<mark>&lt;</mark>y"
+      end
+    end
+
+    describe "#simple_format, edge cases" do
+      it "treats three or more newlines as one paragraph break" do
+        controller.simple_format("a\n\n\nb").should eq "<p>a</p><p>b</p>"
+      end
+
+      it "keeps an empty paragraph before a leading break and after a trailing one" do
+        controller.simple_format("\n\na").should eq "<p></p><p>a</p>"
+        controller.simple_format("a\n\n").should eq "<p>a</p><p></p>"
+      end
+
+      it "does not count carriage returns toward a paragraph break" do
+        controller.simple_format("a\r\n\r\nb").should eq "<p>a\r<br />\r<br />b</p>"
+      end
+
+      it "keeps single newlines inside a paragraph" do
+        controller.simple_format("a\nb\n\nc").should eq "<p>a<br />b</p><p>c</p>"
+      end
+    end
+
+    describe "#word_wrap, edge cases" do
+      it "breaks at the last whitespace that fits" do
+        controller.word_wrap("The quick brown fox", line_width: 10).should eq "The quick\nbrown fox"
+      end
+
+      it "leaves a word longer than the width whole when no break fits" do
+        controller.word_wrap("abcdefghij klm", line_width: 4).should eq "abcdefghij\nklm"
+      end
+
+      it "turns each whitespace run into one newline" do
+        controller.word_wrap("one  two\tthree", line_width: 3).should eq "one\ntwo\nthree"
+      end
+
+      it "keeps existing newlines" do
+        controller.word_wrap("line one\nline two", line_width: 20).should eq "line one\nline two"
+      end
+
+      it "breaks at Unicode whitespace" do
+        controller.word_wrap("a b c", line_width: 1).should eq "a\nb\nc"
+        controller.word_wrap("a　b", line_width: 1).should eq "a\nb"
+      end
+
+      it "drops trailing whitespace" do
+        controller.word_wrap("word ", line_width: 4).should eq "word"
+      end
+
+      it "keeps leading whitespace that starts no line" do
+        controller.word_wrap(" lead", line_width: 3).should eq " lead"
+      end
+
+      it "raises for a width below 1" do
+        expect_raises(ArgumentError) { controller.word_wrap("aa bb", line_width: 0) }
+      end
+    end
+
+    describe "#strip_tags, edge cases" do
+      it "keeps a < with no > after it" do
+        controller.strip_tags("a < b").should eq "a < b"
+        controller.strip_tags("a <b c").should eq "a <b c"
+      end
+
+      it "removes from a < to the first >" do
+        controller.strip_tags("<<b>>").should eq ">"
+        controller.strip_tags("<>").should eq ""
+      end
+
+      it "removes tags that span lines" do
+        controller.strip_tags("x<\n>y").should eq "xy"
+      end
+    end
   end
 end

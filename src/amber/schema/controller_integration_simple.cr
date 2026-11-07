@@ -304,7 +304,7 @@ module Amber::Schema
                 when Amber::Schema::ParamSource::Header
                   request.headers[source_name]?.try { |header| JSON::Any.new(header) }
                 when Amber::Schema::ParamSource::Cookie
-                  request.cookies[source_name]?.try { |cookie| JSON::Any.new(cookie.value) }
+                  Amber::Router::Cookies::Store.from_headers(request.headers)[source_name]?.try { |cookie| JSON::Any.new(cookie.value) }
                 else
                   consumed_body_fields << source_name
                   body_data[source_name]?

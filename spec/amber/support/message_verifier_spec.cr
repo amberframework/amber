@@ -1,7 +1,31 @@
 require "../../spec_helper"
 
 module Amber::Support
+  # A verifier whose signature check raises the ArgumentError it was given,
+  # to reach `verified`'s rescue.
+  class RaisingMessageVerifier < MessageVerifier
+    def initialize(@error_message : String)
+      super("secret")
+    end
+
+    def valid_message?(data, digest)
+      raise ArgumentError.new(@error_message)
+    end
+  end
+
   describe MessageVerifier do
+    describe "#verified with an ArgumentError" do
+      it "returns nil when the message mentions invalid base64" do
+        RaisingMessageVerifier.new("Unexpected byte: invalid base64").verified("data--digest").should be_nil
+      end
+
+      it "raises any other ArgumentError" do
+        expect_raises(ArgumentError, "something else") do
+          RaisingMessageVerifier.new("something else").verified("data--digest")
+        end
+      end
+    end
+
     describe "basic signing and verification" do
       it "generates and verifies a signed message" do
         secret = Random::Secure.urlsafe_base64(32)

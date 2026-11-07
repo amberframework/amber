@@ -28,9 +28,9 @@ module Amber::Schema::Validator
         !value.as_f?.nil? || !value.as_i?.nil?
       when "Bool"
         !value.as_bool?.nil?
-      when /^Array\(/
+      when .starts_with?("Array(")
         !value.as_a?.nil?
-      when /^Hash\(/
+      when .starts_with?("Hash(")
         !value.as_h?.nil?
       when "Time"
         if str = value.as_s?

@@ -1,5 +1,6 @@
 require "json"
 require "uri"
+require "./support/text_matching"
 
 module Amber
   # Runtime access to the build-time static asset manifest.
@@ -107,7 +108,7 @@ module Amber
           unless normalized == logical_path
             raise InvalidManifest.new(source, "asset key #{logical_path.inspect} is not normalized")
           end
-          unless entry.digest.matches?(/\A[0-9a-f]{64}\z/)
+          unless Assets.sha256_hex_digest?(entry.digest)
             raise InvalidManifest.new(source, "#{logical_path.inspect} has an invalid SHA-256 digest")
           end
           expected_path = Assets.expected_public_path(normalized, entry.digest, public_path)
@@ -117,7 +118,7 @@ module Amber
               "#{logical_path.inspect} has noncanonical path #{entry.path.inspect}; expected #{expected_path.inspect}"
             )
           end
-          unless entry.integrity.matches?(/\Asha256-[A-Za-z0-9+\/]{43}=\z/)
+          unless Assets.sha256_integrity?(entry.integrity)
             raise InvalidManifest.new(source, "#{logical_path.inspect} has an invalid integrity value")
           end
           if entry.content_type.empty? || entry.bytes < 0
@@ -190,12 +191,36 @@ module Amber
     end
 
     def self.public_reference?(path : String) : Bool
+      # Text that is not valid UTF-8 is no URL; the Regex check raised on it.
+      return false unless path.valid_encoding?
+
       path.starts_with?('/') ||
         path.starts_with?('#') ||
         path.starts_with?("//") ||
         path.starts_with?("data:") ||
         path.starts_with?("blob:") ||
-        path.matches?(/\Ahttps?:/i)
+        Support::TextMatching.starts_with_ignoring_case?(path, "http:") ||
+        Support::TextMatching.starts_with_ignoring_case?(path, "https:")
+    end
+
+    # Returns `true` when *digest* is 64 lowercase hex digits, a SHA-256
+    # digest as the manifest writes it.
+    def self.sha256_hex_digest?(digest : String) : Bool
+      return false unless digest.bytesize == 64
+      digest.each_byte.all? do |byte|
+        char = byte.unsafe_chr
+        char.ascii_number? || ('a'..'f').includes?(char)
+      end
+    end
+
+    # Returns `true` when *integrity* is a Subresource Integrity value for one
+    # SHA-256 digest: `sha256-`, 43 base64 characters, then `=`.
+    def self.sha256_integrity?(integrity : String) : Bool
+      return false unless integrity.bytesize == 51 && integrity.starts_with?("sha256-") && integrity.ends_with?('=')
+      integrity.to_slice[7, 43].all? do |byte|
+        char = byte.unsafe_chr
+        char.ascii_alphanumeric? || char == '+' || char == '/'
+      end
     end
 
     def self.normalize_logical_path(path : String) : String
@@ -222,7 +247,7 @@ module Amber
         raise InvalidManifest.new("asset manifest", "public_path must be a root-relative URL path")
       end
 
-      normalized = value.gsub(/\/{2,}/, "/")
+      normalized = value.squeeze('/')
       normalized = normalized.rstrip('/') unless normalized == "/"
       segments = normalized.split('/')
       if segments.any? { |segment| segment == "." || segment == ".." }

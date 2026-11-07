@@ -60,16 +60,16 @@ module Amber::Schema
         coerce_to_time(value)
       when "UUID"
         coerce_to_uuid(value)
-      when /^Array\((.+)\)$/
-        element_type = $1
-        coerce_to_array(value, element_type)
-      when /^Hash\(String, (.+)\)$/
-        value_type = $1
-        coerce_to_hash(value, value_type)
       else
-        # Unknown types require an explicitly registered coercion. Silently
-        # accepting them would make a declared schema appear stricter than it is.
-        nil
+        if element_type = TypeNames.array_element_type(target_type)
+          coerce_to_array(value, element_type)
+        elsif value_type = TypeNames.string_hash_value_type(target_type)
+          coerce_to_hash(value, value_type)
+        else
+          # Unknown types require an explicitly registered coercion. Silently
+          # accepting them would make a declared schema appear stricter than it is.
+          nil
+        end
       end
     rescue
       nil

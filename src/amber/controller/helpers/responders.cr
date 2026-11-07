@@ -16,9 +16,6 @@ module Amber::Controller::Helpers
         markdown: "text/markdown; charset=utf-8",
       }
 
-      TYPE_EXT_REGEX         = /\.(#{TYPE.keys.join("|")})$/
-      ACCEPT_SEPARATOR_REGEX = /,|,\s/
-
       @requested_responses : String | Array(String) | Nil
       @html_response : String | ProcType | Nil
       @xml_response : String | ProcType | Nil
@@ -170,8 +167,9 @@ module Amber::Controller::Helpers
       path = request.path
       return unless path.includes?('.')
 
-      path_ext = path.match(Content::TYPE_EXT_REGEX).try(&.[1])
-      return Content::TYPE[path_ext] if path_ext
+      # No `TYPE` key holds a dot, so only the text after the last dot can be one.
+      path_ext = path.rpartition('.').last
+      Content::TYPE[path_ext]?
     end
 
     private def accepts_request_type
@@ -183,7 +181,7 @@ module Amber::Controller::Helpers
 
         # RFC 7231: split on "," first into media-range segments,
         # then strip quality/extension params (";<params>") from each segment.
-        accepts = accept.split(Content::ACCEPT_SEPARATOR_REGEX).map do |part|
+        accepts = accept.split(',').map do |part|
           part.split(";").first.strip
         end.reject(&.empty?)
         return accepts unless accepts.empty?
