@@ -59,14 +59,14 @@ module Amber
           it "uses constraints for defining crud routes" do
             router = Router.new
             router.draw :web do
-              resources "/orders", HelloController, constraints: {"id" => /\d\d\d/}
+              resources "/orders", HelloController, constraints: {"id" => Amber::Router::ParamConstraints::NUMERIC.with_length(3)}
             end
 
             # unchanged
             router.match("POST", "/orders").found?.should be_true
             router.match("GET", "/orders").found?.should be_true
 
-            # would have matched without regex constraint
+            # would have matched without the parameter rule
             router.match("GET", "/orders/abc").found?.should be_false
             router.match("GET", "/orders/def/edit").found?.should be_false
             router.match("PUT", "/orders/3ghifds").found?.should be_false
@@ -157,14 +157,19 @@ module Amber
         it "registers routes with constraints as Hash" do
           router = Router.new
           router.draw :web do
-            get "/checkout/:cart", HelloController, :world, {"cart" => /\d\d\d/}
+            get "/checkout/:cart", HelloController, :world, {"cart" => Amber::Router::ParamConstraints::NUMERIC.with_length(3)}
           end
 
           request = HTTP::Request.new("GET", "/checkout/hello")
           route = router.match_by_request(request)
           route.found?.should be_false
 
+          # A rule judges the whole segment: three digits inside it are not enough.
           request = HTTP::Request.new("GET", "/checkout/he110")
+          route = router.match_by_request(request)
+          route.found?.should be_false
+
+          request = HTTP::Request.new("GET", "/checkout/110")
           route = router.match_by_request(request)
           route.found?.should be_true
         end
@@ -212,7 +217,7 @@ module Amber
 
         it "falls back to the full path when the stripped path matches nothing" do
           router = Router.new
-          router.add Route.new("GET", "/files/:name", handler, :download, :web, Scope.new, "FilesController", {"name" => /\.json\z/})
+          router.add Route.new("GET", "/files/:name", handler, :download, :web, Scope.new, "FilesController", {"name" => Amber::Router::ParamConstraints::Custom.new("json_file", &.ends_with?(".json"))})
 
           router.match_by_request(HTTP::Request.new("GET", "/files/report")).found?.should be_false
           route = router.match_by_request(HTTP::Request.new("GET", "/files/report.json"))
@@ -315,7 +320,7 @@ module Amber
             context.content = "hey world"
           }
 
-          route = Route.new("GET", "/posts/:slug", handler, :index, :web, Scope.new, "PostsController", {"slug" => /\d\d\-\w+/})
+          route = Route.new("GET", "/posts/:slug", handler, :index, :web, Scope.new, "PostsController", {"slug" => Amber::Router::ParamConstraints::Custom.new("numbered_slug") { |segment| segment.size > 3 && segment[0, 2].each_char.all?(&.ascii_number?) && segment[2] == '-' }})
           router.add(route)
 
           request = HTTP::Request.new("GET", "/posts/hello")
