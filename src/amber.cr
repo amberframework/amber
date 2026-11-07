@@ -6,6 +6,7 @@ require "random/secure"
 require "ecr"
 
 require "./amber/version"
+require "./amber/support/text_formats"
 require "./amber/support/text_matching"
 require "./amber/assets"
 require "./amber/support/inflector"

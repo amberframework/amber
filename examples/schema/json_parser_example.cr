@@ -1,6 +1,6 @@
 # Example usage of the JSON Parser in Amber Schema
 
-require "../../../amber"
+require "../../src/amber"
 
 module JsonParserExample
   # Example 1: Basic JSON parsing

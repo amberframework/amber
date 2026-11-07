@@ -75,11 +75,11 @@ module Amber::Schema::Parser
       parts.skip(1).each { |part| budget.check_segment!(part) } if key.includes?('[')
 
       # Handle array notation with indices: tags[0], tags[1]
-      if match = key.match(/^(.+)\[(\d+)\]$/)
-        base_key = match[1]
+      if indexed_key = FormKey.indexed_name_and_index(key)
+        base_key, index_text = indexed_key
         hash[base_key] ||= JSON::Any.new([] of JSON::Any)
         if array = hash[base_key].as_a?
-          index = budget.reserve_array_slot!(array, match[2])
+          index = budget.reserve_array_slot!(array, index_text)
           array[index] = yield
           return true
         end
@@ -121,7 +121,7 @@ module Amber::Schema::Parser
     # Parse nested keys handling both brackets and dots
     private def self.parse_nested_key(key : String) : Array(String)
       # Split on brackets and remove empty parts
-      parts = key.split(/[\[\]]/).reject(&.empty?)
+      parts = FormKey.segments(key)
 
       # If no brackets found, try splitting on dots
       if parts.size == 1 && key.includes?('.')

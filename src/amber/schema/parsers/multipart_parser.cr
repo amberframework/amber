@@ -76,8 +76,7 @@ module Amber::Schema::Parser
 
       # Validate filename pattern
       if pattern = options["filename_pattern"]?.try(&.as_s?)
-        regex = Regex.new(pattern)
-        unless filename.matches?(regex)
+        unless PatternEngine.matches?(pattern, filename)
           errors << CustomValidationError.new(
             field_name,
             "Filename '#{filename}' does not match required pattern: #{pattern}",

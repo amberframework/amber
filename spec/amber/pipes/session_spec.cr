@@ -20,7 +20,7 @@ module Amber
             request_1.session["name"] = "david"
             Session.new.call(request_1)
 
-            request2 = HTTP::Request.new("GET", "/", request_1.response.headers)
+            request2 = HTTP::Request.new("GET", "/", browser_headers_after(request_1.response.headers))
             request_2 = create_context(request2)
             Session.new.call(request_2)
 
@@ -43,7 +43,7 @@ module Amber
             request_1.session["last"] = "akward"
             Session.new.call(request_1)
 
-            request2 = HTTP::Request.new("GET", "/", request_1.response.headers)
+            request2 = HTTP::Request.new("GET", "/", browser_headers_after(request_1.response.headers))
             request_2 = create_context(request2)
             Session.new.call(request_2)
 

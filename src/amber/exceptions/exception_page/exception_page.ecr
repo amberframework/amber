@@ -766,7 +766,7 @@
                         <pre class="code code-block">
                           <%- context.to_h.each do |lineno, code| -%>
                             <%- css_class = (lineno == frame.lineno) ? "-highlight" : nil -%>
-                            <span class="line <%= css_class %>"><span class="ln"><%= lineno %></span><span class="code"><%= Crystal::SyntaxHighlighter::HTML.highlight!(code) %></span></span>
+                            <span class="line <%= css_class %>"><span class="ln"><%= lineno %></span><span class="code"><%= CodeColoring.highlight(code) %></span></span>
                           <%- end -%>
                         </pre>
                           <details class="meta">
@@ -774,7 +774,7 @@
                                   <span class="app"><%= label_for_frame(frame) %></span>
                                   <%= HTML.escape(frame.method) %>
                               </summary>
-                              <blockquote class="code-quote -padded"><%= Crystal::SyntaxHighlighter::HTML.highlight!(context.line.to_s.strip) %></blockquote>
+                              <blockquote class="code-quote -padded"><%= CodeColoring.highlight(context.line.to_s.strip) %></blockquote>
                           </details>
                       <%- else -%>
                         <div class="file">
