@@ -17,7 +17,7 @@ module Amber
 
       # url validation
       def url?
-        !!self.match(/^(http(s)?(:\/\/))?(www\.)?[a-zA-Z0-9-_\.]+(\.[a-zA-Z0-9]{2,})([-a-zA-Z0-9:%_\+.~#?&\/\/=]*)/)
+        Support::TextFormats.location_prefix?(self)
       end
 
       # ip v4 validation

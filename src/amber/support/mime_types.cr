@@ -1,11 +1,9 @@
 module Amber
   module Support
     module MimeTypes
-      DEFAULT_MIME_TYPE      = "application/octet-stream"
-      ZIP_FILE_EXTENSIONS    = %w(.htm .html .txt .css .js .svg .json .xml .otf .ttf .woff .woff2)
-      ACCEPT_SEPARATOR_REGEX = /,|,\s/
-      TYPE_EXT_REGEX         = /\.(#{MIME_TYPES.keys.join("|")})$/
-      FORMAT_HEADER          = "Accept"
+      DEFAULT_MIME_TYPE   = "application/octet-stream"
+      ZIP_FILE_EXTENSIONS = %w(.htm .html .txt .css .js .svg .json .xml .otf .ttf .woff .woff2)
+      FORMAT_HEADER       = "Accept"
 
       MIME_TYPES = {
         "123"       => "application/vnd.lotus-1-2-3",
@@ -648,15 +646,24 @@ module Amber
         DEFAULT_MIME_TYPE
       end
 
+      # Returns the `MIME_TYPES` key that ends *path* after a dot (`"json"` for
+      # `"/users.json"`), or `nil`. No key holds a dot, so only the text after
+      # the last dot can be one.
+      def self.path_extension_format(path : String) : String?
+        return unless path.includes?('.')
+        extension = path.rpartition('.').last
+        extension if MIME_TYPES.has_key?(extension)
+      end
+
       def self.get_request_format(request)
-        path_ext = request.path.match(TYPE_EXT_REGEX).try(&.[1])
+        path_ext = path_extension_format(request.path)
         return path_ext if path_ext
 
         accept = request.headers[FORMAT_HEADER]?
         if accept && !accept.empty?
           # RFC 7231: split on "," first to get the highest-priority media-range,
           # then strip quality/extension params (";<params>") from that segment.
-          first_type = accept.split(ACCEPT_SEPARATOR_REGEX).first?.try do |segment|
+          first_type = accept.split(',').first?.try do |segment|
             segment.split(";").first.strip
           end
           return format(first_type) if first_type && !first_type.empty?

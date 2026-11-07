@@ -40,7 +40,7 @@ module Amber::Schema
   end
 
   # Define a regex pattern for string validation
-  # Example: @[Pattern(/^(?=.*[A-Za-z])(?=.*\d).+$/)]
+  # Example: @[Pattern(/^[a-z0-9_]+$/)]
   annotation Pattern
   end
 

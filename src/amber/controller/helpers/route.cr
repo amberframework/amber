@@ -13,7 +13,7 @@ module Amber::Controller::Helpers
     end
 
     def controller_name
-      self.class.name.sub(/Controller$/, "").underscore
+      self.class.name.rchop("Controller").underscore
     end
 
     def controller_name_no_underscore

@@ -6,11 +6,11 @@
 # - Complex form structures with arrays and objects
 # - Integration with the Schema API validation system
 
-require "../definition"
-require "../parser"
-require "../errors"
-require "../validator"
-require "../result"
+require "../../src/amber/schema/definition"
+require "../../src/amber/schema/parser"
+require "../../src/amber/schema/errors"
+require "../../src/amber/schema/validator"
+require "../../src/amber/schema/result"
 
 module FormDataExample
   # Example 1: Basic user registration form

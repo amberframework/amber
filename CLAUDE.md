@@ -95,7 +95,7 @@ puts Amber.env  # => "development"
 - **Grant ORM**: Separate shard — ActiveRecord-style ORM for V2 (publishing to the amberframework org soon)
 - **Micrate**: Separate shard (`amberframework/micrate`) — SQL migrations that Amber CLI runs as `amber database migrate`, `rollback`, and `status`
 - **Gemma**: Separate shard — file attachments, storage, and delivery; an ecosystem preview, not part of the web release gate
-- **Mica**: Separate shard (`amberframework/mica`, v0.1.0) — pure-Crystal parsing of untrusted input to published standards, under a work budget. Today it parses XML 1.0 and 1.1 with Namespaces (streaming reader, DOM, builder, XPath 1.0), with no C parsing library and no network or file access while parsing. It is the opt-in XML request parser; Amber itself does not depend on it. See "Accepting XML request bodies" below.
+- **Mica**: Separate shard (`amberframework/mica`, v0.1.1) — pure-Crystal parsing of untrusted input to published standards, under a work budget. Today it parses XML 1.0 and 1.1 with Namespaces (streaming reader, DOM, builder, XPath 1.0), with no C parsing library and no network or file access while parsing. It is the opt-in XML request parser; Amber itself does not depend on it. See "Accepting XML request bodies" below.
 - **CLI**: Separate project (`amber_cli`) — not part of this repo
 - **Asset Pipeline**: Separate project (`amberframework/asset_pipeline`) — not part of this repo
 
@@ -105,20 +105,20 @@ The website's crew page gives each boundary a character: Amber (framework), Gran
 
 An action bound to a request schema answers an `application/xml`, `text/xml` or other `+xml` body with `415 Unsupported Media Type` until the app registers a parser for that media type. To accept XML through Mica, do all three steps. Without the parser registration, the initializer load, or the XML media type in the bound schema, those requests still get 415; without the shard, the app does not build.
 
-1. Add the shard to `shard.yml`, pinned to the v0.1.0 release commit:
+1. Add the shard to `shard.yml`, pinned to the v0.1.1 release commit:
 
    ```yaml
    dependencies:
      mica:
        github: amberframework/mica
-       commit: 6a4866e59c9c1bde099556315febebbbd6b635f3 # v0.1.0
+       commit: 80f4b7a4d3f3365fadda160554bf68001b394a82 # v0.1.1
    ```
 
    Then run `minecart update mica` and check that `shard.lock` records exactly these two lines for Mica before you commit it:
 
    ```yaml
-       version: 0.1.0+git.commit.6a4866e59c9c1bde099556315febebbbd6b635f3
-       checksum: git-tree:6e9f3506210f1580c813c475c170362b5412dca7
+       version: 0.1.1+git.commit.80f4b7a4d3f3365fadda160554bf68001b394a82
+       checksum: git-tree:22075f8ddb2d5874bdf260f0e4b00a3927d0515d
    ```
 
    Later installs run `minecart install --frozen`.

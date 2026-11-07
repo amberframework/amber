@@ -24,7 +24,8 @@ module Amber::Support
         try_previous_secrets(data, digest)
       end
     rescue argument_error : ArgumentError
-      return if argument_error.message =~ %r{invalid base64}
+      message = argument_error.message
+      return if message && message.includes?("invalid base64")
       raise argument_error
     end
 

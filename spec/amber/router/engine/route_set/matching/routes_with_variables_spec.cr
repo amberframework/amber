@@ -41,13 +41,13 @@ describe "routes with variables" do
   it "routes with constraints" do
     router = build do
       # With symbol hash
-      add "/get/posts/:page", :user_path, {:page => /\d+/}
+      add "/get/posts/:page", :user_path, {:page => :numeric}
 
       # With string hash
-      add "/get/test/:id", :user_path, {"id" => /foo_\d/}
+      add "/get/test/:id", :user_path, {"id" => Amber::Router::ParamConstraints::Custom.new("foo_digit") { |segment| segment.size == 5 && segment.starts_with?("foo_") && segment[4].ascii_number? }}
 
       # with named tuple
-      add "/get/time/:id", :user_path, {id: /\d:\d:\d/}
+      add "/get/time/:id", :user_path, {id: Amber::Router::ParamConstraints::Custom.new("clock") { |segment| segment.split(':').all? { |part| part.size == 1 && part[0].ascii_number? } && segment.count(':') == 2 }}
     end
 
     router.find("/get/posts/1").found?.should be_true
