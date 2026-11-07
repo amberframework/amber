@@ -52,6 +52,26 @@ module Amber::Support
         Inflector.singularize("").should eq ""
       end
 
+      it "keeps the case of the stem and writes the replacement in lowercase" do
+        Inflector.singularize("CATEGORIES").should eq "CATEGORy"
+        Inflector.singularize("CASES").should eq "CAse"
+        Inflector.singularize("BOXES").should eq "BOx"
+      end
+
+      it "drops only the final s after a vowel then ses" do
+        Inflector.singularize("cases").should eq "case"
+        Inflector.singularize("databases").should eq "database"
+      end
+
+      it "drops only the final s after a consonant other than s then ses" do
+        Inflector.singularize("responses").should eq "response"
+        Inflector.singularize("ses").should eq "se"
+      end
+
+      it "matches suffixes by simple case folding" do
+        Inflector.singularize("boxeſ").should eq "box"
+      end
+
       it "handles single character words" do
         Inflector.singularize("s").should eq ""
       end

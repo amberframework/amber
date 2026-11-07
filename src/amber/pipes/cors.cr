@@ -26,7 +26,7 @@ module Amber
       @origin : Origin
 
       def initialize(
-        @origins : OriginType = ["*", %r()],
+        @origins : OriginType = OriginType{"*"},
         @methods = ALLOW_METHODS,
         @headers = ALLOW_HEADERS,
         @credentials = false,

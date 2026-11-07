@@ -241,7 +241,7 @@ module Amber::Configuration
     end
 
     private def self.env_name(name : String) : String
-      name.upcase.gsub(/[^A-Z0-9]/, "_")
+      name.upcase.gsub { |char| (char.ascii_uppercase? || char.ascii_number?) ? char : '_' }
     end
 
     private def self.apply_server(config : ServerConfig) : Nil

@@ -30,14 +30,44 @@ module Amber
     # A static pipe whose fingerprints are 8 hex characters, so it supplies
     # its own cache policy through the `cache_control` hook.
     class StaticWithShortFingerprints < Static
-      SHORT_FINGERPRINT = /-[0-9a-f]{8}\.[^\/]+$/i
-
       protected def cache_control(request_path : String) : String
-        if request_path.matches?(SHORT_FINGERPRINT)
+        if Static.fingerprinted?(request_path, hex_lengths: 8..8)
           IMMUTABLE_CACHE_CONTROL
         else
           "public, max-age=60"
         end
+      end
+    end
+
+    describe ".fingerprinted?" do
+      it "accepts 16 to 64 hex digits of either case between a dash and a dot" do
+        Static.fingerprinted?("/assets/app-#{"a" * 16}.css").should be_true
+        Static.fingerprinted?("/assets/app-#{"A" * 64}.css").should be_true
+        Static.fingerprinted?("/assets/app-#{"0123456789abcdef"}.min.css").should be_true
+      end
+
+      it "rejects a hex run shorter than 16 or longer than 64" do
+        Static.fingerprinted?("/assets/app-#{"a" * 15}.css").should be_false
+        Static.fingerprinted?("/assets/app-#{"a" * 65}.css").should be_false
+      end
+
+      it "needs at least one character after the dot, in the last segment" do
+        Static.fingerprinted?("/assets/app-#{"a" * 16}.").should be_false
+        Static.fingerprinted?("/assets-#{"a" * 16}.d/app.css").should be_false
+      end
+
+      it "finds a later dash when an earlier one starts no fingerprint" do
+        Static.fingerprinted?("/assets/my-app-#{"a" * 16}.css").should be_true
+      end
+
+      it "rejects a path that is not valid UTF-8" do
+        path = String.new("/app-0123456789abcdef.".to_slice + Bytes[0xFF])
+        Static.fingerprinted?(path).should be_false
+      end
+
+      it "takes the hex lengths a subclass asks for" do
+        Static.fingerprinted?("/a-0123abcd.js", hex_lengths: 8..8).should be_true
+        Static.fingerprinted?("/a-0123abcd9.js", hex_lengths: 8..8).should be_false
       end
     end
 
