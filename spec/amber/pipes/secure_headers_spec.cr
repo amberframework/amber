@@ -47,5 +47,19 @@ module Amber::Pipe
       response.status_code.should eq 404
       response.headers["X-Content-Type-Options"].should eq "nosniff"
     end
+
+    it "keeps security headers on unrouted JSON API requests when plugged above the Error pipe" do
+      request = HTTP::Request.new("GET", "/api/v1/missing")
+      request.headers["Accept"] = "application/json"
+
+      pipe = SecureHeaders.new
+      pipe.next = Error.new
+
+      response = create_request_and_return_io(pipe, request)
+
+      response.status_code.should eq 404
+      response.headers["X-Content-Type-Options"].should eq "nosniff"
+      response.headers["X-Frame-Options"].should eq "SAMEORIGIN"
+    end
   end
 end

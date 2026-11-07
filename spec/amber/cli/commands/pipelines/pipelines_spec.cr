@@ -15,7 +15,7 @@ module Amber::CLI
     context "in an `amber new` with default options" do
       output = ""
 
-      pipeline_names = %w(web static)
+      pipeline_names = %w(web api static)
 
       web_default_plugs = %w(
         Citrine::I18n::Handler
@@ -27,13 +27,23 @@ module Amber::CLI
         Amber::Pipe::CSRF
       )
 
+      api_default_plugs = %w(
+        Amber::Pipe::SecureHeaders
+        Amber::Pipe::Error
+        Amber::Pipe::Logger
+        Amber::Pipe::Session
+        Amber::Pipe::CORS
+      )
+
       static_default_plugs = %w(
+        Amber::Pipe::SecureHeaders
         Amber::Pipe::Error
         Amber::Pipe::Static
       )
 
       pipe_plugs = {
         "web"    => web_default_plugs,
+        "api"    => api_default_plugs,
         "static" => static_default_plugs,
       }
 
@@ -55,7 +65,7 @@ module Amber::CLI
             output.should contain pipeline
           end
 
-          (web_default_plugs + static_default_plugs).each do |plug|
+          (web_default_plugs + api_default_plugs + static_default_plugs).each do |plug|
             output.should contain plug
           end
 
