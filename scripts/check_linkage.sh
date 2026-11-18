@@ -4,7 +4,8 @@
 # 1. scripts/linkage/minimal_json_app.cr links no libpcre2, and holds no pcre2_ symbol.
 # 2. scripts/linkage/regex_control.cr links PCRE2, which proves the check can fail.
 # 3. The built app answers its GET route and its POST route with a JSON body,
-#    with a malformed Cookie header in the mix.
+#    with a malformed Cookie header in the mix, and a GET that answers through
+#    `respond_with` with a NamedTuple.
 #
 # usage: scripts/check_linkage.sh [OUTPUT_DIR]     (macOS otool, Linux ldd)
 # Set CRYSTAL to choose the compiler; `crystal` is the default.
@@ -70,11 +71,12 @@ done
 
 get_answer=$(curl --silent --max-time 5 --header 'Cookie: a=1; bad"=2; b="x"; ;;' "$base_url/notes" || true)
 post_answer=$(curl --silent --max-time 5 --header 'Content-Type: application/json' --data '{"title":"hi"}' "$base_url/notes" || true)
+latest_answer=$(curl --silent --max-time 5 "$base_url/notes/latest" || true)
 
-if [ "$get_answer" = '{"ok":true}' ] && [ "$post_answer" = '{"title":"hi"}' ]; then
-  echo "ok: the app answers GET and POST"
+if [ "$get_answer" = '{"ok":true}' ] && [ "$post_answer" = '{"title":"hi"}' ] && [ "$latest_answer" = '{"title":"latest","count":1}' ]; then
+  echo "ok: the app answers GET, POST and the respond_with GET"
 else
-  echo "FAIL: GET answered [$get_answer], POST answered [$post_answer]"
+  echo "FAIL: GET answered [$get_answer], POST answered [$post_answer], respond_with GET answered [$latest_answer]"
   tail -20 "$output_directory/minimal_json_app.log"
   status=1
 fi

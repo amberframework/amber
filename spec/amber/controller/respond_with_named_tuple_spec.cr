@@ -6,7 +6,7 @@ class NamedTupleSubscriberResponseSchema < Amber::Schema::Definition
 end
 
 class NamedTupleSubscriberController < Amber::Controller::Base
-  response_schema :create, NamedTupleSubscriberResponseSchema
+  response_schema :create, NamedTupleSubscriberResponseSchema, status: 201
 
   def create
     respond_with({id: 7_i64, email_address: "amber@example.com"}, status: 201)
@@ -48,7 +48,9 @@ describe Amber::Schema::ControllerIntegration do
     context "with a NamedTuple" do
       it "answers with string keys that satisfy the declared response schema" do
         context, output = named_tuple_context
-        NamedTupleSubscriberController.new(context).create
+        controller = NamedTupleSubscriberController.new(context)
+        controller.run_before_filter(:create)
+        controller.create
 
         context.response.status_code.should eq(201)
         context.response.close
@@ -59,7 +61,9 @@ describe Amber::Schema::ControllerIntegration do
 
       it "converts Int32, Float, Bool, nil, array, nested NamedTuple and JSON::Any values" do
         context, output = named_tuple_context
-        NamedTupleOpenController.new(context).show
+        controller = NamedTupleOpenController.new(context)
+        controller.run_before_filter(:show)
+        controller.show
 
         context.response.status_code.should eq(200)
         context.response.close

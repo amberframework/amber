@@ -1,5 +1,6 @@
 # The smallest Amber JSON API: one GET and one POST with a JSON body, run through
-# the default error pipe. `scripts/check_linkage.sh` builds it and checks what it links.
+# the default error pipe, plus a GET that answers through `respond_with` with a
+# NamedTuple. `scripts/check_linkage.sh` builds it and checks what it links.
 require "../../src/amber"
 
 class NoteInput
@@ -20,6 +21,10 @@ class NotesController < Amber::Controller::Base
     note_input = NoteInput.from_json(request_body ? request_body.gets_to_end : "{}")
     {title: note_input.title}.to_json
   end
+
+  def latest
+    respond_with({title: "latest", count: 1})
+  end
 end
 
 Amber::Server.configure do
@@ -30,6 +35,7 @@ Amber::Server.configure do
   routes :api do
     get "/notes", NotesController, :index
     post "/notes", NotesController, :create
+    get "/notes/latest", NotesController, :latest
   end
 end
 

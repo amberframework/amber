@@ -177,10 +177,12 @@ module Amber::Schema
       format : Symbol = :auto,
       key_provider : Amber::Schema::COSE::KeyProvider? = Amber::Schema::COSE.key_provider,
     )
-      # Convert NamedTuple to Hash if needed
+      # A NamedTuple has Symbol keys and may hold any JSON-serializable value
+      # (Int32, arrays, nested tuples), so it goes through its own JSON form to
+      # become the Hash(String, JSON::Any) that response validation reads.
       response_data = case data
                       when NamedTuple
-                        data.to_h.transform_values { |v| JSON::Any.new(v) }
+                        JSON.parse(data.to_json).as_h
                       when Hash
                         data
                       when Nil
