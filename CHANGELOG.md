@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0-beta.11 (unreleased)
+
+- `respond_with` accepts a `NamedTuple` as documented
+  ([#1425](https://github.com/amberframework/amber/issues/1425)). It used to
+  build a hash with `Symbol` keys, so the call did not compile. The tuple now
+  becomes `Hash(String, JSON::Any)` through its JSON form, which also accepts
+  `Int32`, arrays and nested tuples as values. `scripts/check_linkage.sh` answers
+  one route this way, so the path stays free of PCRE2.
+- Placeholder: a default `amber new` app (SQLite, a Grant model, asset_pipeline)
+  links no PCRE2 once the Grant and asset_pipeline releases that keep `Regex`
+  off their default require paths are pinned here.
+
 ## 2.0.0-beta.10 (2026-11-07)
 
 - A JSON API built on Amber no longer reaches `Regex` on its request path, so
