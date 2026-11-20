@@ -216,10 +216,22 @@ session:
   key: "amber.session"         # Cookie name (default: "amber.session")
   store: "signed_cookie"       # Store type (default: "signed_cookie")
   expires: 3600                # Session TTL in seconds (default: 0 = session cookie)
-  adapter: "memory"            # Backend adapter (default: "memory")
+  adapter: "memory"            # Backend adapter for store: adapter (default: "memory")
+  max_memory_sessions: 10000   # Most sessions the memory adapter keeps (default: 10000)
 ```
 
-Valid `store` values: `"signed_cookie"`, `"encrypted_cookie"`, `"redis"`
+Valid `store` values: `"signed_cookie"`, `"encrypted_cookie"`, `"adapter"`, `"redis"`
+
+- `signed_cookie` and `encrypted_cookie` keep the whole session in the visitor's
+  cookie, so the server holds nothing for it. `encrypted_cookie` also hides the
+  contents from the visitor.
+- `adapter` keeps the session on the server through `adapter`, and the cookie
+  carries only the encrypted session id. `redis` is read the same way.
+- The `memory` adapter keeps at most `max_memory_sessions` sessions per process.
+  When it is full, starting a new session drops the session used longest ago.
+
+A request whose flash is empty does not write the session, so a visitor who
+never sends a session cookie back is given no session.
 
 ### DatabaseConfig
 
@@ -423,6 +435,7 @@ The naming convention is `AMBER_{SECTION}_{KEY}`:
 | `AMBER_SESSION_STORE` | `session.store` |
 | `AMBER_SESSION_EXPIRES` | `session.expires` |
 | `AMBER_SESSION_ADAPTER` | `session.adapter` |
+| `AMBER_SESSION_MAX_MEMORY_SESSIONS` | `session.max_memory_sessions` |
 | `AMBER_PUBSUB_ADAPTER` | `pubsub.adapter` |
 | `AMBER_LOGGING_SEVERITY` | `logging.severity` |
 | `AMBER_LOGGING_COLORIZE` | `logging.colorize` |

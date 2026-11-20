@@ -8,6 +8,11 @@ module Amber::Adapters
   # TTL functionality through background cleanup. This is the default session adapter
   # and is suitable for development, testing, and single-instance applications.
   #
+  # It keeps at most `max_sessions` sessions. When it is full, starting a new
+  # session drops the session used longest ago, so clients that never send
+  # their session cookie back cannot grow the process without limit. Reading,
+  # writing or extending a session counts as using it.
+  #
   # **Note**: Session data will be lost when the application restarts since
   # everything is stored in memory. For production applications that require
   # persistence or multi-instance deployments, consider using a database or
@@ -16,66 +21,60 @@ module Amber::Adapters
   # ## Usage
   #
   # ```
-  # # Configure in your application settings
-  # config.session_adapter = Amber::Adapters::MemorySessionAdapter.new
+  # adapter = Amber::Adapters::MemorySessionAdapter.new(max_sessions: 50_000)
   # ```
+  #
+  # Apps choose it with `session.store: adapter` and `session.adapter: memory`,
+  # and set the limit with `session.max_memory_sessions`.
   class MemorySessionAdapter < SessionAdapter
+    # The default for `max_sessions` and for `session.max_memory_sessions`.
+    DEFAULT_MAX_SESSIONS = 10_000
+
     # Internal structure to store session data with expiration times
     private record SessionEntry, data : Hash(String, String), expires_at : Time?
 
-    # Thread-safe session storage
+    # The most sessions this adapter keeps at once.
+    getter max_sessions : Int32
+
+    # Thread-safe session storage. A `Hash` keeps insertion order, and every
+    # use moves a session to the end, so the first entry is always the session
+    # used longest ago.
     @sessions : Hash(String, SessionEntry)
     @mutex : Mutex
     @cleanup_running : Bool = false
 
-    def initialize
+    def initialize(@max_sessions : Int32 = DEFAULT_MAX_SESSIONS)
+      if @max_sessions < 1
+        raise ArgumentError.new("max_sessions must be at least 1, got #{@max_sessions}")
+      end
+
       @sessions = Hash(String, SessionEntry).new
       @mutex = Mutex.new
       start_cleanup_task
     end
 
+    # Returns the number of sessions held, expired ones not yet removed included.
+    def size : Int32
+      @mutex.synchronize { @sessions.size }
+    end
+
     # Retrieves a value for the given session and key
     def get(session_id : String, key : String) : String?
       @mutex.synchronize do
-        entry = @sessions[session_id]?
-        return nil unless entry
-
-        # Check if session has expired
-        if expired?(entry)
-          @sessions.delete(session_id)
-          return nil
+        if entry = use_live_entry(session_id)
+          entry.data[key]?
         end
-
-        entry.data[key]?
       end
     end
 
     # Sets a value for the given session and key
     def set(session_id : String, key : String, value : String) : Nil
-      @mutex.synchronize do
-        entry = @sessions[session_id]?
-
-        if entry && !expired?(entry)
-          # Update existing session
-          entry.data[key] = value
-        else
-          # Create new session entry
-          @sessions[session_id] = SessionEntry.new(
-            data: Hash{key => value},
-            expires_at: nil
-          )
-        end
-      end
+      @mutex.synchronize { unsafe_set(session_id, key, value) }
     end
 
     # Deletes a specific key from a session
     def delete(session_id : String, key : String) : Nil
-      @mutex.synchronize do
-        entry = @sessions[session_id]?
-        return unless entry && !expired?(entry)
-
-        entry.data.delete(key)
-      end
+      @mutex.synchronize { unsafe_delete(session_id, key) }
     end
 
     # Completely destroys a session and all its data
@@ -88,8 +87,8 @@ module Amber::Adapters
     # Checks if a key exists in the given session
     def exists?(session_id : String, key : String) : Bool
       @mutex.synchronize do
-        entry = @sessions[session_id]?
-        return false unless entry && !expired?(entry)
+        entry = use_live_entry(session_id)
+        return false unless entry
 
         entry.data.has_key?(key)
       end
@@ -98,8 +97,8 @@ module Amber::Adapters
     # Returns all keys for the given session
     def keys(session_id : String) : Array(String)
       @mutex.synchronize do
-        entry = @sessions[session_id]?
-        return Array(String).new unless entry && !expired?(entry)
+        entry = use_live_entry(session_id)
+        return Array(String).new unless entry
 
         entry.data.keys
       end
@@ -108,8 +107,8 @@ module Amber::Adapters
     # Returns all values for the given session
     def values(session_id : String) : Array(String)
       @mutex.synchronize do
-        entry = @sessions[session_id]?
-        return Array(String).new unless entry && !expired?(entry)
+        entry = use_live_entry(session_id)
+        return Array(String).new unless entry
 
         entry.data.values
       end
@@ -118,8 +117,8 @@ module Amber::Adapters
     # Returns all session data as a hash
     def to_hash(session_id : String) : Hash(String, String)
       @mutex.synchronize do
-        entry = @sessions[session_id]?
-        return Hash(String, String).new unless entry && !expired?(entry)
+        entry = use_live_entry(session_id)
+        return Hash(String, String).new unless entry
 
         entry.data.dup
       end
@@ -128,8 +127,8 @@ module Amber::Adapters
     # Checks if the session is empty
     def empty?(session_id : String) : Bool
       @mutex.synchronize do
-        entry = @sessions[session_id]?
-        return true unless entry && !expired?(entry)
+        entry = use_live_entry(session_id)
+        return true unless entry
 
         entry.data.empty?
       end
@@ -137,31 +136,18 @@ module Amber::Adapters
 
     # Sets an expiration time for the session
     def expire(session_id : String, seconds : Int32) : Nil
-      @mutex.synchronize do
-        entry = @sessions[session_id]?
-        return unless entry
-
-        @sessions[session_id] = SessionEntry.new(
-          data: entry.data,
-          expires_at: Time.utc + seconds.seconds
-        )
-      end
+      @mutex.synchronize { unsafe_expire(session_id, seconds) }
     end
 
     # Efficiently sets multiple key-value pairs in a single atomic operation
     def batch_set(session_id : String, hash : Hash(String, String)) : Nil
       @mutex.synchronize do
-        entry = @sessions[session_id]?
-
-        if entry && !expired?(entry)
+        if entry = use_live_entry(session_id)
           # Update existing session with new values
           hash.each { |key, value| entry.data[key] = value }
         else
           # Create new session entry with the provided hash
-          @sessions[session_id] = SessionEntry.new(
-            data: hash.dup,
-            expires_at: nil
-          )
+          add_entry(session_id, SessionEntry.new(data: hash.dup, expires_at: nil))
         end
       end
     end
@@ -181,6 +167,28 @@ module Amber::Adapters
       else
         false
       end
+    end
+
+    # Returns the live entry for *session_id* and marks it as the session used
+    # most recently. An expired entry is removed and `nil` is returned. Call it
+    # with the mutex held.
+    private def use_live_entry(session_id : String) : SessionEntry?
+      entry = @sessions.delete(session_id)
+      return unless entry
+      return if expired?(entry)
+
+      @sessions[session_id] = entry
+    end
+
+    # Adds a session as the one used most recently, first dropping the
+    # sessions used longest ago until there is room for it. Call it with the
+    # mutex held.
+    private def add_entry(session_id : String, entry : SessionEntry) : Nil
+      @sessions.delete(session_id)
+      while @sessions.size >= @max_sessions
+        @sessions.shift
+      end
+      @sessions[session_id] = entry
     end
 
     # Starts a background task to clean up expired sessions
@@ -205,31 +213,25 @@ module Amber::Adapters
 
     # Sets a value without mutex (for internal use in batch operations)
     protected def unsafe_set(session_id : String, key : String, value : String) : Nil
-      entry = @sessions[session_id]?
-
-      if entry && !expired?(entry)
+      if entry = use_live_entry(session_id)
         # Update existing session
         entry.data[key] = value
       else
         # Create new session entry
-        @sessions[session_id] = SessionEntry.new(
-          data: Hash{key => value},
-          expires_at: nil
-        )
+        add_entry(session_id, SessionEntry.new(data: Hash{key => value}, expires_at: nil))
       end
     end
 
     # Deletes a key without mutex (for internal use in batch operations)
     protected def unsafe_delete(session_id : String, key : String) : Nil
-      entry = @sessions[session_id]?
-      return unless entry && !expired?(entry)
-
-      entry.data.delete(key)
+      if entry = use_live_entry(session_id)
+        entry.data.delete(key)
+      end
     end
 
     # Sets expiration without mutex (for internal use in batch operations)
     protected def unsafe_expire(session_id : String, seconds : Int32) : Nil
-      entry = @sessions[session_id]?
+      entry = @sessions.delete(session_id)
       return unless entry
 
       @sessions[session_id] = SessionEntry.new(

@@ -346,6 +346,15 @@ module Amber::Configuration
         end
       end
 
+      it "overrides session.max_memory_sessions from AMBER_SESSION_MAX_MEMORY_SESSIONS" do
+        # The memory session adapter's size limit is a typed setting like the rest.
+        with_env({"AMBER_SESSION_MAX_MEMORY_SESSIONS" => "2500"}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.session.max_memory_sessions.should eq 2500
+        end
+      end
+
       it "overrides logging.severity from AMBER_LOGGING_SEVERITY" do
         with_env({"AMBER_LOGGING_SEVERITY" => "error"}) do
           config = AppConfig.new

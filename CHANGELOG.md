@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+- `Amber::Pipe::Flash` writes the session only when the flash has messages, or
+  when it must clear a flash the session still holds. It used to write
+  `session["_flash"] = "{}"` on every response, so every request without a
+  session cookie created a session. With the memory adapter, each such request
+  kept about 413 bytes for two weeks: a `:web` route served to clients that do
+  not send cookies back grew from 441 MiB after 30 s to 858 MiB after 90 s.
+- `session.store` is honored. `signed_cookie` (the default) and
+  `encrypted_cookie` keep the session in the visitor's cookie and nothing on
+  the server; `adapter` (new) and `redis` keep it on the server through
+  `session.adapter`. Every store used to build the memory adapter session.
+  Apps that relied on server-side sessions, for example to call
+  `regenerate_session!`, set `store: adapter`.
+- `MemorySessionAdapter` keeps at most `session.max_memory_sessions` sessions
+  (default 10,000, `AMBER_SESSION_MAX_MEMORY_SESSIONS` overrides it) and drops
+  the session used longest ago when it is full. `validate!` rejects a value
+  below 1. It used to have no limit.
+
 ## 2.0.0-beta.11 (2026-11-20)
 
 - `respond_with` accepts a `NamedTuple` as documented

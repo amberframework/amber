@@ -308,6 +308,9 @@ module Amber::Configuration
       if v = ENV["AMBER_SESSION_ADAPTER"]?
         config.adapter = v
       end
+      if v = ENV["AMBER_SESSION_MAX_MEMORY_SESSIONS"]?
+        config.max_memory_sessions = v.to_i
+      end
     end
 
     private def self.apply_pubsub(config : PubSubConfig) : Nil
