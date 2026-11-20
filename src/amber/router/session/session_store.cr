@@ -30,8 +30,18 @@ module Amber::Router::Session
       Amber::Adapters::AdapterFactory.create_session_adapter(adapter_name)
     end
 
+    # A `Cookies::Store` subclass may override `#encrypted`, so its result is
+    # checked before the session is kept in it.
     private def cookie_store : Cookies::SignedStore | Cookies::EncryptedStore
-      encrypted_cookie? ? cookies.encrypted : cookies.signed
+      return cookies.signed unless encrypted_cookie?
+
+      encrypted_store = cookies.encrypted
+      unless encrypted_store.is_a?(Cookies::EncryptedStore)
+        raise Amber::Exceptions::ConfigurationError.new(
+          "session.store is encrypted_cookie, but #{cookies.class}#encrypted does not return an Amber::Router::Cookies::EncryptedStore"
+        )
+      end
+      encrypted_store
     end
 
     private def encrypted_cookie? : Bool
