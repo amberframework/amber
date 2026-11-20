@@ -2,6 +2,18 @@
 module Amber::Schema
   # Mixin for controllers to add schema validation
   module ControllerIntegration
+    # The content types `respond_with` can write when no response schema narrows them.
+    SCHEMA_RESPONSE_CONTENT_TYPES = ["application/json", "application/cbor", "application/cose"]
+
+    SCHEMA_FORMAT_BY_CONTENT_TYPE = {
+      "application/json" => :json,
+      "application/cbor" => :cbor,
+      "application/cose" => :cose,
+    }
+
+    # Among types the client names outright with equal quality, the higher wins.
+    SCHEMA_FORMAT_PREFERENCE = {:json => 0, :cbor => 1, :cose => 2}
+
     macro included
       # Instance property to store validated request data
       property request_data : Hash(String, JSON::Any)? = nil
@@ -169,25 +181,55 @@ module Amber::Schema
       @validation_result && @validation_result.failure?
     end
 
-    # Helper method to respond with schema-validated data
+    # Respond with a NamedTuple, such as `respond_with({title: "latest", count: 1})`.
+    #
+    # The tuple has Symbol keys and may hold any JSON-serializable value
+    # (Int32, arrays, nested tuples), so it goes through its own JSON form to
+    # become the `Hash(String, JSON::Any)` that response validation reads.
     def respond_with(
-      data : Hash(String, JSON::Any) | NamedTuple | Nil = nil,
+      data : NamedTuple,
       status : Int32 = 200,
       schema_name : String? = nil,
       format : Symbol = :auto,
       key_provider : Amber::Schema::COSE::KeyProvider? = Amber::Schema::COSE.key_provider,
     )
-      # Convert NamedTuple to Hash if needed
-      response_data = case data
-                      when NamedTuple
-                        data.to_h.transform_values { |v| JSON::Any.new(v) }
-                      when Hash
-                        data
-                      when Nil
-                        {} of String => JSON::Any
-                      else
-                        raise "respond_with only accepts Hash(String, JSON::Any), NamedTuple, or Nil"
-                      end
+      respond_with(Hash(String, JSON::Any).from_json(data.to_json), status, schema_name, format, key_provider)
+    end
+
+    # Respond with any JSON-serializable Hash, such as `Hash(String, String)`
+    # or `Hash(Symbol, Int32)`. Its keys become strings and its values become
+    # `JSON::Any`, the same way `to_json` would write them.
+    def respond_with(
+      data : Hash,
+      status : Int32 = 200,
+      schema_name : String? = nil,
+      format : Symbol = :auto,
+      key_provider : Amber::Schema::COSE::KeyProvider? = Amber::Schema::COSE.key_provider,
+    )
+      respond_with(Hash(String, JSON::Any).from_json(data.to_json), status, schema_name, format, key_provider)
+    end
+
+    # Respond with an empty object.
+    def respond_with(
+      data : Nil = nil,
+      status : Int32 = 200,
+      schema_name : String? = nil,
+      format : Symbol = :auto,
+      key_provider : Amber::Schema::COSE::KeyProvider? = Amber::Schema::COSE.key_provider,
+    )
+      respond_with({} of String => JSON::Any, status, schema_name, format, key_provider)
+    end
+
+    # Respond with schema-validated data in the format the client accepts
+    # (JSON, CBOR or COSE).
+    def respond_with(
+      data : Hash(String, JSON::Any),
+      status : Int32 = 200,
+      schema_name : String? = nil,
+      format : Symbol = :auto,
+      key_provider : Amber::Schema::COSE::KeyProvider? = Amber::Schema::COSE.key_provider,
+    )
+      response_data = data
 
       validation = validate_response(response_data, status, schema_name)
       if validation.failure?
@@ -204,15 +246,20 @@ module Amber::Schema
 
       response_data = validation.data || response_data
 
-      selected_format = negotiate_schema_format(format)
-      if schema_entry = Amber::Schema::Registry.response_schema(
-           self.class.name,
-           (schema_name || @schema_action || action_name).to_s
-         )
-        selected_content_type = schema_content_type(selected_format)
+      schema_entry = Amber::Schema::Registry.response_schema(
+        self.class.name,
+        (schema_name || @schema_action || action_name).to_s
+      )
+      list_of_offered_content_types = SCHEMA_RESPONSE_CONTENT_TYPES
+      if schema_entry
         declared = schema_entry.schema_class.content_types
-        allowed = declared.empty? ? ["application/json"] : declared
-        unless allowed.includes?(selected_content_type)
+        list_of_offered_content_types = declared.empty? ? ["application/json"] : declared
+      end
+
+      selected_format = negotiate_schema_format(format, list_of_offered_content_types)
+      if schema_entry
+        selected_content_type = schema_content_type(selected_format)
+        unless list_of_offered_content_types.includes?(selected_content_type)
           response.status_code = 406
           response.content_type = "application/json"
           response.print Amber::Schema::ResponseFormatters::JSONResponse.new.error_response(
@@ -335,12 +382,101 @@ module Amber::Schema
       Amber::Schema::Parser::ParserRegistry.parse_request(request, schema_class)
     end
 
-    private def negotiate_schema_format(requested : Symbol) : Symbol
+    # Picks the response format for `format: :auto` from the Accept header.
+    #
+    # Each offered content type gets the quality (`q`) of the most specific
+    # media range that names it: an exact type beats `application/*`, which
+    # beats `*/*`. The highest quality wins, and a type the client names
+    # outright beats one it reaches through a wildcard. Among exact matches of
+    # equal quality, COSE beats CBOR beats JSON; among wildcard matches, JSON
+    # wins. A type with `q=0` is never chosen.
+    #
+    # When no offered type is acceptable, the answer is the format the client
+    # prefers among all three, so a response schema can refuse it with 406.
+    # With no Accept header, or none of the three acceptable, it is JSON.
+    private def negotiate_schema_format(requested : Symbol, list_of_offered_content_types : Array(String)) : Symbol
       return requested unless requested == :auto
-      accept = request.headers["Accept"]? || ""
-      return :cose if accept.includes?("application/cose")
-      return :cbor if accept.includes?("application/cbor")
-      :json
+      accept = request.headers["Accept"]?
+      return :json unless accept
+
+      list_of_media_ranges = parse_accept_media_ranges(accept)
+      most_acceptable_format(list_of_media_ranges, list_of_offered_content_types) ||
+        most_acceptable_format(list_of_media_ranges, SCHEMA_RESPONSE_CONTENT_TYPES) ||
+        :json
+    end
+
+    # The format among *list_of_content_types* the client accepts most, or nil
+    # when it accepts none of them.
+    private def most_acceptable_format(list_of_media_ranges : Array(Tuple(String, Float64)), list_of_content_types : Array(String)) : Symbol?
+      best_format = nil
+      best_score = 0
+      list_of_content_types.each do |content_type|
+        format = SCHEMA_FORMAT_BY_CONTENT_TYPE[content_type]?
+        next unless format
+
+        quality, specificity = accepted_quality(list_of_media_ranges, content_type)
+        next unless quality > 0.0
+
+        # Quality counts most (RFC 9110 allows three decimals), then whether
+        # the client named the type outright, then the tie-break preference.
+        is_named_outright = specificity == 2
+        preference = if is_named_outright
+                       SCHEMA_FORMAT_PREFERENCE[format]
+                     else
+                       format == :json ? 1 : 0
+                     end
+        score = (quality * 1000).round.to_i * 100 + (is_named_outright ? 10 : 0) + preference
+        if score > best_score
+          best_score = score
+          best_format = format
+        end
+      end
+      best_format
+    end
+
+    # Splits an Accept header into `{media_range, quality}` pairs, lowercased.
+    private def parse_accept_media_ranges(accept : String) : Array(Tuple(String, Float64))
+      list_of_media_ranges = [] of Tuple(String, Float64)
+      accept.split(',') do |segment|
+        parts = segment.split(';')
+        media_range = parts.first.strip.downcase
+        next if media_range.empty?
+
+        quality = 1.0
+        parts[1..].each do |parameter|
+          name, _, value = parameter.partition('=')
+          next unless name.strip.downcase == "q"
+          parsed_quality = value.strip.to_f?
+          quality = parsed_quality ? parsed_quality.clamp(0.0, 1.0) : 0.0
+        end
+        list_of_media_ranges << {media_range, quality}
+      end
+      list_of_media_ranges
+    end
+
+    # The quality the client gives *content_type*, and how specific the
+    # matching range was: 2 for an exact type, 1 for `type/*`, 0 for `*/*`,
+    # -1 when no range matches.
+    private def accepted_quality(list_of_media_ranges : Array(Tuple(String, Float64)), content_type : String) : Tuple(Float64, Int32)
+      main_type = content_type.partition('/').first
+      best_specificity = -1
+      best_quality = 0.0
+      list_of_media_ranges.each do |media_range, quality|
+        specificity = if media_range == content_type
+                        2
+                      elsif media_range == "#{main_type}/*"
+                        1
+                      elsif media_range == "*/*"
+                        0
+                      else
+                        -1
+                      end
+        next unless specificity > best_specificity
+
+        best_specificity = specificity
+        best_quality = quality
+      end
+      {best_quality, best_specificity}
     end
 
     private def schema_content_type(format : Symbol) : String

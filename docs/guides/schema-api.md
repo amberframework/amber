@@ -77,6 +77,12 @@ Amber parses and validates the request before `create` runs. `validated_as` retu
 
 `respond_with` checks the response object and HTTP status before writing any bytes. A response that violates `PetResponseSchema` becomes an HTTP 500 contract error instead of silently returning an undocumented shape.
 
+`respond_with` also takes a `NamedTuple` or any JSON-serializable `Hash`, such as `Hash(String, String)` or `Hash(Symbol, Int64)`. Amber writes it to JSON and reads it back as a `Hash(String, JSON::Any)` before validation, so keys become strings and values become JSON values (a `Time` becomes an RFC 3339 string, a `Symbol` a string):
+
+```crystal
+respond_with({id: pet.id, name: pet.name, species: pet.species}, status: 201)
+```
+
 ### Render an HTML form on failure
 
 The default schema failure is JSON because a schema contract is commonly an
@@ -299,6 +305,8 @@ content_type "application/json", "application/cbor", "application/cose"
 - `application/json` uses the same object contract as ordinary Amber JSON APIs.
 - `application/cbor` carries the JSON-compatible contract as deterministic CBOR.
 - `application/cose` carries that CBOR document in a tagged COSE Encrypt0 envelope using ChaCha20-Poly1305.
+
+`respond_with` picks the response format from the `Accept` header among the types the response schema declares (all three when the action has no response schema). The highest `q` wins, and `q=0` refuses a type. A type the client names outright beats one it reaches through `*/*` or `application/*`; at equal quality COSE beats CBOR beats JSON, and a wildcard alone answers JSON. When the client accepts none of the declared types, the response is `406`. Pass `format: :json`, `:cbor` or `:cose` to choose the format yourself.
 
 CBOR decoding is bounded to a 1 MiB document, 32 levels of nesting, and 16,384 collection items. It rejects indefinite lengths, duplicate map keys, invalid UTF-8, trailing bytes, byte strings where a JSON-compatible value is required, and non-finite numbers.
 
