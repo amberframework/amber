@@ -1,0 +1,7 @@
+version: 2.0
+shards:
+  mica:
+    git: https://github.com/amberframework/mica.git
+    version: 0.1.1+git.commit.50e46ed5c00940bb81c5c5fa7b19a13b9f81c16f
+    checksum: sha256-v2:330a381779b3ced9ee3a5ee5d8c291d777f5271e3f5515869db249d83c10cf1b
+

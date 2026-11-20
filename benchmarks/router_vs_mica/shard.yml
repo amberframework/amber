@@ -1,0 +1,24 @@
+name: router_vs_mica
+version: 0.1.0
+
+authors:
+  - AgentC Consulting <agent_c@agentc.consulting>
+
+description: |
+  Measures Amber's route parameter rules against the same rules written as
+  Mica::Regex static and runtime patterns and as stdlib Regex.
+
+crystal: ">= 1.21.0, < 2.0.0"
+
+license: MIT
+
+dependencies:
+  mica:
+    github: amberframework/mica
+    # feature/regex-static-s1 (PR #8), which holds the runtime engine of
+    # feature/regex-r3 (PR #5) plus the static path.
+    commit: 50e46ed5c00940bb81c5c5fa7b19a13b9f81c16f
+
+targets:
+  router_vs_mica:
+    main: src/router_vs_mica.cr
