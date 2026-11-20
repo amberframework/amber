@@ -244,4 +244,63 @@ describe Amber::Adapters::MemorySessionAdapter do
       adapter.get(session_id, "key2").should eq("value2")
     end
   end
+
+  # Clients that never send their session cookie back start a new session on
+  # every request; the limit keeps them from growing the process.
+  describe "size limit" do
+    it "defaults to 10,000 sessions" do
+      Amber::Adapters::MemorySessionAdapter.new.max_sessions.should eq 10_000
+    end
+
+    it "never holds more sessions than its limit" do
+      adapter = Amber::Adapters::MemorySessionAdapter.new(max_sessions: 3)
+
+      10.times { |number| adapter.set("session_#{number}", "_flash", "{}") }
+
+      adapter.size.should eq 3
+    end
+
+    it "drops the session used longest ago first" do
+      adapter = Amber::Adapters::MemorySessionAdapter.new(max_sessions: 3)
+      adapter.set("first", "key", "1")
+      adapter.set("second", "key", "2")
+      adapter.set("third", "key", "3")
+
+      adapter.get("first", "key")
+      adapter.set("fourth", "key", "4")
+
+      adapter.get("first", "key").should eq "1"
+      adapter.get("second", "key").should be_nil
+      adapter.get("third", "key").should eq "3"
+      adapter.get("fourth", "key").should eq "4"
+    end
+
+    it "keeps updating an existing session at the limit without dropping another" do
+      adapter = Amber::Adapters::MemorySessionAdapter.new(max_sessions: 2)
+      adapter.set("first", "key", "1")
+      adapter.set("second", "key", "2")
+
+      adapter.set("first", "other", "x")
+      adapter.batch_set("second", {"other" => "y"})
+      adapter.expire("first", 60)
+
+      adapter.size.should eq 2
+      adapter.get("first", "other").should eq "x"
+      adapter.get("second", "other").should eq "y"
+    end
+
+    it "counts batch_set sessions toward the limit" do
+      adapter = Amber::Adapters::MemorySessionAdapter.new(max_sessions: 2)
+
+      5.times { |number| adapter.batch_set("session_#{number}", {"key" => "value"}) }
+
+      adapter.size.should eq 2
+    end
+
+    it "rejects a limit below 1" do
+      expect_raises(ArgumentError, /max_sessions/) do
+        Amber::Adapters::MemorySessionAdapter.new(max_sessions: 0)
+      end
+    end
+  end
 end

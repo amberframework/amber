@@ -110,6 +110,7 @@ module Amber::Environment
     def session_store
       case @session_config["store"].to_s
       when "signed_cookie" then :signed_cookie
+      when "adapter"       then :adapter
       when "redis"         then :redis
       else
         :encrypted_cookie
@@ -221,6 +222,9 @@ module Amber::Environment
       config.session.store = @session_config["store"].to_s
       config.session.expires = @session_config["expires"].to_i
       config.session.adapter = @session_config["adapter"]?.try(&.to_s) || "memory"
+      if max_memory_sessions = @session_config["max_memory_sessions"]?
+        config.session.max_memory_sessions = max_memory_sessions.to_i
+      end
 
       config.pubsub.adapter = @pubsub_config["adapter"]?.try(&.to_s) || "memory"
 

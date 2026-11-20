@@ -163,10 +163,11 @@ module Amber::Environment
       settings.secrets = app_config.secrets
 
       settings.session = {
-        "key"     => app_config.session.key,
-        "store"   => app_config.session.store,
-        "expires" => app_config.session.expires,
-        "adapter" => app_config.session.adapter,
+        "key"                 => app_config.session.key,
+        "store"               => app_config.session.store,
+        "expires"             => app_config.session.expires,
+        "adapter"             => app_config.session.adapter,
+        "max_memory_sessions" => app_config.session.max_memory_sessions,
       }
 
       settings.pubsub = {

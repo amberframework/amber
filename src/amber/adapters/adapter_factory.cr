@@ -52,9 +52,13 @@ module Amber::Adapters
     private def self.ensure_initialized
       return if @@initialized
 
-      # Register built-in session adapters with singleton pattern
+      # Register built-in session adapters with singleton pattern. The memory
+      # adapter's size limit is read from `session.max_memory_sessions` once,
+      # when the adapter is first built.
       @@session_adapters["memory"] = -> {
-        @@memory_session_adapter ||= MemorySessionAdapter.new
+        @@memory_session_adapter ||= MemorySessionAdapter.new(
+          max_sessions: Amber.settings.session_v2.max_memory_sessions
+        )
         @@memory_session_adapter.not_nil!.as(SessionAdapter)
       }
 
