@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-beta.11 (unreleased)
+## 2.0.0-beta.11 (2026-11-20)
 
 - `respond_with` accepts a `NamedTuple` as documented
   ([#1425](https://github.com/amberframework/amber/issues/1425)). It used to
@@ -16,9 +16,19 @@
   formats the response schema declares. `Accept: application/cbor;q=0,
   application/json` used to answer CBOR, and a JSON-only schema answered `406`
   to `Accept: application/cbor, application/json;q=0.5` though JSON was acceptable.
-- Placeholder: a default `amber new` app (SQLite, a Grant model, asset_pipeline)
-  links no PCRE2 once the Grant and asset_pipeline releases that keep `Regex`
-  off their default require paths are pinned here.
+- `server.gc_initial_heap_mib` (default 0) grows the garbage collector's heap to
+  that many MiB in every server process before it takes requests;
+  `AMBER_SERVER_GC_INITIAL_HEAP_MIB` overrides it and `validate!` rejects a
+  negative value ([#1452](https://github.com/amberframework/amber/pull/1452)).
+  0 keeps the collector's own starting size, so existing apps see no change.
+  Amber CLI 2.0.11 writes 16 into every generated environment file. That is the
+  smallest starting heap that kept a generated app's POST p50 at or below
+  beta.10's, and it adds about 8 MiB of peak memory.
+- A default `amber new -d sqlite` app links no PCRE2. With Grant 0.24.0 and
+  asset_pipeline 0.38.0, which keep `Regex` off their default require paths, the
+  app Amber CLI 2.0.11 generates shows no `libpcre2` in `otool -L` and no `pcre2_`
+  symbol in `nm`, before and after `amber generate scaffold` adds a Grant model.
+  Amber CLI CI checks this on macOS and Linux.
 
 ## 2.0.0-beta.10 (2026-11-07)
 
