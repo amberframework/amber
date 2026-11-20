@@ -39,6 +39,35 @@ module Amber
       end
     end
 
+    describe ".accepts_gzip?" do
+      it "accepts gzip or x-gzip named with a quality above 0" do
+        ["gzip", "gzip, deflate, br", "br;q=1, gzip;q=0.001", "x-gzip", "GZIP;Q=1"].each do |value|
+          Static.accepts_gzip?(HTTP::Headers{"Accept-Encoding" => value}).should be_true
+        end
+      end
+
+      it "refuses gzip named with quality 0 or a quality that is not a number" do
+        ["gzip;q=0", "gzip; q=0.0", "gzip;q=0.000, br", "gzip;q=abc", "gzip;q=-1"].each do |value|
+          Static.accepts_gzip?(HTTP::Headers{"Accept-Encoding" => value}).should be_false
+        end
+      end
+
+      it "lets a gzip entry override the * entry" do
+        Static.accepts_gzip?(HTTP::Headers{"Accept-Encoding" => "*, gzip;q=0"}).should be_false
+        Static.accepts_gzip?(HTTP::Headers{"Accept-Encoding" => "*;q=0, gzip"}).should be_true
+      end
+
+      it "falls back to * when gzip is not named" do
+        Static.accepts_gzip?(HTTP::Headers{"Accept-Encoding" => "br, *;q=0.5"}).should be_true
+        Static.accepts_gzip?(HTTP::Headers{"Accept-Encoding" => "br, *;q=0"}).should be_false
+      end
+
+      it "refuses gzip when the header is missing or names other codings only" do
+        Static.accepts_gzip?(HTTP::Headers.new).should be_false
+        Static.accepts_gzip?(HTTP::Headers{"Accept-Encoding" => "br, deflate"}).should be_false
+      end
+    end
+
     describe ".fingerprinted?" do
       it "accepts 16 to 64 hex digits of either case between a dash and a dot" do
         Static.fingerprinted?("/assets/app-#{"a" * 16}.css").should be_true
@@ -342,6 +371,39 @@ module Amber
           response.headers["Content-Encoding"].should eq "gzip"
           response.headers["Vary"].should contain "Accept-Encoding"
           response.headers["Content-Type"].should contain "text/css"
+        ensure
+          File.delete?(gzip_file)
+          File.delete?(file)
+        end
+      end
+
+      it "serves the identity file when Accept-Encoding refuses gzip with q=0" do
+        filename = "refused-0123456789abcdef.css"
+        file = File.join(File.expand_path(TEST_PUBLIC_PATH), filename)
+        gzip_file = "#{file}.gz"
+        File.write(file, "body { color: black; }")
+        File.write(gzip_file, "precompressed-fixture")
+
+        begin
+          ["gzip;q=0", "gzip; q=0.000, br", "*, gzip;q=0", "*;q=0", "gzip;q=invalid", "br"].each do |accept_encoding|
+            request = HTTP::Request.new(
+              "GET",
+              "/#{filename}",
+              HTTP::Headers{"Accept-Encoding" => accept_encoding}
+            )
+            response = create_request_and_return_io(Static.new(PUBLIC_PATH), request)
+
+            response.headers["Content-Encoding"]?.should be_nil
+            response.body.should eq "body { color: black; }"
+            response.headers["Vary"].should contain "Accept-Encoding"
+          end
+
+          accepted = create_request_and_return_io(
+            Static.new(PUBLIC_PATH),
+            HTTP::Request.new("GET", "/#{filename}", HTTP::Headers{"Accept-Encoding" => "br, gzip;q=0.5"})
+          )
+          accepted.headers["Content-Encoding"].should eq "gzip"
+          accepted.body.should eq "precompressed-fixture"
         ensure
           File.delete?(gzip_file)
           File.delete?(file)

@@ -17,6 +17,10 @@ module Amber::Configuration
         config.max_document_body_bytes.should eq 8_388_608
         config.max_multipart_restore_bytes.should eq 8_388_608_i64
       end
+
+      it "refuses encoded request bodies" do
+        ParamsConfig.new.accepts_encoded_request_bodies?.should be_false
+      end
     end
 
     describe "YAML deserialization" do
@@ -24,6 +28,11 @@ module Amber::Configuration
         config = AppConfig.from_yaml("params:\n  max_array_index: 250\n")
         config.params.max_array_index.should eq 250
         config.params.max_params.should eq 1_000
+      end
+
+      it "reads accepts_encoded_request_bodies from the params section" do
+        config = AppConfig.from_yaml("params:\n  accepts_encoded_request_bodies: true\n")
+        config.params.accepts_encoded_request_bodies?.should be_true
       end
     end
 
@@ -68,6 +77,16 @@ module Amber::Configuration
     end
 
     describe "environment overrides" do
+      it "reads AMBER_PARAMS_ACCEPTS_ENCODED_REQUEST_BODIES" do
+        ENV["AMBER_PARAMS_ACCEPTS_ENCODED_REQUEST_BODIES"] = "true"
+        begin
+          config = EnvOverride.apply_all(AppConfig.new)
+          config.params.accepts_encoded_request_bodies?.should be_true
+        ensure
+          ENV.delete("AMBER_PARAMS_ACCEPTS_ENCODED_REQUEST_BODIES")
+        end
+      end
+
       it "reads AMBER_PARAMS_MAX_ARRAY_INDEX" do
         ENV["AMBER_PARAMS_MAX_ARRAY_INDEX"] = "7"
         begin
