@@ -100,10 +100,12 @@ module Amber
       # `params.accepts_encoded_request_bodies`. Crystal before 1.21.1 inflates
       # them inside `HTTP::Server` with no size limit (GHSA-jfq5-c3x6-w7jj), so
       # refusing them here keeps an Amber app safe whichever compiler built it.
+      # The setting is read only for an encoded request, so a plain request
+      # never depends on it.
       private def refuses_content_encoding?(request : HTTP::Request) : Bool
-        return false if Amber.settings.params.accepts_encoded_request_bodies?
+        return false unless Pipeline.content_encoded?(request)
 
-        Pipeline.content_encoded?(request)
+        !Amber.settings.params.accepts_encoded_request_bodies?
       end
 
       # Answers `415 Unsupported Media Type` without reading the body. RFC 9110
