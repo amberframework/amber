@@ -397,6 +397,9 @@ module Amber::Configuration
       if v = ENV["AMBER_PARAMS_MAX_NESTING_DEPTH"]?
         config.max_nesting_depth = v.to_i
       end
+      if v = ENV["AMBER_PARAMS_ACCEPTS_ENCODED_REQUEST_BODIES"]?
+        config.accepts_encoded_request_bodies = parse_bool(v)
+      end
       apply_params_sizes(config)
     end
 

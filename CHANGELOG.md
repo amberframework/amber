@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+- A request with a compressed body is answered `415 Unsupported Media Type`,
+  with `Accept-Encoding: identity` and `Connection: close`, before routing or
+  any pipe reads its body. Crystal before 1.21.1 inflates gzip and deflate
+  request bodies inside `HTTP::Server` with no size limit
+  ([GHSA-jfq5-c3x6-w7jj](https://github.com/crystal-lang/crystal/security/advisories/GHSA-jfq5-c3x6-w7jj)),
+  so a 1 MiB gzip body could become 1 GiB. Amber recognizes a compressed body
+  in both forms a compiler can hand it:
+  - a `Content-Encoding` header naming any coding other than `identity`
+    (Crystal 1.21.1 and later, and crystal-alpha with the advisory backport,
+    leave the header and the raw body in place);
+  - a body that `HTTP::Server` already wrapped in `Compress::Gzip::Reader`,
+    `Compress::Deflate::Reader` or `Compress::Zlib::Reader` (Crystal before
+    1.21.1 does this for `gzip` and `deflate` and deletes the
+    `Content-Encoding` header). That reader inflates only as it is read, so a
+    refused body is never inflated.
+
+  The protection covers gzip and deflate bodies on every compiler, and any
+  other coding that arrives with its `Content-Encoding` header. An app that
+  accepts compressed uploads sets `params.accepts_encoded_request_bodies: true`
+  (or `AMBER_PARAMS_ACCEPTS_ENCODED_REQUEST_BODIES=true`) and must bound the
+  body itself; on Crystal before 1.21.1 that body arrives as a reader that
+  inflates without limit.
+- `Amber::Pipe::Static` honors `q` values in `Accept-Encoding`. It used to serve
+  the precompressed `.gz` file to `Accept-Encoding: gzip;q=0`, because the
+  standard library only looks for the word `gzip`. `Static.accepts_gzip?` holds
+  the rule: the `gzip` or `x-gzip` entry decides, then `*`.
+
 ## 2.0.0-beta.11 (2026-11-20)
 
 - `respond_with` accepts a `NamedTuple` as documented
