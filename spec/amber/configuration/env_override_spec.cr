@@ -295,6 +295,14 @@ module Amber::Configuration
         end
       end
 
+      it "overrides server.gc_initial_heap_mib from AMBER_SERVER_GC_INITIAL_HEAP_MIB" do
+        with_env({"AMBER_SERVER_GC_INITIAL_HEAP_MIB" => "48"}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.server.gc_initial_heap_mib.should eq 48
+        end
+      end
+
       it "overrides server.secret_key_base from AMBER_SERVER_SECRET_KEY_BASE" do
         with_env({"AMBER_SERVER_SECRET_KEY_BASE" => "env-secret"}) do
           config = AppConfig.new

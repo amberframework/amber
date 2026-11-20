@@ -83,6 +83,9 @@ module Amber
     def start
       check_listener_settings!
       time = Time.local
+      # Each process grows its own heap: a worker started by `run` reaches
+      # this method too.
+      GrowHeapToStartingSize.new(settings.server.gc_initial_heap_mib).perform
       Log.info { "#{paint(version, :light_cyan)} serving application \"#{settings.name.capitalize}\" at #{paint(host_url, :light_cyan).mode(:underline)}" }
       handler.prepare_pipelines
       server = HTTP::Server.new(handler)

@@ -60,6 +60,12 @@ module Amber::Configuration
     # file's permissions decide who may open it.
     property unix_socket : String? = nil
 
+    # Starting size of the garbage collector's heap, in MiB, that the server
+    # grows the heap to before it takes requests (see
+    # `Amber::Server::GrowHeapToStartingSize`). 0 leaves the collector's own
+    # starting size, a few hundred KiB.
+    property gc_initial_heap_mib : Int32 = 0
+
     # The validated, parsed form of `trusted_proxies`. Nothing changes it
     # after it is built: an assignment builds a new one and replaces the
     # reference, so a request running on another thread sees either the old
@@ -193,6 +199,12 @@ module Amber::Configuration
       unless @port.in?(1..65535)
         raise Amber::Exceptions::ConfigurationError.new(
           "server.port must be between 1 and 65535, got #{@port}"
+        )
+      end
+
+      unless @gc_initial_heap_mib >= 0
+        raise Amber::Exceptions::ConfigurationError.new(
+          "server.gc_initial_heap_mib must be 0 or more, got #{@gc_initial_heap_mib}"
         )
       end
 

@@ -10,6 +10,7 @@ module Amber::Configuration
         config.port_reuse.should be_true
         config.process_count.should eq 1
         config.secret_key_base.should eq ""
+        config.gc_initial_heap_mib.should eq 0
       end
 
       it "trusts only loopback proxies" do
@@ -169,6 +170,10 @@ module Amber::Configuration
         config.secret_key_base.should eq "a-very-long-secret-key-that-is-at-least-32-chars"
       end
 
+      it "reads the starting heap size in MiB" do
+        ServerConfig.from_yaml("gc_initial_heap_mib: 32").gc_initial_heap_mib.should eq 32
+      end
+
       it "deserializes with SSL config" do
         yaml = <<-YAML
         host: "localhost"
@@ -208,6 +213,20 @@ module Amber::Configuration
         expect_raises(Amber::Exceptions::ConfigurationError, /server\.process_count/) do
           config.validate!
         end
+      end
+
+      it "raises on a negative gc_initial_heap_mib" do
+        config = ServerConfig.new
+        config.gc_initial_heap_mib = -1
+        expect_raises(Amber::Exceptions::ConfigurationError, /server\.gc_initial_heap_mib/) do
+          config.validate!
+        end
+      end
+
+      it "accepts a gc_initial_heap_mib of 0" do
+        config = ServerConfig.new
+        config.gc_initial_heap_mib = 0
+        config.validate!
       end
 
       it "raises on short secret_key_base" do

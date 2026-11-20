@@ -267,6 +267,9 @@ module Amber::Configuration
       if v = ENV["AMBER_SERVER_TRUSTED_PROXY_HEADERS"]?
         config.trusted_proxy_headers = v.strip
       end
+      if v = ENV["AMBER_SERVER_GC_INITIAL_HEAP_MIB"]?
+        config.gc_initial_heap_mib = v.to_i
+      end
       if v = ENV["AMBER_SERVER_UNIX_SOCKET"]?
         config.unix_socket = v.empty? ? nil : v
       end
