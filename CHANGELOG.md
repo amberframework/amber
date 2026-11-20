@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+- A request whose `Content-Encoding` is anything other than `identity` is
+  answered `415 Unsupported Media Type`, with `Accept-Encoding: identity` and
+  `Connection: close`, before routing or any pipe reads its body. Crystal
+  before 1.21.1 inflates such bodies inside `HTTP::Server` with no size limit
+  ([GHSA-jfq5-c3x6-w7jj](https://github.com/crystal-lang/crystal/security/advisories/GHSA-jfq5-c3x6-w7jj)),
+  so a 1 KiB gzip body could become gigabytes; the check keeps an Amber app
+  safe whichever compiler built it. An app that accepts compressed uploads sets
+  `params.accepts_encoded_request_bodies: true` (or
+  `AMBER_PARAMS_ACCEPTS_ENCODED_REQUEST_BODIES=true`) and decompresses with its
+  own size limit.
+- `Amber::Pipe::Static` honors `q` values in `Accept-Encoding`. It used to serve
+  the precompressed `.gz` file to `Accept-Encoding: gzip;q=0`, because the
+  standard library only looks for the word `gzip`. `Static.accepts_gzip?` holds
+  the rule: the `gzip` or `x-gzip` entry decides, then `*`.
+
 ## 2.0.0-beta.11 (2026-11-20)
 
 - `respond_with` accepts a `NamedTuple` as documented

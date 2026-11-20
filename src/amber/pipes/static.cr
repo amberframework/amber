@@ -178,6 +178,70 @@ module Amber
         false
       end
 
+      # Returns `true` when the `Accept-Encoding` header in *headers* accepts
+      # gzip. The entry for `gzip` or `x-gzip` decides when there is one;
+      # otherwise `*` decides; with neither, gzip is not accepted. An entry
+      # accepts when its quality (`q`) is above 0, and a quality that is not a
+      # number counts as 0.
+      #
+      # ```
+      # Amber::Pipe::Static.accepts_gzip?(HTTP::Headers{"Accept-Encoding" => "gzip, br"})        # => true
+      # Amber::Pipe::Static.accepts_gzip?(HTTP::Headers{"Accept-Encoding" => "gzip;q=0, br"})    # => false
+      # Amber::Pipe::Static.accepts_gzip?(HTTP::Headers{"Accept-Encoding" => "br, *;q=0.5"})     # => true
+      # Amber::Pipe::Static.accepts_gzip?(HTTP::Headers{"Accept-Encoding" => "*, gzip;q=0.000"}) # => false
+      # ```
+      def self.accepts_gzip?(headers : HTTP::Headers) : Bool
+        list_of_values = headers.get?("Accept-Encoding")
+        return false unless list_of_values
+
+        # Specificity is 1 for a `gzip` or `x-gzip` entry and 0 for `*`; the
+        # first entry of the highest specificity decides.
+        best_specificity = -1
+        best_quality = 0.0
+        list_of_values.each do |value|
+          value.split(',') do |entry|
+            coding, _, parameters = entry.partition(';')
+            specificity = case coding.strip(" \t").downcase
+                          when "gzip", "x-gzip" then 1
+                          when "*"              then 0
+                          else                       -1
+                          end
+            next unless specificity > best_specificity
+
+            best_specificity = specificity
+            best_quality = coding_quality(parameters)
+          end
+        end
+        best_quality > 0.0
+      end
+
+      # Reads the `q` parameter from the parameters after a coding, as in
+      # `q=0.5` or `level=1; q=0`. A missing `q` is 1; a `q` that is not a
+      # number is 0.
+      private def self.coding_quality(parameters : String) : Float64
+        quality = 1.0
+        parameters.split(';') do |parameter|
+          name, _, value = parameter.partition('=')
+          next unless name.strip(" \t").downcase == "q"
+
+          parsed_quality = value.strip(" \t").to_f?
+          quality = parsed_quality ? parsed_quality.clamp(0.0, 1.0) : 0.0
+        end
+        quality
+      end
+
+      # HTTP::StaticFileHandler serves the `.gz` copy of a file whenever
+      # `Accept-Encoding` contains the word `gzip`, so `gzip;q=0` would still
+      # get gzip. Only a request that accepts gzip (see `.accepts_gzip?`)
+      # reaches the precompressed lookup in the parent class.
+      private def serve_file_compressed(context : HTTP::Server::Context, file_info, file_path : Path, last_modified : Time)
+        if Static.accepts_gzip?(context.request.headers)
+          super
+        else
+          serve_file(context, file_info, file_path, file_path, last_modified)
+        end
+      end
+
       private def add_vary_accept_encoding(headers : HTTP::Headers) : Nil
         if current = headers["Vary"]?
           unless current.split(',').any? { |value| value.strip.downcase == "accept-encoding" }
