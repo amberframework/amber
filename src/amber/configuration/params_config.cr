@@ -79,12 +79,15 @@ module Amber::Configuration
     # its frames and fragments as they arrive.
     property max_websocket_message_bytes : Int32 = 2_097_152
 
-    # Whether a request may carry a body with a `Content-Encoding` other
-    # than `identity` (for example `gzip`). Off by default: such a request is
+    # Whether a request may carry a compressed body: one whose
+    # `Content-Encoding` names a coding other than `identity` (for example
+    # `gzip`), or one that `HTTP::Server` already wrapped in a decompressing
+    # reader, as Crystal before 1.21.1 does. Off by default: such a request is
     # answered with `415 Unsupported Media Type` before routing or any pipe
     # reads its body, so a small compressed body cannot inflate into a large
-    # one inside the server. An application that accepts compressed uploads
-    # turns it on and decompresses with its own size limit.
+    # one. An application that accepts compressed uploads turns it on and
+    # bounds the body itself; on Crystal before 1.21.1 the body then arrives as
+    # a reader that inflates without limit.
     #
     # ```yaml
     # params:

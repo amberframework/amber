@@ -1,3 +1,9 @@
+{% unless flag?(:without_zlib) %}
+  require "compress/deflate"
+  require "compress/gzip"
+  require "compress/zlib"
+{% end %}
+
 module Amber
   module Pipe
     # This class picks the correct pipeline based on the request
@@ -75,16 +81,48 @@ module Amber
         Amber::Jobs::Worker.end_request if track_pending_request
       end
 
-      # Returns `true` when *request* names a `Content-Encoding` other than
-      # `identity`, such as `gzip` or `deflate`. Every header line and every
-      # comma-separated coding is read; empty entries and `identity` in any
-      # case are ignored.
+      # Returns `true` when *request* carries a compressed body, in either of the
+      # two forms a Crystal compiler can hand to Amber:
+      #
+      # * The `Content-Encoding` header names a coding other than `identity`,
+      #   such as `gzip` or `deflate`. Every header line and every comma-separated
+      #   coding is read; empty entries and `identity` in any case are ignored.
+      #   Crystal 1.21.1 and later, and crystal-alpha with the GHSA-jfq5-c3x6-w7jj
+      #   backport, leave the header and the raw body in place.
+      # * `HTTP::Server` already wrapped the body in a decompressing reader (see
+      #   `.body_inflated_by_server?`). Crystal before 1.21.1 does this for `gzip`
+      #   and `deflate` and deletes `Content-Encoding` and `Content-Length`, so the
+      #   header check alone sees a plain request.
       #
       # ```
       # request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Encoding" => "gzip"})
       # Amber::Pipe::Pipeline.content_encoded?(request) # => true
       # ```
       def self.content_encoded?(request : HTTP::Request) : Bool
+        body_inflated_by_server?(request) || names_a_content_coding?(request)
+      end
+
+      # Returns `true` when `HTTP::Server` replaced the body of *request* with a
+      # decompressing reader, which Crystal before 1.21.1 does for `gzip` and
+      # `deflate` bodies with no limit on the inflated size
+      # (GHSA-jfq5-c3x6-w7jj). The reader inflates only as it is read, so a
+      # request refused at this point has had nothing inflated. Always `false` in
+      # a program built with `-Dwithout_zlib`, whose server never decompresses.
+      def self.body_inflated_by_server?(request : HTTP::Request) : Bool
+        {% if flag?(:without_zlib) %}
+          false
+        {% else %}
+          body = request.body
+          # crystal-alpha wraps a `deflate` body in `Compress::Deflate::Reader`;
+          # `Compress::Zlib::Reader` is checked as well, for a compiler that
+          # treats `deflate` as zlib-framed.
+          body.is_a?(Compress::Gzip::Reader) ||
+            body.is_a?(Compress::Deflate::Reader) ||
+            body.is_a?(Compress::Zlib::Reader)
+        {% end %}
+      end
+
+      private def self.names_a_content_coding?(request : HTTP::Request) : Bool
         list_of_values = request.headers.get?("Content-Encoding")
         return false unless list_of_values
 
@@ -97,11 +135,12 @@ module Amber
       end
 
       # Compressed request bodies are refused unless the application turns on
-      # `params.accepts_encoded_request_bodies`. Crystal before 1.21.1 inflates
-      # them inside `HTTP::Server` with no size limit (GHSA-jfq5-c3x6-w7jj), so
-      # refusing them here keeps an Amber app safe whichever compiler built it.
-      # The setting is read only for an encoded request, so a plain request
-      # never depends on it.
+      # `params.accepts_encoded_request_bodies`. The refusal comes before anything
+      # reads the body, so a refused body is never inflated, whichever compiler
+      # built the app. An application that turns the setting on must bound the
+      # body itself: on Crystal before 1.21.1 it arrives as a reader that inflates
+      # without limit. The setting is read only for an encoded request, so a plain
+      # request never depends on it.
       private def refuses_content_encoding?(request : HTTP::Request) : Bool
         return false unless Pipeline.content_encoded?(request)
 
