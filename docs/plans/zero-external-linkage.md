@@ -1,9 +1,11 @@
 # Plan: an Amber V2 app that links no regex engine and no C parsing library
 
-Status, 2026-11-07: PCRE2 is done for a JSON API. Beta.10 ships it without Mica:
-cookies and form keys use `HeaderParser` and `FormKey`, named formats use
-`TextFormats`, and `scripts/check_linkage.sh` gates it in CI. libyaml, and PCRE2
-in apps using Grant or Markdown, remain. Grant's query code is the next site.
+Status, 2026-11-20: PCRE2 is done for a default app. Beta.10 took it out of a JSON
+API: cookies and form keys use `HeaderParser` and `FormKey`, named formats use
+`TextFormats`, and `scripts/check_linkage.sh` gates it in CI. In beta.11, Grant
+0.24.0 and asset_pipeline 0.38.0 keep `Regex` off their default require paths, so
+an `amber new -d sqlite` app with a Grant model links no PCRE2, and Amber CLI CI
+gates that. libyaml, and PCRE2 in apps using Markdown, remain.
 
 ## Goal
 
