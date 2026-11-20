@@ -17,6 +17,13 @@ module Amber
         track_pending_request = !websocket
         Amber::Jobs::Worker.begin_request if track_pending_request
 
+        # Checked before routing, because routing can read the body to resolve
+        # `_method`, and before every pipe.
+        if refuses_content_encoding?(context.request)
+          respond_to_content_encoded_request(context)
+          return
+        end
+
         raise Amber::Exceptions::RouteNotFound.new(context.request) unless context.valid_route?
 
         http_route = context.request.matched_route.payload?
@@ -66,6 +73,52 @@ module Amber
         # `Amber::Router::File#move_to` or `#retain!`.
         context.request.delete_uploaded_files
         Amber::Jobs::Worker.end_request if track_pending_request
+      end
+
+      # Returns `true` when *request* names a `Content-Encoding` other than
+      # `identity`, such as `gzip` or `deflate`. Every header line and every
+      # comma-separated coding is read; empty entries and `identity` in any
+      # case are ignored.
+      #
+      # ```
+      # request = HTTP::Request.new("POST", "/", HTTP::Headers{"Content-Encoding" => "gzip"})
+      # Amber::Pipe::Pipeline.content_encoded?(request) # => true
+      # ```
+      def self.content_encoded?(request : HTTP::Request) : Bool
+        list_of_values = request.headers.get?("Content-Encoding")
+        return false unless list_of_values
+
+        list_of_values.any? do |value|
+          value.split(',').any? do |coding|
+            coding_name = coding.strip(" \t").downcase
+            !coding_name.empty? && coding_name != "identity"
+          end
+        end
+      end
+
+      # Compressed request bodies are refused unless the application turns on
+      # `params.accepts_encoded_request_bodies`. Crystal before 1.21.1 inflates
+      # them inside `HTTP::Server` with no size limit (GHSA-jfq5-c3x6-w7jj), so
+      # refusing them here keeps an Amber app safe whichever compiler built it.
+      private def refuses_content_encoding?(request : HTTP::Request) : Bool
+        return false if Amber.settings.params.accepts_encoded_request_bodies?
+
+        Pipeline.content_encoded?(request)
+      end
+
+      # Answers `415 Unsupported Media Type` without reading the body. RFC 9110
+      # names this status for an unsupported content coding (Section 15.5.16)
+      # and has the response list the codings it accepts (Section 12.5.3), here
+      # only `identity`. The connection is closed, because an unread body would
+      # otherwise be parsed as the next request.
+      private def respond_to_content_encoded_request(context : HTTP::Server::Context) : Nil
+        write_application_security_headers(context)
+        response = context.response
+        response.status = HTTP::Status::UNSUPPORTED_MEDIA_TYPE
+        response.headers["Accept-Encoding"] = "identity"
+        response.headers["Connection"] = "close"
+        response.content_type = "text/plain"
+        response.print("415 Unsupported Media Type\n")
       end
 
       # A socket-only route has no HTTP route payload, so only an HTTP

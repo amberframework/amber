@@ -79,6 +79,21 @@ module Amber::Configuration
     # its frames and fragments as they arrive.
     property max_websocket_message_bytes : Int32 = 2_097_152
 
+    # Whether a request may carry a body with a `Content-Encoding` other
+    # than `identity` (for example `gzip`). Off by default: such a request is
+    # answered with `415 Unsupported Media Type` before routing or any pipe
+    # reads its body, so a small compressed body cannot inflate into a large
+    # one inside the server. An application that accepts compressed uploads
+    # turns it on and decompresses with its own size limit.
+    #
+    # ```yaml
+    # params:
+    #   accepts_encoded_request_bodies: true
+    # ```
+    #
+    # `AMBER_PARAMS_ACCEPTS_ENCODED_REQUEST_BODIES=true` turns it on too.
+    property? accepts_encoded_request_bodies : Bool = false
+
     # The accepted range of each limit. The ranges keep every limit far from
     # integer overflow and reject settings that would disable a limit.
     INT32_RANGES = {
