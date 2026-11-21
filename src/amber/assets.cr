@@ -1,6 +1,7 @@
 require "json"
 require "uri"
 require "./support/text_matching"
+require "./assets/rendered_tags"
 
 module Amber
   # Runtime access to the build-time static asset manifest.
@@ -59,6 +60,10 @@ module Amber
       getter schema_version : Int32
       getter public_path : String
       getter assets : Hash(String, Entry)
+
+      # Asset tags rendered against this manifest; see `RenderedTags`.
+      @[JSON::Field(ignore: true)]
+      getter rendered_tags : RenderedTags = RenderedTags.new
 
       def initialize(
         @schema_version : Int32,

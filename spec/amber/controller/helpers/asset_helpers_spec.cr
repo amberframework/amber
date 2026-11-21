@@ -150,6 +150,65 @@ module Amber::Controller::Helpers
         result.should contain "remote\\u003c/script\\u003e"
         result.should_not contain "remote</script>"
       end
+
+      describe "rendered tag reuse" do
+        it "renders each tag once per manifest and then allocates nothing" do
+          imports = {"app" => "javascript/app.js"}
+          preload = ["javascript/app.js"]
+          first = {
+            controller.stylesheet_link_tag("stylesheets/app.css"),
+            controller.javascript_include_tag("javascript/app.js"),
+            controller.image_tag("images/amber-crystal.svg"),
+            controller.favicon_tag("images/amber-crystal.svg"),
+            controller.javascript_importmap_tag(imports, preload: preload),
+          }
+
+          before = GC.stats.total_bytes
+          again = {
+            controller.stylesheet_link_tag("stylesheets/app.css"),
+            controller.javascript_include_tag("javascript/app.js"),
+            controller.image_tag("images/amber-crystal.svg"),
+            controller.favicon_tag("images/amber-crystal.svg"),
+            controller.javascript_importmap_tag(imports, preload: preload),
+          }
+          (GC.stats.total_bytes - before).should eq 0
+
+          again.each_with_index { |tag, index| tag.should be(first[index]) }
+          Amber::Assets.manifest.rendered_tags.size.should eq 5
+        end
+
+        it "starts over when the manifest is reloaded" do
+          controller.stylesheet_link_tag("stylesheets/app.css")
+          Amber::Assets.manifest.rendered_tags.size.should eq 1
+
+          Amber::Assets.reload!
+          Amber::Assets.manifest.rendered_tags.size.should eq 0
+          controller.stylesheet_link_tag("stylesheets/app.css").should contain %(integrity="sha256-EREiIjMzREQRESIiMzNERBERIiIzM0REEREiIjMzREQ=")
+        end
+
+        it "stores nothing for an asset missing from the manifest" do
+          2.times do
+            expect_raises(Amber::Assets::MissingAsset) { controller.stylesheet_link_tag("stylesheets/missing.css") }
+          end
+          Amber::Assets.manifest.rendered_tags.size.should eq 0
+        end
+
+        it "keeps tags with attributes and public URLs out of the store" do
+          controller.javascript_include_tag("javascript/app.js", type: "module")
+          controller.stylesheet_link_tag("/css/app.css")
+          controller.image_tag("https://cdn.example.test/logo.png")
+
+          Amber::Assets.manifest.rendered_tags.size.should eq 0
+        end
+
+        it "renders a changed import map afresh after the caller edits its hash" do
+          imports = {"app" => "javascript/app.js"}
+          controller.javascript_importmap_tag(imports)
+          imports["remote"] = "https://cdn.example.test/pkg.js"
+
+          controller.javascript_importmap_tag(imports).should contain %("remote":"https://cdn.example.test/pkg.js")
+        end
+      end
     end
   end
 end
