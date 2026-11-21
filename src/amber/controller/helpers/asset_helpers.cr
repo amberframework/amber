@@ -10,6 +10,13 @@ module Amber::Controller::Helpers
     # image_tag("images/photo.jpg", width: "200", height: "100")
     # ```
     def image_tag(src : String, **attrs) : String
+      if attrs.empty? && !Amber::Assets.public_reference?(src)
+        return Amber::Assets.manifest.rendered_tags.fetch(:image, src) { render_image_tag(src, **attrs) }
+      end
+      render_image_tag(src, **attrs)
+    end
+
+    private def render_image_tag(src : String, **attrs) : String
       src = asset_path(src)
       result = String::Builder.new
       result << "<img src=\"#{HTML.escape(src)}\""
@@ -34,6 +41,13 @@ module Amber::Controller::Helpers
     # # Resolves the fingerprinted URL and adds its integrity value.
     # ```
     def stylesheet_link_tag(path : String, **attrs) : String
+      if attrs.empty? && !Amber::Assets.public_reference?(path)
+        return Amber::Assets.manifest.rendered_tags.fetch(:stylesheet, path) { render_stylesheet_link_tag(path, **attrs) }
+      end
+      render_stylesheet_link_tag(path, **attrs)
+    end
+
+    private def render_stylesheet_link_tag(path : String, **attrs) : String
       logical_path = path
       path = asset_path(path)
       result = String::Builder.new
@@ -72,6 +86,13 @@ module Amber::Controller::Helpers
     # # Resolves the fingerprinted URL and adds its integrity value.
     # ```
     def javascript_include_tag(path : String, **attrs) : String
+      if attrs.empty? && !Amber::Assets.public_reference?(path)
+        return Amber::Assets.manifest.rendered_tags.fetch(:javascript_include, path) { render_javascript_include_tag(path, **attrs) }
+      end
+      render_javascript_include_tag(path, **attrs)
+    end
+
+    private def render_javascript_include_tag(path : String, **attrs) : String
       logical_path = path
       path = asset_path(path)
       result = String::Builder.new
@@ -105,6 +126,11 @@ module Amber::Controller::Helpers
     # favicon_tag("/images/icon.png") # => "<link rel=\"icon\" type=\"image/x-icon\" href=\"/images/icon.png\" />"
     # ```
     def favicon_tag(path : String = "/favicon.ico") : String
+      return render_favicon_tag(path) if Amber::Assets.public_reference?(path)
+      Amber::Assets.manifest.rendered_tags.fetch(:favicon, path) { render_favicon_tag(path) }
+    end
+
+    private def render_favicon_tag(path : String) : String
       resolved_path = asset_path(path)
       type = Amber::Assets.public_reference?(path) ? "image/x-icon" : Amber::Assets.entry(path).content_type
       "<link rel=\"icon\" type=\"#{HTML.escape(type)}\" href=\"#{HTML.escape(resolved_path)}\" />"
@@ -127,6 +153,17 @@ module Amber::Controller::Helpers
       imports : Hash(String, String),
       preload : Array(String) = [] of String,
     ) : String
+      # A map of public URLs only needs no manifest, so it is rendered as is.
+      all_public = imports.each_value.all? { |path| Amber::Assets.public_reference?(path) } &&
+                   preload.all? { |path| Amber::Assets.public_reference?(path) }
+      return render_javascript_importmap_tag(imports, preload) if all_public
+
+      Amber::Assets.manifest.rendered_tags.fetch_importmap(imports, preload) do
+        render_javascript_importmap_tag(imports, preload)
+      end
+    end
+
+    private def render_javascript_importmap_tag(imports : Hash(String, String), preload : Array(String)) : String
       resolved_imports = imports.transform_values { |path| asset_path(path) }
       json = {"imports" => resolved_imports}.to_json
         .gsub('<', "\\u003c")

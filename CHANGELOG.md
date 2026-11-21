@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Asset tags are rendered once per manifest. `stylesheet_link_tag`,
+  `javascript_include_tag`, `image_tag` and `favicon_tag` for a logical path
+  without extra attributes, and `javascript_importmap_tag`, keep their HTML in
+  the manifest's `RenderedTags` and return it on later calls without
+  allocating. A generated layout's three tags cost 6.9 KB per page before. A
+  manifest reloaded in development starts empty, a missing asset stores
+  nothing, and each kind of tag stores at most 1,024 entries.
 - `Amber::Pipe::Compression` gzips or deflates responses for clients that
   accept it, with the same bytes as Crystal's `HTTP::CompressHandler`. Its zlib
   streams come from `malloc`, outside the collected heap, and are reused through
