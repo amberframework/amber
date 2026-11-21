@@ -82,6 +82,33 @@ require "../../spec_helper"
           Compress::Gzip::Reader.open(IO::Memory.new(served.body), &.gets_to_end).should eq LONG_BODY
         end
 
+        it "round-trips deflate through the reader for the compiler's framing" do
+          served = serve(Compression.new, request_accepting("deflate"), [LONG_BODY] of String | Bytes)
+
+          body = IO::Memory.new(served.body)
+          text = if Compression::CompressedOutput::ZLIB_FRAMED_DEFLATE
+                   Compress::Zlib::Reader.open(body, &.gets_to_end)
+                 else
+                   Compress::Deflate::Reader.open(body, &.gets_to_end)
+                 end
+          text.should eq LONG_BODY
+        end
+
+        {0, 1, 4, 9}.each do |level|
+          it "writes valid gzip and deflate streams at level #{level}" do
+            pipe = Compression.new(level: level)
+            gzip = serve(pipe, request_accepting("gzip"), [LONG_BODY] of String | Bytes)
+            deflate = IO::Memory.new(serve(pipe, request_accepting("deflate"), [LONG_BODY] of String | Bytes).body)
+
+            Compress::Gzip::Reader.open(IO::Memory.new(gzip.body), &.gets_to_end).should eq LONG_BODY
+            if Compression::CompressedOutput::ZLIB_FRAMED_DEFLATE
+              Compress::Zlib::Reader.open(deflate, &.gets_to_end).should eq LONG_BODY
+            else
+              Compress::Deflate::Reader.open(deflate, &.gets_to_end).should eq LONG_BODY
+            end
+          end
+        end
+
         it "prefers gzip when the client accepts both" do
           serve(Compression.new, request_accepting("deflate, gzip"), ["hi"] of String | Bytes)
             .headers["Content-Encoding"].should eq "gzip"

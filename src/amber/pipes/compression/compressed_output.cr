@@ -1,4 +1,5 @@
 {% unless flag?(:without_zlib) %}
+  require "digest/adler32"
   require "digest/crc32"
 
   module Amber
@@ -18,6 +19,13 @@
             Deflate
           end
 
+          # Whether `Content-Encoding: deflate` carries a zlib stream (a
+          # two-byte header and an Adler-32 trailer around the DEFLATE data),
+          # as RFC 9110 defines it. `HTTP::CompressHandler` writes that from
+          # Crystal 1.22.0 on and bare DEFLATE data before, so this pipe
+          # follows the compiler it is built with.
+          ZLIB_FRAMED_DEFLATE = {{ compare_versions(Crystal::VERSION, "1.22.0") >= 0 }}
+
           # Gzip header bytes before the modification time, then after it:
           # deflate method, no flags; no extra flags, unknown OS. These are
           # the bytes `Compress::Gzip::Header` writes.
@@ -26,8 +34,8 @@
 
           @content_coding = ContentCoding::Undecided
           @deflater : Deflater?
-          @wrote_gzip_header = false
-          @crc32 : UInt32 = ::Digest::CRC32.initial
+          @wrote_header = false
+          @checksum : UInt32 = 0
           @uncompressed_size : UInt32 = 0
           @closed = false
 
@@ -45,12 +53,9 @@
             return @io.write(slice) unless deflater
             return if slice.empty?
 
-            if @content_coding.gzip?
-              write_gzip_header
-              @crc32 = ::Digest::CRC32.update(slice, @crc32)
-              @uncompressed_size &+= slice.size
-            end
+            write_header
             deflater.write(slice, @io)
+            update_checksum(slice)
           end
 
           # A flush before the first write sends the headers uncompressed, so
@@ -59,7 +64,7 @@
           def flush : Nil
             @content_coding = ContentCoding::Identity if @content_coding.undecided?
             if deflater = @deflater
-              write_gzip_header if @content_coding.gzip?
+              write_header
               deflater.flush(@io)
             end
             @io.flush
@@ -72,12 +77,9 @@
             return @io.close unless deflater
 
             begin
-              write_gzip_header if @content_coding.gzip?
+              write_header
               deflater.finish(@io)
-              if @content_coding.gzip?
-                @io.write_bytes @crc32, IO::ByteFormat::LittleEndian
-                @io.write_bytes @uncompressed_size, IO::ByteFormat::LittleEndian
-              end
+              write_trailer
             ensure
               @deflater = nil
               @pool.checkin(deflater)
@@ -97,9 +99,11 @@
             request_headers = @context.request.headers
             if request_headers.includes_word?("Accept-Encoding", "gzip")
               @content_coding = ContentCoding::Gzip
+              @checksum = ::Digest::CRC32.initial
               response.headers["Content-Encoding"] = "gzip"
             elsif request_headers.includes_word?("Accept-Encoding", "deflate")
               @content_coding = ContentCoding::Deflate
+              @checksum = ::Digest::Adler32.initial
               response.headers["Content-Encoding"] = "deflate"
             else
               return
@@ -108,12 +112,49 @@
             @deflater = @pool.checkout
           end
 
-          private def write_gzip_header : Nil
-            return if @wrote_gzip_header
-            @wrote_gzip_header = true
-            @io.write(GZIP_HEADER_START)
-            @io.write_bytes(Time.utc.to_unix.to_u32, IO::ByteFormat::LittleEndian)
-            @io.write(GZIP_HEADER_END)
+          private def write_header : Nil
+            return if @wrote_header
+            @wrote_header = true
+            if @content_coding.gzip?
+              @io.write(GZIP_HEADER_START)
+              @io.write_bytes(Time.utc.to_unix.to_u32, IO::ByteFormat::LittleEndian)
+              @io.write(GZIP_HEADER_END)
+            elsif ZLIB_FRAMED_DEFLATE
+              @io.write_byte 0x78_u8
+              @io.write_byte zlib_flags
+            end
+          end
+
+          # The FLG byte `Compress::Zlib::Writer` writes: the level class in
+          # the top two bits, then a check value that makes CMF*256+FLG a
+          # multiple of 31.
+          private def zlib_flags : UInt8
+            level_class = case @pool.level
+                          when 0..1  then 0_u8
+                          when 2..5  then 1_u8
+                          when 6, -1 then 2_u8
+                          else            3_u8
+                          end
+            flags = level_class << 6
+            flags + (31 - (0x78_u16 * 256 + flags.to_u16).remainder(31)).to_u8
+          end
+
+          private def update_checksum(slice : Bytes) : Nil
+            if @content_coding.gzip?
+              @checksum = ::Digest::CRC32.update(slice, @checksum)
+              @uncompressed_size &+= slice.size
+            elsif ZLIB_FRAMED_DEFLATE
+              @checksum = ::Digest::Adler32.update(slice, @checksum)
+            end
+          end
+
+          private def write_trailer : Nil
+            if @content_coding.gzip?
+              @io.write_bytes @checksum, IO::ByteFormat::LittleEndian
+              @io.write_bytes @uncompressed_size, IO::ByteFormat::LittleEndian
+            elsif ZLIB_FRAMED_DEFLATE
+              @io.write_bytes @checksum, IO::ByteFormat::BigEndian
+            end
           end
         end
       end
