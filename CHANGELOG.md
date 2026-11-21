@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `Amber::Pipe::Compression` gzips or deflates responses for clients that
+  accept it, with the same bytes as Crystal's `HTTP::CompressHandler`. Its zlib
+  streams come from `malloc`, outside the collected heap, and are reused through
+  a small pool (`idle_compressors:`, 4 by default), where `HTTP::CompressHandler`
+  allocates about 270 KB from the collected heap for every compressed response.
+  Like the `CompressedResponsePipe` that Amber CLI generates, it answers range
+  requests uncompressed and adds `Vary: Accept-Encoding`; a generated app can
+  make that class a subclass of it. Request bodies are untouched: a compressed
+  request body is still answered `415` before any pipe runs.
 - A request with a compressed body is answered `415 Unsupported Media Type`,
   with `Accept-Encoding: identity` and `Connection: close`, before routing or
   any pipe reads its body. Crystal before 1.21.1 inflates gzip and deflate
