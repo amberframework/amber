@@ -152,7 +152,7 @@ module Amber::Controller::Helpers
       end
 
       describe "rendered tag reuse" do
-        it "renders each tag once per manifest and then allocates nothing" do
+        it "renders each tag once per manifest and then allocates next to nothing" do
           imports = {"app" => "javascript/app.js"}
           preload = ["javascript/app.js"]
           first = {
@@ -163,15 +163,21 @@ module Amber::Controller::Helpers
             controller.javascript_importmap_tag(imports, preload: preload),
           }
 
+          again = first
           before = GC.stats.total_bytes
-          again = {
-            controller.stylesheet_link_tag("stylesheets/app.css"),
-            controller.javascript_include_tag("javascript/app.js"),
-            controller.image_tag("images/amber-crystal.svg"),
-            controller.favicon_tag("images/amber-crystal.svg"),
-            controller.javascript_importmap_tag(imports, preload: preload),
-          }
-          (GC.stats.total_bytes - before).should eq 0
+          200.times do
+            again = {
+              controller.stylesheet_link_tag("stylesheets/app.css"),
+              controller.javascript_include_tag("javascript/app.js"),
+              controller.image_tag("images/amber-crystal.svg"),
+              controller.favicon_tag("images/amber-crystal.svg"),
+              controller.javascript_importmap_tag(imports, preload: preload),
+            }
+          end
+          # Rendering the five tags afresh allocates several kilobytes; the
+          # collector counts in pages, so the bound allows for one stray page
+          # from elsewhere in the process.
+          ((GC.stats.total_bytes - before) // 200).should be < 64
 
           again.each_with_index { |tag, index| tag.should be(first[index]) }
           Amber::Assets.manifest.rendered_tags.size.should eq 5
