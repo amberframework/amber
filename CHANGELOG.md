@@ -9,6 +9,11 @@
   allocating. A generated layout's three tags cost 6.9 KB per page before. A
   manifest reloaded in development starts empty, a missing asset stores
   nothing, and each kind of tag stores at most 1,024 entries.
+- `Amber::Pipe::Logger` allocates nothing when the log level filters its lines
+  out. At the default `info` level it used to build every debug line before
+  `Log` dropped it, parse the params, and create a session, about 11.8 KB per
+  request while writing nothing. When it does write, each line is built inside
+  the `Log` block and headers are read in place.
 - A request with a compressed body is answered `415 Unsupported Media Type`,
   with `Accept-Encoding: identity` and `Connection: close`, before routing or
   any pipe reads its body. Crystal before 1.21.1 inflates gzip and deflate
