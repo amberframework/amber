@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Asset tags are rendered once per manifest. `stylesheet_link_tag`,
+  `javascript_include_tag`, `image_tag` and `favicon_tag` for a logical path
+  without extra attributes, and `javascript_importmap_tag`, keep their HTML in
+  the manifest's `RenderedTags` and return it on later calls without
+  allocating. A generated layout's three tags cost 6.9 KB per page before. A
+  manifest reloaded in development starts empty, a missing asset stores
+  nothing, and each kind of tag stores at most 1,024 entries.
 - A request with a compressed body is answered `415 Unsupported Media Type`,
   with `Accept-Encoding: identity` and `Connection: close`, before routing or
   any pipe reads its body. Crystal before 1.21.1 inflates gzip and deflate
