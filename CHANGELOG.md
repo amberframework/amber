@@ -9,6 +9,15 @@
   allocating. A generated layout's three tags cost 6.9 KB per page before. A
   manifest reloaded in development starts empty, a missing asset stores
   nothing, and each kind of tag stores at most 1,024 entries.
+- `Amber::Pipe::Compression` gzips or deflates responses for clients that
+  accept it, with the same bytes as Crystal's `HTTP::CompressHandler`. Its zlib
+  streams come from `malloc`, outside the collected heap, and are reused through
+  a small pool (`idle_compressors:`, 4 by default), where `HTTP::CompressHandler`
+  allocates about 270 KB from the collected heap for every compressed response.
+  Like the `CompressedResponsePipe` that Amber CLI generates, it answers range
+  requests uncompressed and adds `Vary: Accept-Encoding`; a generated app can
+  make that class a subclass of it. Request bodies are untouched: a compressed
+  request body is still answered `415` before any pipe runs.
 - `Amber::Pipe::Logger` allocates nothing when the log level filters its lines
   out. At the default `info` level it used to build every debug line before
   `Log` dropped it, parse the params, and create a session, about 11.8 KB per
