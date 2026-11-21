@@ -11,6 +11,11 @@
   requests uncompressed and adds `Vary: Accept-Encoding`; a generated app can
   make that class a subclass of it. Request bodies are untouched: a compressed
   request body is still answered `415` before any pipe runs.
+- `Amber::Pipe::Logger` allocates nothing when the log level filters its lines
+  out. At the default `info` level it used to build every debug line before
+  `Log` dropped it, parse the params, and create a session, about 11.8 KB per
+  request while writing nothing. When it does write, each line is built inside
+  the `Log` block and headers are read in place.
 - A request with a compressed body is answered `415 Unsupported Media Type`,
   with `Accept-Encoding: identity` and `Connection: close`, before routing or
   any pipe reads its body. Crystal before 1.21.1 inflates gzip and deflate
