@@ -50,6 +50,37 @@ module Amber::Pipe
     end
 
     describe "#call" do
+      it "allocates nothing when the level filters every line out" do
+        pipe = Logger.new(colorize: false)
+        pipe.next = ->(_context : HTTP::Server::Context) { }
+        context = create_context(HTTP::Request.new("GET", "/logger_spec?page=2", HTTP::Headers{"Cookie" => "a=b"}))
+        Log.capture("*", :info) do |logs|
+          pipe.call(context)
+          before = GC.stats.total_bytes
+          100.times { pipe.call(context) }
+          (GC.stats.total_bytes - before).should eq 0
+          logs.empty
+        end
+      end
+
+      it "writes the request, header, cookie and param lines at debug level" do
+        pipe = Logger.new(filter: ["password"], skip: ["Host"], colorize: false)
+        pipe.next = ->(_context : HTTP::Server::Context) { }
+        request = HTTP::Request.new("GET", "/logger_spec?page=2&password=secret",
+          HTTP::Headers{"Host" => "example.com", "Accept" => "text/html", "Cookie" => "flavor=oat"})
+        Log.capture("*", :debug) do |logs|
+          pipe.call(create_context(request))
+          logs.check(:debug, /^Started /)
+          logs.check(:debug, /^Status: 200 Method: GET Pipeline: /)
+          logs.check(:debug, "Requested Url: /logger_spec?page=2&password=secret")
+          logs.check(:debug, /^Time Elapsed: /)
+          logs.check(:debug, %(Accept: ["text/html"]))
+          logs.check(:debug, /^flavor: /)
+          logs.check(:debug, "page: 2")
+          logs.check(:debug, "password: FILTERED")
+        end
+      end
+
       it "logs plain text when colorize is false" do
         with_global_colorize(true) do
           requested_url_line(Logger.new(colorize: false)).should eq "Requested Url: /logger_spec"
