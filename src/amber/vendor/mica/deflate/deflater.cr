@@ -112,7 +112,13 @@ module Amber::Mica::Deflate
         @list_of_blocks.any? { |block| !block.null? }
       end
 
-      def finalize
+      # Returns nil: the collector calls a finalizer as a C function that
+      # returns nothing. A finalizer whose last expression is a large struct
+      # (`fill` returns the `StaticArray`) is compiled to take a hidden
+      # pointer for that result in the first argument register on x86_64,
+      # so the object the collector passes there is taken for it and `self`
+      # arrives as null.
+      def finalize : Nil
         @list_of_blocks.each { |block| LibC.free(block) unless block.null? }
         @list_of_blocks.fill(Pointer(Void).null)
       end

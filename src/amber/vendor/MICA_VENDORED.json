@@ -1,6 +1,6 @@
 {
   "source": "https://github.com/amberframework/mica",
-  "commit": "1627ab367f49ab0af70870d8905ea73d8b44f446",
+  "commit": "aac07260b07b9188c3c163efa2b5e67a624eb37b",
   "component": "deflate",
   "namespace": "Amber::Mica",
   "made_by": "scripts/vendor_into.rb",
@@ -98,8 +98,8 @@
     },
     {
       "path": "mica/deflate/deflater.cr",
-      "sha256": "e2cfb1daf3342a52feabd222ec2e19bb7ebbae1d87f1384a998e4bb2a625e65b",
-      "source_sha256": "9be3cacb3b84258860bd7a5bc378ae3003adc81e51a9a527934057ba12a403d4"
+      "sha256": "4dd5f99a19fc71b18b7d154ecb728b7ba20afd568559d3a2ede3dc76b25cc837",
+      "source_sha256": "7af41fb74871005d2f6a290b1e666a877ce92a4e136c34e15c9aec2b4df2788b"
     },
     {
       "path": "mica/deflate/errors.cr",
