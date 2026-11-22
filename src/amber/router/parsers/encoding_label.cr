@@ -3,10 +3,11 @@ module Amber::Router::Parsers
   #
   # Only the labels of the WHATWG Encoding Standard resolve
   # (https://encoding.spec.whatwg.org/#names-and-labels), so a client cannot
-  # pick a converter out of the platform's iconv by name. Two encodings of
+  # pick a converter out of the platform's iconv by name. Three encodings of
   # that table have no decoder here and their labels do not resolve:
   # `replacement` (the standard's own refusal of `ISO-2022-KR`, `ISO-2022-CN`,
-  # `ISO-2022-CN-EXT` and `HZ-GB-2312`) and `x-user-defined`.
+  # `ISO-2022-CN-EXT` and `HZ-GB-2312`), `x-user-defined`, and `windows-1258`,
+  # which glibc decodes by holding back the last letter of the input.
   module EncodingLabel
     # An encoding of the standard: its *name* there and the *decoder_name*
     # handed to `IO#set_encoding`. The decoder is the one whose table matches
@@ -49,7 +50,6 @@ module Amber::Router::Parsers
       {"windows-1255", "CP1255", %w(cp1255 windows-1255 x-cp1255)},
       {"windows-1256", "CP1256", %w(cp1256 windows-1256 x-cp1256)},
       {"windows-1257", "CP1257", %w(cp1257 windows-1257 x-cp1257)},
-      {"windows-1258", "CP1258", %w(cp1258 windows-1258 x-cp1258)},
       {"x-mac-cyrillic", "MACCYRILLIC", %w(x-mac-cyrillic x-mac-ukrainian)},
       {"GBK", "GB18030", %w(chinese csgb2312 csiso58gb231280 gb2312 gb_2312 gb_2312-80 gbk iso-ir-58 x-gbk)},
       {"gb18030", "GB18030", %w(gb18030)},

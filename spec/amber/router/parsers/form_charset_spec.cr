@@ -45,7 +45,7 @@ private WHATWG_LABEL_TABLE = <<-TABLE
   x-user-defined: x-user-defined
   TABLE
 
-private LIST_OF_ENCODINGS_WITHOUT_A_DECODER = ["replacement", "x-user-defined"]
+private LIST_OF_ENCODINGS_WITHOUT_A_DECODER = ["replacement", "x-user-defined", "windows-1258"]
 
 private def whatwg_labels_by_name : Hash(String, Array(String))
   WHATWG_LABEL_TABLE.lines.to_h do |line|
@@ -90,6 +90,7 @@ private LIST_OF_REFUSED_CHARSETS = {
   "an iconv option suffix"   => "UTF-16//TRANSLIT",
   "the replacement encoding" => "iso-2022-kr",
   "x-user-defined"           => "x-user-defined",
+  "windows-1258"             => "windows-1258",
   "an unknown name"          => "no-such-charset",
   "an empty label"           => "",
   "a blank label"            => "   ",
@@ -200,6 +201,13 @@ describe "a form's declared charset" do
       response.body.should eq "café"
     end
     FormCharsetSpy.list_of_opened_converters.should be_empty
+  end
+
+  it "decodes a form that ends in a letter above ASCII" do
+    {"windows-1255" => {0xE0_u8, "א"}, "windows-1251" => {0xE0_u8, "а"}, "windows-1253" => {0xE1_u8, "α"}, "windows-874" => {0xA1_u8, "ก"}}.each do |label, (byte, letter)|
+      request = form_request(label, "title=".to_slice + Bytes[byte])
+      Amber::Router::Parsers::FormData.parse(request)["title"]?.should eq(letter), "#{label} lost its last letter"
+    end
   end
 
   it "opens the decoder of the resolved encoding, never the client's name" do
