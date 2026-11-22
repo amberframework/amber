@@ -3,15 +3,15 @@ set -euo pipefail
 
 shard_version="$(awk '/^version:/ { print $2; exit }' shard.yml)"
 source_version="$(sed -n 's/.*VERSION = "\([^"]*\)".*/\1/p' src/amber/version.cr)"
-test "$shard_version" = "2.0.0-beta.11"
+test "$shard_version" = "2.0.0-beta.12"
 test "$source_version" = "$shard_version"
 
 files=(README.md docs/README.md docs/getting-started.md docs/beta-installation.md docs/migration-guide.md RELEASE_NOTES_V2_BETA8.md)
 grep -F 'brew install amberframework/amber_cli/amber_cli' docs/beta-installation.md
-grep -F 'version: 2.0.0-beta.11' docs/getting-started.md
-grep -F 'version=v2.0.11' docs/beta-installation.md
-grep -F 'git checkout v2.0.11' docs/beta-installation.md
-grep -F 'Amber CLI 2.0.11 or newer' docs/getting-started.md docs/migration-guide.md
+grep -F 'version: 2.0.0-beta.12' docs/getting-started.md
+grep -F 'version=v2.0.12' docs/beta-installation.md
+grep -F 'git checkout v2.0.12' docs/beta-installation.md
+grep -F 'Amber CLI 2.0.12 or newer' docs/getting-started.md docs/migration-guide.md
 if grep -R -F 'Process.fork' src; then
   echo "Amber V2 must compile with Crystal's default multithreaded runtime" >&2
   exit 1
