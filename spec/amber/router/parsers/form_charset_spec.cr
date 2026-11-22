@@ -45,7 +45,7 @@ private WHATWG_LABEL_TABLE = <<-TABLE
   x-user-defined: x-user-defined
   TABLE
 
-private LIST_OF_ENCODINGS_WITHOUT_A_DECODER = ["replacement", "x-user-defined", "windows-1258"]
+private LIST_OF_ENCODINGS_WITHOUT_A_DECODER = ["replacement", "x-user-defined", "windows-1255", "windows-1258"]
 
 private def whatwg_labels_by_name : Hash(String, Array(String))
   WHATWG_LABEL_TABLE.lines.to_h do |line|
@@ -90,6 +90,7 @@ private LIST_OF_REFUSED_CHARSETS = {
   "an iconv option suffix"   => "UTF-16//TRANSLIT",
   "the replacement encoding" => "iso-2022-kr",
   "x-user-defined"           => "x-user-defined",
+  "windows-1255"             => "windows-1255",
   "windows-1258"             => "windows-1258",
   "an unknown name"          => "no-such-charset",
   "an empty label"           => "",
@@ -204,7 +205,7 @@ describe "a form's declared charset" do
   end
 
   it "decodes a form that ends in a letter above ASCII" do
-    {"windows-1255" => {0xE0_u8, "א"}, "windows-1251" => {0xE0_u8, "а"}, "windows-1253" => {0xE1_u8, "α"}, "windows-874" => {0xA1_u8, "ก"}}.each do |label, (byte, letter)|
+    {"ISO-8859-8-I" => {0xE0_u8, "א"}, "windows-1256" => {0xC7_u8, "ا"}, "windows-1251" => {0xE0_u8, "а"}, "windows-1253" => {0xE1_u8, "α"}, "windows-874" => {0xA1_u8, "ก"}}.each do |label, (byte, letter)|
       request = form_request(label, "title=".to_slice + Bytes[byte])
       Amber::Router::Parsers::FormData.parse(request)["title"]?.should eq(letter), "#{label} lost its last letter"
     end

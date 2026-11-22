@@ -3,11 +3,12 @@ module Amber::Router::Parsers
   #
   # Only the labels of the WHATWG Encoding Standard resolve
   # (https://encoding.spec.whatwg.org/#names-and-labels), so a client cannot
-  # pick a converter out of the platform's iconv by name. Three encodings of
+  # pick a converter out of the platform's iconv by name. Four encodings of
   # that table have no decoder here and their labels do not resolve:
   # `replacement` (the standard's own refusal of `ISO-2022-KR`, `ISO-2022-CN`,
-  # `ISO-2022-CN-EXT` and `HZ-GB-2312`), `x-user-defined`, and `windows-1258`,
-  # which glibc decodes by holding back the last letter of the input.
+  # `ISO-2022-CN-EXT` and `HZ-GB-2312`), `x-user-defined`, and `windows-1255`
+  # and `windows-1258`, whose glibc decoders hold back the last letter of the
+  # input to combine it with a mark that may follow.
   module EncodingLabel
     # An encoding of the standard: its *name* there and the *decoder_name*
     # handed to `IO#set_encoding`. The decoder is the one whose table matches
@@ -47,7 +48,6 @@ module Amber::Router::Parsers
       {"windows-1252", "CP1252", %w(ansi_x3.4-1968 ascii cp1252 cp819 csisolatin1 ibm819 iso-8859-1 iso-ir-100 iso8859-1 iso88591 iso_8859-1 iso_8859-1:1987 l1 latin1 us-ascii windows-1252 x-cp1252)},
       {"windows-1253", "CP1253", %w(cp1253 windows-1253 x-cp1253)},
       {"windows-1254", "CP1254", %w(cp1254 csisolatin5 iso-8859-9 iso-ir-148 iso8859-9 iso88599 iso_8859-9 iso_8859-9:1989 l5 latin5 windows-1254 x-cp1254)},
-      {"windows-1255", "CP1255", %w(cp1255 windows-1255 x-cp1255)},
       {"windows-1256", "CP1256", %w(cp1256 windows-1256 x-cp1256)},
       {"windows-1257", "CP1257", %w(cp1257 windows-1257 x-cp1257)},
       {"x-mac-cyrillic", "MACCYRILLIC", %w(x-mac-cyrillic x-mac-ukrainian)},
