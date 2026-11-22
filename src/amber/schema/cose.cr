@@ -1,10 +1,6 @@
 require "base64"
-require "openssl"
 require "random/secure"
-
-lib LibCrypto
-  fun evp_cipher_ctx_ctrl = EVP_CIPHER_CTX_ctrl(ctx : EVP_CIPHER_CTX, type : Int32, arg : Int32, ptr : Void*) : Int32
-end
+require "../vendor/beryl/crypto"
 
 module Amber::Schema::COSE
   extend self
@@ -180,109 +176,31 @@ module Amber::Schema::COSE
     io.to_slice.dup
   end
 
-  # OpenSSL's maintained ChaCha20-Poly1305 implementation. The COSE profile is
-  # portable at the wire level; clients can use CryptoKit, WebCrypto-compatible
-  # adapters, or any RFC 8439 implementation.
+  # ChaCha20-Poly1305 (RFC 8439), COSE algorithm 24, from Beryl's
+  # implementation in Crystal. The COSE profile is portable at the wire
+  # level; clients can use CryptoKit, WebCrypto-compatible adapters, or any
+  # RFC 8439 implementation.
   module ChaCha20Poly1305
     extend self
 
-    EVP_CTRL_AEAD_SET_IVLEN =  0x9
-    EVP_CTRL_AEAD_GET_TAG   = 0x10
-    EVP_CTRL_AEAD_SET_TAG   = 0x11
-
+    # Returns the ciphertext of *plaintext* followed by its 16-byte tag.
     def seal(key : Bytes, nonce : Bytes, plaintext : Bytes, aad = Bytes.empty) : Bytes
       validate_sizes(key, nonce)
-      context = LibCrypto.evp_cipher_ctx_new
-      raise Error.new("Unable to initialize COSE encryption", "cose_crypto_error") if context.null?
-
-      begin
-        cipher = LibCrypto.evp_get_cipherbyname("chacha20-poly1305")
-        raise Error.new("ChaCha20-Poly1305 is unavailable", "cose_algorithm_unavailable") if cipher.null?
-        check LibCrypto.evp_cipherinit_ex(context, cipher, Pointer(Void).null, Pointer(UInt8).null, Pointer(UInt8).null, 1)
-        check LibCrypto.evp_cipher_ctx_ctrl(context, EVP_CTRL_AEAD_SET_IVLEN, nonce.size, Pointer(Void).null)
-        check LibCrypto.evp_cipherinit_ex(context, Pointer(Void).null, Pointer(Void).null, key, nonce, 1)
-        update_aad(context, aad)
-        ciphertext = update(context, plaintext)
-        final = finalize(context).not_nil!
-        tag = Bytes.new(TAG_SIZE)
-        check LibCrypto.evp_cipher_ctx_ctrl(context, EVP_CTRL_AEAD_GET_TAG, TAG_SIZE, tag.to_unsafe.as(Void*))
-        concatenate(ciphertext, final, tag)
-      ensure
-        LibCrypto.evp_cipher_ctx_free(context)
-      end
+      Amber::Beryl::Crypto::V1::ChaCha20Poly1305.new(key).encrypt(plaintext, nonce: nonce, associated_data: aad)
     end
 
+    # Returns the plaintext of *ciphertext_and_tag*, or nil when the tag does
+    # not match. Nothing is decrypted before the tag has been checked.
     def open(key : Bytes, nonce : Bytes, ciphertext_and_tag : Bytes, aad = Bytes.empty) : Bytes?
       validate_sizes(key, nonce)
       return nil if ciphertext_and_tag.size < TAG_SIZE
-      ciphertext = ciphertext_and_tag[0, ciphertext_and_tag.size - TAG_SIZE]
-      tag = ciphertext_and_tag[ciphertext_and_tag.size - TAG_SIZE, TAG_SIZE]
-      context = LibCrypto.evp_cipher_ctx_new
-      return nil if context.null?
 
-      begin
-        cipher = LibCrypto.evp_get_cipherbyname("chacha20-poly1305")
-        return nil if cipher.null?
-        return nil unless ok? LibCrypto.evp_cipherinit_ex(context, cipher, Pointer(Void).null, Pointer(UInt8).null, Pointer(UInt8).null, 0)
-        return nil unless ok? LibCrypto.evp_cipher_ctx_ctrl(context, EVP_CTRL_AEAD_SET_IVLEN, nonce.size, Pointer(Void).null)
-        return nil unless ok? LibCrypto.evp_cipherinit_ex(context, Pointer(Void).null, Pointer(Void).null, key, nonce, 0)
-        update_aad(context, aad)
-        plaintext = update(context, ciphertext)
-        return nil unless ok? LibCrypto.evp_cipher_ctx_ctrl(context, EVP_CTRL_AEAD_SET_TAG, TAG_SIZE, tag.to_unsafe.as(Void*))
-        tail = finalize(context, raise_on_error: false)
-        return nil unless tail
-        concatenate(plaintext, tail, Bytes.empty)
-      rescue
-        nil
-      ensure
-        LibCrypto.evp_cipher_ctx_free(context)
-      end
+      Amber::Beryl::Crypto::V1::ChaCha20Poly1305.new(key).decrypt(ciphertext_and_tag, nonce: nonce, associated_data: aad)
     end
 
     private def validate_sizes(key : Bytes, nonce : Bytes) : Nil
       raise ArgumentError.new("COSE key must be #{KEY_SIZE} bytes") unless key.size == KEY_SIZE
       raise ArgumentError.new("COSE nonce must be #{NONCE_SIZE} bytes") unless nonce.size == NONCE_SIZE
-    end
-
-    private def update_aad(context, aad : Bytes) : Nil
-      return if aad.empty?
-      length = 0
-      check LibCrypto.evp_cipherupdate(context, Pointer(UInt8).null, pointerof(length), aad, aad.size)
-    end
-
-    private def update(context, input : Bytes) : Bytes
-      return Bytes.empty if input.empty?
-      output = Bytes.new(input.size + 16)
-      length = 0
-      check LibCrypto.evp_cipherupdate(context, output, pointerof(length), input, input.size)
-      output[0, length].dup
-    end
-
-    private def finalize(context, raise_on_error = true) : Bytes?
-      output = Bytes.new(16)
-      length = 0
-      result = LibCrypto.evp_cipherfinal_ex(context, output, pointerof(length))
-      if result != 1
-        raise Error.new if raise_on_error
-        return nil
-      end
-      output[0, length].dup
-    end
-
-    private def concatenate(first : Bytes, second : Bytes, third : Bytes) : Bytes
-      output = Bytes.new(first.size + second.size + third.size)
-      first.copy_to(output)
-      second.copy_to(output + first.size)
-      third.copy_to(output + first.size + second.size)
-      output
-    end
-
-    private def check(result : Int32) : Nil
-      raise Error.new("COSE cryptographic operation failed", "cose_crypto_error") unless ok?(result)
-    end
-
-    private def ok?(result : Int32) : Bool
-      result == 1
     end
   end
 end

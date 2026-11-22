@@ -94,7 +94,9 @@ module Amber
         self.class.bind_unix_socket(server, socket_path)
       elsif ssl_enabled?
         ssl_config = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls
-        server.bind_tls Amber.settings.host, Amber.settings.port, ssl_config, settings.port_reuse
+        {% unless flag?(:without_openssl) %}
+          server.bind_tls Amber.settings.host, Amber.settings.port, ssl_config, settings.port_reuse
+        {% end %}
       else
         server.bind_tcp Amber.settings.host, Amber.settings.port, settings.port_reuse
       end

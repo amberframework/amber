@@ -109,8 +109,9 @@ jobs:
   linkage:
     # A minimal JSON API on stock Crystal links no regex engine. The stock
     # tarballs link PCRE2 statically, so the check reads symbols as well as
-    # libraries, and a control program that uses Regex must show them.
-    name: No PCRE2 on Crystal ${{ matrix.crystal_version }} on ${{ matrix.os }}
+    # libraries, and a control program that uses Regex must show them. The
+    # same app built with -Dwithout_openssl links no libssl or libcrypto.
+    name: No PCRE2, and no OpenSSL with -Dwithout_openssl, on Crystal ${{ matrix.crystal_version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
