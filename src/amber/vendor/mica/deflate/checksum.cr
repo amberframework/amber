@@ -1,15 +1,4 @@
 module Amber::Mica::Deflate
-  {% if flag?(:aarch64) && flag?(:darwin) %}
-    # LLVM intrinsics for the ARMv8 CRC32 instructions (compiled inline;
-    # nothing is linked).
-    #
-    # :nodoc:
-    lib LibCRC32Instructions
-      fun crc32x = "llvm.aarch64.crc32x"(crc : UInt32, data : UInt64) : UInt32
-      fun crc32b = "llvm.aarch64.crc32b"(crc : UInt32, data : UInt32) : UInt32
-    end
-  {% end %}
-
   # CRC-32 as gzip uses it (ISO 3309, reflected polynomial 0xEDB88320),
   # computed eight bytes at a time with slicing-by-8 tables.
   #
@@ -63,7 +52,7 @@ module Amber::Mica::Deflate
         tables = StaticArray(UInt32, 1024).new(0_u32)
         32.times do |bit|
           value = 1_u32 << bit
-          (bytes // 8).times { value = LibCRC32Instructions.crc32x(value, 0_u64) }
+          (bytes // 8).times { value = crc32x(value, 0_u64) }
           base = (bit >> 3) * 256
           mask = 1 << (bit & 7)
           256.times { |index| tables[base + index] ^= value if index & mask != 0 }
@@ -75,6 +64,26 @@ module Amber::Mica::Deflate
       LONG_SHIFT_TWICE  = shift_tables(LONG_STREAM * 2)
       SHORT_SHIFT       = shift_tables(SHORT_STREAM)
       SHORT_SHIFT_TWICE = shift_tables(SHORT_STREAM * 2)
+
+      # The ARMv8 CRC32X instruction: folds the eight bytes of *data* into
+      # *crc*. It is written as inline assembly with `.arch_extension crc`
+      # because the LLVM intrinsic only compiles when the target CPU is
+      # declared to have the CRC extension, which a default macOS build of
+      # Crystal does not declare; every Apple silicon CPU has it.
+      @[AlwaysInline]
+      private def self.crc32x(crc : UInt32, data : UInt64) : UInt32
+        result = 0_u32
+        asm(".arch_extension crc\n\tcrc32x ${0:w}, ${1:w}, $2" : "=r"(result) : "r"(crc), "r"(data))
+        result
+      end
+
+      # The ARMv8 CRC32B instruction: folds the low byte of *data* into *crc*.
+      @[AlwaysInline]
+      private def self.crc32b(crc : UInt32, data : UInt32) : UInt32
+        result = 0_u32
+        asm(".arch_extension crc\n\tcrc32b ${0:w}, ${1:w}, ${2:w}" : "=r"(result) : "r"(crc), "r"(data))
+        result
+      end
 
       @[AlwaysInline]
       private def self.shifted(crc : UInt32, tables : UInt32*) : UInt32
@@ -104,17 +113,17 @@ module Amber::Mica::Deflate
         third_pointer = second_pointer + stream
         offset = 0
         while offset < stream
-          first = LibCRC32Instructions.crc32x(first, word_at(pointer + offset))
-          second = LibCRC32Instructions.crc32x(second, word_at(second_pointer + offset))
-          third = LibCRC32Instructions.crc32x(third, word_at(third_pointer + offset))
+          first = crc32x(first, word_at(pointer + offset))
+          second = crc32x(second, word_at(second_pointer + offset))
+          third = crc32x(third, word_at(third_pointer + offset))
           offset &+= 8
         end
         shifted(first, shift_twice) ^ shifted(second, shift_once) ^ third
       end
 
       # Every Apple silicon CPU has the ARMv8 CRC32 instructions (CRC32X
-      # folds eight bytes into the CRC-32 in one instruction); LLVM emits
-      # them for these intrinsics, so no library is involved.
+      # folds eight bytes into the CRC-32 in one instruction); the inline
+      # assembly above emits them, so no library is involved.
       private def self.update_with_instructions(crc : UInt32, pointer : UInt8*, count : Int32) : UInt32
         crc = ~crc
         index = 0
@@ -133,11 +142,11 @@ module Amber::Mica::Deflate
           end
         end
         while index &+ 8 <= count
-          crc = LibCRC32Instructions.crc32x(crc, word_at(pointer + index))
+          crc = crc32x(crc, word_at(pointer + index))
           index &+= 8
         end
         while index < count
-          crc = LibCRC32Instructions.crc32b(crc, pointer[index].to_u32)
+          crc = crc32b(crc, pointer[index].to_u32)
           index &+= 1
         end
         ~crc
