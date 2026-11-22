@@ -12,7 +12,9 @@
 # fetched at a pinned commit and verified by its Git tree before it runs.
 #
 # usage: scripts/check_regex_on_mica.sh [DIRECTORY ...]   (default: src spec)
-# Set CRYSTAL to choose the compiler; crystal-alpha is preferred when present.
+# Set CRYSTAL to choose the compiler. The default is `crystal`, because the
+# crystal-alpha wrapper sets its own CRYSTAL_PATH, which hides the checker's
+# source; any compiler that honors CRYSTAL_PATH works.
 set -euo pipefail
 
 mica_commit=6ff310dfec940f71297388a513a96a16f9aa1b68
@@ -33,7 +35,7 @@ test "$(git -C "$checkout" rev-parse HEAD)" = "$mica_commit"
 test "$(git -C "$checkout" rev-parse 'HEAD^{tree}')" = "$mica_tree"
 
 if [[ -z "${CRYSTAL:-}" ]]; then
-  if command -v crystal-alpha >/dev/null 2>&1; then CRYSTAL=crystal-alpha; else CRYSTAL=crystal; fi
+  CRYSTAL=crystal
 fi
 
 if [[ $# -eq 0 ]]; then
