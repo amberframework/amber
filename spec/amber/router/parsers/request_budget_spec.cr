@@ -422,9 +422,15 @@ module Amber::Router::Parsers
       error.message.to_s.should_not contain("script")
     end
 
-    it "answers an unknown charset with a bad request" do
+    it "refuses an unknown charset" do
       request = HTTP::Request.new("PUT", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=no-such-charset"}, "title=x")
-      expect_raises(Amber::Exceptions::BadRequest, /could not be decoded/) { request.form_params }
+      expect_raises(Amber::Exceptions::UnsupportedCharset, /not supported/) { request.form_params }
+    end
+
+    it "answers bytes its declared charset cannot decode with a bad request" do
+      request = HTTP::Request.new("PUT", "/", HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=Shift_JIS"}, "title=".to_slice + Bytes[0xFD, 0xFF])
+      error = expect_raises(Amber::Exceptions::BadRequest, /could not be decoded/) { request.form_params }
+      error.status_code.should eq 400
     end
   end
 

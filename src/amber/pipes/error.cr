@@ -27,9 +27,9 @@ module Amber
           context.response.print(error.forbidden)
           Log.warn(exception: exception) { paint(error_msg(context, 403), :yellow) }
         elsif exception.is_a?(Amber::Exceptions::BadRequest)
-          context.response.status_code = 400
+          context.response.status_code = exception.status_code
           context.response.print(error.bad_request)
-          Log.warn { paint(error_msg(context, 400), :yellow) }
+          Log.warn { paint(error_msg(context, exception.status_code), :yellow) }
         elsif exception.is_a?(Amber::Schema::RequestParseError)
           # A request body that could not be decoded, such as one beyond a
           # limit, read by an action through the schema parsers directly.

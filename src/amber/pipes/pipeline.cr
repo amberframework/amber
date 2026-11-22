@@ -58,7 +58,7 @@ module Amber
       rescue e : Amber::Exceptions::BadRequest
         # Answer directly: routing reads the body to resolve `_method`, so the
         # Error pipe would hit the same error while re-resolving the route.
-        respond_to_bad_request(context, e, 400)
+        respond_to_bad_request(context, e, e.status_code)
       rescue e : Amber::Schema::RequestParseError
         respond_to_bad_request(context, e, e.http_status)
       rescue e : Amber::Exceptions::Base
