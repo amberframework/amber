@@ -11,6 +11,12 @@
 #    holds no EVP_, SSL_ or OPENSSL_ symbol, and answers its GET route. The build
 #    without the flag links OpenSSL, which proves this check can fail.
 #
+# 5. The same app built with -Dwithout_zlib links no libz and holds no inflate,
+#    deflate or crc32 symbol of it. It answers a GET that accepts gzip with a
+#    gzip body that `gzip -dc` expands to the page, and a POST whose body is
+#    gzip-encoded with 415. The build without the flag reaches libz, which
+#    proves this check can fail.
+#
 # usage: scripts/check_linkage.sh [OUTPUT_DIR]     (macOS otool, Linux ldd)
 # Set CRYSTAL to choose the compiler; `crystal` is the default.
 set -euo pipefail
@@ -45,11 +51,20 @@ count_openssl_symbols() {
   nm "$1" 2>/dev/null | grep -cE '[ _](EVP|SSL|OPENSSL)_' || true
 }
 
+count_zlib_libraries() {
+  list_libraries "$1" | grep -cE 'libz\.' || true
+}
+
+count_zlib_symbols() {
+  nm "$1" 2>/dev/null | grep -cE '[[:space:]]_?(inflate|deflate|crc32|adler32)(Init2?_|End|Reset)?(@.*)?$' || true
+}
+
 "$crystal_compiler" --version | head -1
 "$crystal_compiler" build scripts/linkage/minimal_json_app.cr -o "$output_directory/minimal_json_app"
 "$crystal_compiler" build scripts/linkage/regex_control.cr -o "$output_directory/regex_control"
 
 "$crystal_compiler" build -Dwithout_openssl scripts/linkage/minimal_json_app.cr -o "$output_directory/minimal_json_app_without_openssl"
+"$crystal_compiler" build -Dwithout_zlib scripts/linkage/minimal_json_app.cr -o "$output_directory/minimal_json_app_without_zlib"
 
 echo "minimal_json_app links:"
 list_libraries "$output_directory/minimal_json_app" | sed 's/^/  /'
@@ -108,6 +123,59 @@ if [ "$flagged_answer" = '{"ok":true}' ]; then
 else
   echo "FAIL: the -Dwithout_openssl build answered [$flagged_answer]"
   tail -20 "$output_directory/minimal_json_app_without_openssl.log"
+  status=1
+fi
+
+echo "minimal_json_app built with -Dwithout_zlib links:"
+list_libraries "$output_directory/minimal_json_app_without_zlib" | sed 's/^/  /'
+
+zlib_free_library_count=$(count_zlib_libraries "$output_directory/minimal_json_app_without_zlib")
+zlib_free_symbol_count=$(count_zlib_symbols "$output_directory/minimal_json_app_without_zlib")
+if [ "$zlib_free_library_count" -ne 0 ] || [ "$zlib_free_symbol_count" -ne 0 ]; then
+  echo "FAIL: the -Dwithout_zlib build reaches libz ($zlib_free_library_count libraries, $zlib_free_symbol_count symbols)"
+  status=1
+else
+  echo "ok: the -Dwithout_zlib build links no libz and holds no inflate, deflate or crc32 symbol"
+fi
+
+default_zlib_library_count=$(count_zlib_libraries "$output_directory/minimal_json_app")
+default_zlib_symbol_count=$(count_zlib_symbols "$output_directory/minimal_json_app")
+if [ "$default_zlib_library_count" -eq 0 ] && [ "$default_zlib_symbol_count" -eq 0 ]; then
+  echo "FAIL: the build without the flag shows no libz, so this check cannot see it"
+  status=1
+else
+  echo "ok: the build without the flag reaches libz, so the check can fail"
+fi
+
+zlib_free_port=$((probe_port + 2))
+LINKAGE_PROBE_PORT="$zlib_free_port" "$output_directory/minimal_json_app_without_zlib" > "$output_directory/minimal_json_app_without_zlib.log" 2>&1 &
+zlib_free_process_id=$!
+for _ in $(seq 1 50); do
+  curl --silent --output /dev/null --max-time 1 "http://127.0.0.1:$zlib_free_port/notes" && break
+  sleep 0.1
+done
+zlib_free_url="http://127.0.0.1:$zlib_free_port"
+expected_page=$(for _ in $(seq 1 400); do echo "a line of the long page"; done)
+gzip_headers=$(curl --silent --max-time 5 --header 'Accept-Encoding: gzip' --dump-header - --output "$output_directory/long_page.gz" "$zlib_free_url/notes/long" || true)
+gzip_page=$(gzip -dc "$output_directory/long_page.gz" 2>/dev/null || true)
+gzip_page_bytes=$(wc -c < "$output_directory/long_page.gz" | tr -d ' ')
+printf 'title=hi' | gzip -c > "$output_directory/request_body.gz"
+encoded_body_status=$(curl --silent --max-time 5 --output /dev/null --write-out '%{http_code}' \
+  --header 'Content-Encoding: gzip' --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-binary "@$output_directory/request_body.gz" "$zlib_free_url/notes" || true)
+kill "$zlib_free_process_id" 2>/dev/null || true
+if echo "$gzip_headers" | grep -qi '^content-encoding: gzip' && [ "$gzip_page" = "$expected_page" ] && [ "$gzip_page_bytes" -lt 1000 ]; then
+  echo "ok: the -Dwithout_zlib build answers GET with a gzip body of $gzip_page_bytes bytes that expands to the 9,600-byte page"
+else
+  echo "FAIL: the -Dwithout_zlib build did not answer GET with the page gzipped ($gzip_page_bytes bytes)"
+  echo "$gzip_headers"
+  tail -20 "$output_directory/minimal_json_app_without_zlib.log"
+  status=1
+fi
+if [ "$encoded_body_status" = "415" ]; then
+  echo "ok: the -Dwithout_zlib build answers a gzip-encoded request body with 415"
+else
+  echo "FAIL: the -Dwithout_zlib build answered a gzip-encoded request body with [$encoded_body_status]"
   status=1
 fi
 

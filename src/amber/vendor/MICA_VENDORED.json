@@ -1,0 +1,145 @@
+{
+  "source": "https://github.com/amberframework/mica",
+  "commit": "57b350ad275bcefc2b899e33e50192d09828a90d",
+  "component": "deflate",
+  "namespace": "Amber::Mica",
+  "made_by": "scripts/vendor_into.rb",
+  "note": "A pinned copy. Change Mica in its own repository, then run the script again; edits made here fail the check.",
+  "list_of_files": [
+    {
+      "path": "MICA_LICENSE",
+      "sha256": "8ed2027bc114d15ffb780e43443aaf73e2791517411ee570aac3262627ba3f26",
+      "source_sha256": "8ed2027bc114d15ffb780e43443aaf73e2791517411ee570aac3262627ba3f26"
+    },
+    {
+      "path": "mica/core.cr",
+      "sha256": "bbd61999cc15d618530a85551429dc813312c7ad1471c8a7450cf77d36a65160",
+      "source_sha256": "ccc2e52138ee345ff4ed3ed2ae6e129bbee0f5bc75011cf5340902f46899f297"
+    },
+    {
+      "path": "mica/core/byte_input.cr",
+      "sha256": "36a5d18a6d2f829fb3f8b920391e07aa3354c4924455d25a91b557b2e47de05d",
+      "source_sha256": "f3a7bb7224a559bc354218bb8495150218f36071a7c3445808cd21a5297d48a0"
+    },
+    {
+      "path": "mica/core/byte_scan.cr",
+      "sha256": "d64db0dcb586c347ce1a03b1bfb2b7ab6a0342a18022b38938840caeb7779f69",
+      "source_sha256": "a3e414f0e1759e1a199fb0fe642998e100702b519723f5f949214beb530022e4"
+    },
+    {
+      "path": "mica/core/byte_search.cr",
+      "sha256": "2169539ca10a78865a055a7140f4a0425d325e618ea8c8b5bf017bf08408b9df",
+      "source_sha256": "81ac83c0ece6bdf4d9ee33e82ac813508c8150f06fe034416e6e54625b47ccaf"
+    },
+    {
+      "path": "mica/core/encoding.cr",
+      "sha256": "5f842f29e413de41d5326dec082718b1a14cb684b6f43e20452d64ed4f2ddb75",
+      "source_sha256": "c18d79beaaa30a8009caef2de39f60421abf335a924289591ab1ad72a1795a46"
+    },
+    {
+      "path": "mica/core/error.cr",
+      "sha256": "9b057bdc7c351b7e3f1ecf68ed420ad320d30efb744cecb82822d2fb50c3b6f8",
+      "source_sha256": "6ab34ff1aaf9f379b5cb4db1246a9b40b748e60e2c45615cc4fd4ca223bbaa1b"
+    },
+    {
+      "path": "mica/core/excerpt.cr",
+      "sha256": "c9c23137e7457a36626177a75e95930b1cd4069e1eec1ee122aea6dca9688ef3",
+      "source_sha256": "199b8108f461f181d290d109f65ece753de935c1297952166a9ba7384e9daa08"
+    },
+    {
+      "path": "mica/core/line_tracking.cr",
+      "sha256": "d35efe39d933bf09c3fa220f95d116f6ef6501f5ba2191a46af0a1013ceb912b",
+      "source_sha256": "8c3524e84a0d3fbefab2483c62a56c5740c1efabe8f9c50c89b8d0c91d8ded97"
+    },
+    {
+      "path": "mica/core/position.cr",
+      "sha256": "a957e9862c5c602f1256e326ce9d461ec287b73d76193ddfc4a7554f1fc5ddf8",
+      "source_sha256": "2a8e97b4d473934a1e4883bbf236da32ea5bbec1f4e57f3b6293a55f9c70b1ea"
+    },
+    {
+      "path": "mica/core/text_input.cr",
+      "sha256": "4db0526796a11842c19f36da7874ac8a3c96b50d63505d5f15fc047a06d91d10",
+      "source_sha256": "5b2cc776239f256d687ae9473d24fd9d848c2367440f15e6f89fc15fe21ff3cf"
+    },
+    {
+      "path": "mica/core/transcoder.cr",
+      "sha256": "a6647cd456e6b7a877ffa558b826839f85944117a82edcfdcdfcbf9398ad9acc",
+      "source_sha256": "146bc8525110bc4d33d86770003e47807a6d108ca60cef6d15a4d089be08402e"
+    },
+    {
+      "path": "mica/core/utf8.cr",
+      "sha256": "18fc26f522b8670fcfd9ca184c7a14a8e437ca8f1363e4e4291f0336fc00d2ba",
+      "source_sha256": "f193671aea781fbeb6ce3adfe85938902df08fc04837455b48da6eedf620f52b"
+    },
+    {
+      "path": "mica/core/work_budget.cr",
+      "sha256": "0f900294b93a4933f2f731e8b999cf531a4523afe3613700b3d61509c1e0cabe",
+      "source_sha256": "f9aacdc64c1158103042244cb2d895072a6ada340604d5227ea861404227af0e"
+    },
+    {
+      "path": "mica/deflate.cr",
+      "sha256": "4aee434170ecb9e67d268966e2d5d84110c2eeeaff5ce507b1cb5dba73f232f3",
+      "source_sha256": "47888c05a0051b1db5f72728871270e2be980a132081792e22c245be52b2ee4e"
+    },
+    {
+      "path": "mica/deflate/block_writer.cr",
+      "sha256": "0d53ebbcbd1552199e59be4b077cdb0476bbbbb18a15576f822f722ea5aa6a48",
+      "source_sha256": "a054d3b047d859e68578d7579e6f24c7c8601f3d8daf1d1883a6300fdb0cf90b"
+    },
+    {
+      "path": "mica/deflate/checksum.cr",
+      "sha256": "70c890415867a34460b8d546e5016b4bf903b37e3cb9e7ff1f79d445e20b469f",
+      "source_sha256": "b0cea995cc0eab1347f8409f334e5039a87508015ccabec94d72304a10b74175"
+    },
+    {
+      "path": "mica/deflate/decode_limits.cr",
+      "sha256": "398d4938bebd5d208f3b2e13bdec0a168be4d67520cd6fcea03cb53d1da41b47",
+      "source_sha256": "caac63e0c9c7674a0f68adeb21af5e726e1e5d6cf53aa5cc5259b805b6e3b14b"
+    },
+    {
+      "path": "mica/deflate/deflater.cr",
+      "sha256": "e2cfb1daf3342a52feabd222ec2e19bb7ebbae1d87f1384a998e4bb2a625e65b",
+      "source_sha256": "9be3cacb3b84258860bd7a5bc378ae3003adc81e51a9a527934057ba12a403d4"
+    },
+    {
+      "path": "mica/deflate/errors.cr",
+      "sha256": "96ff9a5d942ed684b6dbf2b79df8787a5f41cdb246901eb46adc4e21a6777e7c",
+      "source_sha256": "37e9f1c0768349bb3af6b0fb69a7b583db3037ddd3c5252644a299b41d589d62"
+    },
+    {
+      "path": "mica/deflate/huffman_code_builder.cr",
+      "sha256": "2b676e2284e8e379b29f87e088424e6169623161a7a8e79579f7f34c71cd6c8f",
+      "source_sha256": "d1f32ab91079c9d1f9c418ff2dd4271a68bdb2799ae9fe02c6115086f4fbaf69"
+    },
+    {
+      "path": "mica/deflate/huffman_table.cr",
+      "sha256": "b824172126bb37fa8fbec7eff9904c07e23a2e05ae4185daa8011e4669f5a27c",
+      "source_sha256": "57742d3115ed8c35007acfd3872ec54ef9a6331860c163db942d92a567f05938"
+    },
+    {
+      "path": "mica/deflate/inflater.cr",
+      "sha256": "e6f3c02233af107e9c6e877e6285cbb9c02ee75e9175b09dc7e397f11a4df798",
+      "source_sha256": "332a49d4bd91f48d4cdad1dbb11b43d8fd54b57f64d8e1f8460b6a1402b59317"
+    },
+    {
+      "path": "mica/deflate/stream_reader.cr",
+      "sha256": "2780b57cafd77c488a6929c8e1e6db16318850ea7c8582a002e827586807c889",
+      "source_sha256": "a973645ccddce65bdb0f07a6dc7c9ca525717e0cdac67086fdf56dde7d2cccf8"
+    },
+    {
+      "path": "mica/deflate/stream_writer.cr",
+      "sha256": "b2ce2a45b225201e2baed72dfdd7c761f8626d7a27052e0f12318f3a5eda2066",
+      "source_sha256": "8fb75fd086e5fef8042eb88ca7e1addfd040eda7914e95122fd2fafec6e4a231"
+    },
+    {
+      "path": "mica/gzip.cr",
+      "sha256": "699b565c1a45e2eb08b37ffbae54b8853dfe54497d1e94afc268f91fb0b5a236",
+      "source_sha256": "432b5af8e3e1dbbcf13cac079ddc3beca926d93db5715e7c38e01897ce008d20"
+    },
+    {
+      "path": "mica/zlib.cr",
+      "sha256": "75b9df9d44e9f7c74e33819d62d9972ca14391df04785b7d00b0007ec08a3738",
+      "source_sha256": "04db14488d9008033c2c6f97380145526210365cfb32394a02c6645e82f9ad3a"
+    }
+  ]
+}
