@@ -1,6 +1,17 @@
 # Changelog
 
-## Unreleased
+## 2.0.0-beta.12 (2026-11-22)
+
+**Behavior change: `store: signed_cookie` now keeps the session in a cookie.**
+`signed_cookie` is the default store in every generated app. Through beta.11
+every store, `signed_cookie` included, quietly kept sessions in the server's
+memory. From beta.12 a `signed_cookie` or `encrypted_cookie` app keeps the
+session in the visitor's cookie and nothing on the server, so session values
+travel with every request and must fit in a 4,096-byte cookie (a larger
+session raises `Amber::Exceptions::CookieOverflow`), the visitor can read (but
+not change) a `signed_cookie` session, and `regenerate_session!` does nothing.
+An app that needs server-side sessions sets `store: adapter` under `session:`
+(or `AMBER_SESSION_STORE=adapter`).
 
 - Asset tags are rendered once per manifest. `stylesheet_link_tag`,
   `javascript_include_tag`, `image_tag` and `favicon_tag` for a logical path
