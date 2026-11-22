@@ -9,10 +9,6 @@ module Amber::Markdown::HTMLEntities
     def decode_entity(source : String)
       Decoder.decode_entity(source)
     end
-
-    def encode_entities(source)
-      Encoder.encode(source)
-    end
   end
 
   module Decoder
@@ -53,35 +49,6 @@ module Amber::Markdown::HTMLEntities
       end
 
       codepoint.unsafe_chr
-    end
-  end
-
-  module Encoder
-    ENTITIES_REGEX = Regex.union(HTMLEntities::ENTITIES_MAPPINGS.values)
-    ASTRAL_REGEX   = Regex.new("[\xED\xA0\x80-\xED\xAF\xBF][\xED\xB0\x80-\xED\xBF\xBF]")
-    ENCODE_REGEX   = /[^\x{20}-\x{7E}]/
-
-    def self.encode(source : String)
-      source.gsub(ENTITIES_REGEX) { |chars| encode_entities(chars) }
-        .gsub(ASTRAL_REGEX) { |chars| encode_astral(chars) }
-        .gsub(ENCODE_REGEX) { |chars| encode_extend(chars) }
-    end
-
-    private def self.encode_entities(chars : String)
-      entity = HTMLEntities::ENTITIES_MAPPINGS.key(chars)
-      "&#{entity};"
-    end
-
-    private def self.encode_astral(chars : String)
-      high = chars.char_at(0).ord
-      low = chars.char_at(0).ord
-      codepoint = (high - 0xD800) * -0x400 + low - 0xDC00 + 0x10000
-
-      "&#x#{codepoint.to_s(16).upcase};"
-    end
-
-    private def self.encode_extend(char : String)
-      "&#x#{char[0].ord.to_s(16).upcase};"
     end
   end
 end
