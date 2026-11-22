@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+**Security: a form's `charset` is held to the WHATWG Encoding Standard.**
+Through beta.12 the `charset` a client declared on a URL-encoded form went
+straight to iconv, so on Linux a request could open any converter glibc
+ships by naming it. From this release only the labels of the WHATWG Encoding
+Standard (https://encoding.spec.whatwg.org/#names-and-labels) are accepted,
+whatever their letter case, and each opens the one decoder Amber maps it to.
+A form with any other `charset` (`UTF-7`, `ISO-2022-CN-EXT`, an empty or
+oversized name, and the standard's `replacement` and `x-user-defined`
+encodings) is answered with `415 Unsupported Media Type` before its body is
+read; it raises `Amber::Exceptions::UnsupportedCharset`, a `BadRequest`, and
+a schema parse reports it as `unsupported_media_type`. A UTF-8 label parses
+the form directly, with no converter. Multipart and JSON bodies never took
+an encoding name from the request and are unchanged.
+
 ## 2.0.0-beta.12 (2026-11-22)
 
 **Behavior change: `store: signed_cookie` now keeps the session in a cookie.**

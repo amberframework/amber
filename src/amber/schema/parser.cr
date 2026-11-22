@@ -136,8 +136,14 @@ module Amber::Schema
 
       private def self.bad_request_error(ex : Amber::Exceptions::BadRequest) : RequestParseError
         message = ex.message || "The request body could not be parsed"
-        code = ex.is_a?(Amber::Exceptions::ParameterLimitExceeded) ? "parameter_limit_exceeded" : "invalid_request_body"
-        RequestParseError.new(message, code, 400)
+        code = if ex.is_a?(Amber::Exceptions::ParameterLimitExceeded)
+                 "parameter_limit_exceeded"
+               elsif ex.is_a?(Amber::Exceptions::UnsupportedCharset)
+                 "unsupported_media_type"
+               else
+                 "invalid_request_body"
+               end
+        RequestParseError.new(message, code, ex.status_code)
       end
 
       # Parse JSON request

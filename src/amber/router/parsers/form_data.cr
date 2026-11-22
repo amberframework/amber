@@ -4,7 +4,9 @@ module Amber::Router::Parsers
     # and charging *budget* (the request's own budget by default).
     #
     # A `charset` declared in the `Content-Type` is decoded to UTF-8 while
-    # the body streams, as `HTTP::Request#form_params` does in Crystal.
+    # the body streams, as `HTTP::Request#form_params` does in Crystal. The
+    # charset must be a label `EncodingLabel` resolves; any other raises
+    # `Amber::Exceptions::UnsupportedCharset`.
     #
     # Amber parses the form before the action runs (the CSRF pipe reads
     # `_csrf` from `params`), which drains the body. The bytes the parse
@@ -33,12 +35,17 @@ module Amber::Router::Parsers
       charset = declared_charset(request)
       return budget.parse_form(body) unless charset
 
+      # Refused before a byte of the body is read or any decoder is opened.
+      encoding = EncodingLabel.resolve?(charset)
+      raise Amber::Exceptions::UnsupportedCharset.new unless encoding
+      return budget.parse_form(body) if encoding.utf8?
+
       begin
         # The raw bytes are bounded too, so an encoding that shrinks when
         # decoded (such as UTF-16) cannot carry more than the limit.
         max_form_body_bytes = budget.limits.max_form_body_bytes.to_i64
         raw_body = BoundedIO.new(body, max_form_body_bytes, "max_form_body_bytes")
-        raw_body.set_encoding(charset)
+        raw_body.set_encoding(encoding.decoder_name)
         budget.parse_form(UTF8Reader.new(raw_body))
       rescue ArgumentError
         # The message leaves out the client's charset and decoder text.

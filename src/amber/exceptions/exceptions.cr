@@ -57,6 +57,17 @@ module Amber
       end
     end
 
+    # Raised when a request body declares a `charset` that is not a label of
+    # the WHATWG Encoding Standard. Answered with `415 Unsupported Media
+    # Type`. It is a `BadRequest` so that everything that handles a rejected
+    # body handles this one.
+    class UnsupportedCharset < BadRequest
+      def initialize
+        super("The request body's declared charset is not supported")
+        @status_code = 415
+      end
+    end
+
     # Raised when request parameters exceed a bound in
     # `Amber::Configuration::ParamsConfig`. Answered with `400 Bad Request`.
     class ParameterLimitExceeded < BadRequest
