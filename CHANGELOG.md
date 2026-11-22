@@ -2,6 +2,40 @@
 
 ## Unreleased
 
+**Amber's own cryptography now runs on Beryl, in Crystal, and an app built
+with `-Dwithout_openssl` links no OpenSSL.** Cookie signing and encryption,
+flash, encrypted files and COSE call a pinned copy of
+[Beryl](https://github.com/amberframework/beryl) under `src/amber/vendor`
+(`Amber::Beryl`, pinned by commit and per-file sha256 in
+`BERYL_VENDORED.json`). OpenSSL remains only for TLS: the HTTPS listener and
+SMTP STARTTLS. An app that sits behind a proxy which terminates TLS can be
+built with `crystal build -Dwithout_openssl`; it then links neither libssl
+nor libcrypto, and turning on `server.ssl` or mailer `use_tls` in such a
+build raises `Amber::Exceptions::TLSNotCompiledIn`, which names the flag.
+
+**New encrypted message format (version 2).** `MessageEncryptor` (encrypted
+cookies, encrypted sessions, `FileEncryptor`) now writes
+`"AMB2" | nonce (24 bytes) | ciphertext | tag (16 bytes)`:
+XChaCha20-Poly1305 under a key derived from the secret with HKDF-SHA256.
+Version 1 values (AES-256-CBC with HMAC, written by every earlier release)
+are still read under the current secret and each previous secret, so
+existing cookies and encrypted files keep working and are rewritten in
+version 2 the next time they are saved. A version 2 value is 12 bytes
+shorter than version 1 for most messages. An app that must roll back to an
+earlier release after writing version 2 values will find those values
+unreadable there; visitors are then signed out once.
+
+**Behavior change: the signing digests are a closed set.** `MessageVerifier`
+and `MessageEncryptor` accept `:sha256` (the default), `:sha384`, `:sha512`
+and `:sha1` (for cookies signed by Amber 1). Any other digest name raises
+`ArgumentError` at construction; before, the name went to OpenSSL at the
+first signature. `MessageEncryptor` accepts `"aes-256-cbc"` as the cipher
+of version 1 messages and raises `ArgumentError` for any other.
+
+COSE (`Amber::Schema::COSE`) is unchanged on the wire: the same
+ChaCha20-Poly1305 bytes as before, checked against messages captured from
+the OpenSSL implementation.
+
 - **Every regex in Amber runs on Mica**, the default `Regex` engine of
   crystal-alpha from 1.21.0-incremental-6. `HTML.encode_entities` and
   `Amber::Markdown::HTMLEntities::Encoder` are removed: the encoder called

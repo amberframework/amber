@@ -1,6 +1,5 @@
 require "base64"
 require "yaml"
-require "openssl/hmac"
 
 module Amber
   module Router

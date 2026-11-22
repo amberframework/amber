@@ -1,0 +1,130 @@
+require "crypto/subtle"
+require "../declassification"
+require "../error"
+require "../secret_wiping"
+
+module Amber::Beryl::Crypto::V1
+  # Encryption that also proves a message is whole and came from someone who
+  # holds the key (authenticated encryption with associated data, RFC 5116).
+  # `ChaCha20Poly1305`, `XChaCha20Poly1305` and `AESGCM` are the ciphers; this
+  # class is what they share.
+  #
+  # ```
+  # cipher = Amber::Beryl::Crypto::V1::XChaCha20Poly1305.new(key)
+  # nonce = Random::Secure.random_bytes(cipher.nonce_bytesize)
+  # sealed = cipher.encrypt("a private note", nonce: nonce, associated_data: "note 42")
+  # cipher.decrypt(sealed, nonce: nonce, associated_data: "note 42") # => the note's bytes
+  # cipher.decrypt(sealed, nonce: nonce, associated_data: "note 43") # => nil
+  # ```
+  #
+  # An encrypted message is the ciphertext followed by the authentication
+  # tag. *associated_data* is authenticated and left readable; both sides
+  # must supply the same bytes. A nonce must never repeat under one key.
+  #
+  # Decryption checks the tag before it produces a single byte of plaintext:
+  # a message that fails the check returns `nil` (or `false`) and leaves the
+  # caller's buffer exactly as it was. The check takes the same time
+  # whatever the key, the message and the tag hold.
+  abstract class AuthenticatedEncryption
+    # The size of a full tag, in bytes, for every cipher in this shard.
+    FULL_TAG_BYTESIZE = 16
+
+    # Returns the number of bytes of tag at the end of each encrypted message.
+    getter tag_bytesize : Int32 = FULL_TAG_BYTESIZE
+
+    # Returns the nonce size this cipher is meant to be used with, in bytes.
+    abstract def nonce_bytesize : Int32
+
+    # Raises `NonceSizeMismatch` unless this cipher accepts *nonce*.
+    protected abstract def ensure_nonce_is_accepted(nonce : Bytes) : Nil
+
+    # XORs *input* into *output* with the keystream of *nonce*.
+    protected abstract def apply_keystream(nonce : Bytes, input : Bytes, output : Bytes) : Nil
+
+    # Writes into *full_tag* (`FULL_TAG_BYTESIZE` bytes) the tag of
+    # *ciphertext* and *associated_data* under *nonce*.
+    protected abstract def compute_tag(nonce : Bytes, associated_data : Bytes, ciphertext : Bytes, full_tag : Bytes) : Nil
+
+    # Returns *plaintext* encrypted under *nonce*: the ciphertext, then the
+    # tag.
+    def encrypt(plaintext : Bytes | String, *, nonce : Bytes, associated_data : Bytes | String = Bytes.empty) : Bytes
+      ciphertext_and_tag = Bytes.new(plaintext.to_slice.size + @tag_bytesize)
+      encrypt(plaintext, into: ciphertext_and_tag, nonce: nonce, associated_data: associated_data)
+      ciphertext_and_tag
+    end
+
+    # Encrypts *plaintext* under *nonce* into *ciphertext_and_tag*, which
+    # must be `tag_bytesize` bytes longer than the plaintext.
+    def encrypt(plaintext : Bytes | String, *, into ciphertext_and_tag : Bytes, nonce : Bytes,
+                associated_data : Bytes | String = Bytes.empty) : Nil
+      plaintext_bytes = plaintext.to_slice
+      ensure_nonce_is_accepted(nonce)
+      unless ciphertext_and_tag.size == plaintext_bytes.size + @tag_bytesize
+        raise OutputSizeMismatch.new(
+          "the encrypted message is #{plaintext_bytes.size + @tag_bytesize} bytes, the buffer holds #{ciphertext_and_tag.size}"
+        )
+      end
+
+      ciphertext = ciphertext_and_tag[0, plaintext_bytes.size]
+      apply_keystream(nonce, plaintext_bytes, ciphertext)
+
+      full_tag_storage = uninitialized UInt8[FULL_TAG_BYTESIZE]
+      compute_tag(nonce, associated_data.to_slice, ciphertext, full_tag_storage.to_slice)
+      full_tag_storage.to_slice[0, @tag_bytesize].copy_to(ciphertext_and_tag[plaintext_bytes.size, @tag_bytesize])
+      SecretWiping.wipe(full_tag_storage.to_slice)
+    end
+
+    # Returns the plaintext of *ciphertext_and_tag*, or `nil` when the
+    # message, the nonce or the associated data is not what was encrypted.
+    def decrypt(ciphertext_and_tag : Bytes, *, nonce : Bytes, associated_data : Bytes | String = Bytes.empty) : Bytes?
+      ensure_nonce_is_accepted(nonce)
+      return nil if ciphertext_and_tag.size < @tag_bytesize
+
+      plaintext = Bytes.new(ciphertext_and_tag.size - @tag_bytesize)
+      return nil unless decrypt(ciphertext_and_tag, into: plaintext, nonce: nonce, associated_data: associated_data)
+
+      plaintext
+    end
+
+    # Decrypts *ciphertext_and_tag* into *plaintext*, which must be
+    # `tag_bytesize` bytes shorter, and returns true; or returns false and
+    # leaves *plaintext* untouched when the message fails authentication.
+    def decrypt(ciphertext_and_tag : Bytes, *, into plaintext : Bytes, nonce : Bytes,
+                associated_data : Bytes | String = Bytes.empty) : Bool
+      ensure_nonce_is_accepted(nonce)
+      return false if ciphertext_and_tag.size < @tag_bytesize
+      unless plaintext.size == ciphertext_and_tag.size - @tag_bytesize
+        raise OutputSizeMismatch.new(
+          "the plaintext is #{ciphertext_and_tag.size - @tag_bytesize} bytes, the buffer holds #{plaintext.size}"
+        )
+      end
+
+      is_authentic = authentic?(ciphertext_and_tag, nonce: nonce, associated_data: associated_data)
+      return false unless Declassification.reveal(is_authentic)
+
+      apply_keystream(nonce, ciphertext_and_tag[0, plaintext.size], plaintext)
+      true
+    end
+
+    # Returns whether *ciphertext_and_tag* carries the right tag for *nonce*
+    # and *associated_data*, without decrypting it. The comparison runs in
+    # constant time.
+    def authentic?(ciphertext_and_tag : Bytes, *, nonce : Bytes, associated_data : Bytes | String = Bytes.empty) : Bool
+      ensure_nonce_is_accepted(nonce)
+      return false if ciphertext_and_tag.size < @tag_bytesize
+
+      ciphertext_bytesize = ciphertext_and_tag.size - @tag_bytesize
+      full_tag_storage = uninitialized UInt8[FULL_TAG_BYTESIZE]
+      compute_tag(nonce, associated_data.to_slice, ciphertext_and_tag[0, ciphertext_bytesize], full_tag_storage.to_slice)
+      tags_match = ::Crypto::Subtle.constant_time_compare(
+        full_tag_storage.to_slice[0, @tag_bytesize],
+        ciphertext_and_tag[ciphertext_bytesize, @tag_bytesize]
+      )
+      SecretWiping.wipe(full_tag_storage.to_slice)
+      tags_match
+    end
+  end
+
+  # The common name of `AuthenticatedEncryption`.
+  alias AEAD = AuthenticatedEncryption
+end

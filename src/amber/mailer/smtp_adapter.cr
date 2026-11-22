@@ -1,5 +1,7 @@
 require "socket"
-require "openssl"
+{% unless flag?(:without_openssl) %}
+  require "openssl"
+{% end %}
 require "base64"
 
 module Amber::Mailer
@@ -78,10 +80,14 @@ module Amber::Mailer
 
         # Upgrade to TLS if requested
         if @use_tls
-          send_command(io, "STARTTLS", expected_code: 220)
-          tls_context = OpenSSL::SSL::Context::Client.new
-          tls_socket = OpenSSL::SSL::Socket::Client.new(socket, tls_context, hostname: @host)
-          io = tls_socket
+          {% if flag?(:without_openssl) %}
+            raise Amber::Exceptions::TLSNotCompiledIn.new("SMTP STARTTLS (mailer use_tls)")
+          {% else %}
+            send_command(io, "STARTTLS", expected_code: 220)
+            tls_context = OpenSSL::SSL::Context::Client.new
+            tls_socket = OpenSSL::SSL::Socket::Client.new(socket, tls_context, hostname: @host)
+            io = tls_socket
+          {% end %}
 
           # Re-send EHLO after TLS upgrade
           send_command(io, "EHLO #{@helo_domain}", expected_code: 250)

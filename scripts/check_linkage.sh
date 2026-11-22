@@ -7,6 +7,10 @@
 #    with a malformed Cookie header in the mix, and a GET that answers through
 #    `respond_with` with a NamedTuple.
 #
+# 4. The same app built with -Dwithout_openssl links no libssl and no libcrypto,
+#    holds no EVP_, SSL_ or OPENSSL_ symbol, and answers its GET route. The build
+#    without the flag links OpenSSL, which proves this check can fail.
+#
 # usage: scripts/check_linkage.sh [OUTPUT_DIR]     (macOS otool, Linux ldd)
 # Set CRYSTAL to choose the compiler; `crystal` is the default.
 set -euo pipefail
@@ -33,9 +37,19 @@ count_pcre2_symbols() {
   nm "$1" 2>/dev/null | grep -c pcre2_ || true
 }
 
+count_openssl_libraries() {
+  list_libraries "$1" | grep -cE 'libssl|libcrypto' || true
+}
+
+count_openssl_symbols() {
+  nm "$1" 2>/dev/null | grep -cE '[ _](EVP|SSL|OPENSSL)_' || true
+}
+
 "$crystal_compiler" --version | head -1
 "$crystal_compiler" build scripts/linkage/minimal_json_app.cr -o "$output_directory/minimal_json_app"
 "$crystal_compiler" build scripts/linkage/regex_control.cr -o "$output_directory/regex_control"
+
+"$crystal_compiler" build -Dwithout_openssl scripts/linkage/minimal_json_app.cr -o "$output_directory/minimal_json_app_without_openssl"
 
 echo "minimal_json_app links:"
 list_libraries "$output_directory/minimal_json_app" | sed 's/^/  /'
@@ -57,6 +71,44 @@ if [ "$control_library_count" -eq 0 ] && [ "$control_symbol_count" -eq 0 ]; then
   status=1
 else
   echo "ok: regex_control reaches PCRE2, so the check can fail"
+fi
+
+echo "minimal_json_app built with -Dwithout_openssl links:"
+list_libraries "$output_directory/minimal_json_app_without_openssl" | sed 's/^/  /'
+
+flagged_library_count=$(count_openssl_libraries "$output_directory/minimal_json_app_without_openssl")
+flagged_symbol_count=$(count_openssl_symbols "$output_directory/minimal_json_app_without_openssl")
+if [ "$flagged_library_count" -ne 0 ] || [ "$flagged_symbol_count" -ne 0 ]; then
+  echo "FAIL: the -Dwithout_openssl build reaches OpenSSL ($flagged_library_count libraries, $flagged_symbol_count symbols)"
+  status=1
+else
+  echo "ok: the -Dwithout_openssl build links no libssl or libcrypto and holds no EVP_, SSL_ or OPENSSL_ symbol"
+fi
+
+default_library_count=$(count_openssl_libraries "$output_directory/minimal_json_app")
+default_symbol_count=$(count_openssl_symbols "$output_directory/minimal_json_app")
+if [ "$default_library_count" -eq 0 ] && [ "$default_symbol_count" -eq 0 ]; then
+  echo "FAIL: the build without the flag shows no OpenSSL, so this check cannot see it"
+  status=1
+else
+  echo "ok: the build without the flag reaches OpenSSL, so the check can fail"
+fi
+
+flagged_port=$((probe_port + 1))
+LINKAGE_PROBE_PORT="$flagged_port" "$output_directory/minimal_json_app_without_openssl" > "$output_directory/minimal_json_app_without_openssl.log" 2>&1 &
+flagged_process_id=$!
+for _ in $(seq 1 50); do
+  curl --silent --output /dev/null --max-time 1 "http://127.0.0.1:$flagged_port/notes" && break
+  sleep 0.1
+done
+flagged_answer=$(curl --silent --max-time 5 "http://127.0.0.1:$flagged_port/notes" || true)
+kill "$flagged_process_id" 2>/dev/null || true
+if [ "$flagged_answer" = '{"ok":true}' ]; then
+  echo "ok: the -Dwithout_openssl build answers GET"
+else
+  echo "FAIL: the -Dwithout_openssl build answered [$flagged_answer]"
+  tail -20 "$output_directory/minimal_json_app_without_openssl.log"
+  status=1
 fi
 
 LINKAGE_PROBE_PORT="$probe_port" "$output_directory/minimal_json_app" > "$output_directory/minimal_json_app.log" 2>&1 &

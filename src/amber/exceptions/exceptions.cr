@@ -25,6 +25,16 @@ module Amber
       end
     end
 
+    # Raised when an app built with `-Dwithout_openssl` is configured to use
+    # TLS. That flag builds an app that links no OpenSSL, for apps that sit
+    # behind a proxy which terminates TLS; an app that serves HTTPS itself or
+    # sends mail over STARTTLS is built without the flag.
+    class TLSNotCompiledIn < Exception
+      def initialize(feature : String)
+        super("#{feature} needs TLS, and this app was built with -Dwithout_openssl. Build it without that flag to use TLS.")
+      end
+    end
+
     # Raised when storing more than 4K of session data.
     class CookieOverflow < Base
     end

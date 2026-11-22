@@ -1,14 +1,25 @@
-require "openssl/hmac"
+require "base64"
 require "crypto/subtle"
+require "./message_authentication"
 
 module Amber::Support
+  # Signs a message so that it can travel through a cookie and come back
+  # unchanged: `generate` returns `<base64 of the message>--<base64 of its
+  # HMAC tag>`, and `verify` returns the message only when the tag matches.
+  #
+  # *digest* is `:sha256` (the default), `:sha384` or `:sha512`; `:sha1` is
+  # accepted for cookies signed by Amber 1. Messages signed with any of
+  # *previous_secrets* still verify, for key rotation.
   class MessageVerifier
     Log = ::Log.for(self)
 
     getter secret : String
     getter previous_secrets : Array(String)
 
-    def initialize(@secret : String, @digest = :sha256, @previous_secrets = [] of String)
+    @digest : Symbol
+
+    def initialize(@secret : String, digest : Symbol | String = :sha256, @previous_secrets = [] of String)
+      @digest = MessageAuthentication.supported_digest_name(digest)
     end
 
     def valid_message?(data, digest)
@@ -40,8 +51,7 @@ module Amber::Support
       else
         # Try previous secrets for key rotation support
         @previous_secrets.each do |old_secret|
-          old_digest = encode(OpenSSL::HMAC.digest(OpenSSL::Algorithm.parse(@digest.to_s), old_secret, data))
-          if data.size > 0 && digest.size > 0 && Crypto::Subtle.constant_time_compare(digest, old_digest)
+          if signed_under?(old_secret, data, digest)
             Log.info { "Message verified with rotated secret key" }
             return decode(data)
           end
@@ -57,13 +67,17 @@ module Amber::Support
 
     private def try_previous_secrets(data : String, digest : String) : String?
       @previous_secrets.each do |old_secret|
-        old_digest = encode(OpenSSL::HMAC.digest(OpenSSL::Algorithm.parse(@digest.to_s), old_secret, data))
-        if data.size > 0 && digest.size > 0 && Crypto::Subtle.constant_time_compare(digest, old_digest)
+        if signed_under?(old_secret, data, digest)
           Log.info { "Message verified with rotated secret key" }
           return String.new(decode(data))
         end
       end
       nil
+    end
+
+    private def signed_under?(secret : String, data : String, digest : String) : Bool
+      expected_digest = encode(MessageAuthentication.authentication_tag(@digest, secret, data))
+      data.size > 0 && digest.size > 0 && Crypto::Subtle.constant_time_compare(digest, expected_digest)
     end
 
     private def encode(data)
@@ -75,7 +89,7 @@ module Amber::Support
     end
 
     private def generate_digest(data)
-      encode(OpenSSL::HMAC.digest(OpenSSL::Algorithm.parse(@digest.to_s), @secret, data))
+      encode(MessageAuthentication.authentication_tag(@digest, @secret, data))
     end
   end
 end
