@@ -1,6 +1,7 @@
 # The smallest Amber JSON API: one GET and one POST with a JSON body, run through
 # the default error pipe, plus a GET that answers through `respond_with` with a
-# NamedTuple. `scripts/check_linkage.sh` builds it and checks what it links.
+# NamedTuple, and a GET of a long page. Responses are compressed for clients
+# that accept it. `scripts/check_linkage.sh` builds it and checks what it links.
 require "../../src/amber"
 
 class NoteInput
@@ -25,10 +26,16 @@ class NotesController < Amber::Controller::Base
   def latest
     respond_with({title: "latest", count: 1})
   end
+
+  def long_page
+    response.content_type = "text/plain"
+    "a line of the long page\n" * 400
+  end
 end
 
 Amber::Server.configure do
   pipeline :api do
+    plug Amber::Pipe::Compression.new
     plug Amber::Pipe::Error.new
   end
 
@@ -36,6 +43,7 @@ Amber::Server.configure do
     get "/notes", NotesController, :index
     post "/notes", NotesController, :create
     get "/notes/latest", NotesController, :latest
+    get "/notes/long", NotesController, :long_page
   end
 end
 

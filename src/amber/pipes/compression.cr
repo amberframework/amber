@@ -1,19 +1,15 @@
-{% unless flag?(:without_zlib) %}
-  require "compress/deflate"
-  require "compress/gzip"
-{% end %}
+require "../vendor/mica/deflate"
 
 module Amber
   module Pipe
     # Gzips or deflates a pipeline's responses for clients that accept it.
     #
-    # The bytes on the wire match Crystal's `HTTP::CompressHandler` at the same
-    # level. The difference is where the compressor lives: each zlib stream
-    # (about 270 KB of state and buffers) comes from `malloc`, outside the
-    # garbage-collected heap, and goes back to a small pool when the response
-    # closes. `HTTP::CompressHandler` allocates that state from the collected
-    # heap for every response, which made it the largest allocation in a
-    # generated app.
+    # The compressor is Mica's DEFLATE encoder in Crystal (a pinned copy under
+    # `Amber::Mica`, see `src/amber/vendor/MICA_VENDORED.json`), so the pipe
+    # compresses the same way in a program built with `-Dwithout_zlib`, which
+    # links no libz. Each response's encoder keeps its tables (about 270 KB)
+    # in `malloc` memory, outside the garbage-collected heap, and frees them
+    # when the response closes.
     #
     # A request with a `Range` header is answered uncompressed, because a
     # byte range refers to the uncompressed body. Every response through the
@@ -28,42 +24,28 @@ module Amber
     # end
     # ```
     #
-    # *level* is the zlib level, 0 to 9, or -1 for zlib's default (6).
-    # *idle_compressors* is how many compressors the pool keeps between
-    # responses; one more in use at once is created and then released.
+    # *level* runs from 0 (stored, no compression) through 1 (fastest) to 9
+    # (smallest); -1 selects the default, 6.
     class Compression < Base
-      # How many compressors the pool keeps between responses by default.
-      DEFAULT_IDLE_COMPRESSORS = 4
+      # The level -1 selects.
+      DEFAULT_LEVEL = 6
 
-      {% if flag?(:without_zlib) %}
-        def initialize(level : Int32 = -1, idle_compressors : Int32 = DEFAULT_IDLE_COMPRESSORS)
-        end
+      # The level every response is compressed at, 0 to 9.
+      getter level : Int32
 
-        def call(context : HTTP::Server::Context)
-          call_next(context)
+      def initialize(level : Int32 = -1)
+        unless -1 <= level <= 9
+          raise ArgumentError.new("Compression level must be in -1..9, got #{level}")
         end
-      {% else %}
-        # The compressors this pipe lends to its responses.
-        getter pool : DeflaterPool
+        @level = level == -1 ? DEFAULT_LEVEL : level
+      end
 
-        def initialize(level : Int32 = ::Compress::Deflate::DEFAULT_COMPRESSION,
-                       idle_compressors : Int32 = DEFAULT_IDLE_COMPRESSORS)
-          unless -1 <= level <= 9
-            raise ArgumentError.new("Compression level must be in -1..9, got #{level}")
-          end
-          if idle_compressors < 0
-            raise ArgumentError.new("idle_compressors must be 0 or more, got #{idle_compressors}")
-          end
-          @pool = DeflaterPool.new(level, idle_compressors)
-        end
-
-        def call(context : HTTP::Server::Context)
-          return call_next(context) if context.request.headers.has_key?("Range")
-          context.response.headers.add("Vary", "Accept-Encoding")
-          context.response.output = CompressedOutput.new(context.response.output, context, @pool)
-          call_next(context)
-        end
-      {% end %}
+      def call(context : HTTP::Server::Context)
+        return call_next(context) if context.request.headers.has_key?("Range")
+        context.response.headers.add("Vary", "Accept-Encoding")
+        context.response.output = CompressedOutput.new(context.response.output, context, @level)
+        call_next(context)
+      end
     end
   end
 end

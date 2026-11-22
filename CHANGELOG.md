@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+**`Amber::Pipe::Compression` now compresses with Mica, in Crystal, and an app
+built with `-Dwithout_zlib` links no libz.** The pipe gzips and deflates
+responses with a pinned copy of
+[Mica](https://github.com/amberframework/mica)'s DEFLATE encoder under
+`src/amber/vendor` (`Amber::Mica`, pinned by commit and per-file sha256 in
+`MICA_VENDORED.json`). Before, a build with `-Dwithout_zlib` compiled the
+pipe to a pass-through; now it compresses the same way with or without the
+flag. A request body with a `Content-Encoding` is still answered `415` before
+any pipe runs. `scripts/check_linkage.sh` builds the probe app with the flag
+and checks that it links no libz, answers a gzip response and refuses a
+gzip-encoded request body.
+
+Behavior changes in `Amber::Pipe::Compression`:
+
+- The compressed bytes are Mica's, not zlib's. They decode in every gzip and
+  zlib decoder, and over the benchmark corpus they are 0.04% smaller than
+  zlib's at level 6; they are not byte for byte what
+  `HTTP::CompressHandler` writes.
+- A gzip response carries no modification time (the header field is 0), so
+  the same body always compresses to the same bytes. It used to carry the
+  time of the first write.
+- `idle_compressors:` and the `pool` getter are gone. Each response's
+  compressor takes its tables (about 270 KB) from `malloc`, outside the
+  collected heap, and frees them when the response closes; there is no pool
+  to size. `Amber::Pipe::Compression.new(level: 6)` and a subclass with an
+  empty body, as Amber CLI generates, need no change.
+
 **Amber's own cryptography now runs on Beryl, in Crystal, and an app built
 with `-Dwithout_openssl` links no OpenSSL.** Cookie signing and encryption,
 flash, encrypted files and COSE call a pinned copy of
