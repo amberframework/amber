@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- **Every regex in Amber runs on Mica**, the default `Regex` engine of
+  crystal-alpha from 1.21.0-incremental-6. `HTML.encode_entities` and
+  `Amber::Markdown::HTMLEntities::Encoder` are removed: the encoder called
+  `Hash#key`, which Crystal does not have, so no program that called it ever
+  compiled, and its pattern for surrogate pairs is one Mica refuses to
+  compile. `HTML.decode_entities` and `HTML.decode_entity` are unchanged.
+- CI checks every regex in `src` and `spec` against Mica's dialect
+  (`scripts/check_regex_literals.cr` from amberframework/mica, pinned by
+  commit), so a pattern with lookaround, a backreference, an atomic group or
+  a possessive quantifier fails the build.
+
 ## 2.0.0-beta.13 (2026-11-22)
 
 **Security: a form's `charset` is held to the WHATWG Encoding Standard.**
