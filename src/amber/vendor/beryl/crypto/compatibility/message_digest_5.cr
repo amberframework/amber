@@ -35,6 +35,10 @@ module Amber::Beryl::Crypto::Compatibility
       @state = StaticArray[0x67452301_u32, 0xefcdab89_u32, 0x98badcfe_u32, 0x10325476_u32]
     end
 
+    private def copy_running_state_from(source : self) : Nil
+      @state = source.@state
+    end
+
     private def length_field_bytesize : Int32
       8
     end
@@ -53,20 +57,37 @@ module Amber::Beryl::Crypto::Compatibility
     # In step `i` the working variable that the RFC calls `a` lives in the
     # local named by `names[(64 - i) % 4]`. The sine table holds
     # `floor(2^32 * abs(sin(i + 1)))`.
+    #
+    # Every step waits for the step before it, so the time of a block is the
+    # length of that chain. Each step therefore adds the three values it has
+    # early (`a`, the message word and the constant) on their own, and
+    # brings in the newest variable, `b`, in as few operations as its round
+    # allows: the first round's function is `d ^ (b & (c ^ d))`, three
+    # operations of which one is ready early; the second round's is split
+    # into the half without `b`, added early, and the half with it; the third
+    # round combines the two older variables first. The empty assembly
+    # statements mark values the optimizer must keep as written. They emit no
+    # instruction; without them it rewrites the first round's function into
+    # four operations and regroups two sums so that they wait for `b`.
     private def compress(list_of_blocks : Bytes) : Nil
       x = uninitialized UInt32[16]
-      block_offset = 0
-      while block_offset < list_of_blocks.size
-        block = list_of_blocks[block_offset, BLOCK_SIZE]
-
+      # The loop runs once per whole block, so every read below stays
+      # inside *list_of_blocks*.
+      block_pointer = list_of_blocks.to_unsafe
+      # The state stays in these four locals from the first block to the last.
+      state_a = @state[0]
+      state_b = @state[1]
+      state_c = @state[2]
+      state_d = @state[3]
+      (list_of_blocks.size // BLOCK_SIZE).times do
         {% for k in 0...16 %}
-          x[{{ k }}] = IO::ByteFormat::LittleEndian.decode(UInt32, block[{{ k * 4 }}, 4])
+          x[{{ k }}] = IO::ByteFormat::LittleEndian.decode(UInt32, Slice.new(block_pointer + {{ k * 4 }}, 4))
         {% end %}
 
-        a = @state[0]
-        b = @state[1]
-        c = @state[2]
-        d = @state[3]
+        a = state_a
+        b = state_b
+        c = state_c
+        d = state_d
 
         {% begin %}
         {% names = %w[a b c d] %}
@@ -95,30 +116,47 @@ module Amber::Beryl::Crypto::Compatibility
           {% rc = names[(66 - i) % 4].id %}
           {% rd = names[(67 - i) % 4].id %}
           {% if i < 16 %}
-            %mixed = ({{ rb }} & {{ rc }}) | (~{{ rb }} & {{ rd }})
             {% word_index = i %}
+            %older = {{ rc }} ^ {{ rd }}
+            asm("" : "=r"(%older) : "0"(%older))
+            %masked = {{ rb }} & %older
+            asm("" : "=r"(%masked) : "0"(%masked))
+            %mixed = {{ rd }} ^ %masked
+            %early = {{ ra }} &+ x[{{ word_index }}] &+ {{ sine_table[i] }}
+            {% if i == 0 %}
+              asm("" : "=r"(%early) : "0"(%early))
+            {% end %}
+            %sum = %early &+ %mixed
           {% elsif i < 32 %}
-            %mixed = ({{ rb }} & {{ rd }}) | ({{ rc }} & ~{{ rd }})
             {% word_index = (5 * i + 1) % 16 %}
+            %early = ({{ ra }} &+ x[{{ word_index }}] &+ {{ sine_table[i] }}) &+ ({{ rc }} & ~{{ rd }})
+            %sum = %early &+ ({{ rb }} & {{ rd }})
           {% elsif i < 48 %}
-            %mixed = {{ rb }} ^ {{ rc }} ^ {{ rd }}
             {% word_index = (3 * i + 5) % 16 %}
+            %older = {{ rc }} ^ {{ rd }}
+            asm("" : "=r"(%older) : "0"(%older))
+            %mixed = {{ rb }} ^ %older
+            %sum = ({{ ra }} &+ x[{{ word_index }}] &+ {{ sine_table[i] }}) &+ %mixed
           {% else %}
-            %mixed = {{ rc }} ^ ({{ rb }} | ~{{ rd }})
             {% word_index = (7 * i) % 16 %}
+            %mixed = {{ rc }} ^ ({{ rb }} | ~{{ rd }})
+            %sum = ({{ ra }} &+ x[{{ word_index }}] &+ {{ sine_table[i] }}) &+ %mixed
           {% end %}
-          %sum = {{ ra }} &+ %mixed &+ x[{{ word_index }}] &+ {{ sine_table[i] }}
           {{ ra }} = {{ rb }} &+ %sum.rotate_left({{ list_of_shifts[i // 16][i % 4] }})
         {% end %}
         {% end %}
 
-        @state[0] = @state[0] &+ a
-        @state[1] = @state[1] &+ b
-        @state[2] = @state[2] &+ c
-        @state[3] = @state[3] &+ d
+        state_a &+= a
+        state_b &+= b
+        state_c &+= c
+        state_d &+= d
 
-        block_offset += BLOCK_SIZE
+        block_pointer += BLOCK_SIZE
       end
+      @state[0] = state_a
+      @state[1] = state_b
+      @state[2] = state_c
+      @state[3] = state_d
     end
   end
 

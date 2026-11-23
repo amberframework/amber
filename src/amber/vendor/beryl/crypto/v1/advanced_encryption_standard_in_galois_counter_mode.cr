@@ -1,6 +1,7 @@
 require "./authenticated_encryption"
 require "./bitsliced_advanced_encryption_standard"
 require "./galois_hash"
+require "./galois_counter_mode_with_processor_instructions"
 
 module Amber::Beryl::Crypto::V1
   # AES-GCM (FIPS 197 and NIST SP 800-38D): authenticated encryption under a
@@ -17,9 +18,14 @@ module Amber::Beryl::Crypto::V1
   # gives away the authentication key. A nonce of another length is
   # accepted, as the standard defines, for formats that already use one.
   #
-  # AES runs as a Boolean circuit and GHASH as carry-less multiplies with no
-  # table, so the running time is the same for every key and every message
-  # (see `BitslicedAdvancedEncryptionStandard` and `GaloisHash`).
+  # On a processor with AES and carry-less multiply instructions (ARMv8
+  # `aese` and `pmull`, x86-64 AES-NI and `pclmulqdq`), both run on those
+  # instructions, eight blocks at a time
+  # (`GaloisCounterModeWithProcessorInstructions`). Elsewhere AES runs as a
+  # Boolean circuit and GHASH as carry-less multiplies built from integer
+  # ones, with no table (`BitslicedAdvancedEncryptionStandard` and
+  # `GaloisHash`). Either way the running time is the same for every key and
+  # every message.
   class AdvancedEncryptionStandardInGaloisCounterMode < AuthenticatedEncryption
     # The nonce size SP 800-38D recommends, in bytes.
     NONCE_BYTESIZE = 12
@@ -28,9 +34,17 @@ module Amber::Beryl::Crypto::V1
     # exist for formats that already use them; a short tag is easy to forge.
     LIST_OF_TAG_BYTESIZES = [16, 15, 14, 13, 12, 8, 4]
 
-    @round_keys : Slice(UInt64)
     @round_count : Int32
+
+    # The portable code's round keys and hash key; empty when the processor's
+    # instructions run.
+    @round_keys : Slice(UInt64)
     @hash_key_state : Slice(UInt64)
+
+    # The round keys as bytes and the hash key powers H to H^8, for the
+    # processor's instructions; empty when the portable code runs.
+    @round_key_bytes : Bytes
+    @hash_key_powers : Bytes
 
     # Creates the cipher under *key* (16, 24 or 32 bytes). *tag_bytesize* is
     # the number of tag bytes kept on each message.
@@ -40,6 +54,17 @@ module Amber::Beryl::Crypto::V1
       end
       @tag_bytesize = tag_bytesize
       @round_count = BitslicedAdvancedEncryptionStandard.round_count_for(key.size)
+      if ProcessorFeatures::HAS_GALOIS_COUNTER_MODE_INSTRUCTIONS
+        @round_keys = Slice(UInt64).empty
+        @hash_key_state = Slice(UInt64).empty
+        @round_key_bytes = Bytes.new(BitslicedAdvancedEncryptionStandard::ROUND_KEY_BYTESIZE)
+        @hash_key_powers = Bytes.new(GaloisCounterModeWithProcessorInstructions::HASH_KEY_POWERS_BYTESIZE)
+        GaloisCounterModeWithProcessorInstructions.prepare(key, @round_key_bytes, @hash_key_powers)
+        return
+      end
+
+      @round_key_bytes = Bytes.empty
+      @hash_key_powers = Bytes.empty
       @round_keys = Slice(UInt64).new(BitslicedAdvancedEncryptionStandard::ROUND_KEY_WORD_COUNT, 0_u64)
       BitslicedAdvancedEncryptionStandard.expand_key(key, @round_keys)
 
@@ -68,13 +93,38 @@ module Amber::Beryl::Crypto::V1
       # The message starts one block after the block that masks the tag.
       counter = IO::ByteFormat::BigEndian.decode(UInt32, counter_block[12, 4])
       IO::ByteFormat::BigEndian.encode(counter &+ 1_u32, counter_block[12, 4])
-      BitslicedAdvancedEncryptionStandard.xor_counter_keystream(@round_keys, @round_count, counter_block, input, output)
+      if ProcessorFeatures::HAS_GALOIS_COUNTER_MODE_INSTRUCTIONS
+        GaloisCounterModeWithProcessorInstructions.xor_counter_keystream(@round_key_bytes, @round_count, counter_block, input, output)
+      else
+        BitslicedAdvancedEncryptionStandard.xor_counter_keystream(@round_keys, @round_count, counter_block, input, output)
+      end
+      SecretWiping.wipe(counter_block)
+    end
+
+    # Encrypts and hashes the message in one pass where the processor's
+    # instructions run.
+    protected def seal(nonce : Bytes, associated_data : Bytes, plaintext : Bytes, ciphertext : Bytes, full_tag : Bytes) : Nil
+      return super unless ProcessorFeatures::HAS_GALOIS_COUNTER_MODE_INSTRUCTIONS
+
+      counter_block_storage = uninitialized UInt8[16]
+      counter_block = counter_block_storage.to_slice
+      write_first_counter_block(nonce, counter_block)
+      GaloisCounterModeWithProcessorInstructions.seal(@round_key_bytes, @round_count, @hash_key_powers, counter_block,
+        associated_data, plaintext, ciphertext, full_tag)
+      SecretWiping.wipe(counter_block)
     end
 
     protected def compute_tag(nonce : Bytes, associated_data : Bytes, ciphertext : Bytes, full_tag : Bytes) : Nil
       counter_block_storage = uninitialized UInt8[16]
       counter_block = counter_block_storage.to_slice
       write_first_counter_block(nonce, counter_block)
+
+      if ProcessorFeatures::HAS_GALOIS_COUNTER_MODE_INSTRUCTIONS
+        GaloisCounterModeWithProcessorInstructions.write_tag(@round_key_bytes, @round_count, @hash_key_powers, counter_block,
+          associated_data, ciphertext, full_tag)
+        SecretWiping.wipe(counter_block)
+        return
+      end
 
       hash_state_storage = uninitialized UInt64[8]
       hash_state = Slice.new(hash_state_storage.to_unsafe, GaloisHash::STATE_WORD_COUNT)
@@ -115,14 +165,24 @@ module Amber::Beryl::Crypto::V1
         return
       end
 
+      length_block_storage = StaticArray(UInt8, 16).new(0_u8)
+      length_block = length_block_storage.to_slice
+      IO::ByteFormat::BigEndian.encode(nonce.size.to_u64 * 8, length_block[8, 8])
+
+      if ProcessorFeatures::HAS_GALOIS_COUNTER_MODE_INSTRUCTIONS
+        accumulator_storage = StaticArray(UInt8, 16).new(0_u8)
+        accumulator = accumulator_storage.to_slice
+        GaloisCounterModeWithProcessorInstructions.absorb(accumulator, @hash_key_powers, nonce)
+        GaloisCounterModeWithProcessorInstructions.absorb(accumulator, @hash_key_powers, length_block)
+        GaloisCounterModeWithProcessorInstructions.write_digest(accumulator, counter_block)
+        SecretWiping.wipe(accumulator)
+        return
+      end
+
       hash_state_storage = uninitialized UInt64[8]
       hash_state = Slice.new(hash_state_storage.to_unsafe, GaloisHash::STATE_WORD_COUNT)
       hash_state.copy_from(@hash_key_state)
       GaloisHash.absorb(hash_state, nonce)
-
-      length_block_storage = StaticArray(UInt8, 16).new(0_u8)
-      length_block = length_block_storage.to_slice
-      IO::ByteFormat::BigEndian.encode(nonce.size.to_u64 * 8, length_block[8, 8])
       GaloisHash.absorb(hash_state, length_block)
       GaloisHash.write_digest(hash_state, counter_block)
       SecretWiping.wipe(Bytes.new(hash_state_storage.to_unsafe.as(UInt8*), 64))

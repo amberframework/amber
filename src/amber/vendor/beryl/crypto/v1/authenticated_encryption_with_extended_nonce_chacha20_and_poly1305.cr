@@ -1,3 +1,5 @@
+require "crypto/subtle"
+require "../declassification"
 require "./authenticated_encryption_with_chacha20_and_poly1305"
 
 module Amber::Beryl::Crypto::V1
@@ -50,12 +52,57 @@ module Amber::Beryl::Crypto::V1
       end
     end
 
+    protected def seal(nonce : Bytes, associated_data : Bytes, plaintext : Bytes, ciphertext : Bytes, full_tag : Bytes) : Nil
+      {% if flag?(:aarch64) %}
+        if ProcessorFeatures::HAS_VECTOR_INSTRUCTIONS && plaintext.size <= ChaCha20WithVectorInstructions::LONGEST_SHORT_EXTENDED_MESSAGE_BYTESIZE
+          ChaCha20WithVectorInstructions.with_short_extended_keystream(@key, nonce, plaintext) do |one_time_key, encrypted|
+            encrypted.copy_to(ciphertext)
+            ChaCha20WithVectorInstructions.authenticate(one_time_key, associated_data, ciphertext, full_tag)
+          end
+          return
+        end
+      {% end %}
+      with_message_key(nonce) do |message_key, message_nonce|
+        ChaCha20Poly1305Construction.seal(message_key, message_nonce, associated_data, plaintext, ciphertext, full_tag)
+      end
+    end
+
+    protected def open(nonce : Bytes, associated_data : Bytes, ciphertext : Bytes, tag : Bytes, plaintext : Bytes) : Bool
+      is_authentic = false
+      {% if flag?(:aarch64) %}
+        if ProcessorFeatures::HAS_VECTOR_INSTRUCTIONS && ciphertext.size <= ChaCha20WithVectorInstructions::LONGEST_SHORT_EXTENDED_MESSAGE_BYTESIZE
+          ChaCha20WithVectorInstructions.with_short_extended_keystream(@key, nonce, ciphertext) do |one_time_key, decrypted|
+            full_tag_storage = uninitialized UInt8[16]
+            full_tag = full_tag_storage.to_slice
+            ChaCha20WithVectorInstructions.authenticate(one_time_key, associated_data, ciphertext, full_tag)
+            tags_match = ::Crypto::Subtle.constant_time_compare(full_tag[0, tag.size], tag)
+            SecretWiping.wipe(full_tag)
+            is_authentic = Declassification.reveal(tags_match)
+            decrypted.copy_to(plaintext) if is_authentic
+          end
+          return is_authentic
+        end
+      {% end %}
+      with_message_key(nonce) do |message_key, message_nonce|
+        is_authentic = ChaCha20Poly1305Construction.open(message_key, message_nonce, associated_data, ciphertext, tag, plaintext)
+      end
+      is_authentic
+    end
+
     # Yields the key and the 12-byte nonce this message is encrypted under,
     # then wipes the key.
     private def with_message_key(nonce : Bytes, & : Bytes, Bytes -> Nil) : Nil
       message_key_storage = uninitialized UInt8[32]
       message_key = message_key_storage.to_slice
-      ChaCha20StreamCipher.derive_subkey(@key, nonce[0, ChaCha20StreamCipher::SUBKEY_NONCE_BYTESIZE], message_key)
+      {% if flag?(:aarch64) %}
+        if ProcessorFeatures::HAS_VECTOR_INSTRUCTIONS
+          ChaCha20WithVectorInstructions.derive_subkey(@key, nonce[0, ChaCha20StreamCipher::SUBKEY_NONCE_BYTESIZE], message_key)
+        else
+          ChaCha20StreamCipher.derive_subkey(@key, nonce[0, ChaCha20StreamCipher::SUBKEY_NONCE_BYTESIZE], message_key)
+        end
+      {% else %}
+        ChaCha20StreamCipher.derive_subkey(@key, nonce[0, ChaCha20StreamCipher::SUBKEY_NONCE_BYTESIZE], message_key)
+      {% end %}
 
       message_nonce_storage = StaticArray(UInt8, 12).new(0_u8)
       message_nonce = message_nonce_storage.to_slice
