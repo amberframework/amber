@@ -14,8 +14,8 @@ says what each default does, so you keep it when you change things.
 | Contiguous release units | crystal-alpha 1.21.0-incremental-7 and later |
 | 8 KB collector blocks for your programs | the `agent-crystal` Homebrew formula on arm64 macOS |
 | 8 MiB starting heap, page cache, stateless views | apps from Amber CLI 2.0.12 and later |
-| `-Dwithout_openssl` (cookies on Beryl) | Amber `v2-dev` after 2.0.0-beta.13 (#1465), in the next beta |
-| `-Dwithout_zlib` (gzip on Mica) | Amber `v2-dev` after 2.0.0-beta.13 (#1467), Grant `main` (crimson-knight/grant#80) and asset_pipeline `main` (amberframework/asset_pipeline#28), in the next releases |
+| `-Dwithout_openssl` (cookies on Beryl) | Amber 2.0.0-beta.14, Grant 0.26.0 and asset_pipeline 0.39.0 (apps from Amber CLI 2.0.15) |
+| `-Dwithout_zlib` (gzip on Mica) | Amber 2.0.0-beta.14, Grant 0.26.0 and asset_pipeline 0.39.0 (apps from Amber CLI 2.0.15) |
 
 Unless a section says otherwise, numbers were measured on an Apple M1 Max
 running macOS 26 with an app from `amber new -d sqlite` plus a scaffolded

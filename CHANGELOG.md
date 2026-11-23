@@ -1,6 +1,20 @@
 # Changelog
 
-## Unreleased
+## 2.0.0-beta.14 (2026-11-22)
+
+Amber 2.0.0-beta.14 lets an app drop libz and OpenSSL. Built with
+`-Dwithout_zlib -Dwithout_openssl`, an `amber new -d sqlite` app with a
+scaffold links none of PCRE2, libyaml, GMP, libz, libssl or libcrypto,
+still gzips its responses, and peaked at 17.4 to 17.5 MiB of RSS under load
+at the 8 MiB heap on an M4 Mac mini, against 19.8 to 19.9 MiB for the
+default build. The flags are opt-in: a default build still links libz and
+OpenSSL through Crystal's own `HTTP` and `OpenSSL` code. Amber's cookie and
+session cryptography runs on Beryl, whose hashes and ciphers use the
+processor's own instructions on Apple Silicon, Linux AArch64 and x86-64.
+Every regex in Amber runs on Mica, and `logging.severity` from the
+environment file now sets the level the app logs at. The new
+`docs/guides/performance.md` (#1471) gives the patterns and settings that
+make an app fast and small from the first build, each with its measurement.
 
 **`logging.severity` from the environment file now sets the level the app
 logs at (#1461).** Amber read and validated `logging.severity` (and
