@@ -23,6 +23,7 @@ ai_docs:
     - docs/guides/lsp-setup.md
     - docs/guides/mailer.md
     - docs/guides/markdown.md
+    - docs/guides/performance.md
     - docs/guides/routing.md
     - docs/guides/schema-api.md
     - docs/guides/testing.md

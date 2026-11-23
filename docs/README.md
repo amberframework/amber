@@ -15,6 +15,7 @@
 - [Background Jobs](guides/background-jobs.md) -- Job definition, enqueueing, delayed and scheduled jobs, retries, dead-letter queue, workers, work stealing, and queue adapters
 - [Mailer](guides/mailer.md) -- Email composition with fluent API, attachments, SMTP delivery, memory adapter for testing, and custom delivery adapters
 - [Testing](guides/testing.md) -- Request helpers, test responses, assertions, controller testing, context builder, and WebSocket testing
+- [Performance](guides/performance.md) -- The fastest, smallest app from the start: Mica-compatible and static regexes, the regex-on-mica check, -Dwithout_zlib and -Dwithout_openssl, the starting heap, collector blocks, release units, view caching, and measuring peak RSS and footprint with scripts/probe_app.rb
 - [Markdown](guides/markdown.md) -- Markdown to HTML rendering, GFM extensions, table of contents, footnotes, syntax highlighting, and safe mode
 
 ## Migration
