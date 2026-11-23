@@ -1,4 +1,11 @@
-![amber](https://github.com/amberframework/site-assets/raw/master/images/amber-horizontal.png)
+<p align="center">
+<a href="https://amberframework.org">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/brand/amber-lockup-dark.svg">
+  <img src="docs/brand/amber-lockup-light.svg" height="72" alt="Amber Framework">
+</picture>
+</a>
+</p>
 
 **Productivity. Performance. Happiness.**
 
