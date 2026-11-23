@@ -1,95 +1,107 @@
 module Amber::Mica::Brotli
   # Packs bits least-significant first into a growing byte buffer, the
-  # order RFC 7932 streams use. A `Mark` taken before a metablock lets the
-  # encoder rewind and store the metablock uncompressed instead.
+  # order RFC 7932 streams use. Each write ORs its bits into the current
+  # byte and stores eight bytes at once (google/brotli's BrotliWriteBits),
+  # so the bytes after the write position are always zero bits. A `Mark`
+  # taken before a metablock lets the encoder rewind and store the
+  # metablock uncompressed instead.
   #
   # :nodoc:
   class BitWriter
-    # Where the writer stood: bytes done, and the bits not yet a byte.
-    record Mark, size : Int32, bits : UInt64, count : Int32
+    # Where the writer stood, in bits.
+    record Mark, position : Int64
 
-    @buffer : Bytes
-    @size = 0
-    @bits = 0_u64
-    @count = 0
+    # Outside the garbage collector: it grows to twice the input and holds
+    # no references. Freed when the writer is collected.
+    @buffer : Pointer(UInt8)
+    @capacity : Int32
+    @position = 0_i64
 
     def initialize(capacity : Int32 = 4096)
-      @buffer = Bytes.new(Math.max(capacity, 64))
+      @capacity = Math.max(capacity, 64)
+      @buffer = Encode.table(UInt8, @capacity)
+      @buffer[0] = 0_u8
     end
 
-    # Appends the low *count* bits of *value* (at most 32 bits).
+    def finalize
+      @buffer = Encode.free_table(@buffer)
+    end
+
+    # Appends the low *count* bits of *value* (at most 56 bits; *value*
+    # has no bits above them).
     @[AlwaysInline]
-    def write(count : Int32, value : Int) : Nil
-      @bits |= value.to_u64! << @count
-      @count += count
-      return if @count < 32
-      ensure_room(8)
-      (@buffer.to_unsafe + @size).as(UInt32*).value = @bits.to_u32!
-      @size += 4
-      @bits >>= 32
-      @count -= 32
+    def write(count : Int, value : Int) : Nil
+      byte = (@position >> 3).to_i32!
+      grow(byte + 8) if byte + 8 > @capacity
+      pointer = @buffer + byte
+      pointer.as(UInt64*).value = pointer.value.to_u64 | (value.to_u64! << (@position & 7))
+      @position &+= count
     end
 
-    # Pads with zero bits to the next byte boundary and moves whole bytes
-    # into the buffer.
+    # Makes room for *bytes* more bytes, so a metablock's writes need not
+    # grow the buffer one by one.
+    def reserve(bytes : Int32) : Nil
+      needed = (@position >> 3).to_i32 + bytes + 8
+      grow(needed) if needed > @capacity
+    end
+
+    # Pads with zero bits to the next byte boundary.
     def align : Nil
-      @count = (@count + 7) & ~7
-      settle
+      return if @position & 7 == 0
+      @position = (@position + 7) & ~7_i64
+      byte = (@position >> 3).to_i32
+      grow(byte + 8) if byte + 8 > @capacity
+      @buffer[byte] = 0_u8
     end
 
     # Appends *bytes* after `align`.
     def write_bytes(bytes : Bytes) : Nil
       align
-      ensure_room(bytes.size)
-      (@buffer.to_unsafe + @size).copy_from(bytes.to_unsafe, bytes.size)
-      @size += bytes.size
+      byte = (@position >> 3).to_i32
+      grow(byte + bytes.size + 8) if byte + bytes.size + 8 > @capacity
+      (@buffer + byte).copy_from(bytes.to_unsafe, bytes.size)
+      @position += bytes.size.to_i64 * 8
+      @buffer[byte + bytes.size] = 0_u8
     end
 
-    # The bits written since `clear`.
+    # The bits written since the writer started or last drained.
     def bit_size : Int64
-      @size.to_i64 * 8 + @count
+      @position
     end
 
     def mark : Mark
-      Mark.new(@size, @bits, @count)
+      Mark.new(@position)
     end
 
     # Rewinds to *mark*, dropping everything written after it.
     def rewind(mark : Mark) : Nil
-      @size = mark.size
-      @bits = mark.bits
-      @count = mark.count
+      @position = mark.position
+      byte = (@position >> 3).to_i32
+      @buffer[byte] &= ((1 << (@position & 7)) - 1).to_u8
     end
 
     # Writes the completed bytes to *io* and keeps the partial byte.
     def drain(io : IO) : Nil
-      settle
-      io.write(@buffer[0, @size]) if @size > 0
-      @size = 0
+      whole = (@position >> 3).to_i32
+      return if whole == 0
+      io.write(Slice.new(@buffer, whole))
+      @buffer[0] = @buffer[whole]
+      @position &= 7
+      @buffer[1] = 0_u8
     end
 
-    # Returns the completed bytes (call after `align`).
+    # Returns the completed bytes (call after `align`): a view of the
+    # buffer, valid until the next write; copy it to keep it.
     def to_slice : Bytes
-      settle
-      @buffer[0, @size]
+      Slice.new(@buffer, (@position >> 3).to_i32)
     end
 
-    private def settle : Nil
-      ensure_room(8)
-      while @count >= 8
-        @buffer[@size] = @bits.to_u8!
-        @size += 1
-        @bits >>= 8
-        @count -= 8
-      end
-    end
-
-    private def ensure_room(extra : Int32) : Nil
-      needed = @size + extra
-      return if needed <= @buffer.size
-      grown = Bytes.new(Math.max(needed, @buffer.size * 2))
-      grown.copy_from(@buffer.to_unsafe, @size)
-      @buffer = grown
+    private def grow(needed : Int32) : Nil
+      capacity = Math.max(needed, @capacity * 2)
+      grown = LibC.realloc(@buffer.as(Void*), LibC::SizeT.new(capacity))
+      raise RuntimeError.new("Brotli encoder could not allocate #{capacity} bytes") if grown.null?
+      @buffer = grown.as(UInt8*)
+      @capacity = capacity
     end
   end
 end

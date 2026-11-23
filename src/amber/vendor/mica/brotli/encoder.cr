@@ -1,62 +1,63 @@
 module Amber::Mica::Brotli
   # The Brotli encoder (RFC 7932) behind `Brotli.encode` and
-  # `Brotli::Writer`. It turns input into metablocks: LZ77 commands from
-  # hash chains (greedy, lazy, or an optimal parse from quality 10) with
-  # the four-entry distance cache and static dictionary references, then
-  # `MetablockWriter` models and writes them. A metablock that would not
-  # be smaller than its bytes is stored uncompressed.
+  # `Brotli::Writer`.
   #
-  # Quality sets the effort:
+  # From quality 5 to 9 it follows google/brotli 1.2.1's libbrotlienc
+  # (see `Encode`): input is cut into blocks of 64 KiB (256 KiB at
+  # quality 9); each block is searched with a hash table of recent
+  # positions, the distance cache and the static dictionary; the
+  # commands of consecutive blocks gather into one metablock of up to
+  # 8 MiB, which is split greedily into block types, given static literal
+  # context maps when the UTF-8 byte classes predict each other, and
+  # written with run-length-friendly prefix codes. A metablock that would
+  # not be smaller than its bytes is stored uncompressed.
   #
-  # | Quality | Matching | Modeling |
-  # |---|---|---|
-  # | 0, 1 | one candidate per hash, greedy | one prefix code per category |
-  # | 2, 3 | hash chains of 4 and 8, distance cache | same |
-  # | 4 | chains of 16, lazy matching, dictionary | same |
-  # | 5 to 9 | chains of 16 to 256, lazy | literal context modeling and block splitting |
-  # | 10, 11 | optimal parse over chains of 64 and 256 | same |
+  # Qualities 10 and 11 follow libbrotlienc too: a binary tree of
+  # positions finds every match length, an optimal parse (one pass at 10,
+  # two at 11) picks the commands by estimated bits, the distance code
+  # parameters are chosen per metablock, and literals, commands and
+  # distances are split into block types and clustered, with literal
+  # context maps from the UTF-8 or signed context model. Qualities 0 to 4
+  # use `ClassicEncoder`.
   #
   # :nodoc:
   class Encoder
-    CHAIN_DEPTH   = StaticArray[1, 1, 4, 8, 16, 16, 32, 64, 128, 256, 64, 256]
-    HASH_BITS     = StaticArray[14, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17]
-    NICE_LENGTH   = StaticArray[16, 32, 32, 48, 64, 96, 128, 192, 258, 512, 325, 325]
-    LAZY_MARGIN   = 175
-    MIN_LENGTH    =   4
+    alias Hasher = Encode::LongestMatchHasher(4, 1) | Encode::LongestMatchHasher(5, 1) |
+                   Encode::LongestMatchHasher(4, 0) | Encode::LongestMatchHasher(5, 0)
+
     INITIAL_CACHE = StaticArray[4, 11, 15, 16]
-    # The hash chain ring is at most this long (4 MiB of positions).
-    MAX_CHAIN = 1 << 20
 
     getter quality : Int32
     getter window_bits : Int32
-    getter max_backward : Int32
-    getter metablock_size : Int32
 
-    @finder : MatchFinder
-    @cache : StaticArray(Int32, 4) = INITIAL_CACHE
-    @commands = [] of Command
-    @next_insert = 0
-    @dictionary_lookups = 0_i64
-    @dictionary_hits = 0_i64
+    @classic : ClassicEncoder?
+    @hasher : Hasher?
+    @tree_hasher : Encode::BinaryTreeHasher?
+    @size_hint : Int64
+    @block_bits : Int32
+    @params = Encode::DistanceParams.new(0_u32, 0_u32)
+    @cache = StaticArray(Int32, 16).new(0)
+    @saved_cache = StaticArray(Int32, 4).new(0)
+    @commands = Encode::CommandBuffer.new
+    @arena = Encode::Arena.new
+    @num_literals = 0_i64
+    @last_insert_length = 0
     @header_written = false
-    @metablock_writer : MetablockWriter
+    @hasher_prepared = false
 
-    # *history_size* bounds the hash chain: the window, or less when the
-    # whole input is known to be smaller.
+    # *history_size* is the input size when it is known up front (one
+    # encode), else the window.
     def initialize(@quality : Int32, @window_bits : Int32, history_size : Int32)
       Encoder.check(@quality, @window_bits)
-      @max_backward = (1 << @window_bits) - 16
-      @metablock_size = Encoder.metablock_size(@quality)
-      # A small input needs no more hash buckets than about twice its positions.
-      size_bits = Math.max(10, 33 - Math.max(history_size, 1).leading_zeros_count)
-      hash_bits = Math.min(Math.min(HASH_BITS[@quality], @window_bits + 1), size_bits)
-      chain = Math.min(Math.min(history_size, 1 << @window_bits), MAX_CHAIN)
-      @finder = MatchFinder.new(hash_bits, chain, CHAIN_DEPTH[@quality])
-      @metablock_writer = MetablockWriter.new(@quality)
+      @size_hint = history_size.to_i64
+      @block_bits = @quality >= 9 && @window_bits > 16 ? Math.min(18, @window_bits) : 16
+      4.times { |slot| @cache[slot] = INITIAL_CACHE[slot] }
+      4.times { |slot| @saved_cache[slot] = INITIAL_CACHE[slot] }
+      @classic = ClassicEncoder.new(@quality, @window_bits, history_size) unless ported?
     end
 
-    # The most input one metablock holds at *quality*: 256 KiB below 5,
-    # 1 MiB from 5.
+    # The most input the streaming writer buffers into one metablock: 256 KiB
+    # below quality 5, 1 MiB from 5.
     def self.metablock_size(quality : Int32) : Int32
       quality <= 4 ? 1 << 18 : 1 << 20
     end
@@ -70,35 +71,72 @@ module Amber::Mica::Brotli
     def self.encode(input : Bytes, quality : Int32, window_bits : Int32) : Bytes
       check(quality, window_bits)
       encoder = new(quality, window_bits, Math.max(input.size, 1))
-      writer = BitWriter.new(input.size // 2 + 64)
+      writer = BitWriter.new(2 * input.size + 600)
       encoder.encode_block(writer, input, 0, input.size, 0_i64, is_last: true)
+      encoder.release
       writer.to_slice.dup
     end
 
-    # Encodes `input[start, length]` as metablocks; `input[0, start]` is
-    # history the matches may reach (within the window), and
-    # *stream_offset* is the stream position of `input[0]`. With *is_last*
-    # the stream ends after these bytes.
+    # How much input the streaming writer buffers before encoding it.
+    def metablock_size : Int32
+      Encoder.metablock_size(@quality)
+    end
+
+    # Encodes `input[start, length]`; `input[0, start]` is history the
+    # matches may reach (within the window), and *stream_offset* is the
+    # stream position of `input[0]`. With *is_last* the stream ends after
+    # these bytes; without, everything given is written out (a flush
+    # point) but the stream stays open.
     def encode_block(writer : BitWriter, input : Bytes, start : Int32, length : Int32,
                      stream_offset : Int64, *, is_last : Bool) : Nil
-      write_stream_header(writer)
-      if length == 0
-        write_last_empty(writer) if is_last
+      if classic = @classic
+        classic.encode_block(writer, input, start, length, stream_offset, is_last: is_last)
         return
       end
-      done = 0
-      while done < length
-        size = Math.min(@metablock_size, length - done)
-        last = is_last && done + size == length
-        write_metablock(writer, input, start + done, size, stream_offset, last)
-        done += size
+      write_stream_header(writer)
+      if length == 0
+        if is_last
+          writer.write(2, 3)
+          writer.align
+        end
+        return
       end
-      writer.align if is_last
+      data = input.to_unsafe
+      metablock_start = start
+      position = start
+      stop = start + length
+      block_size = 1 << @block_bits
+      max_metablock = 1 << Math.min(1 + Math.max(@window_bits, @block_bits), 24)
+      while position < stop
+        bytes = Math.min(block_size, stop - position)
+        last_block = position + bytes == stop
+        process_block(input, position, bytes, last_block && is_last, stream_offset)
+        position += bytes
+        processed = position - metablock_start
+        fits = processed + block_size <= max_metablock
+        if !last_block && fits && @num_literals < max_metablock // 8 && @commands.size < max_metablock // 8
+          next
+        end
+        if @last_insert_length > 0
+          @commands.push(Encode::Command.insert_only(@last_insert_length.to_u32))
+          @num_literals += @last_insert_length
+          @last_insert_length = 0
+        end
+        write_metablock(writer, data, metablock_start, position - metablock_start, last_block && is_last)
+        metablock_start = position
+        @commands.clear
+        @num_literals = 0
+        4.times { |slot| @saved_cache[slot] = @cache[slot] }
+      end
     end
 
     # Writes an empty metadata metablock and pads to a byte boundary, so
     # everything written so far can be decoded (a flush).
     def write_flush_marker(writer : BitWriter) : Nil
+      if classic = @classic
+        classic.write_flush_marker(writer)
+        return
+      end
       write_stream_header(writer)
       writer.write(1, 0) # ISLAST
       writer.write(2, 3) # MNIBBLES = 0: metadata
@@ -109,8 +147,193 @@ module Amber::Mica::Brotli
 
     # Rebases stored positions after the writer dropped *offset* bytes.
     def shift(offset : Int32) : Nil
-      @finder.shift(offset)
-      @next_insert = Math.max(@next_insert - offset, 0)
+      if classic = @classic
+        classic.shift(offset)
+        return
+      end
+      # Positions in the hash tables are buffer indexes; after a shift
+      # they would point at the wrong bytes, so start the tables over.
+      @hasher_prepared = false
+    end
+
+    # Frees the hash tables now rather than when the encoder is collected.
+    def release : Nil
+      if hasher = @hasher
+        hasher.release
+        @hasher = nil
+      end
+      if tree_hasher = @tree_hasher
+        tree_hasher.release
+        @tree_hasher = nil
+      end
+      @arena.release
+    end
+
+    private def ported? : Bool
+      @quality >= 5
+    end
+
+    private def hasher : Hasher
+      @hasher ||= begin
+        large = @size_hint >= (1 << 20) && @window_bits >= 19
+        block_bits = @quality - 1
+        bucket_bits = @quality < 7 ? 14 : 15
+        last_distances = @quality < 7 ? 4 : (@quality < 9 ? 10 : 16)
+        if @quality <= 6
+          large ? Encode::LongestMatchHasher(5, 1).new(15, block_bits, last_distances) : Encode::LongestMatchHasher(4, 1).new(bucket_bits, block_bits, last_distances)
+        else
+          large ? Encode::LongestMatchHasher(5, 0).new(15, block_bits, last_distances) : Encode::LongestMatchHasher(4, 0).new(bucket_bits, block_bits, last_distances)
+        end
+      end
+    end
+
+    # Finds the commands of `input[position, bytes]` (google/brotli's
+    # EncodeData, up to the metablock decision).
+    private def process_block(input : Bytes, position : Int32, bytes : Int32, is_last : Bool, stream_offset : Int64) : Nil
+      if @quality >= 10
+        process_block_optimally(input, position, bytes, is_last, stream_offset)
+        return
+      end
+      data = input.to_unsafe
+      current = hasher
+      unless @hasher_prepared
+        one_shot = position == 0 && stream_offset == 0 && is_last
+        current.prepare(one_shot, bytes, data + position, input.size - position)
+        @hasher_prepared = true
+      end
+      current.stitch_to_previous_block(bytes, position, data) if position + bytes - 3 + current.hash_type_length <= input.size + 3
+      if @commands.size > 0 && @last_insert_length == 0
+        position, bytes = extend_last_command(data, position, bytes, stream_offset)
+      end
+      # One branch per hasher type, so each search loop is compiled for
+      # its own hasher.
+      @last_insert_length, literals = case current
+                                      when Encode::LongestMatchHasher(4, 1)
+                                        find_commands(current, data, position, bytes, stream_offset)
+                                      when Encode::LongestMatchHasher(5, 1)
+                                        find_commands(current, data, position, bytes, stream_offset)
+                                      when Encode::LongestMatchHasher(4, 0)
+                                        find_commands(current, data, position, bytes, stream_offset)
+                                      else
+                                        find_commands(current, data, position, bytes, stream_offset)
+                                      end
+      @num_literals += literals
+    end
+
+    # Qualities 10 and 11: the binary tree hasher and the optimal parse
+    # (google/brotli's EncodeData with BrotliCreateZopfliBackwardReferences
+    # or BrotliCreateHqZopfliBackwardReferences).
+    private def process_block_optimally(input : Bytes, position : Int32, bytes : Int32, is_last : Bool,
+                                        stream_offset : Int64) : Nil
+      data = input.to_unsafe
+      tree = @tree_hasher ||= Encode::BinaryTreeHasher.new(@window_bits,
+        position == 0 && stream_offset == 0 && is_last, bytes)
+      unless @hasher_prepared
+        tree.prepare
+        @hasher_prepared = true
+      end
+      tree.stitch_to_previous_block(bytes, position, data)
+      if @commands.size > 0 && @last_insert_length == 0
+        position, bytes = extend_last_command(data, position, bytes, stream_offset)
+      end
+      @last_insert_length, literals = if @quality == 10
+                                        Encode::Zopfli.create_backward_references(bytes, position, data, @quality,
+                                          @window_bits, stream_offset, @params, tree, @cache.to_unsafe,
+                                          @last_insert_length, @commands)
+                                      else
+                                        Encode::Zopfli.create_hq_backward_references(bytes, position, data, @quality,
+                                          @window_bits, stream_offset, @params, tree, @cache.to_unsafe,
+                                          @last_insert_length, @commands)
+                                      end
+      @num_literals += literals
+    end
+
+    private def find_commands(hasher : H, data : UInt8*, position : Int32, bytes : Int32, stream_offset : Int64) : {Int32, Int64} forall H
+      Encode.create_backward_references(hasher, @quality, @window_bits, data, position, bytes, stream_offset,
+        @params, @cache.to_unsafe, @last_insert_length, @commands)
+    end
+
+    # Lengthens the last command's copy into the new block while the
+    # bytes keep matching (google/brotli's ExtendLastCommand).
+    private def extend_last_command(data : UInt8*, position : Int32, bytes : Int32, stream_offset : Int64) : {Int32, Int32}
+      last = @commands.last
+      max_backward = (1_i64 << @window_bits) - Encode::WINDOW_GAP
+      copy_field = last.copy_field
+      last_copy = (copy_field & 0x1FFFFFF).to_i64
+      max_distance = Math.min(position + stream_offset - last_copy, max_backward)
+      max_distance = Math.min(max_distance, position.to_i64 - last_copy)
+      distance = @cache[0].to_i64
+      code = last.restore_distance_code(@params)
+      if code < Encode::NUM_DISTANCE_SHORT_CODES || code.to_i64 - (Encode::NUM_DISTANCE_SHORT_CODES - 1) == distance
+        if distance <= max_distance && distance > 0
+          while bytes != 0 && data[position] == data[position - distance]
+            copy_field &+= 1
+            bytes -= 1
+            position += 1
+          end
+        end
+        copy = ((copy_field & 0x1FFFFFF).to_i32 &+ (copy_field >> 25).to_i32).to_u32!
+        symbol = Encode.length_code(last.insert_length, copy, last.distance_prefix & 0x3FF == 0)
+        @commands[@commands.size - 1] = Encode::Command.new(last.insert_length, copy_field, last.distance_extra,
+          symbol, last.distance_prefix)
+      end
+      {position, bytes}
+    end
+
+    # google/brotli's WriteMetaBlockInternal from quality 5.
+    private def write_metablock(writer : BitWriter, data : UInt8*, start : Int32, bytes : Int32, is_last : Bool) : Nil
+      unless should_compress?(data, start, bytes)
+        restore_cache
+        Encode::MetablockStore.store_uncompressed(is_last, data, start, bytes, writer)
+        return
+      end
+      mark = writer.mark
+      previous_byte = start >= 1 ? data[start - 1] : 0_u8
+      previous_byte2 = start >= 2 ? data[start - 2] : 0_u8
+      if @quality >= 10
+        mode = Encode::LiteralCost.mostly_utf8?(data + start, bytes) ? Encode::CONTEXT_UTF8 : Encode::CONTEXT_SIGNED
+        metablock, params = Encode::MetablockBuilder.build(data, start, previous_byte, previous_byte2, @commands,
+          @params, mode, @quality, @arena)
+      else
+        mode = Encode::CONTEXT_UTF8
+        params = @params
+        num_contexts, context_map = Encode::MetablockBuilder.decide_over_literal_context_modeling(data, start, bytes,
+          @quality, @size_hint)
+        metablock = Encode::MetablockBuilder.build_greedy(data, start, previous_byte, previous_byte2, num_contexts,
+          context_map, @commands, @arena)
+      end
+      Encode::MetablockBuilder.optimize_histograms(params.alphabet_size.to_i32, metablock, @arena)
+      Encode::MetablockStore.store(data, start, bytes, previous_byte, previous_byte2, is_last, params,
+        mode, @commands, metablock, @arena, writer)
+      @arena.reset
+      used = writer.bit_size - mark.position + (mark.position & 7)
+      if bytes + 4 < (used >> 3)
+        writer.rewind(mark)
+        restore_cache
+        Encode::MetablockStore.store_uncompressed(is_last, data, start, bytes, writer)
+      end
+    end
+
+    private def restore_cache : Nil
+      4.times { |slot| @cache[slot] = @saved_cache[slot] }
+    end
+
+    # Whether a metablock with these commands is worth compressing: not
+    # when it is almost all literals of near-random bytes (google/brotli's
+    # ShouldCompress).
+    private def should_compress?(data : UInt8*, start : Int32, bytes : Int32) : Bool
+      return false if bytes <= 2
+      if @commands.size < (bytes >> 8) + 2 && @num_literals.to_f64 > 0.99 * bytes
+        histogram = StaticArray(UInt32, 256).new(0_u32)
+        samples = (bytes + 12) // 13
+        position = start
+        samples.times do
+          histogram[data[position]] += 1
+          position += 13
+        end
+        return false if Encode.bits_entropy(histogram.to_unsafe, 256) > bytes * 7.92 / 13
+      end
+      true
     end
 
     private def write_stream_header(writer : BitWriter) : Nil
@@ -126,170 +349,6 @@ module Amber::Mica::Brotli
       else
         writer.write(7, ((bits - 8) << 4) | 1)
       end
-    end
-
-    private def write_last_empty(writer : BitWriter) : Nil
-      writer.write(1, 1) # ISLAST
-      writer.write(1, 1) # ISLASTEMPTY
-      writer.align
-    end
-
-    private def write_metablock(writer : BitWriter, input : Bytes, start : Int32, length : Int32,
-                                stream_offset : Int64, is_last : Bool) : Nil
-      saved_cache = @cache
-      if @quality >= 10
-        optimal_parse(input, start, start + length, stream_offset)
-      else
-        parse(input, start, start + length, stream_offset)
-      end
-      mark = writer.mark
-      @metablock_writer.write(writer, input, start, length, @commands, is_last)
-      used = writer.bit_size - (mark.size.to_i64 * 8 + mark.count)
-      return if used <= length.to_i64 * 8 + 40
-      writer.rewind(mark)
-      @cache = saved_cache
-      write_uncompressed(writer, input[start, length])
-      write_last_empty(writer) if is_last
-    end
-
-    private def write_uncompressed(writer : BitWriter, bytes : Bytes) : Nil
-      writer.write(1, 0) # ISLAST
-      nibbles = EncoderCodes.length_nibbles(bytes.size)
-      writer.write(2, nibbles - 4)
-      writer.write(nibbles * 4, bytes.size - 1)
-      writer.write(1, 1) # ISUNCOMPRESSED
-      writer.write_bytes(bytes)
-    end
-
-    # --- Greedy and lazy parsing (qualities 0 to 9) ----------------------
-
-    # A match: bytes produced, copy length coded, distance, score, and
-    # whether it is a dictionary reference.
-    record Match, output : Int32, copy : Int32, distance : Int32, score : Int32, is_dictionary : Bool do
-      def self.none : Match
-        Match.new(0, 0, 0, MatchFinder::MIN_SCORE, false)
-      end
-    end
-
-    private def parse(input : Bytes, start : Int32, stop : Int32, stream_offset : Int64) : Nil
-      @commands.clear
-      position = start
-      literal_start = start
-      lazy = @quality >= 4
-      random_window = @quality >= 9 ? 512 : 64
-      while position + MIN_LENGTH <= stop
-        insert_until(input, position)
-        max_distance = max_distance_at(stream_offset, position)
-        match = best_match(input, position, stop - position, max_distance)
-        if match.output == 0
-          insert_until(input, position + 1)
-          run = position - literal_start
-          step = 1
-          if run > random_window
-            step = Math.min(1 + ((run - random_window) >> 5), 8)
-            @next_insert = position + step
-          end
-          position += step
-          next
-        end
-        if lazy
-          tries = 0
-          while tries < 4 && position + 1 + MIN_LENGTH <= stop
-            insert_until(input, position + 1)
-            later = best_match(input, position + 1, stop - position - 1, max_distance_at(stream_offset, position + 1))
-            break unless later.score >= match.score + LAZY_MARGIN
-            match = later
-            position += 1
-            tries += 1
-          end
-        end
-        emit(position - literal_start, match)
-        position += match.output
-        literal_start = position
-        if @quality <= 1
-          @next_insert = Math.max(@next_insert, position - 2)
-        end
-      end
-      emit_tail(stop - literal_start)
-    end
-
-    @[AlwaysInline]
-    private def max_distance_at(stream_offset : Int64, position : Int32) : Int32
-      total = stream_offset + position
-      total < @max_backward ? total.to_i32 : @max_backward
-    end
-
-    # Adds the positions before *target* to the hash chains.
-    @[AlwaysInline]
-    private def insert_until(input : Bytes, target : Int32) : Nil
-      limit = Math.min(target, input.size - 3)
-      while @next_insert < limit
-        @finder.insert(input, @next_insert)
-        @next_insert += 1
-      end
-    end
-
-    private def best_match(input : Bytes, position : Int32, limit : Int32, max_distance : Int32) : Match
-      best = Match.none
-      if @quality >= 2
-        slots = @quality >= 4 ? 4 : 1
-        slots.times do |slot|
-          distance = @cache[slot]
-          next if distance > max_distance
-          length = MatchFinder.match_length(input, position, position - distance, limit)
-          next if length < (slot < 2 ? 2 : 3)
-          score = MatchFinder::SCORE_BASE + MatchFinder::LENGTH_WEIGHT * length + (slot == 0 ? 15 : -30 * slot)
-          best = Match.new(length, length, distance, score, false) if score > best.score
-        end
-      end
-      length, distance, score = @finder.find(input, position, limit, max_distance, NICE_LENGTH[@quality])
-      best = Match.new(length, length, distance, score, false) if length > 0 && score > best.score
-      if @quality >= 4 && best.output == 0 && dictionary_worth_trying?
-        @dictionary_lookups += 1
-        output, word_length, word_id, score = DictionaryMatcher.find(input, position, limit, max_distance, best.score)
-        if output > 0
-          @dictionary_hits += 1
-          best = Match.new(output, word_length, max_distance + 1 + word_id, score, true)
-        end
-      end
-      best
-    end
-
-    # Dictionary lookups stop paying once fewer than 1 in 128 finds a
-    # word (google/brotli keeps the same ratio).
-    private def dictionary_worth_trying? : Bool
-      @dictionary_lookups < 128 || @dictionary_hits * 128 >= @dictionary_lookups
-    end
-
-    # Adds a command of *insert* literals followed by *match*.
-    private def emit(insert : Int32, match : Match) : Nil
-      distance = match.distance
-      code = match.is_dictionary ? -1 : EncoderCodes.short_distance_code(distance, @cache)
-      extra_bits = 0
-      extra = 0
-      if code < 0
-        code, extra_bits, extra = EncoderCodes.distance_symbol(distance)
-      end
-      insert_code = EncoderCodes.insert_code(insert)
-      copy_code = EncoderCodes.copy_code(match.copy)
-      symbol = EncoderCodes.command_symbol(insert_code, copy_code, code == 0)
-      distance_code = symbol < 128 ? -1 : code
-      if !match.is_dictionary && code != 0
-        @cache[3] = @cache[2]
-        @cache[2] = @cache[1]
-        @cache[1] = @cache[0]
-        @cache[0] = distance
-      end
-      @commands << Command.new(insert, match.copy, match.output, symbol, distance_code, extra_bits, extra)
-    end
-
-    # Adds the insert-only command that ends a metablock, if any literals
-    # are left.
-    private def emit_tail(insert : Int32) : Nil
-      return if insert == 0
-      insert_code = EncoderCodes.insert_code(insert)
-      symbol = EncoderCodes.command_symbol(insert_code, 0, true)
-      @commands << Command.new(insert, 2, 0, symbol, -1, 0, 0)
     end
   end
 end

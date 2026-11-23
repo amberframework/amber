@@ -14,9 +14,9 @@ whichever the request accepts best. The negotiation lives in
 `Amber::Pipe::ContentCoding`, which both pipes share.
 
 In an app made by `amber new` on an M4 Mac mini, the rendered
-`GET /posts/new` form (1,815 bytes) came back as 761 bytes of Brotli against
-963 of gzip, at a median 165 µs per request against 143 µs for gzip and
-141 µs uncompressed.
+`GET /posts/new` form (1,806 bytes) came back as 808 bytes of Brotli against
+961 of gzip, at a median 158 µs per request against 142 µs for gzip and
+135 µs uncompressed.
 
 ## 2.0.0-beta.14 (2026-11-22)
 

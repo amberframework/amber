@@ -89,6 +89,11 @@ module Amber::Mica::Brotli
       return if @closed
       @closed = true
       encode_pending(@filled - @pending_start, is_last: true)
+      # The stream is finished: free the hash tables now, not when the
+      # writer is collected.
+      if encoder = @stream_encoder
+        encoder.release
+      end
       @destination.flush
       @destination.close if @sync_close
     end
