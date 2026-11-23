@@ -227,7 +227,7 @@ and libz by default. With the flags, Amber does that work in Crystal:
 
 | Flag | What Amber uses instead | What the flag turns off |
 |---|---|---|
-| `-Dwithout_zlib` | `Amber::Pipe::Compression` gzips and deflates with a pinned copy of Mica's DEFLATE encoder (`src/amber/vendor`). Grant's compressed encrypted columns and asset_pipeline's precompressed assets and cached pages use Mica too | `HTTP::Client` asks for no compression and raises on a compressed answer; the server never inflates a request body (Amber answers those `415` in any build) |
+| `-Dwithout_zlib` | `Amber::Pipe::Compression` compresses with pinned copies of Mica's Brotli and DEFLATE encoders (`src/amber/vendor`), so `br` never needs libbrotli either. Grant's compressed encrypted columns and asset_pipeline's precompressed assets and cached pages use Mica too | `HTTP::Client` asks for no compression and raises on a compressed answer; the server never inflates a request body (Amber answers those `415` in any build) |
 | `-Dwithout_openssl` | `MessageVerifier`, `MessageEncryptor` and COSE run on a pinned copy of Beryl (`Amber::Beryl`): cookies are sealed with XChaCha20-Poly1305 under a key from HKDF-SHA256 | The HTTPS listener and SMTP STARTTLS raise `Amber::Exceptions::TLSNotCompiledIn`, which names the flag; `HTTP::Client` cannot call `https://` URLs |
 
 So `-Dwithout_openssl` fits an app whose TLS ends at a proxy or load

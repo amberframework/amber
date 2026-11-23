@@ -52,6 +52,10 @@ private def inflate(body : Bytes) : Bytes
   end
 end
 
+private def unbrotli(body : Bytes) : Bytes
+  Amber::Mica::Brotli.decode(body, limits: Amber::Mica::Brotli::DecodeLimits::TRUSTED_ASSET, timeout: nil)
+end
+
 private def bytes_of(chunks : Array(String | Bytes)) : Bytes
   joined = IO::Memory.new
   chunks.each { |chunk| joined.write(chunk.to_slice) }
@@ -59,11 +63,11 @@ private def bytes_of(chunks : Array(String | Bytes)) : Bytes
 end
 
 private CASES = {
-  "one small write"         => {[%(<p>Hello</p>)] of String | Bytes, false},
-  "one long write"          => {[LONG_BODY] of String | Bytes, false},
-  "many writes"             => {LONG_BODY.lines(chomp: false).map(&.as(String | Bytes)), false},
-  "random bytes"            => {[RANDOM_BODY.as(String | Bytes)], false},
-  "a flush after the first" => {[LONG_BODY, LONG_BODY].map(&.as(String | Bytes)), true},
+  "one write of 1,024 bytes" => {[LONG_BODY[0, 1_024]] of String | Bytes, false},
+  "one long write"           => {[LONG_BODY] of String | Bytes, false},
+  "many writes"              => {LONG_BODY.lines(chomp: false).map(&.as(String | Bytes)), false},
+  "random bytes"             => {[RANDOM_BODY.as(String | Bytes)], false},
+  "a flush after the first"  => {[LONG_BODY, LONG_BODY].map(&.as(String | Bytes)), true},
 }
 
 module Amber::Pipe
@@ -75,6 +79,13 @@ module Amber::Pipe
 
           served.headers["Content-Encoding"].should eq "gzip"
           gunzip(served.body).should eq bytes_of(chunks)
+        end
+
+        it "writes a Brotli stream that decodes to the body for #{name}" do
+          served = serve(Compression.new, request_accepting("br"), chunks, flushes)
+
+          served.headers["Content-Encoding"].should eq "br"
+          unbrotli(served.body).should eq bytes_of(chunks)
         end
 
         it "writes a deflate stream that decodes to the body for #{name}" do
@@ -111,13 +122,42 @@ module Amber::Pipe
         served.body.should be_empty
       end
 
-      it "prefers gzip, reports Vary and drops Content-Length" do
+      it "prefers Brotli on a tie, reports Vary and drops Content-Length" do
         served = serve(Compression.new, request_accepting("gzip, deflate, br"), [LONG_BODY] of String | Bytes)
+
+        served.headers["Content-Encoding"].should eq "br"
+        served.headers["Vary"].should eq "Accept-Encoding"
+        served.headers["Content-Length"]?.should be_nil
+        String.new(unbrotli(served.body)).should eq LONG_BODY
+      end
+
+      it "follows the client's q-values over the server's preference" do
+        {
+          "br;q=0.5, gzip"          => "gzip",
+          "br;q=0, gzip;q=0.1"      => "gzip",
+          "gzip;q=0, deflate;q=0.5" => "deflate",
+          "br;q=0, gzip;q=0, *;q=1" => "deflate",
+          "*"                       => "br",
+          "gzip;q=0, deflate;q=0"   => nil,
+          "identity"                => nil,
+        }.each do |accept_encoding, expected|
+          served = serve(Compression.new, request_accepting(accept_encoding), [LONG_BODY] of String | Bytes)
+          served.headers["Content-Encoding"]?.should eq expected
+        end
+      end
+
+      it "offers gzip and deflate only when Brotli is switched off" do
+        served = serve(Compression.new(brotli_quality: nil), request_accepting("gzip, deflate, br"), [LONG_BODY] of String | Bytes)
 
         served.headers["Content-Encoding"].should eq "gzip"
         served.headers["Vary"].should eq "Accept-Encoding"
         served.headers["Content-Length"]?.should be_nil
         String.new(gunzip(served.body)).should eq LONG_BODY
+      end
+
+      it "rejects a Brotli quality outside 0..11" do
+        expect_raises(ArgumentError, /Brotli quality/) { Compression.new(brotli_quality: 12) }
+        expect_raises(ArgumentError, /Brotli quality/) { Compression.new(brotli_quality: -1) }
       end
 
       it "writes the same bytes for the same body: a gzip header with no time stamp" do
@@ -175,8 +215,34 @@ module Amber::Pipe
       end
 
       it "prefers gzip when the client accepts both" do
-        serve(Compression.new, request_accepting("deflate, gzip"), ["hi"] of String | Bytes)
+        serve(Compression.new, request_accepting("deflate, gzip"), [LONG_BODY] of String | Bytes)
           .headers["Content-Encoding"].should eq "gzip"
+      end
+
+      it "sends a body shorter than 1,024 bytes without a content coding" do
+        {[LONG_BODY[0, 1_023]], LONG_BODY[0, 1_023].chars.map(&.to_s)}.each do |chunks|
+          served = serve(Compression.new, request_accepting("br, gzip"), chunks.map(&.as(String | Bytes)))
+
+          served.headers["Content-Encoding"]?.should be_nil
+          served.headers["Vary"].should eq "Accept-Encoding"
+          String.new(served.body).should eq LONG_BODY[0, 1_023]
+        end
+      end
+
+      it "compresses once small writes add up to 1,024 bytes" do
+        chunks = LONG_BODY[0, 1_024].chars.map(&.to_s.as(String | Bytes))
+        served = serve(Compression.new, request_accepting("br"), chunks)
+
+        served.headers["Content-Encoding"].should eq "br"
+        String.new(unbrotli(served.body)).should eq LONG_BODY[0, 1_024]
+      end
+
+      it "decides the coding at a flush, however short the body so far" do
+        chunks = ["<p>Hello</p>", LONG_BODY[0, 10]].map(&.as(String | Bytes))
+        served = serve(Compression.new, request_accepting("gzip"), chunks, flushes: true)
+
+        served.headers["Content-Encoding"].should eq "gzip"
+        gunzip(served.body).should eq bytes_of(chunks)
       end
 
       it "answers uncompressed when the client accepts neither coding" do
