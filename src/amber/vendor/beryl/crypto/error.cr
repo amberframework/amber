@@ -47,4 +47,10 @@ module Amber::Beryl::Crypto
   # does not define.
   class TagSizeNotSupported < Error
   end
+
+  # Raised when code written for a processor's instructions is reached on a
+  # processor without them. `ProcessorFeatures` decides which code runs, so
+  # this means a fault in Beryl, not in the caller.
+  class UnsupportedProcessor < Error
+  end
 end

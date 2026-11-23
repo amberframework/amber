@@ -1,7 +1,9 @@
 require "../declassification"
 require "../error"
 require "../secret_wiping"
+require "../processor_features"
 require "../v1/bitsliced_advanced_encryption_standard"
+require "./cipher_block_chaining_with_processor_instructions"
 
 module Amber::Beryl::Crypto::Compatibility
   # AES in cipher block chaining mode with PKCS#7 padding (FIPS 197,
@@ -22,27 +24,76 @@ module Amber::Beryl::Crypto::Compatibility
   class AdvancedEncryptionStandardInCipherBlockChainingMode
     BLOCK_BYTESIZE = 16
 
+    # The bitsliced round keys, or the encryption and decryption round keys
+    # as bytes for the processor's AES instructions; the set not in use is
+    # empty.
     @round_keys : Slice(UInt64)
+    @round_key_bytes : Bytes
+    @decryption_round_key_bytes : Bytes
     @round_count : Int32
 
     # Creates the cipher under *key* (16, 24 or 32 bytes).
     def initialize(key : Bytes)
       @round_count = V1::BitslicedAdvancedEncryptionStandard.round_count_for(key.size)
-      @round_keys = Slice(UInt64).new(V1::BitslicedAdvancedEncryptionStandard::ROUND_KEY_WORD_COUNT, 0_u64)
-      V1::BitslicedAdvancedEncryptionStandard.expand_key(key, @round_keys)
+      if ProcessorFeatures::HAS_AES_INSTRUCTIONS
+        @round_keys = Slice(UInt64).empty
+        @round_key_bytes = Bytes.new(CipherBlockChainingWithProcessorInstructions::ROUND_KEY_BYTESIZE)
+        @decryption_round_key_bytes = Bytes.new(CipherBlockChainingWithProcessorInstructions::ROUND_KEY_BYTESIZE)
+        CipherBlockChainingWithProcessorInstructions.prepare(key, @round_key_bytes, @decryption_round_key_bytes)
+      else
+        @round_keys = Slice(UInt64).new(V1::BitslicedAdvancedEncryptionStandard::ROUND_KEY_WORD_COUNT, 0_u64)
+        @round_key_bytes = Bytes.empty
+        @decryption_round_key_bytes = Bytes.empty
+        V1::BitslicedAdvancedEncryptionStandard.expand_key(key, @round_keys)
+      end
     end
 
     # Returns *plaintext*, padded to a whole number of blocks, encrypted
     # under *initialization_vector* (16 bytes, fresh and unpredictable for
     # every message).
     def encrypt(plaintext : Bytes | String, *, initialization_vector : Bytes) : Bytes
+      plaintext_bytes = plaintext.to_slice
+      ciphertext = Bytes.new(padded_bytesize(plaintext_bytes.size))
+      encrypt(plaintext_bytes, into: ciphertext, initialization_vector: initialization_vector)
+      ciphertext
+    end
+
+    # Encrypts *plaintext* into *ciphertext*, which must hold the padded
+    # length: `padded_bytesize(plaintext.size)` bytes.
+    def encrypt(plaintext : Bytes | String, *, into ciphertext : Bytes, initialization_vector : Bytes) : Nil
       ensure_initialization_vector_fits(initialization_vector)
       plaintext_bytes = plaintext.to_slice
-      padding_bytesize = BLOCK_BYTESIZE - plaintext_bytes.size % BLOCK_BYTESIZE
-      ciphertext = Bytes.new(plaintext_bytes.size + padding_bytesize, padding_bytesize.to_u8)
-      plaintext_bytes.copy_to(ciphertext)
-      CipherBlockChaining.encrypt_in_place(@round_keys, @round_count, initialization_vector, ciphertext)
-      ciphertext
+      unless ciphertext.size == padded_bytesize(plaintext_bytes.size)
+        raise Amber::Beryl::Crypto::OutputSizeMismatch.new(
+          "the ciphertext is #{padded_bytesize(plaintext_bytes.size)} bytes, the buffer holds #{ciphertext.size}"
+        )
+      end
+
+      padding_bytesize = ciphertext.size - plaintext_bytes.size
+      if ProcessorFeatures::HAS_AES_INSTRUCTIONS
+        # The whole blocks go straight from the plaintext; the last block,
+        # with its padding, is built in place and chained from the block
+        # before it.
+        whole_bytesize = ciphertext.size - BLOCK_BYTESIZE
+        CipherBlockChainingWithProcessorInstructions.encrypt(@round_key_bytes, @round_count, initialization_vector,
+          plaintext_bytes[0, whole_bytesize], ciphertext[0, whole_bytesize])
+        last_block = ciphertext[whole_bytesize, BLOCK_BYTESIZE]
+        plaintext_bytes[whole_bytesize..].copy_to(last_block)
+        last_block[BLOCK_BYTESIZE - padding_bytesize, padding_bytesize].fill(padding_bytesize.to_u8)
+        chaining_block = whole_bytesize == 0 ? initialization_vector : ciphertext[whole_bytesize - BLOCK_BYTESIZE, BLOCK_BYTESIZE]
+        CipherBlockChainingWithProcessorInstructions.encrypt(@round_key_bytes, @round_count, chaining_block, last_block, last_block)
+      else
+        plaintext_bytes.copy_to(ciphertext)
+        ciphertext[plaintext_bytes.size, padding_bytesize].fill(padding_bytesize.to_u8)
+        CipherBlockChaining.encrypt_in_place(@round_keys, @round_count, initialization_vector, ciphertext)
+      end
+    end
+
+    # The length of the ciphertext of a *plaintext_bytesize*-byte message:
+    # padding takes it to the next whole block, adding a block when it is
+    # whole already.
+    def padded_bytesize(plaintext_bytesize : Int32) : Int32
+      plaintext_bytesize + BLOCK_BYTESIZE - plaintext_bytesize % BLOCK_BYTESIZE
     end
 
     # Returns the plaintext of *ciphertext*, or `nil` when the ciphertext is
@@ -54,7 +105,29 @@ module Amber::Beryl::Crypto::Compatibility
       return nil if ciphertext.empty? || ciphertext.size % BLOCK_BYTESIZE != 0
 
       padded_plaintext = Bytes.new(ciphertext.size)
-      CipherBlockChaining.decrypt(@round_keys, @round_count, initialization_vector, ciphertext, padded_plaintext)
+      plaintext_bytesize = decrypt(ciphertext, into: padded_plaintext, initialization_vector: initialization_vector)
+      return nil unless plaintext_bytesize
+
+      padded_plaintext[0, plaintext_bytesize]
+    end
+
+    # Decrypts *ciphertext* into *padded_plaintext*, which must be as long,
+    # and returns how many of its first bytes are the plaintext; or returns
+    # `nil`, with *padded_plaintext* wiped, when the ciphertext is empty, is
+    # not a whole number of blocks, or decrypts to malformed padding.
+    def decrypt(ciphertext : Bytes, *, into padded_plaintext : Bytes, initialization_vector : Bytes) : Int32?
+      ensure_initialization_vector_fits(initialization_vector)
+      return nil if ciphertext.empty? || ciphertext.size % BLOCK_BYTESIZE != 0
+      unless padded_plaintext.size == ciphertext.size
+        raise Amber::Beryl::Crypto::OutputSizeMismatch.new("the buffer holds #{padded_plaintext.size} bytes, the ciphertext #{ciphertext.size}")
+      end
+
+      if ProcessorFeatures::HAS_AES_INSTRUCTIONS
+        CipherBlockChainingWithProcessorInstructions.decrypt(@decryption_round_key_bytes, @round_count, initialization_vector,
+          ciphertext, padded_plaintext)
+      else
+        CipherBlockChaining.decrypt(@round_keys, @round_count, initialization_vector, ciphertext, padded_plaintext)
+      end
       last_block = padded_plaintext[padded_plaintext.size - BLOCK_BYTESIZE, BLOCK_BYTESIZE]
       padding_bytesize = Amber::Beryl::Crypto::Declassification.reveal(CipherBlockChaining.padding_bytesize(last_block))
       if padding_bytesize == 0
@@ -62,7 +135,7 @@ module Amber::Beryl::Crypto::Compatibility
         return nil
       end
 
-      padded_plaintext[0, padded_plaintext.size - padding_bytesize]
+      padded_plaintext.size - padding_bytesize.to_i32
     end
 
     private def ensure_initialization_vector_fits(initialization_vector : Bytes) : Nil

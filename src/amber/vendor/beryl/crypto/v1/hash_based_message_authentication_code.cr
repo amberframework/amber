@@ -37,6 +37,12 @@ module Amber::Beryl::Crypto::V1
     @inner_hash_after_key : D
     @outer_hash_after_key : D
 
+    # The one block the outer hash still has to mix in after the key: room
+    # for the inner digest, then the padding and the length, which are the
+    # same for every message and are laid out once, here.
+    @outer_block = StaticArray(UInt8, BlockHashFunction::LARGEST_BLOCK_SIZE).new(0_u8)
+    @outer_block_is_laid_out = false
+
     # Returns the authentication tag of *message* under *key* in one call.
     def self.authenticate(message : Bytes | String, *, key : Bytes | String) : Bytes
       new(key).update(message).final
@@ -80,18 +86,23 @@ module Amber::Beryl::Crypto::V1
       SecretWiping.wipe(key_block_storage.to_slice)
       SecretWiping.wipe(padded_block_storage.to_slice)
 
+      @outer_block_is_laid_out = @outer_hash.lay_out_final_block(
+        @outer_block.to_slice[0, block_bytesize], digest_size, block_bytesize.to_u64 + digest_size
+      )
       reset_impl
     end
 
     # Builds a copy from another authentication's four hash states.
     protected def initialize(@inner_hash : D, @outer_hash : D, @inner_hash_after_key : D, @outer_hash_after_key : D,
-                             @finished : Bool)
+                             @outer_block : StaticArray(UInt8, BlockHashFunction::LARGEST_BLOCK_SIZE),
+                             @outer_block_is_laid_out : Bool, @finished : Bool)
     end
 
     # Returns an independent authentication under the same key that continues
     # from the point this one has reached.
     def dup : self
-      self.class.new(@inner_hash.dup, @outer_hash.dup, @inner_hash_after_key.dup, @outer_hash_after_key.dup, @finished)
+      self.class.new(@inner_hash.dup, @outer_hash.dup, @inner_hash_after_key.dup, @outer_hash_after_key.dup,
+        @outer_block, @outer_block_is_laid_out, @finished)
     end
 
     # Returns the number of bytes in a full authentication tag.
@@ -137,22 +148,29 @@ module Amber::Beryl::Crypto::V1
       @inner_hash.update(data)
     end
 
+    # The outer hash is the keyed outer state, the inner digest and the
+    # padding: one block, already laid out except for the inner digest, which
+    # the inner hash writes straight into it.
     private def final_impl(dst : Bytes) : Nil
       unless dst.size == digest_size
         raise OutputSizeMismatch.new("the authentication tag is #{digest_size} bytes, the buffer holds #{dst.size}")
       end
 
-      inner_digest_storage = uninitialized UInt8[BlockHashFunction::LARGEST_DIGEST_SIZE]
-      inner_digest = inner_digest_storage.to_slice[0, digest_size]
+      inner_digest = @outer_block.to_slice[0, digest_size]
       @inner_hash.final(inner_digest)
-      @outer_hash.update(inner_digest)
-      @outer_hash.final(dst)
-      SecretWiping.wipe(inner_digest_storage.to_slice)
+      if @outer_block_is_laid_out
+        outer_block = @outer_block.to_slice[0, @outer_hash.block_size]
+        @outer_hash.final_after_prepared_blocks(@outer_hash_after_key, outer_block, dst)
+      else
+        @outer_hash.restart_from(@outer_hash_after_key)
+        @outer_hash.update(inner_digest)
+        @outer_hash.final(dst)
+      end
+      SecretWiping.wipe(inner_digest)
     end
 
     private def reset_impl : Nil
-      @inner_hash.copy_state_from(@inner_hash_after_key)
-      @outer_hash.copy_state_from(@outer_hash_after_key)
+      @inner_hash.restart_from(@inner_hash_after_key)
     end
   end
 

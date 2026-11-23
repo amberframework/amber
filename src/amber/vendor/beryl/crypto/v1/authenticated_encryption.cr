@@ -45,6 +45,31 @@ module Amber::Beryl::Crypto::V1
     # *ciphertext* and *associated_data* under *nonce*.
     protected abstract def compute_tag(nonce : Bytes, associated_data : Bytes, ciphertext : Bytes, full_tag : Bytes) : Nil
 
+    # Writes the plaintext of *ciphertext* into *plaintext* and returns true
+    # when *tag* (the received tag, `tag_bytesize` bytes) is right; returns
+    # false and leaves *plaintext* untouched otherwise. A cipher whose
+    # keystream also gives its authentication key overrides this to make
+    # both from one pass.
+    protected def open(nonce : Bytes, associated_data : Bytes, ciphertext : Bytes, tag : Bytes, plaintext : Bytes) : Bool
+      full_tag_storage = uninitialized UInt8[FULL_TAG_BYTESIZE]
+      compute_tag(nonce, associated_data, ciphertext, full_tag_storage.to_slice)
+      tags_match = ::Crypto::Subtle.constant_time_compare(full_tag_storage.to_slice[0, tag.size], tag)
+      SecretWiping.wipe(full_tag_storage.to_slice)
+      return false unless Declassification.reveal(tags_match)
+
+      apply_keystream(nonce, ciphertext, plaintext)
+      true
+    end
+
+    # Encrypts *plaintext* into *ciphertext* under *nonce* and writes into
+    # *full_tag* the tag of the ciphertext and *associated_data*. A cipher
+    # that can encrypt and authenticate in one pass over the message
+    # overrides this.
+    protected def seal(nonce : Bytes, associated_data : Bytes, plaintext : Bytes, ciphertext : Bytes, full_tag : Bytes) : Nil
+      apply_keystream(nonce, plaintext, ciphertext)
+      compute_tag(nonce, associated_data, ciphertext, full_tag)
+    end
+
     # Returns *plaintext* encrypted under *nonce*: the ciphertext, then the
     # tag.
     def encrypt(plaintext : Bytes | String, *, nonce : Bytes, associated_data : Bytes | String = Bytes.empty) : Bytes
@@ -66,10 +91,8 @@ module Amber::Beryl::Crypto::V1
       end
 
       ciphertext = ciphertext_and_tag[0, plaintext_bytes.size]
-      apply_keystream(nonce, plaintext_bytes, ciphertext)
-
       full_tag_storage = uninitialized UInt8[FULL_TAG_BYTESIZE]
-      compute_tag(nonce, associated_data.to_slice, ciphertext, full_tag_storage.to_slice)
+      seal(nonce, associated_data.to_slice, plaintext_bytes, ciphertext, full_tag_storage.to_slice)
       full_tag_storage.to_slice[0, @tag_bytesize].copy_to(ciphertext_and_tag[plaintext_bytes.size, @tag_bytesize])
       SecretWiping.wipe(full_tag_storage.to_slice)
     end
@@ -99,11 +122,10 @@ module Amber::Beryl::Crypto::V1
         )
       end
 
-      is_authentic = authentic?(ciphertext_and_tag, nonce: nonce, associated_data: associated_data)
-      return false unless Declassification.reveal(is_authentic)
-
-      apply_keystream(nonce, ciphertext_and_tag[0, plaintext.size], plaintext)
-      true
+      # `open` reveals its verdict where it computes it; revealing it again
+      # here tells the secret-flow check that the caller sees a public value.
+      Declassification.reveal(open(nonce, associated_data.to_slice, ciphertext_and_tag[0, plaintext.size],
+        ciphertext_and_tag[plaintext.size, @tag_bytesize], plaintext))
     end
 
     # Returns whether *ciphertext_and_tag* carries the right tag for *nonce*

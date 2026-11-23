@@ -25,6 +25,9 @@ module Amber::Beryl::Crypto::V1
     # Eight words per round key, fifteen round keys for a 256-bit key.
     ROUND_KEY_WORD_COUNT = 120
 
+    # Sixteen bytes per round key, fifteen round keys for a 256-bit key.
+    ROUND_KEY_BYTESIZE = 240
+
     private ROUND_CONSTANTS = StaticArray[0x01_u32, 0x02_u32, 0x04_u32, 0x08_u32, 0x10_u32, 0x20_u32, 0x40_u32, 0x80_u32, 0x1b_u32, 0x36_u32]
 
     # Returns the number of rounds FIPS 197 gives a key of *key_bytesize*
@@ -44,34 +47,11 @@ module Amber::Beryl::Crypto::V1
       round_count = round_count_for(key.size)
       raise OutputSizeMismatch.new("the round keys take #{ROUND_KEY_WORD_COUNT} words") unless round_keys.size == ROUND_KEY_WORD_COUNT
 
-      key_word_count = key.size // 4
-      schedule_word_count = (round_count + 1) * 4
       schedule_storage = uninitialized UInt32[60]
       schedule = schedule_storage.to_unsafe
-      key_word_count.times { |index| schedule[index] = load_word(key.to_unsafe + index * 4) }
-
       working_storage = uninitialized UInt64[8]
       working = working_storage.to_unsafe
-      previous_word = schedule[key_word_count - 1]
-      position_in_key = 0
-      round_constant_index = 0
-      index = key_word_count
-      while index < schedule_word_count
-        if position_in_key == 0
-          previous_word = (previous_word << 24) | (previous_word >> 8)
-          previous_word = substitute_word(previous_word, working) ^ ROUND_CONSTANTS.to_unsafe[round_constant_index]
-        elsif key_word_count > 6 && position_in_key == 4
-          previous_word = substitute_word(previous_word, working)
-        end
-        previous_word ^= schedule[index - key_word_count]
-        schedule[index] = previous_word
-        position_in_key += 1
-        if position_in_key == key_word_count
-          position_in_key = 0
-          round_constant_index += 1
-        end
-        index += 1
-      end
+      run_key_schedule(key, schedule, working)
 
       # Each round key becomes eight words in which every block slot holds the
       # same key bit, ready to be XORed into four blocks at once.
@@ -92,6 +72,59 @@ module Amber::Beryl::Crypto::V1
 
       SecretWiping.wipe(Bytes.new(schedule.as(UInt8*), 240))
       SecretWiping.wipe(Bytes.new(working.as(UInt8*), 64))
+    end
+
+    # Runs the key schedule of FIPS 197 §5.2 on *key* and writes the round
+    # keys as bytes, in the order the standard lists them, into
+    # *round_key_bytes* (`ROUND_KEY_BYTESIZE` bytes, 16 per round key; the
+    # space past the last round key is zeroed): the form the processor's AES
+    # instructions take.
+    def self.write_round_key_bytes(key : Bytes, round_key_bytes : Bytes) : Nil
+      round_count = round_count_for(key.size)
+      raise OutputSizeMismatch.new("the round keys take #{ROUND_KEY_BYTESIZE} bytes") unless round_key_bytes.size == ROUND_KEY_BYTESIZE
+
+      schedule_storage = uninitialized UInt32[60]
+      schedule = schedule_storage.to_unsafe
+      working_storage = uninitialized UInt64[8]
+      working = working_storage.to_unsafe
+      run_key_schedule(key, schedule, working)
+      schedule_word_count = (round_count + 1) * 4
+      schedule_word_count.times { |index| store_word(round_key_bytes.to_unsafe + index * 4, schedule[index]) }
+      round_key_bytes[schedule_word_count * 4, ROUND_KEY_BYTESIZE - schedule_word_count * 4].fill(0_u8)
+
+      SecretWiping.wipe(Bytes.new(schedule.as(UInt8*), 240))
+      SecretWiping.wipe(Bytes.new(working.as(UInt8*), 64))
+    end
+
+    # Fills *schedule* with the (round count + 1) * 4 words of the key
+    # schedule of *key*, each word read from its four bytes in little-endian
+    # order. *working* is scratch space for the S-box circuit.
+    private def self.run_key_schedule(key : Bytes, schedule : Pointer(UInt32), working : Pointer(UInt64)) : Nil
+      round_count = round_count_for(key.size)
+      key_word_count = key.size // 4
+      schedule_word_count = (round_count + 1) * 4
+      key_word_count.times { |index| schedule[index] = load_word(key.to_unsafe + index * 4) }
+
+      previous_word = schedule[key_word_count - 1]
+      position_in_key = 0
+      round_constant_index = 0
+      index = key_word_count
+      while index < schedule_word_count
+        if position_in_key == 0
+          previous_word = (previous_word << 24) | (previous_word >> 8)
+          previous_word = substitute_word(previous_word, working) ^ ROUND_CONSTANTS.to_unsafe[round_constant_index]
+        elsif key_word_count > 6 && position_in_key == 4
+          previous_word = substitute_word(previous_word, working)
+        end
+        previous_word ^= schedule[index - key_word_count]
+        schedule[index] = previous_word
+        position_in_key += 1
+        if position_in_key == key_word_count
+          position_in_key = 0
+          round_constant_index += 1
+        end
+        index += 1
+      end
     end
 
     # Encrypts *input*, a whole number of blocks, into *output*, each block

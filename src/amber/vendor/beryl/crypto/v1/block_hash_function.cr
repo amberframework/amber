@@ -48,19 +48,75 @@ module Amber::Beryl::Crypto::V1
     # Writes the digest, taken from the running state, into *dst*.
     abstract def encode_digest(dst : Bytes) : Nil
 
+    # Takes over the running state of *source*, and nothing else.
+    abstract def copy_running_state_from(source : self) : Nil
+
     def initialize
       reset_state
     end
 
     # Makes this instance continue from the exact point *source* has reached,
-    # without allocating. HMAC uses it to restart from a keyed state. Both
-    # must be the same hash function.
+    # without allocating. Both must be the same hash function.
     def copy_state_from(source : self) : Nil
       {% for instance_variable in @type.instance_vars %}
         @{{ instance_variable.name }} = source.@{{ instance_variable.name }}
       {% end %}
     end
 
+    # :nodoc:
+    #
+    # Makes this instance, in whatever condition it is, continue from the
+    # point *source* has reached. Unlike `copy_state_from` it moves only what
+    # *source* holds: the running state, the two counters and the pending
+    # bytes if there are any. HMAC restarts its inner hash from the keyed
+    # state this way before every message.
+    def restart_from(source : self) : Nil
+      SecretWiping.wipe(@pending_block.to_slice[0, block_size]) if @pending_bytesize > 0
+      @pending_bytesize = source.@pending_bytesize
+      @message_bytesize = source.@message_bytesize
+      if @pending_bytesize > 0
+        source.@pending_block.to_slice[0, @pending_bytesize].copy_to(@pending_block.to_slice[0, @pending_bytesize])
+      end
+      copy_running_state_from(source)
+      @finished = false
+    end
+
+    # :nodoc:
+    #
+    # Writes into *prepared_block*, one whole block whose first
+    # *tail_bytesize* bytes the caller fills in later, the padding and the
+    # length that end a message of *message_bytesize* bytes. Returns whether
+    # they fit; HMAC lays out its outer hash's only block this way once, when
+    # it is keyed.
+    def lay_out_final_block(prepared_block : Bytes, tail_bytesize : Int32, message_bytesize : UInt64) : Bool
+      length_field_offset = block_size - length_field_bytesize
+      return false if prepared_block.size != block_size || tail_bytesize + 1 > length_field_offset
+
+      prepared_block.fill(0_u8)
+      prepared_block[tail_bytesize] = 0x80_u8
+      encode_message_bit_length(message_bytesize, prepared_block[length_field_offset, length_field_bytesize])
+      true
+    end
+
+    # :nodoc:
+    #
+    # Writes into *dst* the digest that *keyed_hash* would give after
+    # *list_of_prepared_blocks*, whole blocks that already end with their
+    # padding and length (`lay_out_final_block`). This instance is only the
+    # working space; *keyed_hash* is left as it was.
+    def final_after_prepared_blocks(keyed_hash : self, list_of_prepared_blocks : Bytes, dst : Bytes) : Nil
+      unless dst.size == digest_size
+        raise OutputSizeMismatch.new("the digest is #{digest_size} bytes, the buffer holds #{dst.size}")
+      end
+
+      copy_running_state_from(keyed_hash)
+      compress(list_of_prepared_blocks)
+      encode_digest(dst)
+    end
+
+    # The bytes of the pending block past `@pending_bytesize` are zero
+    # whenever no method of this class is running, so `final_impl` has only
+    # the padding byte and the length to write.
     private def update_impl(data : Bytes) : Nil
       if data.size.to_u64 > MAXIMUM_MESSAGE_BYTESIZE - @message_bytesize
         raise MessageTooLong.new("a message for this hash holds at most #{MAXIMUM_MESSAGE_BYTESIZE} bytes")
@@ -78,6 +134,7 @@ module Amber::Beryl::Crypto::V1
         return if @pending_bytesize < block_bytesize
 
         compress(pending[0, block_bytesize])
+        SecretWiping.wipe(pending[0, block_bytesize])
         @pending_bytesize = 0
       end
 
@@ -98,22 +155,23 @@ module Amber::Beryl::Crypto::V1
       last_block = @pending_block.to_slice[0, block_bytesize]
       length_field_offset = block_bytesize - length_field_bytesize
 
-      # Padding: one 0x80 byte, zeros up to the length field, then the length.
+      # Padding: one 0x80 byte, zeros up to the length field (already there),
+      # then the length.
       last_block[@pending_bytesize] = 0x80_u8
-      last_block[@pending_bytesize + 1, block_bytesize - @pending_bytesize - 1].fill(0_u8)
       if @pending_bytesize + 1 > length_field_offset
         compress(last_block)
-        last_block.fill(0_u8)
+        SecretWiping.wipe(last_block)
       end
       encode_message_bit_length(@message_bytesize, last_block[length_field_offset, length_field_bytesize])
       compress(last_block)
 
       encode_digest(dst)
-      SecretWiping.wipe(@pending_block.to_slice)
+      SecretWiping.wipe(last_block)
+      @pending_bytesize = 0
     end
 
     private def reset_impl : Nil
-      SecretWiping.wipe(@pending_block.to_slice)
+      SecretWiping.wipe(@pending_block.to_slice[0, block_size]) if @pending_bytesize > 0
       @pending_bytesize = 0
       @message_bytesize = 0_u64
       reset_state
