@@ -18,6 +18,7 @@ Read the guide for the area you are changing. They are in `.claude/skills/amber-
 | Mailers | `mailer.md` |
 | WebSockets and live pages | `websockets.md` |
 | Testing | `testing.md` |
+| Build flags, memory, caching and measuring | `performance.md` |
 | Markdown rendering | `markdown.md` |
 | Language server and rules | `lsp-setup.md` |
 
