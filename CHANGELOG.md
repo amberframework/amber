@@ -17,6 +17,12 @@ Amber.settings.logging.apply_severity_to_log
 Amber::Server.start
 ```
 
+- The vendored copy of Mica under `src/amber/vendor` (`Amber::Mica`) moves to
+  amberframework/mica `37e8b019` (amberframework/mica#29, faster Inflate),
+  pinned by commit and per-file sha256 in `MICA_VENDORED.json`. Only
+  the decoder (`mica/deflate/inflater.cr`) changed: it inflates the same
+  bytes faster.
+
 **`Amber::Pipe::Compression` now compresses with Mica, in Crystal, and an app
 built with `-Dwithout_zlib` links no libz.** The pipe gzips and deflates
 responses with a pinned copy of

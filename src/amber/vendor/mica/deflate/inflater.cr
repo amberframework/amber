@@ -1117,7 +1117,11 @@ module Amber::Mica::Deflate
           refill_input
         end
         if @in_end - @in_pos >= FAST_INPUT_MARGIN && limit - @out_pos >= FAST_OUTPUT_MARGIN
-          decode_fast(limit)
+          if @history_bytes == 0
+            decode_fast_without_history(limit)
+          else
+            decode_fast_with_history(limit)
+          end
           return unless @phase.huffman?
           next
         end
@@ -1134,10 +1138,21 @@ module Amber::Mica::Deflate
           output_limit_reached if capped
           return false
         end
-        # A reference that reaches before a reader's slice reads the history.
-        @out[@out_pos] = @copy_distance > @out_pos ? @history_end[@out_pos - @copy_distance] : @out[@out_pos - @copy_distance]
-        @out_pos += 1
-        @copy_left -= 1
+        distance = @copy_distance
+        if distance >= 16 && distance <= @out_pos
+          # Whole pieces of at most *distance* bytes: each piece's source
+          # is already written and does not overlap it.
+          count = Math.min(Math.min(@copy_left, limit - @out_pos), distance)
+          (@out + @out_pos).copy_from(@out + (@out_pos - distance), count)
+          @out_pos += count
+          @copy_left -= count
+        else
+          # A reference that reaches before a reader's slice reads the
+          # history.
+          @out[@out_pos] = distance > @out_pos ? @history_end[@out_pos - distance] : @out[@out_pos - distance]
+          @out_pos += 1
+          @copy_left -= 1
+        end
       end
       true
     end
@@ -1293,8 +1308,9 @@ module Amber::Mica::Deflate
     #
     # Never inlined: compiled on its own, the loop keeps its state in
     # registers whatever calls it.
+    {% for variant in %w(with_history without_history) %}
     @[NoInline]
-    private def decode_fast(limit : Int32) : Nil
+    private def decode_fast_{{variant.id}}(limit : Int32) : Nil
       in_next = @input + @in_pos
       in_stop = @input + (@in_end - FAST_INPUT_MARGIN)
       out_base = @out
@@ -1304,10 +1320,12 @@ module Amber::Mica::Deflate
       out_stop = out_base + stop
       lowest = out_base + @lowest_reference
       window = @window_limit.to_u32!
-      history_bytes = @history_bytes.to_i64
-      # From a place in the slice to the same place counted back from the
-      # end of the history.
-      history_shift = @history_end - lowest
+      {% if variant == "with_history" %}
+        history_bytes = @history_bytes.to_i64
+        # From a place in the slice to the same place counted back from the
+        # end of the history.
+        history_shift = @history_end - lowest
+      {% end %}
       bit_buffer = @bit_buffer
       bits_left = @bit_count.to_u32!
       literal_lengths = @literal_length_table
@@ -1411,36 +1429,47 @@ module Amber::Mica::Deflate
         consume_fast_entry
         distance = ((entry >> 16) &+ (saved & (1_u64.unsafe_shl(entry & 63) &- 1)).unsafe_shr((entry >> 8) & 0xF)).to_u32!
         behind = out_next - lowest
-        if distance.to_i64! > behind &+ history_bytes || distance > window
-          problem = 3
-          far_distance = distance.to_i32!
-          break
-        end
-
-        # A reference that reaches before a reader's slice starts in the
-        # history: the same copy, from a source moved there. Chosen
-        # without a branch, since in a slice's first 32 KiB either is as
-        # likely as the other.
-        is_far = distance.to_i64! > behind
-        destination = out_next
-        source = out_next + (0_i64 &- distance.to_i64!)
-        source += history_shift if is_far
-        if is_far & ((distance < 16) | (length.to_i64! > distance.to_i64! &- behind))
-          # Rare: the reference runs on from the history into the slice,
-          # or sits in the slice's first bytes. Byte by byte.
-          from_history = distance.to_i64! &- behind
-          copied = 0_i64
-          while copied < length
-            out_next.value = copied < from_history ? source[copied] : lowest[copied &- from_history]
-            out_next += 1
-            copied &+= 1
+        {% if variant == "with_history" %}
+          if distance.to_i64! > behind &+ history_bytes || distance > window
+            problem = 3
+            far_distance = distance.to_i32!
+            break
           end
-          entry = literal_lengths[(bit_buffer & literal_length_mask).to_u32!]
-          refill_fast_bits
-          break unless in_next <= in_stop && out_next <= out_stop
-          next
-        end
+
+          # A reference that reaches before a reader's slice starts in the
+          # history: the same copy, from a source moved there. Chosen
+          # without a branch, since in a slice's first 32 KiB either is as
+          # likely as the other.
+          is_far = distance.to_i64! > behind
+          destination = out_next
+          source = out_next + (0_i64 &- distance.to_i64!)
+          source += history_shift if is_far
+          if is_far & ((distance < 16) | (length.to_i64! > distance.to_i64! &- behind))
+            # Rare: the reference runs on from the history into the slice,
+            # or sits in the slice's first bytes. Byte by byte.
+            from_history = distance.to_i64! &- behind
+            copied = 0_i64
+            while copied < length
+              out_next.value = copied < from_history ? source[copied] : lowest[copied &- from_history]
+              out_next += 1
+              copied &+= 1
+            end
+            entry = literal_lengths[(bit_buffer & literal_length_mask).to_u32!]
+            refill_fast_bits
+            break unless in_next <= in_stop && out_next <= out_stop
+            next
+          end
+        {% else %}
+          if distance.to_i64! > behind || distance > window
+            problem = 3
+            far_distance = distance.to_i32!
+            break
+          end
+          destination = out_next
+          source = out_next + (0_i64 &- distance.to_i64!)
+        {% end %}
         out_next += length
+
         # Look the next symbol up before copying, so the two overlap.
         entry = literal_lengths[(bit_buffer & literal_length_mask).to_u32!]
         refill_fast_bits
@@ -1517,6 +1546,7 @@ module Amber::Mica::Deflate
       when 3 then check_distance(far_distance)
       end
     end
+    {% end %}
 
     @[AlwaysInline]
     private def store_u64(pointer : UInt8*, value : UInt64) : Nil
