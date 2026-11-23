@@ -67,5 +67,22 @@ module Amber::Environment
     def severity : Log::Severity
       Log::Severity.parse @severity.to_s
     end
+
+    # Sets every `Log` source to `severity`, the level `logging.severity` names in
+    # `config/environments/<env>.yml` (or `AMBER_LOGGING_SEVERITY`), writing to
+    # *backend*. It replaces the bindings already in *builder*, including the
+    # level Crystal took from `LOG_LEVEL` at startup.
+    #
+    # Amber never calls it: setting up `Log` belongs to the application, which
+    # calls it once at boot, after every `require` and before
+    # `Amber::Server.start`, as `amber new` writes it in `src/<app>.cr`:
+    #
+    # ```
+    # Amber.settings.logging.apply_severity_to_log
+    # ```
+    def apply_severity_to_log(backend : ::Log::Backend = ::Log::IOBackend.new,
+                              builder : ::Log::Builder = ::Log.builder) : Nil
+      ::Log.setup(severity, backend, builder: builder)
+    end
   end
 end
