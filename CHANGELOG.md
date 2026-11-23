@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+**`logging.severity` from the environment file now sets the level the app
+logs at (#1461).** Amber read and validated `logging.severity` (and
+`AMBER_LOGGING_SEVERITY`) but nothing applied it to Crystal's `Log`, so
+every app logged at `info` whatever the file said, and at `debug` in
+development the request logger wrote nothing. The new
+`Amber.settings.logging.apply_severity_to_log` binds every `Log` source to
+that level; the app calls it once at boot, before `Amber::Server.start`.
+Amber CLI 2.0.15 writes the call into `src/<app>.cr`. An app generated
+earlier adds the one line itself:
+
+```crystal
+Amber.settings.logging.apply_severity_to_log
+Amber::Server.start
+```
+
 - The vendored copy of Mica under `src/amber/vendor` (`Amber::Mica`) moves to
   amberframework/mica `37e8b019` (amberframework/mica#29, faster Inflate),
   pinned by commit and per-file sha256 in `MICA_VENDORED.json`. Only
