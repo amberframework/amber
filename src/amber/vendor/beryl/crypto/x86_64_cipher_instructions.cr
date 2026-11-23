@@ -124,13 +124,13 @@ module Amber::Beryl::Crypto
   pslldq $$8, %xmm5
   pxor %xmm2, %xmm1
   pxor %xmm5, %xmm0
-" + ::Beryl::Crypto::X8664CipherInstructions::REDUCTION_LINES.gsub(/@L/, "%xmm0").gsub(/@H/, "%xmm1").gsub(/@A/, "%xmm5").gsub(/@B/, "%xmm6") + "  pshufd $$0x4e, %xmm0, %xmm2
+" + ::Amber::Beryl::Crypto::X8664CipherInstructions::REDUCTION_LINES.gsub(/@L/, "%xmm0").gsub(/@H/, "%xmm1").gsub(/@A/, "%xmm5").gsub(/@B/, "%xmm6") + "  pshufd $$0x4e, %xmm0, %xmm2
   pxor %xmm0, %xmm2
   movdqu %xmm0, #{(16 - power) * 32}(%r9)
   movdqu %xmm2, #{(16 - power) * 32 + 16}(%r9)
 " %}
       {% end %}
-      {% template = template + ::Beryl::Crypto::X8664CipherInstructions::CONSTANT_LINES %}
+      {% template = template + ::Amber::Beryl::Crypto::X8664CipherInstructions::CONSTANT_LINES %}
       asm({{ template }} :: "r"({{ hash_key }}), "r"({{ hash_key_powers }})
         : "rax", "r8", "r9", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "memory", "cc")
     end
@@ -158,7 +158,7 @@ module Amber::Beryl::Crypto
     # registers that alternate.
     macro absorb_hash_blocks(accumulator, first_hash_key_power, input, group_count, blocks_per_group)
       {% template = "  mov $0, %r8\n  mov $1, %r9\n  mov $2, %r10\n  mov $3, %r11\n  lea 8f(%rip), %rax\n  movdqu (%rax), %xmm15\n  movdqu (%r8), %xmm14\n" %}
-      {% reduction = ::Beryl::Crypto::X8664CipherInstructions::REDUCTION_LINES.gsub(/@L/, "%xmm11").gsub(/@H/, "%xmm12").gsub(/@A/, "%xmm1").gsub(/@B/, "%xmm2") %}
+      {% reduction = ::Amber::Beryl::Crypto::X8664CipherInstructions::REDUCTION_LINES.gsub(/@L/, "%xmm11").gsub(/@H/, "%xmm12").gsub(/@A/, "%xmm1").gsub(/@B/, "%xmm2") %}
       {% if blocks_per_group == 16 %}
         {% template = template + "1:\n" %}
         {% for block in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0] %}
@@ -221,7 +221,7 @@ module Amber::Beryl::Crypto
       {% if blocks_per_group == 16 %}
         {% template = template + "  add $$256, %r10\n  dec %r11\n  jnz 1b\n" %}
       {% end %}
-      {% template = template + "  movdqu %xmm14, (%r8)\n" + ::Beryl::Crypto::X8664CipherInstructions::CONSTANT_LINES %}
+      {% template = template + "  movdqu %xmm14, (%r8)\n" + ::Amber::Beryl::Crypto::X8664CipherInstructions::CONSTANT_LINES %}
       asm({{ template }} :: "r"({{ accumulator }}), "r"({{ first_hash_key_power }}), "r"({{ input }}), "r"({{ group_count }})
         : "rax", "r8", "r9", "r10", "r11",
           "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",

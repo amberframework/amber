@@ -167,7 +167,7 @@
     },
     {
       "path": "beryl/crypto/v1/secure_hash_with_32_bit_words.cr",
-      "sha256": "cf3c5b07b01e9f22e8ec2096c729defd57c857ca7d6a58104e0b1ed2b9c10496",
+      "sha256": "b56793b50f5f44e3212ecf4b546dbfac8019591888bf098007ac861e85ea666a",
       "source_sha256": "b0cc3fcb56281825f548a9afea74b0222887ad4466816420dcfa75f7a1ea93fa"
     },
     {
@@ -187,12 +187,12 @@
     },
     {
       "path": "beryl/crypto/v1/secure_hash_with_64_bit_words.cr",
-      "sha256": "72b77075754231f43d20f6e19741be13acc59825d9e61da65c5841b582716777",
+      "sha256": "30f1356d3941773f66caed7e1597badb13d0ecf9e06d6adb52e081a64c44cd02",
       "source_sha256": "56d02c0b4b1aa93a8509e27cfecd80ccdd2ed17e4d0cd40327bfe43c931dfcdd"
     },
     {
       "path": "beryl/crypto/x86_64_cipher_instructions.cr",
-      "sha256": "1bd280c436ee6f9b13bfe9630364849d76eed76733641b0e2495c4feb03cbdbd",
+      "sha256": "448e918f05412f75f0f168cc0f8018c50b6dc4f737da7bcec84b18f4a26871c7",
       "source_sha256": "fac60b2234bceb3da356c0dfa17916497d254600203fa3fa3dcad178b50bf992"
     },
     {

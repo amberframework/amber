@@ -68,9 +68,9 @@ module Amber::Beryl::Crypto::V1
           return if block_count == 0
     
           {% if flag?(:aarch64) %}
-            Armv8HashInstructions.compress_sha256_blocks(state_pointer, block_pointer, block_count, ::Beryl::Crypto::V1::SecureHashWith32BitWords::ROUND_CONSTANTS)
+            Armv8HashInstructions.compress_sha256_blocks(state_pointer, block_pointer, block_count, ::Amber::Beryl::Crypto::V1::SecureHashWith32BitWords::ROUND_CONSTANTS)
           {% else %}
-            X8664HashInstructions.compress_sha256_blocks(state_pointer, block_pointer, block_count, ::Beryl::Crypto::V1::SecureHashWith32BitWords::ROUND_CONSTANTS)
+            X8664HashInstructions.compress_sha256_blocks(state_pointer, block_pointer, block_count, ::Amber::Beryl::Crypto::V1::SecureHashWith32BitWords::ROUND_CONSTANTS)
           {% end %}
           return
         end

@@ -81,7 +81,7 @@ module Amber::Beryl::Crypto::V1
           block_count = (list_of_blocks.size // BLOCK_SIZE).to_u64
           return if block_count == 0
 
-          Armv8HashInstructions.compress_sha512_blocks(state_pointer, block_pointer, block_count, ::Beryl::Crypto::V1::SecureHashWith64BitWords::ROUND_CONSTANTS)
+          Armv8HashInstructions.compress_sha512_blocks(state_pointer, block_pointer, block_count, ::Amber::Beryl::Crypto::V1::SecureHashWith64BitWords::ROUND_CONSTANTS)
           return
         end
       {% end %}
