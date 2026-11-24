@@ -1,4 +1,4 @@
-require "http"
+require "http/server"
 
 module Amber
   module Pipe

@@ -1,14 +1,5 @@
 module Amber
   module WebSockets
-    # What a failing socket raises while the heartbeat writes to it: a plain
-    # `IO::Error`, or `OpenSSL::SSL::Error` from a TLS socket when the build
-    # keeps OpenSSL.
-    {% if flag?(:without_openssl) %}
-      alias SocketFailure = IO::Error
-    {% else %}
-      alias SocketFailure = IO::Error | OpenSSL::SSL::Error
-    {% end %}
-
     # `ClientSocket` struct maps a user to an [HTTP::WebSocket](https://crystal-lang.org/api/0.22.0/HTTP/WebSocket.html).  For every websocket connection
     # there will be an associated ClientSocket.  Authentication and authorization happen within the `ClientSocket`.  `ClientSocket` will subscribe to `Channel`s,
     # where incoming and outgoing messages are routed through.
@@ -192,17 +183,21 @@ module Amber
 
       # Sends ping opcode to client : https://tools.ietf.org/html/rfc6455#section-5.5.2
       protected def beat
-        begin
-          @socket.send("ping")
-          @socket.ping
-          @pings.push(Time.utc)
-          @pings.delete_at(0) if @pings.size > 3
-          check_alive!
-        rescue ex : SocketFailure
-          # A dying TLS socket can raise OpenSSL::SSL::Error; treat it the same
-          # as a plain IO::Error so it does not escape and kill the heartbeat fiber.
-          disconnect!
-        end
+        # A failing socket raises `IO::Error`, or `OpenSSL::SSL::Error` from a
+        # TLS socket in an app that requires `amber/tls`; both disconnect, so
+        # neither escapes and kills the heartbeat fiber. The macro is expanded
+        # when this method is instantiated, after every file is required.
+        {% begin %}
+          begin
+            @socket.send("ping")
+            @socket.ping
+            @pings.push(Time.utc)
+            @pings.delete_at(0) if @pings.size > 3
+            check_alive!
+          rescue ex : IO::Error{% if Amber::TLS.has_constant?(:OpenSSLBackend) %} | OpenSSL::SSL::Error{% end %}
+            disconnect!
+          end
+        {% end %}
       end
 
       protected def subscribed_to_topic?(topic)

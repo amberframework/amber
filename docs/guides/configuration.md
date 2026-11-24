@@ -53,7 +53,7 @@ server:
   port_reuse: true             # Enable SO_REUSEPORT (default: true)
   process_count: 1             # Number of server processes (default: 1)
   secret_key_base: "..."       # Secret for session signing (required in production)
-  ssl:
+  ssl:                         # Needs require "amber/tls" (see below)
     key_file: "config/ssl/key.pem"   # SSL private key path
     cert_file: "config/ssl/cert.pem" # SSL certificate path
   trusted_proxies:             # Proxies allowed to report the client's scheme
@@ -63,6 +63,30 @@ server:
   unix_socket: null            # Listen on this UNIX socket path instead of host/port
   gc_initial_heap_mib: 0       # Starting garbage-collector heap in MiB (default: 0 = the collector's own)
 ```
+
+#### Serving HTTPS from the app: `require "amber/tls"`
+
+TLS is opt-in. An app made by `amber new` links no OpenSSL, which suits an
+app whose TLS ends at a proxy or load balancer. An app that serves HTTPS
+itself (`server.ssl`) or sends mail over SMTP STARTTLS adds one line to
+`config/application.cr`, right after `require "amber"` (`amber new --tls`
+writes it):
+
+```crystal
+require "amber"
+require "amber/tls"
+```
+
+Without it, a server whose settings ask for TLS stops at start, before it
+forks or binds, with `Amber::Exceptions::TLSNotCompiledIn`:
+
+```text
+The HTTPS listener (server.ssl.key_file and server.ssl.cert_file) needs TLS, and this app does not require "amber/tls". Add `require "amber/tls"` to config/application.cr to use TLS.
+```
+
+`Amber::TLS.compiled_in?` tells whether the app has it. The flag
+`-Dwithout_openssl` and `require "amber/tls"` exclude each other: the build
+stops with a message that names both.
 
 #### Running behind a TLS-terminating proxy
 

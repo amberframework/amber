@@ -25,13 +25,13 @@ module Amber
       end
     end
 
-    # Raised when an app built with `-Dwithout_openssl` is configured to use
-    # TLS. That flag builds an app that links no OpenSSL, for apps that sit
-    # behind a proxy which terminates TLS; an app that serves HTTPS itself or
-    # sends mail over STARTTLS is built without the flag.
+    # Raised when the settings ask for TLS and the app does not
+    # `require "amber/tls"`. TLS is opt-in: an app whose TLS ends at a proxy
+    # links no OpenSSL; an app that serves HTTPS itself or sends mail over
+    # STARTTLS adds that require to `config/application.cr`.
     class TLSNotCompiledIn < Exception
       def initialize(feature : String)
-        super("#{feature} needs TLS, and this app was built with -Dwithout_openssl. Build it without that flag to use TLS.")
+        super(%(#{feature} needs TLS, and this app does not require "amber/tls". Add `require "amber/tls"` to config/application.cr to use TLS.))
       end
     end
 

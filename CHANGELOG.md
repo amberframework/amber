@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+**TLS is opt-in: `require "amber/tls"`.** Amber no longer compiles its TLS
+listener into every app. An app that serves HTTPS itself (`server.ssl`) or
+sends mail over SMTP STARTTLS (mailer `use_tls`) adds `require "amber/tls"`
+to `config/application.cr`, right after `require "amber"`; `amber new --tls`
+writes it. Without it, a server whose settings ask for TLS stops at start,
+before it forks or binds, with `Amber::Exceptions::TLSNotCompiledIn`, whose
+message names `require "amber/tls"`. Amber's own files require
+`http/server` instead of `http`, so Amber brings in no `HTTP::Client`.
+On crystal-alpha with the opt-in TLS standard library (crimson-knight/crystal
+`http/server/tls`), a default `amber new -d sqlite` app with a scaffold then
+links no libssl or libcrypto without any build flag. On stock Crystal,
+`http/server` still requires `openssl`; `-Dwithout_openssl` keeps its
+meaning there, and it cannot be combined with `require "amber/tls"`.
+
+**Upgrading:** an existing app that serves HTTPS itself or sends mail with
+`use_tls` adds `require "amber/tls"` after `require "amber"` in
+`config/application.cr`.
+
 **`Amber::Pipe::Compression` sends Brotli (`br`).** The pipe now offers
 Brotli, gzip and deflate and picks the one the client accepts best, with
 `Accept-Encoding` q-values honored (RFC 9110, section 12.5.3): `gzip;q=0`
