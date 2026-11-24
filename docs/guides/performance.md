@@ -15,7 +15,7 @@ says what each default does, so you keep it when you change things.
 | 8 KB collector blocks for your programs | the `agent-crystal` Homebrew formula on arm64 macOS |
 | 8 MiB starting heap, page cache, stateless views | apps from Amber CLI 2.0.12 and later |
 | `-Dwithout_openssl` (cookies on Beryl) | Amber 2.0.0-beta.14, Grant 0.26.0 and asset_pipeline 0.39.0 (apps from Amber CLI 2.0.15) |
-| No OpenSSL without a flag; TLS through `require "amber/tls"` | Amber 2.0.0-beta.15 and asset_pipeline after 0.39.0, on crystal-alpha with the opt-in TLS standard library |
+| No OpenSSL without a flag; TLS through `require "amber/tls"` | Amber 2.0.0-beta.15 and asset_pipeline 0.40.0 (apps from Amber CLI 2.0.16), on crystal-alpha 1.22.3-incremental-1 and later |
 | `-Dwithout_zlib` (gzip on Mica) | Amber 2.0.0-beta.14, Grant 0.26.0 and asset_pipeline 0.39.0 (apps from Amber CLI 2.0.15) |
 
 Unless a section says otherwise, numbers were measured on an Apple M1 Max
