@@ -1,54 +1,31 @@
 # Compiled and run by spec/amber/ssl/tls_opt_in_spec.cr.
 #
-# An app that serves HTTPS itself: it requires `amber/tls`, sets the
-# `server.ssl` files and starts the server the way a generated app does, then
-# fetches its own page over TLS.
-require "../../../src/amber"
+# What `require "amber/tls"` adds: `Amber::TLS.compiled_in?` turns true,
+# `Amber::SSL#generate_tls` builds the server context from the key and
+# certificate files, and `Amber::TLS::OpenSSLBackend.bind_listener` (what
+# `Amber::Server#start` calls for `server.ssl`) serves HTTPS. Only those two
+# files are required, so the build stays small enough for CI machines that
+# also hold the suite's own compiler in memory; the full app path is proved
+# by the generated-app check in the release evidence.
+require "../../../src/amber/server/ssl"
 require "../../../src/amber/tls"
 require "http/client/response"
 
-# Settings load on first use, and Amber::Server.configure below is the first.
-config_path, key_file, cert_file = ARGV[0], ARGV[1], ARGV[2]
-ENV["AMBER_ENV"] = "tls_probe"
-Amber.path = config_path
-
-class TLSProbeController < Amber::Controller::Base
-  def index
-    "served over TLS"
-  end
-end
-
-Amber::Server.configure do
-  pipeline :web do
-    plug Amber::Pipe::Error.new
-  end
-
-  routes :web do
-    get "/", TLSProbeController, :index
-  end
-end
-
-free_port_probe = TCPServer.new("127.0.0.1", 0)
-port = free_port_probe.local_address.port
-free_port_probe.close
-
-settings = Amber.settings
-settings.host = "127.0.0.1"
-settings.port = port
-settings.ssl_key_file = key_file
-settings.ssl_cert_file = cert_file
+key_file, cert_file = ARGV[0], ARGV[1]
 
 STDOUT.puts "compiled_in=#{Amber::TLS.compiled_in?}"
-STDOUT.puts "scheme=#{Amber::Server.instance.scheme}"
-STDOUT.flush
+STDOUT.puts "context=#{Amber::SSL.new(key_file, cert_file).generate_tls.class}"
 
-spawn(name: "tls probe server") { Amber::Server.start }
+server = HTTP::Server.new do |context|
+  context.response.print "served over TLS"
+end
+address = Amber::TLS::OpenSSLBackend.bind_listener(server, "127.0.0.1", 0, key_file, cert_file, false)
+spawn(name: "tls probe server") { server.listen }
 
-# The spec certificate is self-signed, so the client skips verification. A raw
-# TLS socket keeps HTTP::Client, and the compiler memory it costs, out of the build.
+# The spec certificate is self-signed, so the client skips verification.
 client_context = OpenSSL::SSL::Context::Client.insecure
 100.times do
-  tcp_socket = TCPSocket.new("127.0.0.1", port)
+  tcp_socket = TCPSocket.new("127.0.0.1", address.port)
   tls_socket = OpenSSL::SSL::Socket::Client.new(tcp_socket, client_context, sync_close: true)
   tls_socket << "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"
   tls_socket.flush

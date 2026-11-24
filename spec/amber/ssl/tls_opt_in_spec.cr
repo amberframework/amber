@@ -24,9 +24,9 @@ private def with_tls_settings(ssl_files : String?, mailer_adapter : String = "me
   end
 end
 
-# Compiles spec/fixtures/tls/https_app.cr, an app that requires "amber/tls",
-# and runs it: it serves HTTPS with the spec certificate and fetches its own
-# page over TLS.
+# Compiles spec/fixtures/tls/https_app.cr, which requires "amber/tls", and
+# runs it: it serves HTTPS through Amber::TLS::OpenSSLBackend with the spec
+# certificate and fetches its own page over TLS.
 module HTTPSAppProbe
   FIXTURE_DIRECTORY = File.expand_path("../../fixtures/tls", __DIR__)
 
@@ -58,7 +58,6 @@ module HTTPSAppProbe
 
     ssl_directory = File.expand_path("../ssl", __DIR__)
     arguments = [
-      File.join(FIXTURE_DIRECTORY, "config", "environments"),
       File.join(ssl_directory, "key.pem"),
       File.join(ssl_directory, "cert.pem"),
     ]
@@ -130,12 +129,12 @@ describe "TLS as an opt-in" do
   end
 
   describe "an app that requires \"amber/tls\"" do
-    it "serves HTTPS from server.ssl" do
+    it "builds the server context and serves HTTPS" do
       outcome = HTTPSAppProbe.outcome
 
       outcome.status.success?.should be_true, outcome.output
       outcome.value_for("compiled_in").should eq "true"
-      outcome.value_for("scheme").should eq "https"
+      outcome.value_for("context").should eq "OpenSSL::SSL::Context::Server"
       outcome.value_for("status").should eq "200"
       outcome.value_for("body").should eq "served over TLS"
     end
