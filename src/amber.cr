@@ -1,4 +1,4 @@
-require "http"
+require "http/server"
 require "log"
 require "json"
 require "colorize"

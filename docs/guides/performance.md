@@ -15,6 +15,7 @@ says what each default does, so you keep it when you change things.
 | 8 KB collector blocks for your programs | the `agent-crystal` Homebrew formula on arm64 macOS |
 | 8 MiB starting heap, page cache, stateless views | apps from Amber CLI 2.0.12 and later |
 | `-Dwithout_openssl` (cookies on Beryl) | Amber 2.0.0-beta.14, Grant 0.26.0 and asset_pipeline 0.39.0 (apps from Amber CLI 2.0.15) |
+| No OpenSSL without a flag; TLS through `require "amber/tls"` | Amber 2.0.0-beta.15 and asset_pipeline after 0.39.0, on crystal-alpha with the opt-in TLS standard library |
 | `-Dwithout_zlib` (gzip on Mica) | Amber 2.0.0-beta.14, Grant 0.26.0 and asset_pipeline 0.39.0 (apps from Amber CLI 2.0.15) |
 
 Unless a section says otherwise, numbers were measured on an Apple M1 Max
@@ -31,7 +32,7 @@ request are the steadier figures.
 | 1 | Build with crystal-alpha and write regexes Mica runs | No PCRE2 or libyaml linked; every search linear in its input |
 | 2 | Check every regex against Mica in CI | A pattern Mica cannot run fails CI, not a deploy |
 | 3 | Make the hottest patterns static | Compile 24× as fast as PCRE2-JIT, no allocation per search |
-| 4 | Build with `-Dwithout_zlib` and `-Dwithout_openssl` when TLS ends at a proxy | No libz, libssl or libcrypto in the binary |
+| 4 | Leave out `require "amber/tls"` when TLS ends at a proxy (on stock Crystal, build with `-Dwithout_zlib` and `-Dwithout_openssl`) | No libz, libssl or libcrypto in the binary |
 | 5 | Keep the 8 MiB starting heap | Every measured route under 17 MiB peak |
 | 6 | Build with the formula's collector (8 KB blocks on arm64 macOS) | About 3.7 MiB less peak memory than 16 KB blocks |
 | 7 | Keep the default release units | The single-object build's code layout, built in parallel |
@@ -213,9 +214,22 @@ Mica::Regex.static: "\\b\\w+\\b" stays on the runtime engine: its tables take 14
 Narrow such a pattern (a literal prefix, a `\A` anchor, `[A-Za-z0-9_]` in
 place of `\w` when the input is ASCII), or keep it as an ordinary literal.
 
-## 4. `-Dwithout_zlib` and `-Dwithout_openssl`
+## 4. TLS only when the app asks for it, and `-Dwithout_zlib` / `-Dwithout_openssl`
 
 **Run from: the application root.**
+
+TLS is opt-in. Amber requires `http/server` (not `http`) and compiles its
+HTTPS listener and SMTP STARTTLS only into an app that adds
+`require "amber/tls"` after `require "amber"` in `config/application.cr`
+(`amber new --tls` writes it). On crystal-alpha, whose `http/server` leaves
+TLS out until the program requires `openssl` or `http/server/tls`, a
+default app then links no libssl or libcrypto with no flag at all; an app
+that keeps TLS at a proxy needs nothing else. An app that sets `server.ssl`
+without the require stops at start with
+`Amber::Exceptions::TLSNotCompiledIn`, which names the require.
+
+On stock Crystal, `HTTP::Server` still requires `openssl`, so the flags below
+remain the way to drop the libraries there:
 
 ```bash
 crystal-alpha build --release -Dwithout_zlib -Dwithout_openssl src/my_app.cr -o bin/my_app

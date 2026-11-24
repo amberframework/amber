@@ -1,4 +1,4 @@
-require "http"
+require "http/server"
 require "../../support/*"
 
 module Amber::Router::Cookies

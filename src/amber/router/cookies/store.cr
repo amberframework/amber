@@ -1,5 +1,5 @@
 require "./*"
-require "http"
+require "http/server"
 
 module Amber::Router::Cookies
   class Store

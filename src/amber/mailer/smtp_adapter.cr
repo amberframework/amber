@@ -1,15 +1,12 @@
 require "socket"
-{% unless flag?(:without_openssl) %}
-  require "openssl"
-{% end %}
 require "base64"
 
 module Amber::Mailer
   # SMTP delivery adapter for sending emails via an SMTP server.
   #
-  # Implements the SMTP protocol using Crystal's standard library Socket and
-  # OpenSSL modules. Supports STARTTLS for encrypted connections and AUTH LOGIN
-  # for authentication.
+  # Implements the SMTP protocol using Crystal's standard library Socket.
+  # Supports STARTTLS for encrypted connections, which needs
+  # `require "amber/tls"` in the app, and AUTH LOGIN for authentication.
   #
   # ## Usage
   #
@@ -80,13 +77,14 @@ module Amber::Mailer
 
         # Upgrade to TLS if requested
         if @use_tls
-          {% if flag?(:without_openssl) %}
-            raise Amber::Exceptions::TLSNotCompiledIn.new("SMTP STARTTLS (mailer use_tls)")
-          {% else %}
+          # Expanded when this method is instantiated, after every file is
+          # required, so `require "amber/tls"` may come before or after
+          # `require "amber"`.
+          {% if Amber::TLS.has_constant?(:OpenSSLBackend) %}
             send_command(io, "STARTTLS", expected_code: 220)
-            tls_context = OpenSSL::SSL::Context::Client.new
-            tls_socket = OpenSSL::SSL::Socket::Client.new(socket, tls_context, hostname: @host)
-            io = tls_socket
+            io = Amber::TLS::OpenSSLBackend.start_client_session(socket, @host)
+          {% else %}
+            raise Amber::Exceptions::TLSNotCompiledIn.new(Amber::TLS::STARTTLS)
           {% end %}
 
           # Re-send EHLO after TLS upgrade

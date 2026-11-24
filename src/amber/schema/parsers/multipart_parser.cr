@@ -1,5 +1,5 @@
 # Enhanced multipart form data parser with file upload support
-require "http"
+require "http/server"
 
 module Amber::Schema::Parser
   # File upload validator for schema field validation

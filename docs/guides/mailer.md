@@ -155,7 +155,7 @@ end
 | `smtp_port` | `587` | SMTP server port |
 | `smtp_username` | `nil` | SMTP AUTH LOGIN username |
 | `smtp_password` | `nil` | SMTP AUTH LOGIN password |
-| `use_tls` | `true` | Enable STARTTLS encryption |
+| `use_tls` | `true` | Enable STARTTLS encryption; needs `require "amber/tls"` (see below) |
 | `default_from` | `"noreply@example.com"` | Default sender when `from` is not called |
 | `helo_domain` | `"localhost"` | Domain sent in EHLO command |
 
@@ -208,6 +208,13 @@ Amber::Mailer::MemoryAdapter.last        # => Email?
 ### SMTPAdapter
 
 Delivers emails via the SMTP protocol. Supports STARTTLS encryption and AUTH LOGIN authentication.
+
+STARTTLS comes from OpenSSL, and TLS is opt-in: an app that sends mail with
+`use_tls` (the default) adds `require "amber/tls"` to `config/application.cr`,
+right after `require "amber"`. Without it, a server whose settings name the
+`smtp` adapter with `use_tls` stops at start with
+`Amber::Exceptions::TLSNotCompiledIn`, and `deliver` raises the same error
+when an adapter configured in code asks for STARTTLS.
 
 The SMTP protocol flow is:
 

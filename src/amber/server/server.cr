@@ -93,10 +93,7 @@ module Amber
       if socket_path = unix_socket_path
         self.class.bind_unix_socket(server, socket_path)
       elsif ssl_enabled?
-        ssl_config = Amber::SSL.new(settings.ssl_key_file.not_nil!, settings.ssl_cert_file.not_nil!).generate_tls
-        {% unless flag?(:without_openssl) %}
-          server.bind_tls Amber.settings.host, Amber.settings.port, ssl_config, settings.port_reuse
-        {% end %}
+        bind_tls_listener(server)
       else
         server.bind_tcp Amber.settings.host, Amber.settings.port, settings.port_reuse
       end
@@ -147,10 +144,40 @@ module Amber
     # or binds when `server.unix_socket` is combined with TLS or with more
     # than one process. The settings are read as they stand at start, after
     # the environment file, `AMBER_*` variables and `config/settings.cr`.
+    #
+    # It also raises `Amber::Exceptions::TLSNotCompiledIn` when the settings
+    # ask for TLS (`server.ssl`, or the `smtp` mailer with `use_tls`) and the
+    # app does not require `amber/tls`, so the app stops at start instead of
+    # at its first HTTPS connection or email.
     def check_listener_settings! : Nil
-      return unless unix_socket_path
+      if unix_socket_path
+        Amber::Configuration::ServerConfig.check_unix_socket!(settings.server_terminates_tls?, settings.process_count)
+      end
+      return if Amber::TLS.compiled_in?
 
-      Amber::Configuration::ServerConfig.check_unix_socket!(settings.server_terminates_tls?, settings.process_count)
+      raise Amber::Exceptions::TLSNotCompiledIn.new(Amber::TLS::LISTENER) if ssl_enabled?
+      mailer = settings.mailer
+      if mailer.adapter_symbol == :smtp && mailer.smtp.use_tls
+        raise Amber::Exceptions::TLSNotCompiledIn.new(Amber::TLS::STARTTLS)
+      end
+    end
+
+    # Binds the HTTPS listener from `server.ssl`. Without `require "amber/tls"`
+    # it raises `Amber::Exceptions::TLSNotCompiledIn`; `check_listener_settings!`
+    # has already raised it before the server forks.
+    private def bind_tls_listener(server : HTTP::Server) : Nil
+      key_file = settings.ssl_key_file
+      cert_file = settings.ssl_cert_file
+      raise Amber::Exceptions::ConfigurationError.new("server.ssl needs both key_file and cert_file") unless key_file && cert_file
+
+      # Expanded when this method is instantiated, after every file is
+      # required, so `require "amber/tls"` may come before or after
+      # `require "amber"`.
+      {% if Amber::TLS.has_constant?(:OpenSSLBackend) %}
+        Amber::TLS::OpenSSLBackend.bind_listener(server, settings.host, settings.port, key_file, cert_file, settings.port_reuse)
+      {% else %}
+        raise Amber::Exceptions::TLSNotCompiledIn.new(Amber::TLS::LISTENER)
+      {% end %}
     end
 
     # Access mode of the socket file `server.unix_socket` creates: its owner
