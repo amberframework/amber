@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased
+## 2.0.0-beta.15 (2026-11-24)
+
+Amber 2.0.0-beta.15 makes TLS opt-in. On crystal-alpha 1.22.3-incremental-1,
+an `amber new -d sqlite` app with a scaffold links no libssl, libcrypto,
+libz, libiconv or PCRE2 without any build flag, and peaked at 18.2 MiB of
+RSS under load at the 8 MiB heap on an M4 Mac mini, against 20.0 MiB for the
+beta.14 app on the same compiler. An app that serves HTTPS itself or sends
+mail with `use_tls` adds `require "amber/tls"`. Responses are compressed
+with Brotli when the client asks for it, and the vendored Mica and Beryl
+move to their current releases. Apps pin asset_pipeline 0.40.0.
 
 **TLS is opt-in: `require "amber/tls"`.** Amber no longer compiles its TLS
 listener into every app. An app that serves HTTPS itself (`server.ssl`) or
