@@ -26,11 +26,11 @@ private VENDOR_ROOT = Path[__DIR__].parent.parent.parent / "src" / "amber" / "ve
 describe "the vendored copy of Mica" do
   manifest = VendoredManifest.from_json(File.read(VENDOR_ROOT / "MICA_VENDORED.json"))
 
-  it "names its source, a full commit, the deflate component and the Amber::Mica namespace" do
+  it "names its source, a full commit, the compression component (DEFLATE and Brotli) and the Amber::Mica namespace" do
     manifest.source.should eq("https://github.com/amberframework/mica")
     manifest.commit.size.should eq(40)
     manifest.commit.each_char.all? { |character| character.ascii_number? || ('a'..'f').includes?(character) }.should be_true
-    manifest.component.should eq("deflate")
+    manifest.component.should eq("compression")
     manifest.namespace.should eq("Amber::Mica")
     manifest.list_of_files.should_not be_empty
   end

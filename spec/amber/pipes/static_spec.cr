@@ -377,6 +377,35 @@ module Amber
         end
       end
 
+      it "serves the precompressed copy the request accepts best: Brotli, then gzip" do
+        filename = "both-0123456789abcdef.css"
+        file = File.join(File.expand_path(TEST_PUBLIC_PATH), filename)
+        File.write(file, "body { color: black; }")
+        File.write("#{file}.gz", "gzip-fixture")
+        File.write("#{file}.br", "brotli-fixture")
+
+        begin
+          {
+            "br, gzip"         => {"br", "brotli-fixture"},
+            "gzip, br;q=0.5"   => {"gzip", "gzip-fixture"},
+            "br;q=0, gzip"     => {"gzip", "gzip-fixture"},
+            "br"               => {"br", "brotli-fixture"},
+            "br;q=0, gzip;q=0" => {nil, "body { color: black; }"},
+          }.each do |accept_encoding, (coding, body)|
+            request = HTTP::Request.new("GET", "/#{filename}", HTTP::Headers{"Accept-Encoding" => accept_encoding})
+            response = create_request_and_return_io(Static.new(PUBLIC_PATH), request)
+
+            response.headers["Content-Encoding"]?.should eq coding
+            response.body.should eq body
+            response.headers["Content-Type"].should contain "text/css"
+          end
+        ensure
+          File.delete?("#{file}.br")
+          File.delete?("#{file}.gz")
+          File.delete?(file)
+        end
+      end
+
       it "serves the identity file when Accept-Encoding refuses gzip with q=0" do
         filename = "refused-0123456789abcdef.css"
         file = File.join(File.expand_path(TEST_PUBLIC_PATH), filename)

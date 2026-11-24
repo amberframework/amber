@@ -191,55 +191,35 @@ module Amber
       # Amber::Pipe::Static.accepts_gzip?(HTTP::Headers{"Accept-Encoding" => "*, gzip;q=0.000"}) # => false
       # ```
       def self.accepts_gzip?(headers : HTTP::Headers) : Bool
-        list_of_values = headers.get?("Accept-Encoding")
-        return false unless list_of_values
+        headers.has_key?("Accept-Encoding") && ContentCoding.quality(headers, "gzip") > 0.0
+      end
 
-        # Specificity is 1 for a `gzip` or `x-gzip` entry and 0 for `*`; the
-        # first entry of the highest specificity decides.
-        best_specificity = -1
-        best_quality = 0.0
-        list_of_values.each do |value|
-          value.split(',') do |entry|
-            coding, _, parameters = entry.partition(';')
-            specificity = case coding.strip(" \t").downcase
-                          when "gzip", "x-gzip" then 1
-                          when "*"              then 0
-                          else                       -1
-                          end
-            next unless specificity > best_specificity
+      # The precompressed copies `Static` looks for beside a file, in its
+      # order of preference: Brotli, then gzip.
+      PRECOMPRESSED_EXTENSIONS = {"br" => ".br", "gzip" => ".gz"}
 
-            best_specificity = specificity
-            best_quality = coding_quality(parameters)
+      # Serves the precompressed copy the request accepts best: `file.br`
+      # (Brotli) or `file.gz` (gzip), when it exists and is no older than
+      # the file, with q-values honored (RFC 9110, section 12.5.3), so
+      # `gzip;q=0` never gets gzip. HTTP::StaticFileHandler serves only
+      # `.gz`, whenever `Accept-Encoding` contains the word `gzip`.
+      private def serve_file_compressed(context : HTTP::Server::Context, file_info, file_path : Path, last_modified : Time)
+        coding = ContentCoding.choose(context.request.headers, PRECOMPRESSED_EXTENSIONS.keys)
+        if coding
+          # The chosen coding first, then any other acceptable one.
+          list_of_codings = [coding] + PRECOMPRESSED_EXTENSIONS.keys.reject(coding).select do |other|
+            ContentCoding.quality(context.request.headers, other) > 0.0
+          end
+          list_of_codings.each do |candidate|
+            compressed_path = Path["#{file_path}#{PRECOMPRESSED_EXTENSIONS[candidate]}"]
+            compressed_info = File.info?(compressed_path)
+            next unless compressed_info && last_modified - compressed_info.modification_time < TIME_DRIFT
+
+            context.response.headers["Content-Encoding"] = candidate
+            return serve_file(context, compressed_info, compressed_path, file_path, last_modified)
           end
         end
-        best_quality > 0.0
-      end
-
-      # Reads the `q` parameter from the parameters after a coding, as in
-      # `q=0.5` or `level=1; q=0`. A missing `q` is 1; a `q` that is not a
-      # number is 0.
-      private def self.coding_quality(parameters : String) : Float64
-        quality = 1.0
-        parameters.split(';') do |parameter|
-          name, _, value = parameter.partition('=')
-          next unless name.strip(" \t").downcase == "q"
-
-          parsed_quality = value.strip(" \t").to_f?
-          quality = parsed_quality ? parsed_quality.clamp(0.0, 1.0) : 0.0
-        end
-        quality
-      end
-
-      # HTTP::StaticFileHandler serves the `.gz` copy of a file whenever
-      # `Accept-Encoding` contains the word `gzip`, so `gzip;q=0` would still
-      # get gzip. Only a request that accepts gzip (see `.accepts_gzip?`)
-      # reaches the precompressed lookup in the parent class.
-      private def serve_file_compressed(context : HTTP::Server::Context, file_info, file_path : Path, last_modified : Time)
-        if Static.accepts_gzip?(context.request.headers)
-          super
-        else
-          serve_file(context, file_info, file_path, file_path, last_modified)
-        end
+        serve_file(context, file_info, file_path, file_path, last_modified)
       end
 
       private def add_vary_accept_encoding(headers : HTTP::Headers) : Nil

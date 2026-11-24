@@ -1,7 +1,7 @@
 {
   "source": "https://github.com/amberframework/mica",
-  "commit": "37e8b019f018cd46235ad2bfb386c3f06340a994",
-  "component": "deflate",
+  "commit": "4cc69ece28cb5f2d88563a732427058ac0156c47",
+  "component": "compression",
   "namespace": "Amber::Mica",
   "made_by": "scripts/vendor_into.rb",
   "note": "A pinned copy. Change Mica in its own repository, then run the script again; edits made here fail the check.",
@@ -10,6 +10,176 @@
       "path": "MICA_LICENSE",
       "sha256": "8ed2027bc114d15ffb780e43443aaf73e2791517411ee570aac3262627ba3f26",
       "source_sha256": "8ed2027bc114d15ffb780e43443aaf73e2791517411ee570aac3262627ba3f26"
+    },
+    {
+      "path": "mica/brotli.cr",
+      "sha256": "79e4116d3af33965f52392a9c18e14106ad4099e4e7b69a5d74215aaccce3ef7",
+      "source_sha256": "1c7cd6b25bfa887094f6b2c698c2300d86051f10cb4a826de2a26097d28c3d66"
+    },
+    {
+      "path": "mica/brotli/bit_writer.cr",
+      "sha256": "1c6556e6f3320f080733c18cff720fd62b871804e6a3f9aaa4ac180022252ba4",
+      "source_sha256": "e5f661a5f33f69cbd5faec675e652351c196ce125fcea3032a27980e4abc660a"
+    },
+    {
+      "path": "mica/brotli/block_splitter.cr",
+      "sha256": "213dfb57c364b09d27b342f0a729119eff60b977de32bbd8749c3b54fcff1706",
+      "source_sha256": "93d554dd1914bdd311765a2fec67bb94631774603494474167c46becdf5d8b62"
+    },
+    {
+      "path": "mica/brotli/classic_encoder.cr",
+      "sha256": "624a8c47dbcb20ad7a530c44b7070b933d6acdd69bf79da956599b895b51a9e6",
+      "source_sha256": "447560af29b8593fd1f3408c9197a99c7365048213ea81ec7a43f28c2c578697"
+    },
+    {
+      "path": "mica/brotli/decode_limits.cr",
+      "sha256": "7c9a1ddba0b1a76e7e9be4d86428d3eeb0e3e579914ab89c84b9741c3951044a",
+      "source_sha256": "b70e835d160ebaa4a3ef24084e1c649b4ab81e33bd53a70fd892b653c5c6951c"
+    },
+    {
+      "path": "mica/brotli/decoder.cr",
+      "sha256": "4ecd8233f12357dfe6ddf1ce2da91bb029f7b3137429cc3fa7db3add03202038",
+      "source_sha256": "9defcc6c34969c3a9ece93b759e32789134ad686d8b2785b099908837beb6710"
+    },
+    {
+      "path": "mica/brotli/dictionary.bin",
+      "sha256": "20e42eb1b511c21806d4d227d07e5dd06877d8ce7b3a817f378f313653f35c70",
+      "source_sha256": "20e42eb1b511c21806d4d227d07e5dd06877d8ce7b3a817f378f313653f35c70"
+    },
+    {
+      "path": "mica/brotli/dictionary.cr",
+      "sha256": "88bc1f96eac6a40f98a68f60cea6e4cc0bac44a942aaeadb1e9fff465bb02e71",
+      "source_sha256": "43b5bb4c23e7aea5ba4af080e96aa5d1064feb793ca0c790e261223ee5fce8e0"
+    },
+    {
+      "path": "mica/brotli/dictionary_matcher.cr",
+      "sha256": "6cf569425156c0fd5bfce73d381ab03f87138b04620a05c1cf6ae93e3c5e5df9",
+      "source_sha256": "27a8e379db460a616c24b300ba5428413ea2e6ff15ea9c3843bc6feb9086eef6"
+    },
+    {
+      "path": "mica/brotli/encode/LICENSE.google-brotli",
+      "sha256": "3d180008e36922a4e8daec11c34c7af264fed5962d07924aea928c38e8663c94",
+      "source_sha256": "3d180008e36922a4e8daec11c34c7af264fed5962d07924aea928c38e8663c94"
+    },
+    {
+      "path": "mica/brotli/encode/arena.cr",
+      "sha256": "6b641e0d34c54e0d68992ff98d3ec4ebccacc35a219e7beb4176a082c47f42ea",
+      "source_sha256": "0bf223a00b99e6993c3ae0fd30fe95de25fa96fd76a31b4a46ea0d8ab0e86fe7"
+    },
+    {
+      "path": "mica/brotli/encode/backward_references.cr",
+      "sha256": "ac1d8f0ff1cfd9912bc9e9ff21157db38675e17525cefdf4adb67bf36884d116",
+      "source_sha256": "7832bedcad7cf3a85e63bc07006521cee21a04d4726a2df468d834f12a51509c"
+    },
+    {
+      "path": "mica/brotli/encode/block_splitter.cr",
+      "sha256": "39bbab2b5a02f7df24906a76f11dc5d0f033efc0e849b3a1d884549ffa20c8a1",
+      "source_sha256": "5e63f7e603968b1f79f1bb5e915eceb49b26532d63482c78045594a77df34452"
+    },
+    {
+      "path": "mica/brotli/encode/cluster.cr",
+      "sha256": "dad69db80b7df0646de17bf8c403bb1b8233093b0a23a3b30c559dccc96920ef",
+      "source_sha256": "82fbb5bb48954b399c762e2d003dd9c9219ac49c98aa4390a6934513bf88f292"
+    },
+    {
+      "path": "mica/brotli/encode/common.cr",
+      "sha256": "f86deaea7a6bc90c95e97bac60d2489f093989b70f3b83b1bfdcb80bf43cc789",
+      "source_sha256": "a5e698eb25e2939f6e21dfcc5ac85485026f79da7d6583c94f4fd89f8d7bb31f"
+    },
+    {
+      "path": "mica/brotli/encode/entropy_encode.cr",
+      "sha256": "ce23d076a36e2adc9bc6986cd60c81486d1fe17ad4102649207666a9c2c916e1",
+      "source_sha256": "7afd2ceb770a16b0ab144687fe24553e4a7af37d5673c0bd1f5719a7e7b79505"
+    },
+    {
+      "path": "mica/brotli/encode/hasher.cr",
+      "sha256": "5fda2d0754cb7095fac232812068e4df2c0bde0c24810e48d87313e3290fe8ed",
+      "source_sha256": "95e7881d179d733ddb5d165ef38f2cef76e38f9e31fc011fb037cf02a06cfe9d"
+    },
+    {
+      "path": "mica/brotli/encode/literal_cost.cr",
+      "sha256": "04f795e4d8b4f62fc7a7cec8276f0022e579d76ef450d0a01d0ae985f62cd11e",
+      "source_sha256": "983cf8800713977cc3b15f419cf7bbfb57c8b72f7b016baf3a02397c25df2320"
+    },
+    {
+      "path": "mica/brotli/encode/longest_match_hasher.cr",
+      "sha256": "936fa7ebf8d6e367e13809c03079467b52cb394c7474f83037dc8b46c7674448",
+      "source_sha256": "c639c783c1e8baa98ac8ee0aaad9eac0e9a63dd8ffa0cfb5df4bb857a8c67acc"
+    },
+    {
+      "path": "mica/brotli/encode/metablock.cr",
+      "sha256": "f36ac3c1e9960bb43a75c859bbc3af5d4c1664ae0141a84df20af6d54eee691d",
+      "source_sha256": "9ad5a9852cfb63615f44b1cb8fc88fb9ce3f66309319868d14c0fbaa8f13d3b1"
+    },
+    {
+      "path": "mica/brotli/encode/metablock_store.cr",
+      "sha256": "8fd8effc277b69da6ef8174b4b05c49aa1353ab9f582e0bc5ba16efbfacb5263",
+      "source_sha256": "000f1092752898e0e1fc8de0664264b7b7197fc869d033bcfa0a97fc122e79b1"
+    },
+    {
+      "path": "mica/brotli/encode/static_dictionary.cr",
+      "sha256": "bd62a84d3f5fac6407e318c4bb526982ffdb73d06d28e853999cfd47588622de",
+      "source_sha256": "8993ddfdb4e4a708accf7c009a6cb6a0800488e56c5584f34371baeac612a7be"
+    },
+    {
+      "path": "mica/brotli/encode/zopfli.cr",
+      "sha256": "c530e6f50bce6a24243a684083f80ad6325bf894f313e354a8354bdde82667e9",
+      "source_sha256": "90606a5af89a587fa3a8a51727fbbf0fc87a3747b89035d3cdaf6c11c4826b3f"
+    },
+    {
+      "path": "mica/brotli/encoder.cr",
+      "sha256": "5f05f9af197ba5713d46bf081f674847d93c7c3ed4c611441070fa2fe7e06851",
+      "source_sha256": "3083f80d3ec74f2f571e374bd27a2e4412952b2c8636994f40a03f5de60b5e5a"
+    },
+    {
+      "path": "mica/brotli/encoder_codes.cr",
+      "sha256": "840c2a90e02d4b69c43487c66eab15e91d042cc89a3c983886f0bb5540c1f270",
+      "source_sha256": "f2a31cd8a4d6a6d281a11c217d9c29d68cc7874a9eb71baf27e7e4e5bd761781"
+    },
+    {
+      "path": "mica/brotli/errors.cr",
+      "sha256": "4261fb716d12164346b2836a69dd86a4795f9ac83ac017c3fc7c2c58bc52cbb6",
+      "source_sha256": "8339bd1ba6e1a39dbe60d1ecb0bd63d8c1a17f64e4b7284207e62672e87807a7"
+    },
+    {
+      "path": "mica/brotli/huffman_builder.cr",
+      "sha256": "108655d7302f893a8af9e458bee6795f024c2e8bb68f1b44ddad18bf12ab4600",
+      "source_sha256": "431e2ddeb5305182ac7af03543f73b7605f0e59fc82e232936da99c634092e9e"
+    },
+    {
+      "path": "mica/brotli/huffman_code.cr",
+      "sha256": "69e94e89e486bc4899be279b61361883d22e355d78f79a47340cebefa75a307c",
+      "source_sha256": "26f52e816dc317614b95bac43cfcd49cf630aca9c80e7b0e4e93a7b571f462e0"
+    },
+    {
+      "path": "mica/brotli/match_finder.cr",
+      "sha256": "4d1a40706bcb913d3c61903de31ed060241adc3be4a3d9e26288019454335bf7",
+      "source_sha256": "8d17ba7d1ae2178dc5b211bee5fd413775e3afc5f8cf38400fcfe986984698a6"
+    },
+    {
+      "path": "mica/brotli/metablock_writer.cr",
+      "sha256": "0633fb8670c99f32a37ea6e3d6069fcdf6bfc7e950f8159a459f3c26bb7efc51",
+      "source_sha256": "adfc243997fb62d97770d58075a431762a4be2ab3d67e3918870a4e20eb52baa"
+    },
+    {
+      "path": "mica/brotli/prefix_code.cr",
+      "sha256": "2073de4fc6f3e012644584c0926a5928a3f2b65be57e339e96bceabb2ccf7e6c",
+      "source_sha256": "4e4cfb02e3f13884e486d5abcb81f2a69d4dda58c05351b49b54cc7fb4aecef5"
+    },
+    {
+      "path": "mica/brotli/reader.cr",
+      "sha256": "2abbea7be4c29c048c45902eb2f25ab986dcbd3fdb15e2ae39ba73b65e4adc34",
+      "source_sha256": "91770e64c9b6fe5b532423fe0d1c8190a62106186acf4d34e8fdc6268bcfe1dc"
+    },
+    {
+      "path": "mica/brotli/tables.cr",
+      "sha256": "a54821d6ec7423e472c85e932f7027cbdc135a124ef871d70c0529f77c8a901b",
+      "source_sha256": "b82e03ac8ab7ec9ddea34a16e89be7c63abf9085b4af46eb32409895c4894bcf"
+    },
+    {
+      "path": "mica/brotli/writer.cr",
+      "sha256": "1f6650d49b10143069fa1e63b967ccaf16bdb79f2a13a4c2a24f42bfce3f55c7",
+      "source_sha256": "97b0e95bae6d17b874deb4a68653c425b2baf85abe41d88f044a3d36e59ff2e9"
     },
     {
       "path": "mica/core.cr",

@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+**`Amber::Pipe::Compression` sends Brotli (`br`).** The pipe now offers
+Brotli, gzip and deflate and picks the one the client accepts best, with
+`Accept-Encoding` q-values honored (RFC 9110, section 12.5.3): `gzip;q=0`
+never gets gzip, and on a tie Brotli comes first. Brotli comes from a pinned
+copy of Mica's pure-Crystal encoder at quality 5, so an app links no
+libbrotli (`Compression.new(brotli_quality: nil)` offers gzip and deflate
+only). A body shorter than 1,024 bytes is sent without a content coding.
+`Amber::Pipe::Static` serves a precompressed `file.br` as well as `file.gz`,
+whichever the request accepts best. The negotiation lives in
+`Amber::Pipe::ContentCoding`, which both pipes share.
+
+In an app made by `amber new` on an M4 Mac mini, the rendered
+`GET /posts/new` form (1,806 bytes) came back as 808 bytes of Brotli against
+961 of gzip, at a median 158 µs per request against 142 µs for gzip and
+135 µs uncompressed.
+
 ## 2.0.0-beta.14 (2026-11-22)
 
 Amber 2.0.0-beta.14 lets an app drop libz and OpenSSL. Built with
