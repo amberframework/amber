@@ -7,6 +7,11 @@ require "../../../src/amber"
 require "../../../src/amber/tls"
 require "http/client"
 
+# Settings load on first use, and Amber::Server.configure below is the first.
+config_path, key_file, cert_file = ARGV[0], ARGV[1], ARGV[2]
+ENV["AMBER_ENV"] = "tls_probe"
+Amber.path = config_path
+
 class TLSProbeController < Amber::Controller::Base
   def index
     "served over TLS"
@@ -23,15 +28,12 @@ Amber::Server.configure do
   end
 end
 
-config_path, key_file, cert_file = ARGV[0], ARGV[1], ARGV[2]
-ENV["AMBER_ENV"] = "tls_probe"
-Amber.path = config_path
-
 free_port_probe = TCPServer.new("127.0.0.1", 0)
 port = free_port_probe.local_address.port
 free_port_probe.close
 
 settings = Amber.settings
+settings.host = "127.0.0.1"
 settings.port = port
 settings.ssl_key_file = key_file
 settings.ssl_cert_file = cert_file
