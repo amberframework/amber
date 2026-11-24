@@ -1,6 +1,7 @@
 require "../error"
 require "../secret_wiping"
 require "./hash_based_message_authentication_code"
+require "../data_independent_timing"
 require "./secure_hash_with_256_bit_digest"
 require "./secure_hash_with_384_bit_digest"
 require "./secure_hash_with_512_bit_digest"
@@ -28,7 +29,7 @@ module Amber::Beryl::Crypto::V1
     # hash output long, as RFC 5869 §2.2 defines.
     def self.extract(input_key_material : Bytes | String, *, salt : Bytes | String = Bytes.empty) : Bytes
       ensure_the_hash_is_supported
-      HMAC(D).authenticate(input_key_material, key: salt)
+      DataIndependentTiming.run { HMAC(D).authenticate(input_key_material, key: salt) }
     end
 
     # Returns *bytesize* bytes of key derived from *pseudorandom_key*, which
@@ -48,10 +49,16 @@ module Amber::Beryl::Crypto::V1
         raise DerivedKeyTooLong.new("HKDF on this hash gives at most #{maximum_bytesize} bytes, not #{bytesize}")
       end
 
-      derived_key = Bytes.new(bytesize)
+      DataIndependentTiming.run { expand_into(authentication, info.to_slice, Bytes.new(bytesize)) }
+    end
+
+    # Fills *derived_key* with T(1) | T(2) | ... under *authentication*,
+    # which is keyed with the pseudorandom key, and returns it.
+    private def self.expand_into(authentication : HMAC(D), info_bytes : Bytes, derived_key : Bytes) : Bytes
+      bytesize = derived_key.size
+      digest_bytesize = authentication.digest_size
       block_storage = uninitialized UInt8[BlockHashFunction::LARGEST_DIGEST_SIZE]
       block = block_storage.to_slice[0, digest_bytesize]
-      info_bytes = info.to_slice
       block_number = StaticArray[0_u8]
       bytes_written = 0
 
@@ -82,10 +89,12 @@ module Amber::Beryl::Crypto::V1
       info : Bytes | String = Bytes.empty,
       bytesize : Int32,
     ) : Bytes
-      pseudorandom_key = extract(input_key_material, salt: salt)
-      derived_key = expand(pseudorandom_key, info: info, bytesize: bytesize)
-      SecretWiping.wipe(pseudorandom_key)
-      derived_key
+      DataIndependentTiming.run do
+        pseudorandom_key = extract(input_key_material, salt: salt)
+        derived_key = expand(pseudorandom_key, info: info, bytesize: bytesize)
+        SecretWiping.wipe(pseudorandom_key)
+        derived_key
+      end
     end
 
     # Stops compilation when `D` is a hash this function is not offered on.

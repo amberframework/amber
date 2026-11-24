@@ -19,6 +19,9 @@ module Amber::Beryl::Crypto
   # `scripts/check_secret_flow.rb` checks exactly that. The AES and
   # carry-less multiply instructions take the same time whatever their
   # operands hold.
+  # Statements that write the flags (`add`, `dec`) name the x86-64 flags
+  # clobber "flags"; LLVM ignores "cc" on x86-64 (see
+  # `FieldArithmetic::FieldsInAssembly`).
   #
   # Every vector instruction takes its operands from registers: the legacy
   # SSE forms of these instructions fault on a memory operand that is not
@@ -132,7 +135,7 @@ module Amber::Beryl::Crypto
       {% end %}
       {% template = template + ::Amber::Beryl::Crypto::X8664CipherInstructions::CONSTANT_LINES %}
       asm({{ template }} :: "r"({{ hash_key }}), "r"({{ hash_key_powers }})
-        : "rax", "r8", "r9", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "memory", "cc")
+        : "rax", "r8", "r9", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "memory", "flags")
     end
 
     # GHASH: mixes whole blocks at *input* into the accumulator at
@@ -225,7 +228,7 @@ module Amber::Beryl::Crypto
       asm({{ template }} :: "r"({{ accumulator }}), "r"({{ first_hash_key_power }}), "r"({{ input }}), "r"({{ group_count }})
         : "rax", "r8", "r9", "r10", "r11",
           "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
-          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc")
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "flags")
     end
 
     # Counter mode: XORs the AES keystream of the counter block at
@@ -282,7 +285,7 @@ module Amber::Beryl::Crypto
       asm({{ template }} :: "r"({{ round_keys }}), "r"({{ counter_block }}), "r"({{ input }}), "r"({{ output }}), "r"({{ group_count }})
         : "rax", "rcx", "rdx", "r8", "r9", "r10", "r11",
           "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
-          "xmm10", "xmm11", "xmm12", "memory", "cc")
+          "xmm10", "xmm11", "xmm12", "memory", "flags")
     end
 
     # Writes at *decryption_round_keys* the round keys of the equivalent
@@ -330,7 +333,7 @@ module Amber::Beryl::Crypto
       asm({{ template }} :: "r"({{ round_keys }}), "r"({{ chaining_block }}), "r"({{ input }}), "r"({{ output }}), "r"({{ block_count }})
         : "rcx", "r8", "r9", "r10", "r11",
           "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
-          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc")
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "flags")
     end
 
     # CBC decryption of *group_count* groups of *blocks_per_group* blocks (8
@@ -371,7 +374,7 @@ module Amber::Beryl::Crypto
       {% template = template + "  add $$#{blocks_per_group * 16}, %r10\n  add $$#{blocks_per_group * 16}, %r11\n  dec %rcx\n  jnz 1b\n  movdqu %xmm10, (%r9)\n" %}
       asm({{ template }} :: "r"({{ decryption_round_keys }}), "r"({{ chaining_block }}), "r"({{ input }}), "r"({{ output }}), "r"({{ group_count }})
         : "rcx", "r8", "r9", "r10", "r11",
-          "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9", "xmm10", "memory", "cc")
+          "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9", "xmm10", "memory", "flags")
     end
 
     # Blocks of ChaCha20 keystream one pass of `xor_chacha20_keystream`
@@ -468,7 +471,7 @@ module Amber::Beryl::Crypto
       asm({{ template }} :: "r"({{ state }}), "r"({{ input }}), "r"({{ output }}), "r"({{ group_count }})
         : "rax", "rcx", "rdx", "r8", "r10", "r11",
           "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9",
-          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "cc")
+          "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "memory", "flags")
     end
   end
 end

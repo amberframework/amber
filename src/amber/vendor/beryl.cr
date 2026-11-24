@@ -2,6 +2,8 @@ require "log"
 require "./beryl/version"
 require "./beryl/error"
 require "./beryl/crypto"
+require "./beryl/encoding"
+require "./beryl/certificates"
 
 # Security for Amber V2.
 #

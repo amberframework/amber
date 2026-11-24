@@ -48,6 +48,14 @@ module Amber::Mica::Deflate
   # hands out the spare one (or a new one) and `release` puts it back, so a
   # small body costs no setup allocation.
   #
+  # A streaming decode started with *stop_at_end* reads its source only as
+  # far as the stream goes, as zlib's `inflate` does: through `IO#peek`
+  # when the source has it (skipping only the bytes the stream used), and
+  # one byte per read otherwise. Its Huffman lookups then take input a
+  # byte at a time as the code needs it, and it never reads ahead, so the
+  # bytes after the stream (a gzip trailer, the next zip entry) stay in
+  # the source for the caller.
+  #
   # WARNING: An inflater belongs to one fiber at a time.
   #
   # :nodoc:
@@ -137,6 +145,11 @@ module Amber::Mica::Deflate
     @in_end : Int32 = 0
     @in_base : Int64 = 0_i64
     @io_done : Bool = false
+    # Stops at the end of the stream and leaves what follows in the source.
+    @stop_at_end : Bool = false
+    # With *stop_at_end*, the bytes at the end of the input buffer that came
+    # from the source's `peek` and are still in it (not skipped yet).
+    @source_held : Int32 = 0
     @bit_buffer : UInt64 = 0_u64
     @bit_count : Int32 = 0
 
@@ -187,9 +200,10 @@ module Amber::Mica::Deflate
     # is one, a new one otherwise. *list_of_headers* receives each gzip
     # member's header (the streaming readers pass it).
     def self.acquire(source : Bytes | IO, format : Format, limits : DecodeLimits, timeout : Time::Span?,
-                     dictionary : Bytes? = nil, list_of_headers : Array(Gzip::Header)? = nil) : Inflater
+                     dictionary : Bytes? = nil, list_of_headers : Array(Gzip::Header)? = nil,
+                     stop_at_end : Bool = false) : Inflater
       inflater = @@spare.swap(nil) || new
-      inflater.start(source, format, limits, timeout, dictionary, list_of_headers)
+      inflater.start(source, format, limits, timeout, dictionary, list_of_headers, stop_at_end)
       inflater
     end
 
@@ -212,7 +226,8 @@ module Amber::Mica::Deflate
 
     # Starts a decode of *source*, forgetting the previous one.
     protected def start(source : Bytes | IO, @format : Format, @limits : DecodeLimits, timeout : Time::Span?,
-                        @dictionary : Bytes?, @list_of_headers : Array(Gzip::Header)?) : Nil
+                        @dictionary : Bytes?, @list_of_headers : Array(Gzip::Header)?,
+                        stop_at_end : Bool = false) : Nil
       @meter.restart(@limits.work_budget(timeout))
       @window_limit = @limits.max_window_bytes
       @produced = 0_i64
@@ -233,6 +248,8 @@ module Amber::Mica::Deflate
       @members = 0
       @metered_input = 0_i64
       @metered_output = 0_i64
+      @stop_at_end = stop_at_end && source.is_a?(IO)
+      @source_held = 0
       if source.is_a?(Bytes)
         @one_shot = true
         @io = nil
@@ -272,6 +289,7 @@ module Amber::Mica::Deflate
       @io = nil
       @input = Pointer(UInt8).null
       @in_end = 0
+      @source_held = 0
       @dictionary = nil
       @list_of_headers = nil
       @out = @buffer
@@ -487,6 +505,11 @@ module Amber::Mica::Deflate
       io = @io
       buffer = @input_buffer
       return false if @io_done || io.nil? || buffer.nil?
+      # Every byte the last peek lent is in use by now: skip it in the source.
+      if @source_held > 0
+        io.skip(@source_held)
+        @source_held = 0
+      end
       keep_from = @in_pos - INPUT_LOOKBACK
       keep_from = 0 if keep_from < 0
       if keep_from > 0
@@ -505,7 +528,7 @@ module Amber::Mica::Deflate
         @input_buffer = buffer = grown
         @input = grown.to_unsafe
       end
-      count = io.read(buffer[@in_end, buffer.size - @in_end])
+      count = @stop_at_end ? read_source_exactly(io, buffer) : io.read(buffer[@in_end, buffer.size - @in_end])
       @meter.enforce_deadline("while decoding") { position }
       if count == 0
         @io_done = true
@@ -515,12 +538,37 @@ module Amber::Mica::Deflate
       true
     end
 
+    # Reads the next input of a *stop_at_end* decode into the free end of
+    # *buffer*: what the source's `peek` shows, left in the source until the
+    # next refill (or the end of the stream) skips it, or else one byte.
+    private def read_source_exactly(io : IO, buffer : Bytes) : Int32
+      room = buffer[@in_end, buffer.size - @in_end]
+      if window = io.peek
+        count = Math.min(window.size, room.size)
+        room.copy_from(window.to_unsafe, count)
+        @source_held = count
+        count
+      else
+        io.read(room[0, 1])
+      end
+    end
+
+    # Ends a *stop_at_end* decode: skips the bytes of the last peek that the
+    # stream used, so the source continues right after the stream.
+    private def leave_source_at_stream_end : Nil
+      io = @io
+      return unless io && @source_held > 0
+      held_start = @in_end - @source_held
+      io.skip(@in_pos - held_start) if @in_pos > held_start
+      @source_held = 0
+    end
+
     # Returns true when a streaming decoder should read more before its
     # fast loop: fewer than `INPUT_LOW_WATER` bytes (or a quarter of a
     # smaller buffer) remain and the source has not ended.
     private def input_running_low? : Bool
       buffer = @input_buffer
-      return false if buffer.nil? || @io_done
+      return false if buffer.nil? || @io_done || @stop_at_end
       @in_end - @in_pos < Math.min(INPUT_LOW_WATER, buffer.size // 4)
     end
 
@@ -705,6 +753,11 @@ module Amber::Mica::Deflate
       case @format
       in .raw?
         start_member
+        # A raw stream starts from the preset dictionary it is given, as
+        # after zlib's inflateSetDictionary on a raw inflater.
+        if dictionary = @dictionary
+          load_dictionary(dictionary)
+        end
       in .zlib?
         read_zlib_header
       in .gzip?
@@ -857,12 +910,16 @@ module Amber::Mica::Deflate
         raise ChecksumError.new("CRC-32 mismatch", position) unless stored_crc == @checksum
         stored_size = read_u32_le("the ISIZE trailer")
         raise ChecksumError.new("ISIZE mismatch", position) unless stored_size == @member_size
-        unless at_input_end?
+        unless @stop_at_end || at_input_end?
           @phase = Phase::StreamHeader
           return
         end
       end
-      malformed("Trailing data after the end of the stream") unless at_input_end?
+      if @stop_at_end
+        leave_source_at_stream_end
+      else
+        malformed("Trailing data after the end of the stream") unless at_input_end?
+      end
       @phase = Phase::Done
     end
 
@@ -1058,7 +1115,11 @@ module Amber::Mica::Deflate
     # The returned entry's code bits are consumed (not its extra bits).
     private def decode_careful(table : UInt32*, mask : UInt64, root : Int32, where : String, code_name : String,
                                with_extra : Bool = false) : UInt32
-      need_bits(15)
+      if @stop_at_end
+        pull_code_bits(table, mask, root, with_extra)
+      else
+        need_bits(15)
+      end
       entry = table[@bit_buffer & mask]
       if entry & HuffmanTable::SUBTABLE != 0
         truncated(where) if @bit_count < root
@@ -1080,6 +1141,34 @@ module Amber::Mica::Deflate
       @bit_buffer = @bit_buffer.unsafe_shr(length)
       @bit_count -= length
       entry
+    end
+
+    # For a *stop_at_end* decode: loads the bits of the next code of *table*
+    # a byte at a time, taking a byte only while the entry the loaded bits
+    # select is longer than them (zlib's PULLBYTE loop), so the decoder never
+    # holds a byte past the end of the stream. The missing high bits read
+    # as 0, and an entry no longer than the bits loaded is the right one.
+    private def pull_code_bits(table : UInt32*, mask : UInt64, root : Int32, with_extra : Bool) : Nil
+      while @bit_count < 15
+        entry = table[@bit_buffer & mask]
+        needed = 0
+        if entry & HuffmanTable::SUBTABLE != 0
+          needed = root
+          if @bit_count >= root
+            sub_mask = (1_u64.unsafe_shl((entry >> 8) & 0xF)) &- 1
+            entry = table[(entry >> 16) + (@bit_buffer.unsafe_shr(root) & sub_mask)]
+          end
+        end
+        if needed == 0 || @bit_count >= root
+          length = (entry & 0xFF).to_i32
+          if with_extra && entry & (HuffmanTable::LITERAL | HuffmanTable::EXCEPTIONAL) == 0
+            length = ((entry >> 8) & 0xF).to_i32
+          end
+          needed += length
+        end
+        return if needed <= @bit_count
+        return unless need_bits(@bit_count + 8)
+      end
     end
 
     # Copies stored-block bytes up to *limit*.

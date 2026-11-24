@@ -53,4 +53,49 @@ module Amber::Beryl::Crypto
   # this means a fault in Beryl, not in the caller.
   class UnsupportedProcessor < Error
   end
+
+  # Raised when bytes handed in as a public key do not encode a point of the
+  # curve, or encode one the algorithm refuses (the point at infinity, a
+  # coordinate not below the field prime).
+  class InvalidPublicKey < Error
+  end
+
+  # Raised when bytes handed in as a private key are out of range for the
+  # curve (zero, or not below the group order).
+  class InvalidPrivateKey < Error
+  end
+
+  # Raised when an RSA modulus is outside the sizes Beryl accepts: 2,048 to
+  # 8,192 bits for a public key, 2,048 to 4,096 bits for a private key.
+  class KeySizeNotSupported < Error
+  end
+
+  # Raised when an RSA public exponent is even, below 3 or above 2^32 - 1.
+  class PublicExponentNotSupported < Error
+  end
+
+  # Raised when the components of an RSA private key do not belong
+  # together: the primes are not odd, their product is not the modulus, an
+  # exponent or the coefficient is out of range, or a test operation with
+  # the key does not invert under the public exponent.
+  class MalformedPrivateKey < Error
+  end
+
+  # Raised when the result of an RSA private-key operation, raised to the
+  # public exponent, does not give back the input. A fault in the
+  # computation (a glitch, a flipped bit in memory) would otherwise release
+  # a value from which the primes can be computed, so nothing is released.
+  class FaultInPrivateKeyOperation < Error
+  end
+
+  # Raised when a message is longer than an RSA key can encrypt with OAEP:
+  # the modulus size less twice the hash size less 2 bytes (RFC 8017 §7.1.1).
+  class MessageTooLongForModulus < Error
+  end
+
+  # Raised when a PSS salt is too long for the modulus and hash: the
+  # encoded message must hold the hash, the salt and 2 more bytes
+  # (RFC 8017 §9.1.1).
+  class SaltTooLongForModulus < Error
+  end
 end

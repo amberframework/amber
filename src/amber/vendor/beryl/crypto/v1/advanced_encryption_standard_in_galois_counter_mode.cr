@@ -59,22 +59,24 @@ module Amber::Beryl::Crypto::V1
         @hash_key_state = Slice(UInt64).empty
         @round_key_bytes = Bytes.new(BitslicedAdvancedEncryptionStandard::ROUND_KEY_BYTESIZE)
         @hash_key_powers = Bytes.new(GaloisCounterModeWithProcessorInstructions::HASH_KEY_POWERS_BYTESIZE)
-        GaloisCounterModeWithProcessorInstructions.prepare(key, @round_key_bytes, @hash_key_powers)
+        DataIndependentTiming.run { GaloisCounterModeWithProcessorInstructions.prepare(key, @round_key_bytes, @hash_key_powers) }
         return
       end
 
       @round_key_bytes = Bytes.empty
       @hash_key_powers = Bytes.empty
       @round_keys = Slice(UInt64).new(BitslicedAdvancedEncryptionStandard::ROUND_KEY_WORD_COUNT, 0_u64)
-      BitslicedAdvancedEncryptionStandard.expand_key(key, @round_keys)
-
-      # The hash key is the encryption of the all-zero block.
-      hash_key_storage = StaticArray(UInt8, 16).new(0_u8)
-      hash_key = hash_key_storage.to_slice
-      BitslicedAdvancedEncryptionStandard.encrypt_blocks(@round_keys, @round_count, hash_key, hash_key)
       @hash_key_state = Slice(UInt64).new(GaloisHash::STATE_WORD_COUNT, 0_u64)
-      GaloisHash.load_key(@hash_key_state, hash_key)
-      SecretWiping.wipe(hash_key)
+      DataIndependentTiming.run do
+        BitslicedAdvancedEncryptionStandard.expand_key(key, @round_keys)
+
+        # The hash key is the encryption of the all-zero block.
+        hash_key_storage = StaticArray(UInt8, 16).new(0_u8)
+        hash_key = hash_key_storage.to_slice
+        BitslicedAdvancedEncryptionStandard.encrypt_blocks(@round_keys, @round_count, hash_key, hash_key)
+        GaloisHash.load_key(@hash_key_state, hash_key)
+        SecretWiping.wipe(hash_key)
+      end
     end
 
     def nonce_bytesize : Int32

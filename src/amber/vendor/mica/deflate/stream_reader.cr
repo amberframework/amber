@@ -17,8 +17,8 @@ module Amber::Mica::Deflate
     @produced : Int64 = 0_i64
 
     def initialize(@source : IO, format : Format, limits : DecodeLimits, timeout : Time::Span?, dictionary : Bytes?,
-                   @sync_close : Bool, list_of_headers : Array(Gzip::Header)? = nil)
-      @inflater = Inflater.acquire(@source, format, limits, timeout, dictionary, list_of_headers)
+                   @sync_close : Bool, list_of_headers : Array(Gzip::Header)? = nil, stop_at_end : Bool = false)
+      @inflater = Inflater.acquire(@source, format, limits, timeout, dictionary, list_of_headers, stop_at_end)
     end
 
     # Reads decoded bytes into *slice*; returns 0 at the end of the stream,
@@ -78,13 +78,20 @@ module Amber::Mica::Deflate
 
   # Decodes a raw DEFLATE stream (RFC 1951) as it is read.
   #
+  # With *dictionary* the stream starts from that preset dictionary (its
+  # last 32 KiB). With *stop_at_end* the reader takes from *io* only the
+  # bytes of the stream, so whatever follows it (a container's trailer,
+  # the next entry of an archive) is still there to read; without it the
+  # stream must be all that *io* holds.
+  #
   # ```
   # reader = Amber::Mica::Deflate::Reader.new(io, limits: Amber::Mica::Deflate::DecodeLimits::REQUEST_BODY, timeout: 2.seconds)
   # body = reader.gets_to_end
   # ```
   class Reader < StreamReader
-    def initialize(io : IO, *, limits : DecodeLimits, timeout : Time::Span?, sync_close : Bool = false)
-      super(io, Format::Raw, limits, timeout, nil, sync_close)
+    def initialize(io : IO, *, limits : DecodeLimits, timeout : Time::Span?, sync_close : Bool = false,
+                   dictionary : Bytes? = nil, stop_at_end : Bool = false)
+      super(io, Format::Raw, limits, timeout, dictionary, sync_close, stop_at_end: stop_at_end)
     end
   end
 end

@@ -3,6 +3,7 @@ require "digest/digest"
 require "../error"
 require "../secret_wiping"
 require "./block_hash_function"
+require "../data_independent_timing"
 
 module Amber::Beryl::Crypto::V1
   # HMAC (RFC 2104, FIPS 198-1): a message authentication code built on the
@@ -45,13 +46,13 @@ module Amber::Beryl::Crypto::V1
 
     # Returns the authentication tag of *message* under *key* in one call.
     def self.authenticate(message : Bytes | String, *, key : Bytes | String) : Bytes
-      new(key).update(message).final
+      DataIndependentTiming.run { new(key).update(message).final }
     end
 
     # Returns whether *authentication_tag* is the tag of *message* under
     # *key*, comparing in constant time.
     def self.verify(message : Bytes | String, authentication_tag : Bytes, *, key : Bytes | String) : Bool
-      new(key).update(message).verify(authentication_tag)
+      DataIndependentTiming.run { new(key).update(message).verify(authentication_tag) }
     end
 
     # Creates an authentication under *key*. A key longer than the hash's
@@ -71,7 +72,19 @@ module Amber::Beryl::Crypto::V1
       key_block = key_block_storage.to_slice[0, block_bytesize]
       padded_block = padded_block_storage.to_slice[0, block_bytesize]
 
-      key_bytes = key.to_slice
+      DataIndependentTiming.run { absorb_key(key.to_slice, key_block, padded_block) }
+      SecretWiping.wipe(key_block_storage.to_slice)
+      SecretWiping.wipe(padded_block_storage.to_slice)
+
+      @outer_block_is_laid_out = @outer_hash.lay_out_final_block(
+        @outer_block.to_slice[0, block_bytesize], digest_size, block_bytesize.to_u64 + digest_size
+      )
+      reset_impl
+    end
+
+    # Hashes the key into the keyed inner and outer states (RFC 2104 §2).
+    private def absorb_key(key_bytes : Bytes, key_block : Bytes, padded_block : Bytes) : Nil
+      block_bytesize = key_block.size
       if key_bytes.size > block_bytesize
         D.new.update(key_bytes).final(key_block[0, digest_size])
       else
@@ -82,14 +95,6 @@ module Amber::Beryl::Crypto::V1
       @inner_hash_after_key.update(padded_block)
       block_bytesize.times { |index| padded_block[index] = key_block[index] ^ OUTER_PADDING_BYTE }
       @outer_hash_after_key.update(padded_block)
-
-      SecretWiping.wipe(key_block_storage.to_slice)
-      SecretWiping.wipe(padded_block_storage.to_slice)
-
-      @outer_block_is_laid_out = @outer_hash.lay_out_final_block(
-        @outer_block.to_slice[0, block_bytesize], digest_size, block_bytesize.to_u64 + digest_size
-      )
-      reset_impl
     end
 
     # Builds a copy from another authentication's four hash states.
@@ -145,7 +150,7 @@ module Amber::Beryl::Crypto::V1
     end
 
     private def update_impl(data : Bytes) : Nil
-      @inner_hash.update(data)
+      DataIndependentTiming.run { @inner_hash.update(data) }
     end
 
     # The outer hash is the keyed outer state, the inner digest and the
@@ -156,6 +161,10 @@ module Amber::Beryl::Crypto::V1
         raise OutputSizeMismatch.new("the authentication tag is #{digest_size} bytes, the buffer holds #{dst.size}")
       end
 
+      DataIndependentTiming.run { finish(dst) }
+    end
+
+    private def finish(dst : Bytes) : Nil
       inner_digest = @outer_block.to_slice[0, digest_size]
       @inner_hash.final(inner_digest)
       if @outer_block_is_laid_out

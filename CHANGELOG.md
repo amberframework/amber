@@ -36,6 +36,29 @@ In an app made by `amber new` on an M4 Mac mini, the rendered
 961 of gzip, at a median 158 µs per request against 142 µs for gzip and
 135 µs uncompressed.
 
+- The vendored copy of Mica under `src/amber/vendor` (`Amber::Mica`) moves from
+  `4cc69ece` to amberframework/mica `84812fd1`, pinned by commit and per-file
+  sha256 in `MICA_VENDORED.json`. The Brotli writer now sizes its hash tables
+  to a body shorter than one metablock (amberframework/mica#34), Brotli
+  decoding is at least as fast as libbrotlidec 1.2.1
+  (amberframework/mica#35), and the Deflate and Zlib readers stop at the end
+  of the stream (amberframework/mica#38). The encoder stays the Z6b port of
+  libbrotlienc 1.2.1 (amberframework/mica#36 and amberframework/mica#37),
+  which `4cc69ece` already carried. Mica `84812fd1` also holds the HTTP/2 frame codec
+  and HPACK (amberframework/mica#30); they are not part of the `compression`
+  component Amber vendors.
+- The vendored copy of Beryl under `src/amber/vendor` (`Amber::Beryl`) moves from
+  `7d678c08` to amberframework/beryl `b1df8cc1`, pinned by commit and per-file
+  sha256 in `BERYL_VENDORED.json`. The hashes, HMAC, HKDF and AEADs Amber
+  calls now run with the processor's Data Independent Timing mode on
+  (amberframework/beryl#9) and give the same bytes. The copy also carries
+  Beryl's public-key code (X25519, Ed25519, P-256, P-384 and RSA at
+  OpenSSL's speed or better, F3b, amberframework/beryl#14 and
+  amberframework/beryl#15), X.509 path validation (amberframework/beryl#10)
+  and the x86-64 timing fix that gives every window of a curve
+  multiplication fresh operands (amberframework/beryl#18). Amber does not
+  call the public-key code.
+
 ## 2.0.0-beta.14 (2026-11-22)
 
 Amber 2.0.0-beta.14 lets an app drop libz and OpenSSL. Built with

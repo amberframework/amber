@@ -1,4 +1,5 @@
 require "../declassification"
+require "../data_independent_timing"
 require "../error"
 require "../secret_wiping"
 require "../processor_features"
@@ -39,12 +40,14 @@ module Amber::Beryl::Crypto::Compatibility
         @round_keys = Slice(UInt64).empty
         @round_key_bytes = Bytes.new(CipherBlockChainingWithProcessorInstructions::ROUND_KEY_BYTESIZE)
         @decryption_round_key_bytes = Bytes.new(CipherBlockChainingWithProcessorInstructions::ROUND_KEY_BYTESIZE)
-        CipherBlockChainingWithProcessorInstructions.prepare(key, @round_key_bytes, @decryption_round_key_bytes)
+        Amber::Beryl::Crypto::DataIndependentTiming.run do
+          CipherBlockChainingWithProcessorInstructions.prepare(key, @round_key_bytes, @decryption_round_key_bytes)
+        end
       else
         @round_keys = Slice(UInt64).new(V1::BitslicedAdvancedEncryptionStandard::ROUND_KEY_WORD_COUNT, 0_u64)
         @round_key_bytes = Bytes.empty
         @decryption_round_key_bytes = Bytes.empty
-        V1::BitslicedAdvancedEncryptionStandard.expand_key(key, @round_keys)
+        Amber::Beryl::Crypto::DataIndependentTiming.run { V1::BitslicedAdvancedEncryptionStandard.expand_key(key, @round_keys) }
       end
     end
 
@@ -69,6 +72,10 @@ module Amber::Beryl::Crypto::Compatibility
         )
       end
 
+      Amber::Beryl::Crypto::DataIndependentTiming.run { encrypt_with_padding(plaintext_bytes, ciphertext, initialization_vector) }
+    end
+
+    private def encrypt_with_padding(plaintext_bytes : Bytes, ciphertext : Bytes, initialization_vector : Bytes) : Nil
       padding_bytesize = ciphertext.size - plaintext_bytes.size
       if ProcessorFeatures::HAS_AES_INSTRUCTIONS
         # The whole blocks go straight from the plaintext; the last block,
@@ -122,14 +129,15 @@ module Amber::Beryl::Crypto::Compatibility
         raise Amber::Beryl::Crypto::OutputSizeMismatch.new("the buffer holds #{padded_plaintext.size} bytes, the ciphertext #{ciphertext.size}")
       end
 
-      if ProcessorFeatures::HAS_AES_INSTRUCTIONS
-        CipherBlockChainingWithProcessorInstructions.decrypt(@decryption_round_key_bytes, @round_count, initialization_vector,
-          ciphertext, padded_plaintext)
-      else
-        CipherBlockChaining.decrypt(@round_keys, @round_count, initialization_vector, ciphertext, padded_plaintext)
-      end
-      last_block = padded_plaintext[padded_plaintext.size - BLOCK_BYTESIZE, BLOCK_BYTESIZE]
-      padding_bytesize = Amber::Beryl::Crypto::Declassification.reveal(CipherBlockChaining.padding_bytesize(last_block))
+      padding_bytesize = Amber::Beryl::Crypto::Declassification.reveal(Amber::Beryl::Crypto::DataIndependentTiming.run do
+        if ProcessorFeatures::HAS_AES_INSTRUCTIONS
+          CipherBlockChainingWithProcessorInstructions.decrypt(@decryption_round_key_bytes, @round_count, initialization_vector,
+            ciphertext, padded_plaintext)
+        else
+          CipherBlockChaining.decrypt(@round_keys, @round_count, initialization_vector, ciphertext, padded_plaintext)
+        end
+        CipherBlockChaining.padding_bytesize(padded_plaintext[padded_plaintext.size - BLOCK_BYTESIZE, BLOCK_BYTESIZE])
+      end)
       if padding_bytesize == 0
         Amber::Beryl::Crypto::SecretWiping.wipe(padded_plaintext)
         return nil
