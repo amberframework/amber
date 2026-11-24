@@ -26,8 +26,8 @@ no C parsing library (libyaml, libxml2). Every job that Amber does with stdlib
 
 The bar is the one `amberframework/mica`'s `scripts/check_linkage.sh` enforces:
 `otool -L` (or `ldd`) shows no `libpcre2`, `libyaml` or `libxml2`, and `nm`
-shows no `pcre2_` symbol. Section 5 covers OpenSSL and zlib, which this bar
-does not yet decide.
+shows no `pcre2_` symbol. Section 5 extends the bar to OpenSSL, zlib and
+the collector.
 
 ## 1. Proof: what a minimal Amber V2 app links today
 
@@ -273,16 +273,32 @@ PRs 2-4 can merge in any order after PR 1. After PR 6 and PR 7 a default app
 with no Markdown, no `pattern:` validators and no CORS regex origins links no
 PCRE2 and no libyaml even before M-9; after M-9 every app does.
 
-## 5. Open question for Seth: OpenSSL and zlib
+## 5. OpenSSL, zlib and the collector (decided 2026-11-24)
 
-Stdlib's `HTTP::Server` links libssl, libcrypto and libz in every Crystal web
-program unless it is built with `-Dwithout_openssl -Dwithout_zlib`, and Amber
-signs and encrypts cookies with OpenSSL's HMAC and AES. Removing them would mean
-a pure-Crystal TLS and crypto stack, which is Beryl's territory and a much
-larger risk than parsing. **Recommended default:** the zero-linkage bar for
-Amber V2 is "no regex engine and no C parsing library" (no libpcre2, libyaml,
-libxml2); libssl, libcrypto and libz stay as the accepted crypto and
-compression floor, as the beta.6 zero-link evidence already records.
+Nothing in this section is an accepted floor any more. The bar for Amber V2
+covers every outside C library, not only the regex engine and the parsers,
+for apps built with crystal-alpha:
+
+- **zlib is replaced by Mica.** crystal-alpha runs `Compress::Deflate`,
+  `Compress::Gzip`, `Compress::Zlib` and `Compress::Zip` on Mica's DEFLATE by
+  default (`-Duse_libz` opts back in), and Amber serves `gzip` and `br` from
+  Mica. A default app links no libz.
+- **OpenSSL is being replaced by Beryl TLS.** Since beta.15, signed and
+  encrypted cookies, sessions, COSE and digests run on Beryl, and
+  `require "http/server"` brings in no OpenSSL, so a default app links no
+  libssl or libcrypto. TLS is what remains: `require "amber/tls"` (the HTTPS
+  listener and SMTP STARTTLS), `HTTP::Client` and database TLS use OpenSSL
+  until Beryl's TLS ships. The order is Beryl TLS 1.3 as server and client,
+  then `amber/tls` on Beryl, then a TLS 1.2 client with `HTTP::Client` and
+  Grant's PostgreSQL and MySQL TLS on Beryl, then Beryl as the default with
+  OpenSSL behind a flag.
+- **The Boehm collector (libgc) stays, statically linked.** A collector
+  written in Crystal would be a mission of its own.
+- The operating system layer stays: libSystem on macOS; libc, libm and
+  libgcc_s on Linux.
+
+libsqlite3 (replaced by the Grant SQLite engine) and GMP (to be replaced by a
+Crystal big-number library) follow the same rule in the same plan.
 
 ## Lessons applied
 
