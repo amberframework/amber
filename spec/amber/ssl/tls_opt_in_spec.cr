@@ -52,7 +52,7 @@ module HTTPSAppProbe
     source = File.join(FIXTURE_DIRECTORY, "https_app.cr")
 
     build_output = IO::Memory.new
-    build = Process.run(FixtureCompiler.executable, ["build", source, "-o", binary],
+    build = Process.run(FixtureCompiler.executable, ["build", "--no-debug", source, "-o", binary],
       output: build_output, error: build_output)
     raise "#{source} did not compile:\n#{build_output}" unless build.success?
 

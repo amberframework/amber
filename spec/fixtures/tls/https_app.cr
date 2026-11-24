@@ -5,7 +5,7 @@
 # fetches its own page over TLS.
 require "../../../src/amber"
 require "../../../src/amber/tls"
-require "http/client"
+require "http/client/response"
 
 # Settings load on first use, and Amber::Server.configure below is the first.
 config_path, key_file, cert_file = ARGV[0], ARGV[1], ARGV[2]
@@ -44,10 +44,16 @@ STDOUT.flush
 
 spawn(name: "tls probe server") { Amber::Server.start }
 
-# The spec certificate is self-signed, so the client skips verification.
+# The spec certificate is self-signed, so the client skips verification. A raw
+# TLS socket keeps HTTP::Client, and the compiler memory it costs, out of the build.
 client_context = OpenSSL::SSL::Context::Client.insecure
 100.times do
-  response = HTTP::Client.get("https://127.0.0.1:#{port}/", tls: client_context)
+  tcp_socket = TCPSocket.new("127.0.0.1", port)
+  tls_socket = OpenSSL::SSL::Socket::Client.new(tcp_socket, client_context, sync_close: true)
+  tls_socket << "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"
+  tls_socket.flush
+  response = HTTP::Client::Response.from_io(tls_socket)
+  tls_socket.close
   STDOUT.puts "status=#{response.status_code}"
   STDOUT.puts "body=#{response.body}"
   exit 0
