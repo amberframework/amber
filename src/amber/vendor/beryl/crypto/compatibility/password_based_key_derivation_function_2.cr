@@ -1,5 +1,6 @@
 require "../error"
 require "../secret_wiping"
+require "../data_independent_timing"
 require "../v1/hash_based_message_authentication_code"
 require "../v1/secure_hash_with_256_bit_digest"
 require "../v1/secure_hash_with_512_bit_digest"
@@ -40,10 +41,14 @@ module Amber::Beryl::Crypto::Compatibility
         raise DerivedKeySizeIsNegative.new("PBKDF2 was asked for #{bytesize} bytes")
       end
 
-      derived_key = Bytes.new(bytesize)
+      DataIndependentTiming.run { derive_into(password.to_slice, salt.to_slice, iteration_count, Bytes.new(bytesize)) }
+    end
+
+    # Fills *derived_key* with T(1) | T(2) | ... and returns it.
+    private def self.derive_into(password : Bytes, salt_bytes : Bytes, iteration_count : Int32, derived_key : Bytes) : Bytes
+      bytesize = derived_key.size
       authentication = V1::HMAC(D).new(password)
       digest_bytesize = authentication.digest_size
-      salt_bytes = salt.to_slice
       chained_storage = uninitialized UInt8[V1::BlockHashFunction::LARGEST_DIGEST_SIZE]
       block_storage = uninitialized UInt8[V1::BlockHashFunction::LARGEST_DIGEST_SIZE]
       chained = chained_storage.to_slice[0, digest_bytesize]

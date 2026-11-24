@@ -38,6 +38,7 @@ module Amber::Beryl::Crypto
       private SHA1_CAPABILITY             = 1_u64 << 5
       private SHA256_CAPABILITY           = 1_u64 << 6
       private SHA512_CAPABILITY           = 1_u64 << 21
+      private DIT_CAPABILITY              = 1_u64 << 24
 
       private def self.has_capability?(capability : UInt64) : Bool
         LibAuxiliaryVector.getauxval(HARDWARE_CAPABILITIES_ENTRY).to_u64 & capability != 0
@@ -142,6 +143,23 @@ module Amber::Beryl::Crypto
       HAS_WIDE_MULTIPLICATION = true
     {% else %}
       HAS_WIDE_MULTIPLICATION = false
+    {% end %}
+
+    # Whether the processor has Data Independent Timing (FEAT_DIT, Armv8.4):
+    # a mode in which the time of data-processing instructions does not
+    # depend on the values they work on. Every Apple Silicon processor has
+    # it; Linux lists it as `HWCAP_DIT`. See `DataIndependentTiming`.
+    # `-Dberyl_without_data_independent_timing` leaves the mode alone, for
+    # running under Valgrind, whose AArch64 decoder does not know the DIT
+    # register; the instructions in between are the same either way.
+    {% if flag?(:beryl_without_data_independent_timing) %}
+      HAS_DATA_INDEPENDENT_TIMING = false
+    {% elsif flag?(:aarch64) && flag?(:darwin) %}
+      HAS_DATA_INDEPENDENT_TIMING = true
+    {% elsif flag?(:aarch64) && flag?(:linux) %}
+      HAS_DATA_INDEPENDENT_TIMING = has_capability?(DIT_CAPABILITY)
+    {% else %}
+      HAS_DATA_INDEPENDENT_TIMING = false
     {% end %}
 
     # Whether AES-GCM runs on the processor's instructions: it needs both

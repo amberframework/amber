@@ -29,11 +29,13 @@ module Amber::Mica::Zlib
     Deflate::Deflater.encode(input, Deflate::Format::Zlib, level, dictionary)
   end
 
-  # Decodes a zlib stream as it is read.
+  # Decodes a zlib stream as it is read. With *stop_at_end* the reader
+  # takes from *io* only the bytes of the stream and leaves what follows;
+  # without it the stream must be all that *io* holds.
   class Reader < Deflate::StreamReader
     def initialize(io : IO, *, limits : Deflate::DecodeLimits, timeout : Time::Span?, dictionary : Bytes? = nil,
-                   sync_close : Bool = false)
-      super(io, Deflate::Format::Zlib, limits, timeout, dictionary, sync_close)
+                   sync_close : Bool = false, stop_at_end : Bool = false)
+      super(io, Deflate::Format::Zlib, limits, timeout, dictionary, sync_close, stop_at_end: stop_at_end)
     end
   end
 

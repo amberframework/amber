@@ -14,6 +14,11 @@ require "./crypto/compatibility"
 # Amber::Beryl::Crypto.derive_key(shared_secret, info: "cookies", bytesize: 32) # HKDF-SHA256
 # sealed = Amber::Beryl::Crypto.encrypt("a private note", key: secret_key)      # XChaCha20-Poly1305
 # Amber::Beryl::Crypto.decrypt(sealed, key: secret_key)                         # => the note, or nil
+# signing_key = Amber::Beryl::Crypto.generate_signing_key                       # Ed25519
+# signature = Amber::Beryl::Crypto.sign("a message", signing_key: signing_key)
+# Amber::Beryl::Crypto.verify_signature("a message", signature, verification_key: signing_key.verification_key) # => true
+# mine = Amber::Beryl::Crypto.generate_key_agreement_key                                                        # X25519
+# Amber::Beryl::Crypto.agree_on_shared_secret(mine, peer_public_key)                                            # => 32 bytes, or nil
 # ```
 #
 # `Amber::Beryl::Crypto::V1` names each algorithm exactly, for code that must keep
@@ -84,5 +89,35 @@ module Amber::Beryl::Crypto
       nonce: encrypted_message[0, ENCRYPTED_MESSAGE_NONCE_BYTESIZE],
       associated_data: associated_data,
     )
+  end
+
+  # Returns a new Ed25519 signing key (RFC 8032). Its `verification_key`
+  # is the public half to hand out.
+  def self.generate_signing_key : V1::Ed25519::SigningKey
+    V1::Ed25519::SigningKey.generate
+  end
+
+  # Returns the Ed25519 signature of *message* (64 bytes).
+  def self.sign(message : Bytes | String, *, signing_key : V1::Ed25519::SigningKey) : Bytes
+    signing_key.sign(message)
+  end
+
+  # Returns whether *signature* is the Ed25519 signature of *message* under
+  # *verification_key*.
+  def self.verify_signature(message : Bytes | String, signature : Bytes, *, verification_key : V1::Ed25519::VerificationKey) : Bool
+    verification_key.verify(message, signature)
+  end
+
+  # Returns a new X25519 key agreement key (RFC 7748). Its `public_key` is
+  # the half to send to the peer.
+  def self.generate_key_agreement_key : V1::X25519::PrivateKey
+    V1::X25519::PrivateKey.generate
+  end
+
+  # Returns the 32-byte X25519 shared secret of *own_key* and
+  # *peer_public_key*, or `nil` when the peer sent a point of small order.
+  # Derive keys from it with `derive_key`; never use it as a key directly.
+  def self.agree_on_shared_secret(own_key : V1::X25519::PrivateKey, peer_public_key : V1::X25519::PublicKey) : Bytes?
+    own_key.shared_secret(peer_public_key)
   end
 end

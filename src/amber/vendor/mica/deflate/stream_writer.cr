@@ -65,7 +65,9 @@ module Amber::Mica::Deflate
     end
   end
 
-  # Encodes a raw DEFLATE stream (RFC 1951) as it is written.
+  # Encodes a raw DEFLATE stream (RFC 1951) as it is written. With
+  # *dictionary* the stream starts from that preset dictionary (its last
+  # 32 KiB), which the decoder needs too.
   #
   # ```
   # writer = Amber::Mica::Deflate::Writer.new(io, level: 6)
@@ -73,8 +75,8 @@ module Amber::Mica::Deflate
   # writer.close
   # ```
   class Writer < StreamWriter
-    def initialize(io : IO, *, level : Int32 = 6, sync_close : Bool = false)
-      super(io, Format::Raw, level, nil, nil, sync_close)
+    def initialize(io : IO, *, level : Int32 = 6, sync_close : Bool = false, dictionary : Bytes? = nil)
+      super(io, Format::Raw, level, dictionary, nil, sync_close)
     end
   end
 end

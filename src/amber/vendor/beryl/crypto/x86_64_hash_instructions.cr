@@ -14,6 +14,9 @@ module Amber::Beryl::Crypto
   # branch, on the count of blocks left, and reads memory only at fixed
   # offsets from its three inputs, so its timing does not depend on the
   # message or the state. `scripts/check_secret_flow.rb` checks exactly that.
+  # The loop's `dec` and `add` write the flags, so each statement names the
+  # x86-64 flags clobber "flags"; LLVM ignores "cc" on x86-64 (see
+  # `FieldArithmetic::FieldsInAssembly`).
   #
   # Registers: r8 state, r9 message, r10 blocks left, rax constants.
   module X8664HashInstructions
@@ -89,7 +92,7 @@ module Amber::Beryl::Crypto
         {% template = template + "  .long #{constant}\n".gsub(/_u32/, "") %}
       {% end %}
       {% template = template + "  .quad 0x0405060700010203\n  .quad 0x0c0d0e0f08090a0b\n9:\n" %}
-      asm({{ template }} :: "r"({{ state_pointer }}), "r"({{ block_pointer }}), "r"({{ block_count }}) : "rax", "r8", "r9", "r10", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9", "xmm10", "memory", "cc")
+      asm({{ template }} :: "r"({{ state_pointer }}), "r"({{ block_pointer }}), "r"({{ block_count }}) : "rax", "r8", "r9", "r10", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9", "xmm10", "memory", "flags")
     end
 
     # SHA-1. xmm1 holds a, b, c, d; `sha1rnds4` runs four rounds, taking e
@@ -155,7 +158,7 @@ module Amber::Beryl::Crypto
   .quad 0x0001020304050607
 9:
 " %}
-      asm({{ template }} :: "r"({{ state_pointer }}), "r"({{ block_pointer }}), "r"({{ block_count }}) : "rax", "r8", "r9", "r10", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9", "xmm10", "memory", "cc")
+      asm({{ template }} :: "r"({{ state_pointer }}), "r"({{ block_pointer }}), "r"({{ block_count }}) : "rax", "r8", "r9", "r10", "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9", "xmm10", "memory", "flags")
     end
   end
 end

@@ -1,5 +1,6 @@
 require "crypto/subtle"
 require "../declassification"
+require "../data_independent_timing"
 require "../error"
 require "../secret_wiping"
 
@@ -92,9 +93,11 @@ module Amber::Beryl::Crypto::V1
 
       ciphertext = ciphertext_and_tag[0, plaintext_bytes.size]
       full_tag_storage = uninitialized UInt8[FULL_TAG_BYTESIZE]
-      seal(nonce, associated_data.to_slice, plaintext_bytes, ciphertext, full_tag_storage.to_slice)
-      full_tag_storage.to_slice[0, @tag_bytesize].copy_to(ciphertext_and_tag[plaintext_bytes.size, @tag_bytesize])
-      SecretWiping.wipe(full_tag_storage.to_slice)
+      DataIndependentTiming.run do
+        seal(nonce, associated_data.to_slice, plaintext_bytes, ciphertext, full_tag_storage.to_slice)
+        full_tag_storage.to_slice[0, @tag_bytesize].copy_to(ciphertext_and_tag[plaintext_bytes.size, @tag_bytesize])
+        SecretWiping.wipe(full_tag_storage.to_slice)
+      end
     end
 
     # Returns the plaintext of *ciphertext_and_tag*, or `nil` when the
@@ -124,8 +127,10 @@ module Amber::Beryl::Crypto::V1
 
       # `open` reveals its verdict where it computes it; revealing it again
       # here tells the secret-flow check that the caller sees a public value.
-      Declassification.reveal(open(nonce, associated_data.to_slice, ciphertext_and_tag[0, plaintext.size],
-        ciphertext_and_tag[plaintext.size, @tag_bytesize], plaintext))
+      Declassification.reveal(DataIndependentTiming.run do
+        open(nonce, associated_data.to_slice, ciphertext_and_tag[0, plaintext.size],
+          ciphertext_and_tag[plaintext.size, @tag_bytesize], plaintext)
+      end)
     end
 
     # Returns whether *ciphertext_and_tag* carries the right tag for *nonce*
@@ -137,11 +142,13 @@ module Amber::Beryl::Crypto::V1
 
       ciphertext_bytesize = ciphertext_and_tag.size - @tag_bytesize
       full_tag_storage = uninitialized UInt8[FULL_TAG_BYTESIZE]
-      compute_tag(nonce, associated_data.to_slice, ciphertext_and_tag[0, ciphertext_bytesize], full_tag_storage.to_slice)
-      tags_match = ::Crypto::Subtle.constant_time_compare(
-        full_tag_storage.to_slice[0, @tag_bytesize],
-        ciphertext_and_tag[ciphertext_bytesize, @tag_bytesize]
-      )
+      tags_match = DataIndependentTiming.run do
+        compute_tag(nonce, associated_data.to_slice, ciphertext_and_tag[0, ciphertext_bytesize], full_tag_storage.to_slice)
+        ::Crypto::Subtle.constant_time_compare(
+          full_tag_storage.to_slice[0, @tag_bytesize],
+          ciphertext_and_tag[ciphertext_bytesize, @tag_bytesize]
+        )
+      end
       SecretWiping.wipe(full_tag_storage.to_slice)
       tags_match
     end
