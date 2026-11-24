@@ -146,7 +146,8 @@ module Amber
     # the environment file, `AMBER_*` variables and `config/settings.cr`.
     #
     # It also raises `Amber::Exceptions::TLSNotCompiledIn` when the settings
-    # ask for TLS (`server.ssl`, or the `smtp` mailer with `use_tls`) and the
+    # ask for TLS (`server.ssl`, or the `smtp` mailer with `use_tls` or
+    # `use_implicit_tls`) and the
     # app does not require `amber/tls`, so the app stops at start instead of
     # at its first HTTPS connection or email.
     def check_listener_settings! : Nil
@@ -157,7 +158,7 @@ module Amber
 
       raise Amber::Exceptions::TLSNotCompiledIn.new(Amber::TLS::LISTENER) if ssl_enabled?
       mailer = settings.mailer
-      if mailer.adapter_symbol == :smtp && mailer.smtp.use_tls
+      if mailer.adapter_symbol == :smtp && (mailer.smtp.use_tls || mailer.smtp.use_implicit_tls)
         raise Amber::Exceptions::TLSNotCompiledIn.new(Amber::TLS::STARTTLS)
       end
     end
@@ -173,8 +174,8 @@ module Amber
       # Expanded when this method is instantiated, after every file is
       # required, so `require "amber/tls"` may come before or after
       # `require "amber"`.
-      {% if Amber::TLS.has_constant?(:OpenSSLBackend) %}
-        Amber::TLS::OpenSSLBackend.bind_listener(server, settings.host, settings.port, key_file, cert_file, settings.port_reuse)
+      {% if Amber::TLS.has_constant?(:Backend) %}
+        Amber::TLS::Backend.bind_listener(server, settings.host, settings.port, key_file, cert_file, settings.port_reuse)
       {% else %}
         raise Amber::Exceptions::TLSNotCompiledIn.new(Amber::TLS::LISTENER)
       {% end %}

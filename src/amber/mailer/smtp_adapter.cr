@@ -5,8 +5,12 @@ module Amber::Mailer
   # SMTP delivery adapter for sending emails via an SMTP server.
   #
   # Implements the SMTP protocol using Crystal's standard library Socket.
-  # Supports STARTTLS for encrypted connections, which needs
-  # `require "amber/tls"` in the app, and AUTH LOGIN for authentication.
+  # Supports STARTTLS (`use_tls`, port 587) and implicit TLS
+  # (`use_implicit_tls`, port 465), which need `require "amber/tls"` in the
+  # app, and AUTH LOGIN for authentication. TLS is TLS 1.3 only: the server's
+  # certificate chain and name are verified, against the Mozilla roots or the
+  # certificates in `ca_certificates_file`, and a server that offers no TLS
+  # 1.3 fails delivery with an error that names the requirement.
   #
   # ## Usage
   #
@@ -25,7 +29,7 @@ module Amber::Mailer
   #
   # ## SMTP Protocol Flow
   #
-  # 1. Connect to SMTP server
+  # 1. Connect to SMTP server (and start TLS at once with `use_implicit_tls`)
   # 2. Read server greeting (220)
   # 3. Send EHLO
   # 4. Optionally upgrade to TLS via STARTTLS
@@ -40,6 +44,8 @@ module Amber::Mailer
     property username : String?
     property password : String?
     property use_tls : Bool
+    property use_implicit_tls : Bool
+    property ca_certificates_file : String?
     property helo_domain : String
 
     def initialize(
@@ -49,6 +55,8 @@ module Amber::Mailer
       @password : String? = nil,
       @use_tls : Bool = false,
       @helo_domain : String = "localhost",
+      @use_implicit_tls : Bool = false,
+      @ca_certificates_file : String? = nil,
     )
     end
 
@@ -58,6 +66,13 @@ module Amber::Mailer
     # Returns a `DeliveryResult` indicating whether the delivery succeeded.
     # On failure, the error message contains details about what went wrong.
     def deliver(email : Email) : DeliveryResult
+      # Refused before connecting when the app does not require "amber/tls".
+      {% unless Amber::TLS.has_constant?(:Backend) %}
+        if @use_tls || @use_implicit_tls
+          raise Amber::Exceptions::TLSNotCompiledIn.new(Amber::TLS::STARTTLS)
+        end
+      {% end %}
+
       begin
         socket = TCPSocket.new(@host, @port)
       rescue ex : Socket::ConnectError
@@ -69,6 +84,9 @@ module Amber::Mailer
       io : IO = socket
 
       begin
+        # Implicit TLS starts before the greeting (RFC 8314).
+        io = start_tls(socket) if @use_implicit_tls
+
         # Read server greeting
         read_response(io, expected_code: 220)
 
@@ -76,16 +94,9 @@ module Amber::Mailer
         send_command(io, "EHLO #{@helo_domain}", expected_code: 250)
 
         # Upgrade to TLS if requested
-        if @use_tls
-          # Expanded when this method is instantiated, after every file is
-          # required, so `require "amber/tls"` may come before or after
-          # `require "amber"`.
-          {% if Amber::TLS.has_constant?(:OpenSSLBackend) %}
-            send_command(io, "STARTTLS", expected_code: 220)
-            io = Amber::TLS::OpenSSLBackend.start_client_session(socket, @host)
-          {% else %}
-            raise Amber::Exceptions::TLSNotCompiledIn.new(Amber::TLS::STARTTLS)
-          {% end %}
+        if @use_tls && !@use_implicit_tls
+          send_command(io, "STARTTLS", expected_code: 220)
+          io = start_tls(socket)
 
           # Re-send EHLO after TLS upgrade
           send_command(io, "EHLO #{@helo_domain}", expected_code: 250)
@@ -122,13 +133,32 @@ module Amber::Mailer
         DeliveryResult.new(is_successful: true)
       rescue ex : SMTPError
         DeliveryResult.new(is_successful: false, error: ex.message)
+      rescue ex : Amber::TLS::ClientSessionFailed
+        DeliveryResult.new(is_successful: false, error: "SMTP #{ex.message}")
       rescue ex : IO::Error
         DeliveryResult.new(is_successful: false, error: "SMTP connection error: #{ex.message}")
       rescue ex : Socket::Error
         DeliveryResult.new(is_successful: false, error: "SMTP socket error: #{ex.message}")
       ensure
+        begin
+          io.close unless io.same?(socket)
+        rescue IO::Error
+        end
         socket.close rescue nil
       end
+    end
+
+    # Starts TLS 1.3 over *socket*, verifying the server's certificate
+    # against `host`.
+    private def start_tls(socket : TCPSocket) : IO
+      # Expanded when this method is instantiated, after every file is
+      # required, so `require "amber/tls"` may come before or after
+      # `require "amber"`.
+      {% if Amber::TLS.has_constant?(:Backend) %}
+        Amber::TLS::Backend.start_client_session(socket, @host, @ca_certificates_file)
+      {% else %}
+        raise Amber::Exceptions::TLSNotCompiledIn.new(Amber::TLS::STARTTLS)
+      {% end %}
     end
 
     # Sends a command to the SMTP server and reads the response.

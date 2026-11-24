@@ -155,7 +155,9 @@ end
 | `smtp_port` | `587` | SMTP server port |
 | `smtp_username` | `nil` | SMTP AUTH LOGIN username |
 | `smtp_password` | `nil` | SMTP AUTH LOGIN password |
-| `use_tls` | `true` | Enable STARTTLS encryption; needs `require "amber/tls"` (see below) |
+| `use_tls` | `true` | STARTTLS (port 587), TLS 1.3 only; needs `require "amber/tls"` (see below) |
+| `use_implicit_tls` | `false` | TLS from the first byte (port 465, RFC 8314), TLS 1.3 only; when set, `use_tls` is not used |
+| `ca_certificates_file` | `nil` | PEM file of the certificates the server's chain is verified against, in place of the Mozilla roots (e.g. a private CA) |
 | `default_from` | `"noreply@example.com"` | Default sender when `from` is not called |
 | `helo_domain` | `"localhost"` | Domain sent in EHLO command |
 
@@ -173,6 +175,8 @@ mailer:
     username: "user@example.com"
     password: "secret"
     use_tls: true
+    use_implicit_tls: false
+    ca_certificates_file: null
     helo_domain: "myapp.com"
 ```
 
@@ -186,6 +190,8 @@ AMBER_MAILER_SMTP_PORT=587
 AMBER_MAILER_SMTP_USERNAME=user@example.com
 AMBER_MAILER_SMTP_PASSWORD=secret
 AMBER_MAILER_SMTP_USE_TLS=true
+AMBER_MAILER_SMTP_USE_IMPLICIT_TLS=false
+AMBER_MAILER_SMTP_CA_CERTIFICATES_FILE=/etc/ssl/private-ca.pem
 AMBER_MAILER_SMTP_HELO_DOMAIN=myapp.com
 ```
 
@@ -207,21 +213,31 @@ Amber::Mailer::MemoryAdapter.last        # => Email?
 
 ### SMTPAdapter
 
-Delivers emails via the SMTP protocol. Supports STARTTLS encryption and AUTH LOGIN authentication.
+Delivers emails via the SMTP protocol. Supports STARTTLS, implicit TLS and AUTH LOGIN authentication.
 
-STARTTLS comes from OpenSSL, and TLS is opt-in: an app that sends mail with
-`use_tls` (the default) adds `require "amber/tls"` to `config/application.cr`,
+**TLS 1.3 is required.** The mailer's TLS is Beryl, Amber's own TLS 1.3 in
+Crystal; it links no OpenSSL. The server's certificate chain is verified to
+the Mozilla roots (or to `ca_certificates_file`) and must name `smtp_host`.
+A mail server that offers only TLS 1.2 or older is refused, and the delivery
+fails with an error that says so:
+
+```text
+SMTP TLS with smtp.example.com failed: Amber speaks TLS 1.3 only (RFC 8446); the mail server must offer TLS 1.3, and it did not (...)
+```
+
+TLS is opt-in: an app that sends mail with `use_tls` (the default) or
+`use_implicit_tls` adds `require "amber/tls"` to `config/application.cr`,
 right after `require "amber"`. Without it, a server whose settings name the
-`smtp` adapter with `use_tls` stops at start with
+`smtp` adapter with either stops at start with
 `Amber::Exceptions::TLSNotCompiledIn`, and `deliver` raises the same error
-when an adapter configured in code asks for STARTTLS.
+when an adapter configured in code asks for TLS.
 
 The SMTP protocol flow is:
 
-1. Connect to SMTP server
+1. Connect to SMTP server (with `use_implicit_tls`, start TLS 1.3 at once)
 2. Read server greeting (220)
 3. Send EHLO
-4. Optionally upgrade to TLS via STARTTLS
+4. Optionally upgrade to TLS 1.3 via STARTTLS
 5. Re-send EHLO after TLS upgrade
 6. Authenticate via AUTH LOGIN if credentials are provided
 7. Send MAIL FROM, RCPT TO, DATA commands

@@ -66,9 +66,10 @@ server:
 
 #### Serving HTTPS from the app: `require "amber/tls"`
 
-TLS is opt-in. An app made by `amber new` links no OpenSSL, which suits an
-app whose TLS ends at a proxy or load balancer. An app that serves HTTPS
-itself (`server.ssl`) or sends mail over SMTP STARTTLS adds one line to
+TLS is opt-in, and it is TLS 1.3 only. An app made by `amber new` has no
+TLS, which suits an app whose TLS ends at a proxy or load balancer. An app
+that serves HTTPS itself (`server.ssl`) or sends mail over SMTP TLS adds one
+line to
 `config/application.cr`, right after `require "amber"` (`amber new --tls`
 writes it):
 
@@ -84,9 +85,16 @@ forks or binds, with `Amber::Exceptions::TLSNotCompiledIn`:
 The HTTPS listener (server.ssl.key_file and server.ssl.cert_file) needs TLS, and this app does not require "amber/tls". Add `require "amber/tls"` to config/application.cr to use TLS.
 ```
 
-`Amber::TLS.compiled_in?` tells whether the app has it. The flag
-`-Dwithout_openssl` and `require "amber/tls"` exclude each other: the build
-stops with a message that names both.
+`require "amber/tls"` serves TLS 1.3 on Beryl, Amber's own TLS written in
+Crystal, so the app links no libssl or libcrypto. `server.ssl.cert_file` is
+the PEM certificate chain, leaf first; `server.ssl.key_file` the PEM private
+key (P-256, RSA of 2,048 to 4,096 bits, or Ed25519). The listener reads the
+client's server name (SNI) and offers ALPN `http/1.1`. A client that cannot
+speak TLS 1.3 is refused.
+
+`Amber::TLS.compiled_in?` tells whether the app has it. For one release, a
+build with `-Duse_openssl` serves the same settings from OpenSSL instead,
+still TLS 1.3 only; that flag and `-Dwithout_openssl` exclude each other.
 
 #### Running behind a TLS-terminating proxy
 
@@ -312,7 +320,9 @@ mailer:
     port: 587
     username: "user@example.com"
     password: "secret"
-    use_tls: true
+    use_tls: true               # STARTTLS, TLS 1.3 only
+    use_implicit_tls: false     # TLS from the first byte (port 465)
+    ca_certificates_file: null  # PEM roots in place of the Mozilla roots
     helo_domain: "example.com"
 ```
 
@@ -493,6 +503,8 @@ The naming convention is `AMBER_{SECTION}_{KEY}`:
 | `AMBER_MAILER_SMTP_USERNAME` | `mailer.smtp.username` |
 | `AMBER_MAILER_SMTP_PASSWORD` | `mailer.smtp.password` |
 | `AMBER_MAILER_SMTP_USE_TLS` | `mailer.smtp.use_tls` |
+| `AMBER_MAILER_SMTP_USE_IMPLICIT_TLS` | `mailer.smtp.use_implicit_tls` |
+| `AMBER_MAILER_SMTP_CA_CERTIFICATES_FILE` | `mailer.smtp.ca_certificates_file` |
 | `AMBER_MAILER_SMTP_HELO_DOMAIN` | `mailer.smtp.helo_domain` |
 | `AMBER_SECURITY_HEADERS_CONTENT_TYPE_OPTIONS` | `security_headers.content_type_options` |
 | `AMBER_SECURITY_HEADERS_FRAME_OPTIONS` | `security_headers.frame_options` |
