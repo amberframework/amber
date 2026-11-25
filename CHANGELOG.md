@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+**`require "amber/tls"` runs on Beryl: TLS 1.3, no OpenSSL.** The HTTPS
+listener and the SMTP mailer's TLS now use Beryl, Amber's own TLS 1.3 written
+in Crystal, from the vendored copy (`Amber::Beryl::TLS`). An `amber new --tls`
+app links no libssl or libcrypto. TLS 1.3 is the requirement everywhere:
+a client or mail server that cannot speak it is refused.
+
+- **HTTPS listener:** the PEM certificate chain (`server.ssl.cert_file`) and
+  private key (`server.ssl.key_file`, P-256, RSA or Ed25519), SNI read, ALPN
+  `http/1.1`. Each handshake runs in its connection's fiber, and a client
+  whose handshake fails ends that connection quietly.
+- **Mailer:** STARTTLS (`use_tls`) and, new, implicit TLS
+  (`use_implicit_tls`, port 465). The server's chain is verified to the
+  Mozilla roots, or to `ca_certificates_file` (new), and must name the
+  host. A mail server that offers only TLS 1.2 fails delivery with an error
+  that names the TLS 1.3 requirement (`Amber::TLS::TLS_1_3_REQUIREMENT`).
+- **Opt-out for one release:** building with `-Duse_openssl` serves the same
+  settings from OpenSSL, held to TLS 1.3.
+- The vendored Beryl moves to v0.2.0 (commit 36bf6b5c), the release with TLS 1.3.
+
 ## 2.0.0-beta.15 (2026-11-24)
 
 Amber 2.0.0-beta.15 makes TLS opt-in. On crystal-alpha 1.22.3-incremental-1,

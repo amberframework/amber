@@ -31,6 +31,8 @@ module Amber::Mailer
     property smtp_username : String? = nil
     property smtp_password : String? = nil
     property use_tls : Bool = true
+    property use_implicit_tls : Bool = false
+    property ca_certificates_file : String? = nil
     property default_from : String = "noreply@example.com"
     property helo_domain : String = "localhost"
 
@@ -78,6 +80,8 @@ module Amber::Mailer
           username: @smtp_username,
           password: @smtp_password,
           use_tls: @use_tls,
+          use_implicit_tls: @use_implicit_tls,
+          ca_certificates_file: @ca_certificates_file,
           helo_domain: @helo_domain,
         )
       else

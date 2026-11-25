@@ -377,6 +377,12 @@ module Amber::Configuration
       if v = ENV["AMBER_MAILER_SMTP_USE_TLS"]?
         config.use_tls = parse_bool(v)
       end
+      if v = ENV["AMBER_MAILER_SMTP_USE_IMPLICIT_TLS"]?
+        config.use_implicit_tls = parse_bool(v)
+      end
+      if v = ENV["AMBER_MAILER_SMTP_CA_CERTIFICATES_FILE"]?
+        config.ca_certificates_file = v
+      end
       if v = ENV["AMBER_MAILER_SMTP_HELO_DOMAIN"]?
         config.helo_domain = v
       end

@@ -8,7 +8,14 @@ module Amber::Configuration
     property port : Int32 = 587
     property username : String? = nil
     property password : String? = nil
+    # STARTTLS after the greeting (port 587). TLS 1.3 only.
     property use_tls : Bool = true
+    # TLS from the first byte (port 465, RFC 8314). TLS 1.3 only; when set,
+    # `use_tls` is not used.
+    property use_implicit_tls : Bool = false
+    # A PEM file of the certificates the mail server's chain is verified
+    # against, in place of the Mozilla roots, e.g. a private CA.
+    property ca_certificates_file : String? = nil
     property helo_domain : String = "localhost"
 
     def initialize

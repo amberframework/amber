@@ -53,7 +53,7 @@ crystal docs                   # Generate API docs → docs/
 
 12. **Markdown** (`src/amber/markdown/`): GFM-compatible renderer with autolinks, footnotes, table of contents, syntax highlighting
 
-13. **Session Security** (`src/amber/support/`): MessageEncryptor (XChaCha20-Poly1305, format version 2; still reads AES-256-CBC version 1) and MessageVerifier (HMAC-SHA256), SameSite cookies, key rotation, session regeneration. The cryptography is a pinned copy of Beryl under `src/amber/vendor` (`Amber::Beryl`); refresh it with Beryl's `scripts/vendor_into.rb`, never by hand. OpenSSL is used for TLS only, and only in an app that requires `amber/tls` (`src/amber/tls.cr`: the HTTPS listener and SMTP STARTTLS); on stock Crystal, `-Dwithout_openssl` builds without it
+13. **Session Security** (`src/amber/support/`): MessageEncryptor (XChaCha20-Poly1305, format version 2; still reads AES-256-CBC version 1) and MessageVerifier (HMAC-SHA256), SameSite cookies, key rotation, session regeneration. The cryptography is a pinned copy of Beryl under `src/amber/vendor` (`Amber::Beryl`); refresh it with Beryl's `scripts/vendor_into.rb`, never by hand. TLS is TLS 1.3 only, on the same vendored Beryl (`Amber::Beryl::TLS`), and only in an app that requires `amber/tls` (`src/amber/tls.cr`: the HTTPS listener and the SMTP mailer's STARTTLS and implicit TLS); `-Duse_openssl` puts OpenSSL back for one release. On stock Crystal, `-Dwithout_openssl` builds without OpenSSL, `amber/tls` included
 
 14. **DSL** (`src/amber/dsl/`): Macros for server configuration, router definition, pipeline composition, and callback registration
 

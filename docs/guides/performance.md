@@ -219,12 +219,12 @@ place of `\w` when the input is ASCII), or keep it as an ordinary literal.
 **Run from: the application root.**
 
 TLS is opt-in. Amber requires `http/server` (not `http`) and compiles its
-HTTPS listener and SMTP STARTTLS only into an app that adds
+HTTPS listener and the mailer's TLS only into an app that adds
 `require "amber/tls"` after `require "amber"` in `config/application.cr`
-(`amber new --tls` writes it). On crystal-alpha, whose `http/server` leaves
-TLS out until the program requires `openssl` or `http/server/tls`, a
-default app then links no libssl or libcrypto with no flag at all; an app
-that keeps TLS at a proxy needs nothing else. An app that sets `server.ssl`
+(`amber new --tls` writes it). That TLS is TLS 1.3 on Beryl, Amber's own
+TLS in Crystal, so on crystal-alpha, whose `http/server` leaves OpenSSL out
+until the program requires `openssl` or `http/server/tls`, every app, the
+`--tls` ones included, links no libssl or libcrypto with no flag at all. An app that sets `server.ssl`
 without the require stops at start with
 `Amber::Exceptions::TLSNotCompiledIn`, which names the require.
 
@@ -242,10 +242,10 @@ and libz by default. With the flags, Amber does that work in Crystal:
 | Flag | What Amber uses instead | What the flag turns off |
 |---|---|---|
 | `-Dwithout_zlib` | `Amber::Pipe::Compression` compresses with pinned copies of Mica's Brotli and DEFLATE encoders (`src/amber/vendor`), so `br` never needs libbrotli either. Grant's compressed encrypted columns and asset_pipeline's precompressed assets and cached pages use Mica too | `HTTP::Client` asks for no compression and raises on a compressed answer; the server never inflates a request body (Amber answers those `415` in any build) |
-| `-Dwithout_openssl` | `MessageVerifier`, `MessageEncryptor` and COSE run on a pinned copy of Beryl (`Amber::Beryl`): cookies are sealed with XChaCha20-Poly1305 under a key from HKDF-SHA256 | The HTTPS listener and SMTP STARTTLS raise `Amber::Exceptions::TLSNotCompiledIn`, which names the flag; `HTTP::Client` cannot call `https://` URLs |
+| `-Dwithout_openssl` | `MessageVerifier`, `MessageEncryptor` and COSE run on a pinned copy of Beryl (`Amber::Beryl`): cookies are sealed with XChaCha20-Poly1305 under a key from HKDF-SHA256 | Nothing in Amber: `require "amber/tls"` serves HTTPS and the mailer's TLS on Beryl either way. `HTTP::Client` cannot call `https://` URLs |
 
-So `-Dwithout_openssl` fits an app whose TLS ends at a proxy or load
-balancer and which calls no HTTPS service itself. `-Dwithout_zlib` fits
+So `-Dwithout_openssl` fits any Amber app that calls no HTTPS service
+itself. `-Dwithout_zlib` fits
 every Amber app on the versions in the table at the top. Your own
 `require "compress/gzip"` or `OpenSSL` call links the library again.
 
