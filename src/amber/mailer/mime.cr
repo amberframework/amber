@@ -23,8 +23,10 @@ module Amber::Mailer
     # in the appropriate MIME structure.
     def self.build(email : Email) : String
       String.build do |io|
+        # The Content-Type and Content-Transfer-Encoding headers the body
+        # writers add belong to this header block, so each body writer ends
+        # the block itself with the blank line.
         write_headers(io, email)
-        io << CRLF
 
         if email.attachments.empty?
           write_body_without_attachments(io, email)
@@ -83,6 +85,8 @@ module Amber::Mailer
         io << "Content-Transfer-Encoding: quoted-printable" << CRLF
         io << CRLF
         io << email.text_body.not_nil!
+      else
+        io << CRLF
       end
     end
 

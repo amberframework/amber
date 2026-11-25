@@ -264,6 +264,29 @@ describe Amber::Mailer::SMTPAdapter do
       end
     end
 
+    it "doubles a leading dot so a body line of one dot does not end DATA" do
+      port = 30029
+      server = MockSMTPServer.new(port)
+      server.start
+
+      begin
+        adapter = Amber::Mailer::SMTPAdapter.new(host: "127.0.0.1", port: port, use_tls: false)
+        email = Amber::Mailer::Email.new(
+          to: ["alice@example.com"],
+          from: "sender@example.com",
+          subject: "Dots",
+          text_body: "before\r\n.\r\n.hidden\r\nafter",
+        )
+
+        result = adapter.deliver(email)
+
+        result.is_successful.should be_true
+        server.received_data.should contain("before\n..\n..hidden\nafter")
+      ensure
+        server.stop
+      end
+    end
+
     it "returns a failure result when connection is refused" do
       adapter = Amber::Mailer::SMTPAdapter.new(
         host: "127.0.0.1",
