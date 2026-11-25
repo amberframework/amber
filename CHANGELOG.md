@@ -28,8 +28,6 @@ a client or mail server that cannot speak it is refused.
 - The vendored Beryl moves to 0.2.1: v0.2.0's TLS 1.3 with per-connection
   record buffer reuse, `TLS::Socket#closed?`, and issuer matching by name for
   certificates without an authority key identifier (private database CAs).
-- The WebSocket spec helper requires `http/web_socket`, which crystal-alpha's
-  `http/server` no longer brings in.
 
 ## 2.0.0-beta.15 (2026-11-24)
 

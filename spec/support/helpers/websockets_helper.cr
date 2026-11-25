@@ -1,5 +1,3 @@
-require "http/web_socket"
-
 module WebsocketsHelper
   # Each socket writes its frames to its own in-memory IO. A socket that
   # closes, or a heartbeat that pings, then never touches the spec
