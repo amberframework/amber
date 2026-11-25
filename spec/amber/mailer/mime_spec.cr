@@ -264,6 +264,30 @@ describe Amber::Mailer::MimeBuilder do
         mime.should_not contain("multipart")
       end
     end
+
+    context "header block" do
+      it "carries the Content-Type of every body shape, ended by one blank line" do
+        attachment = Amber::Mailer::Attachment.new(filename: "a.txt", content: "data".to_slice, mime_type: "text/plain")
+        list_of_emails_and_content_types = {
+          {Amber::Mailer::Email.new(to: ["a@example.com"], from: "s@example.com", text_body: "Text"), "text/plain"},
+          {Amber::Mailer::Email.new(to: ["a@example.com"], from: "s@example.com", html_body: "<p>Hi</p>"), "text/html"},
+          {Amber::Mailer::Email.new(to: ["a@example.com"], from: "s@example.com", text_body: "Text", html_body: "<p>Hi</p>"), "multipart/alternative"},
+          {Amber::Mailer::Email.new(to: ["a@example.com"], from: "s@example.com", text_body: "Text", attachments: [attachment]), "multipart/mixed"},
+        }
+
+        list_of_emails_and_content_types.each do |email, content_type|
+          header_block, _body = Amber::Mailer::MimeBuilder.build(email).split("\r\n\r\n", 2)
+          header_block.should contain("Subject: ")
+          header_block.should contain("Content-Type: #{content_type}")
+        end
+      end
+
+      it "ends the header block with a blank line when the email has no body" do
+        email = Amber::Mailer::Email.new(to: ["a@example.com"], from: "s@example.com", subject: "Empty")
+
+        Amber::Mailer::MimeBuilder.build(email).should end_with("Subject: Empty\r\n\r\n")
+      end
+    end
   end
 
   describe ".generate_boundary" do

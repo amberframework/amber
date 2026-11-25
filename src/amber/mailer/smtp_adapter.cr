@@ -120,7 +120,7 @@ module Amber::Mailer
         send_command(io, "DATA", expected_code: 354)
 
         mime_message = email.to_mime
-        io << mime_message
+        io << dot_stuffed(mime_message)
         # Ensure the message ends with CRLF.CRLF
         unless mime_message.ends_with?("\r\n")
           io << "\r\n"
@@ -145,6 +145,18 @@ module Amber::Mailer
         rescue IO::Error
         end
         socket.close rescue nil
+      end
+    end
+
+    # RFC 5321 section 4.5.2: a message line that starts with "." gets one more
+    # "." in front, so the server does not take it for the end of DATA (and
+    # removes the added dot on receipt).
+    private def dot_stuffed(message : String) : String
+      String.build do |io|
+        message.each_line(chomp: false) do |line|
+          io << '.' if line.starts_with?('.')
+          io << line
+        end
       end
     end
 
