@@ -60,6 +60,12 @@ module Amber::Beryl::TLS
     # sent in many small records costs linear time to reassemble.
     @handshake_storage = Bytes.empty
     @record_header = Bytes.new(RecordProtection::HEADER_BYTESIZE)
+    # Buffers reused for every record, grown to the largest record seen,
+    # so a connection does not allocate for each record it reads or writes.
+    @read_fragment_storage = Bytes.empty
+    @read_plaintext_storage = Bytes.empty
+    @write_record_storage = Bytes.empty
+    @write_scratch_storage = Bytes.empty
 
     def initialize(@io : IO, @limits : Limits = Limits.new)
     end
@@ -150,7 +156,10 @@ module Amber::Beryl::TLS
       loop do
         fragment = content[offset, Math.min(fragment_limit, content.size - offset)]
         if protection = @write_protection
-          @io.write(protection.seal(content_type, fragment))
+          inner_bytesize = fragment.size + 1
+          @write_record_storage = storage_of_at_least(@write_record_storage, RecordProtection::HEADER_BYTESIZE + inner_bytesize + protection.tag_bytesize)
+          @write_scratch_storage = storage_of_at_least(@write_scratch_storage, inner_bytesize)
+          @io.write(protection.seal(content_type, fragment, into: @write_record_storage, scratch: @write_scratch_storage))
         else
           header = Bytes[content_type.value, (legacy_record_version >> 8).to_u8, (legacy_record_version & 0xFF).to_u8,
             (fragment.size >> 8).to_u8, (fragment.size & 0xFF).to_u8]
@@ -179,7 +188,8 @@ module Amber::Beryl::TLS
         if length > RecordProtection::LARGEST_CIPHERTEXT_BYTESIZE
           raise Error.new("a record of #{length} bytes", AlertDescription::RecordOverflow)
         end
-        fragment = Bytes.new(length)
+        @read_fragment_storage = storage_of_at_least(@read_fragment_storage, length)
+        fragment = @read_fragment_storage[0, length]
         @io.read_fully(fragment)
 
         if outer_type.change_cipher_spec?
@@ -206,7 +216,8 @@ module Amber::Beryl::TLS
                                   if length - protection.tag_bytesize > @largest_incoming_inner_plaintext_bytesize
                                     raise Error.new("a protected record over the record_size_limit of #{@largest_incoming_inner_plaintext_bytesize}", AlertDescription::RecordOverflow)
                                   end
-                                  opened = protection.open(@record_header, fragment)
+                                  @read_plaintext_storage = storage_of_at_least(@read_plaintext_storage, length)
+                                  opened = protection.open(@record_header, fragment, into: @read_plaintext_storage)
                                   unless opened
                                     next if skip_refused_early_data?(length)
                                     raise Error.new("a record failed authentication", AlertDescription::BadRecordMac)
@@ -290,9 +301,17 @@ module Amber::Beryl::TLS
       raise PeerAlert.new("the peer sent the alert #{description}", description)
     end
 
+    # Returns *storage* when it holds *bytesize* bytes, or a new buffer
+    # that does (at least 1 KiB, so small records do not regrow it).
+    private def storage_of_at_least(storage : Bytes, bytesize : Int32) : Bytes
+      return storage if storage.size >= bytesize
+      Bytes.new(Math.max(bytesize, 1024))
+    end
+
     private def append_handshake(content : Bytes) : Nil
       if @handshake_buffer.empty?
-        @handshake_buffer = content
+        # A copy: *content* lives in a buffer the next record reuses.
+        @handshake_buffer = content.dup
       else
         size = @handshake_buffer.size
         needed = size + content.size

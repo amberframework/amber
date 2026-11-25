@@ -1,6 +1,6 @@
 {
   "source": "https://github.com/amberframework/beryl",
-  "commit": "8adf714e9ee2db8f5365e5811177c2e4f46493be",
+  "commit": "36bf6b5c5fb06041d9f9e96f7eaf9344aaa48cd5",
   "namespace": "Amber::Beryl",
   "made_by": "scripts/vendor_into.rb",
   "note": "A pinned copy. Change Beryl in its own repository, then run the script again; edits made here fail the check.",
@@ -97,8 +97,8 @@
     },
     {
       "path": "beryl/certificates/trust_store.cr",
-      "sha256": "f93ade1e0ddf9b0a2f5ba88dd828aa88067e7cd58145a19347ebad51b6380533",
-      "source_sha256": "0749fdab2404ec87332a2ab4c3acd8f0838379e11701dafa3042d1792d8c54cc"
+      "sha256": "1809ef35e7536f15e95a678c32b644c2ab32ae7a584ea427bc700272cb45a06a",
+      "source_sha256": "f1b09bc18cb26bf906040ed9ef957c8f740b25779a2c597667dd326ef0e32cdc"
     },
     {
       "path": "beryl/crypto.cr",
@@ -532,13 +532,13 @@
     },
     {
       "path": "beryl/tls/record_layer.cr",
-      "sha256": "56e6be90e105f065307201e90d025e450df5b2b4ee91288ecf90d01fbb3c11d8",
-      "source_sha256": "518523e5d0f30b1fa84a374326b142165216155b1e1ac0e2e3fc76f9eacf971c"
+      "sha256": "654989b6b10b2f0247543e7e6aa3c875e1023561ae143709f920ec98034d8545",
+      "source_sha256": "0d20e6afb76dfd54c4cede35cbc8fd455ec3fe38aa404cf8ce180a0525728725"
     },
     {
       "path": "beryl/tls/record_protection.cr",
-      "sha256": "11fb4dd8be695b6b157c8db2d1b4b071d9084214d9b96fa68696f22d46505ed7",
-      "source_sha256": "b5d1a15973bcc4a64e69cccaf64d4b75c7bf14afdece936f01f61aebdc6b205b"
+      "sha256": "7a28cd63470852228f5210de7d917b04d16464b56aa1941f3835acb5ed6e4a08",
+      "source_sha256": "76a465004ed6b36e3e817bbd8149030b42d589c5a003299204e48bf5b7dc175a"
     },
     {
       "path": "beryl/tls/server_handshake.cr",
@@ -562,8 +562,8 @@
     },
     {
       "path": "beryl/version.cr",
-      "sha256": "050c2eecb48bb52b2b1688d0232361718e649cc5deeaaeba5e5b6a100eaeab51",
-      "source_sha256": "32b308b620f417741e0f463f643827a1a76a62e939de2f83030f98173da4935b"
+      "sha256": "d90c6cf92cca688fa3a0c2a6d6e0dd42f2acab3ed9539104ed035f4a367d5dd5",
+      "source_sha256": "bfb8a6c3963f36b66bd6cfb10eb0c7a88653f930410963ffe8862ad36fea040a"
     }
   ]
 }

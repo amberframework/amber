@@ -42,20 +42,34 @@ module Amber::Beryl::TLS
     # padding (§5.4).
     def seal(content_type : ContentType, content : Bytes, padding_bytesize : Int32 = 0) : Bytes
       inner_bytesize = content.size + 1 + padding_bytesize
+      seal(content_type, content, padding_bytesize,
+        into: Bytes.new(HEADER_BYTESIZE + inner_bytesize + tag_bytesize), scratch: Bytes.new(inner_bytesize))
+    end
+
+    # :nodoc:
+    #
+    # Seals as `seal` does, into the front of *record_storage*, building the
+    # inner plaintext in *scratch* (wiped afterward). Returns the record, a
+    # slice of *record_storage*. `RecordLayer` passes buffers it reuses, so
+    # a connection does not allocate for each record it writes.
+    def seal(content_type : ContentType, content : Bytes, padding_bytesize : Int32 = 0, *,
+             into record_storage : Bytes, scratch : Bytes) : Bytes
+      inner_bytesize = content.size + 1 + padding_bytesize
       if inner_bytesize > LARGEST_INNER_PLAINTEXT_BYTESIZE
         raise Error.new("a record of #{inner_bytesize} bytes of inner plaintext", AlertDescription::InternalError)
       end
       ciphertext_bytesize = inner_bytesize + tag_bytesize
-      record = Bytes.new(HEADER_BYTESIZE + ciphertext_bytesize)
+      record = record_storage[0, HEADER_BYTESIZE + ciphertext_bytesize]
       record[0] = ContentType::ApplicationData.value
       record[1] = 0x03
       record[2] = 0x03
       record[3] = (ciphertext_bytesize >> 8).to_u8
       record[4] = (ciphertext_bytesize & 0xFF).to_u8
 
-      inner_plaintext = Bytes.new(inner_bytesize)
+      inner_plaintext = scratch[0, inner_bytesize]
       content.copy_to(inner_plaintext)
       inner_plaintext[content.size] = content_type.value
+      inner_plaintext[content.size + 1, padding_bytesize].fill(0_u8)
       @authenticated_encryption.encrypt(inner_plaintext, into: record + HEADER_BYTESIZE, nonce: next_nonce,
         associated_data: record[0, HEADER_BYTESIZE])
       Crypto::SecretWiping.wipe(inner_plaintext)
@@ -67,7 +81,17 @@ module Amber::Beryl::TLS
     # authentication; raises for a record with no content type.
     def open(header : Bytes, ciphertext : Bytes) : {ContentType, Bytes}?
       return nil if ciphertext.size < tag_bytesize
-      inner_plaintext = Bytes.new(ciphertext.size - tag_bytesize)
+      open(header, ciphertext, into: Bytes.new(ciphertext.size - tag_bytesize))
+    end
+
+    # :nodoc:
+    #
+    # Opens as `open` does, decrypting into the front of *plaintext_storage*;
+    # the content returned is a slice of it. `RecordLayer` passes a buffer it
+    # reuses.
+    def open(header : Bytes, ciphertext : Bytes, *, into plaintext_storage : Bytes) : {ContentType, Bytes}?
+      return nil if ciphertext.size < tag_bytesize
+      inner_plaintext = plaintext_storage[0, ciphertext.size - tag_bytesize]
       nonce = peek_nonce
       return nil unless @authenticated_encryption.decrypt(ciphertext, into: inner_plaintext, nonce: nonce, associated_data: header)
       advance_sequence_number

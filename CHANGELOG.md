@@ -19,7 +19,7 @@ a client or mail server that cannot speak it is refused.
   that names the TLS 1.3 requirement (`Amber::TLS::TLS_1_3_REQUIREMENT`).
 - **Opt-out for one release:** building with `-Duse_openssl` serves the same
   settings from OpenSSL, held to TLS 1.3.
-- The vendored Beryl moves to the release with TLS 1.3.
+- The vendored Beryl moves to v0.2.0 (commit 36bf6b5c), the release with TLS 1.3.
 
 ## 2.0.0-beta.15 (2026-11-24)
 

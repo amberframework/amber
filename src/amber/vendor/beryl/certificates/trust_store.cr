@@ -45,12 +45,29 @@ module Amber::Beryl::Certificates
 
     class_getter mozilla : TrustStore { from_pem(MOZILLA_ROOTS_PEM) }
 
+    # The environment variable that names a PEM bundle to use in place of
+    # the operating system's, as OpenSSL and Go read it.
+    SYSTEM_BUNDLE_OVERRIDE_VARIABLE = "SSL_CERT_FILE"
+
     # The trust anchors in the operating system's bundle (see
-    # `LIST_OF_SYSTEM_BUNDLE_PATHS`). Raises `Error` when none is found.
+    # `LIST_OF_SYSTEM_BUNDLE_PATHS`), or in the file `SSL_CERT_FILE` names
+    # when it is set, as OpenSSL's default paths and Go's `crypto/x509`
+    # honor it. Raises `Error` when no bundle is found.
     def self.system : TrustStore
+      from_pem(File.read(system_bundle_path))
+    end
+
+    # The bundle `system` reads: the file `SSL_CERT_FILE` names when it is
+    # set and not empty, else the first of `LIST_OF_SYSTEM_BUNDLE_PATHS`
+    # that exists.
+    def self.system_bundle_path : String
+      if override = ENV[SYSTEM_BUNDLE_OVERRIDE_VARIABLE]?.presence
+        raise Error.new("#{SYSTEM_BUNDLE_OVERRIDE_VARIABLE} names #{override}, which does not exist") unless File.exists?(override)
+        return override
+      end
       path = LIST_OF_SYSTEM_BUNDLE_PATHS.find { |candidate| File.exists?(candidate) }
       raise Error.new("no system certificate bundle found at #{LIST_OF_SYSTEM_BUNDLE_PATHS.join(", ")}") unless path
-      from_pem(File.read(path))
+      path
     end
 
     # The certificates in the PEM *text*. A block that is not a certificate
