@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- **BREACH guard for compressed responses (CVE-2013-3587).**
+  `Amber::Pipe::Compression` now sends the identity coding to a cross-site
+  request that is not a top-level page load (`Sec-Fetch-Site: cross-site`
+  without `Sec-Fetch-Mode: navigate` and `Sec-Fetch-Dest: document`) and, for a
+  client that sends no fetch metadata, to a request whose `Referer` names
+  another host or port. Same-origin, same-site and user-initiated requests, and
+  top-level page loads from other sites, stay compressed. The rule is
+  `Amber::Pipe::BreachGuard.may_compress_response_to?`, and responses through
+  the pipe carry `Vary: Accept-Encoding, Sec-Fetch-Site, Sec-Fetch-Mode,
+  Sec-Fetch-Dest`.
+
 ## 2.0.0-beta.16 (2026-11-25)
 
 Amber 2.0.0-beta.16 adopts Beryl: an `amber new` app links no OpenSSL with no
