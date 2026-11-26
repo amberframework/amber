@@ -12,8 +12,7 @@ module Amber
     end
 
     # Returns the server context for the key and certificate files when the
-    # app requires `amber/tls`: a `Beryl::TLS::Context::Server`, or an
-    # `OpenSSL::SSL::Context::Server` in a build with `-Duse_openssl`.
+    # app requires `amber/tls`: a `Beryl::TLS::Context::Server`.
     def generate_tls
       # Expanded when this method is instantiated, after every file is
       # required, so `require "amber/tls"` may come before or after

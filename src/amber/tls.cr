@@ -13,14 +13,7 @@
 # require "amber/tls"
 # ```
 #
-# For one release, building with `-Duse_openssl` puts OpenSSL back under the
-# same settings, for an app that needs to compare the two.
-{% if flag?(:use_openssl) %}
-  {% if flag?(:without_openssl) %}
-    {% raise "-Duse_openssl and -Dwithout_openssl contradict each other. Drop -Duse_openssl to serve TLS on Beryl, which needs no OpenSSL." %}
-  {% end %}
-  require "openssl"
-{% end %}
+# Beryl is the only TLS backend; there is no OpenSSL build option.
 require "http/server"
 require "./vendor/beryl"
 require "./server/ssl"
@@ -68,48 +61,7 @@ module Amber
       end
     end
 
-    {% if flag?(:use_openssl) %}
-      # OpenSSL under the same settings, kept for one release behind
-      # `-Duse_openssl`. It too is held to TLS 1.3.
-      module OpenSSLBackend
-        # Returns the server context for the key and certificate files.
-        def self.server_context(key_file : String, cert_file : String) : OpenSSL::SSL::Context::Server
-          context = OpenSSL::SSL::Context::Server.new
-          context.private_key = key_file
-          context.certificate_chain = cert_file
-          context.add_options(OpenSSL::SSL::Options::NO_TLS_V1_2)
-          context.alpn_protocol = LIST_OF_ALPN_PROTOCOLS.first
-          context
-        end
-
-        # Binds *server* to *host*:*port* over TLS with the key and certificate
-        # files.
-        def self.bind_listener(server : HTTP::Server, host : String, port : Int32, key_file : String, cert_file : String, reuse_port : Bool) : Socket::IPAddress
-          server.bind_tls(host, port, server_context(key_file, cert_file), reuse_port)
-        end
-
-        # Starts TLS on a connection to the mail server, checking the
-        # certificate against *hostname*.
-        def self.start_client_session(socket : IO, hostname : String, ca_certificates_file : String? = nil) : IO
-          context = OpenSSL::SSL::Context::Client.new
-          context.add_options(OpenSSL::SSL::Options::NO_TLS_V1_2)
-          context.ca_certificates = ca_certificates_file if ca_certificates_file
-          OpenSSL::SSL::Socket::Client.new(socket, context, sync_close: true, hostname: hostname)
-        rescue error : OpenSSL::SSL::Error
-          raise ClientSessionFailed.new(hostname, error.message.to_s, is_version_refusal?(error.message.to_s))
-        end
-
-        # Whether OpenSSL's *reason* says the server offered no TLS 1.3.
-        private def self.is_version_refusal?(reason : String) : Bool
-          {"unsupported protocol", "wrong version number", "handshake failure", "protocol version"}.any? { |text| reason.includes?(text) }
-        end
-      end
-
-      # The backend the HTTPS listener and the mailer use.
-      Backend = OpenSSLBackend
-    {% else %}
-      # The backend the HTTPS listener and the mailer use.
-      Backend = BerylBackend
-    {% end %}
+    # The backend the HTTPS listener and the mailer use.
+    Backend = BerylBackend
   end
 end

@@ -1,5 +1,5 @@
 # Compiled and run by spec/amber/ssl/tls_opt_in_spec.cr, once as built and
-# once with -Duse_openssl.
+# once with -Duse_openssl, which was removed and must change nothing.
 #
 # What `require "amber/tls"` adds: `Amber::TLS.compiled_in?` turns true,
 # `Amber::SSL#generate_tls` builds the server context from the key and

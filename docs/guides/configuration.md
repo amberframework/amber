@@ -92,9 +92,8 @@ key (P-256, RSA of 2,048 to 4,096 bits, or Ed25519). The listener reads the
 client's server name (SNI) and offers ALPN `http/1.1`. A client that cannot
 speak TLS 1.3 is refused.
 
-`Amber::TLS.compiled_in?` tells whether the app has it. For one release, a
-build with `-Duse_openssl` serves the same settings from OpenSSL instead,
-still TLS 1.3 only; that flag and `-Dwithout_openssl` exclude each other.
+`Amber::TLS.compiled_in?` tells whether the app has it. Beryl is the only TLS
+backend; there is no OpenSSL build option.
 
 #### Running behind a TLS-terminating proxy
 
