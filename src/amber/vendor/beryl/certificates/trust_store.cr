@@ -23,8 +23,8 @@ module Amber::Beryl::Certificates
     MOZILLA_ROOTS_PEM = {{ read_file("#{__DIR__}/data/mozilla_root_certificates.pem") }}
 
     # The bundles `system` reads, first one found wins: Debian and Ubuntu,
-    # Fedora and RHEL, openSUSE, then Alpine and macOS (where Apple ships
-    # and updates the system roots as `/etc/ssl/cert.pem`).
+    # Fedora and RHEL, openSUSE, then Alpine and macOS (where the file
+    # trails the keychain; see `system`).
     LIST_OF_SYSTEM_BUNDLE_PATHS = [
       "/etc/ssl/certs/ca-certificates.crt",
       "/etc/pki/tls/certs/ca-bundle.crt",
@@ -53,8 +53,27 @@ module Amber::Beryl::Certificates
     # `LIST_OF_SYSTEM_BUNDLE_PATHS`), or in the file `SSL_CERT_FILE` names
     # when it is set, as OpenSSL's default paths and Go's `crypto/x509`
     # honor it. Raises `Error` when no bundle is found.
+    #
+    # On macOS the keychain, not `/etc/ssl/cert.pem`, holds the roots the
+    # system trusts, and the file falls behind it: on macOS 27.2.1 it lacks
+    # SSL.com TLS ECC Root CA 2022 and AAA Certificate Services, so a
+    # server whose chain ends there (www.example.com in November 2026) would
+    # be refused. So on macOS, unless `SSL_CERT_FILE` is set, `system` is
+    # that file joined with the pinned Mozilla set (`mozilla`).
     def self.system : TrustStore
-      from_pem(File.read(system_bundle_path))
+      bundle = from_pem(File.read(system_bundle_path))
+      return bundle unless joins_mozilla_roots_to_the_system_bundle?
+      TrustStore.new(bundle.list_of_certificates + mozilla.list_of_certificates)
+    end
+
+    # Whether `system` adds the pinned Mozilla set to the bundle it reads:
+    # on macOS when `SSL_CERT_FILE` is not set.
+    def self.joins_mozilla_roots_to_the_system_bundle? : Bool
+      {% if flag?(:darwin) %}
+        ENV[SYSTEM_BUNDLE_OVERRIDE_VARIABLE]?.presence.nil?
+      {% else %}
+        false
+      {% end %}
     end
 
     # The bundle `system` reads: the file `SSL_CERT_FILE` names when it is

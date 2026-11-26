@@ -19,8 +19,11 @@ module Amber
     # a response that already has a `Content-Encoding` passes through.
     #
     # A request with a `Range` header is answered uncompressed, because a
-    # byte range refers to the uncompressed body. Every response through the
-    # pipe carries `Vary: Accept-Encoding`. A response that already has a
+    # byte range refers to the uncompressed body. A request that
+    # `BreachGuard` marks as cross-site (BREACH, CVE-2013-3587) is answered
+    # uncompressed. Every other response through the pipe carries `Vary`
+    # with `Accept-Encoding` and the fetch metadata fields
+    # (`BreachGuard::VARY_FIELDS`). A response that already has a
     # `Content-Encoding` (for example a pre-gzipped page from the page cache)
     # passes through unchanged.
     #
@@ -63,7 +66,9 @@ module Amber
 
       def call(context : HTTP::Server::Context)
         return call_next(context) if context.request.headers.has_key?("Range")
-        context.response.headers.add("Vary", "Accept-Encoding")
+        context.response.headers.add("Vary", BreachGuard::VARY_FIELDS)
+        return call_next(context) unless BreachGuard.may_compress_response_to?(context.request)
+
         context.response.output = CompressedOutput.new(context.response.output, context, @level, @brotli_quality)
         call_next(context)
       end

@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- **BREACH guard for compressed responses (CVE-2013-3587).**
+  `Amber::Pipe::Compression` now sends the identity coding to a cross-site
+  request that is not a top-level page load (`Sec-Fetch-Site: cross-site`
+  without `Sec-Fetch-Mode: navigate` and `Sec-Fetch-Dest: document`) and, for a
+  client that sends no fetch metadata, to a request whose `Referer` names
+  another host or port. Same-origin, same-site and user-initiated requests, and
+  top-level page loads from other sites, stay compressed. The rule is
+  `Amber::Pipe::BreachGuard.may_compress_response_to?`, and responses through
+  the pipe carry `Vary: Accept-Encoding, Sec-Fetch-Site, Sec-Fetch-Mode,
+  Sec-Fetch-Dest`.
+
+## 2.0.0-beta.16 (2026-11-25)
+
+Amber 2.0.0-beta.16 adopts Beryl: an `amber new` app links no OpenSSL with no
+flag and no setting, whether it serves HTTPS itself, sends mail over TLS, or
+talks to PostgreSQL or MySQL over TLS. TLS 1.3 is the only version spoken.
+It ships with Grant 0.28.0, asset_pipeline 0.40.1, Beryl 0.2.1 and Amber CLI
+2.0.17. Notes: `RELEASE_NOTES_V2_BETA16.md`.
+
 **`require "amber/tls"` runs on Beryl: TLS 1.3, no OpenSSL.** The HTTPS
 listener and the SMTP mailer's TLS now use Beryl, Amber's own TLS 1.3 written
 in Crystal, from the vendored copy (`Amber::Beryl::TLS`). An `amber new --tls`
@@ -19,7 +38,9 @@ a client or mail server that cannot speak it is refused.
   that names the TLS 1.3 requirement (`Amber::TLS::TLS_1_3_REQUIREMENT`).
 - **Opt-out for one release:** building with `-Duse_openssl` serves the same
   settings from OpenSSL, held to TLS 1.3.
-- The vendored Beryl moves to v0.2.0 (commit 36bf6b5c), the release with TLS 1.3.
+- The vendored Beryl moves to 0.2.1: v0.2.0's TLS 1.3 with per-connection
+  record buffer reuse, `TLS::Socket#closed?`, and issuer matching by name for
+  certificates without an authority key identifier (private database CAs).
 
 ## 2.0.0-beta.15 (2026-11-24)
 

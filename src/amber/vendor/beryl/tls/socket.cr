@@ -166,9 +166,19 @@ module Amber::Beryl::TLS
       @write_mutex.synchronize { @io.flush }
     end
 
+    # Whether `close` has been called. Reads and writes after it raise
+    # `IO::Error` ("Closed stream"), as on any closed IO, and a pool or a
+    # driver that checks `closed?` (as `OpenSSL::SSL::Socket` answers it)
+    # sees the connection is gone.
+    getter? closed : Bool = false
+
     # Sends close_notify (once the handshake is done), wipes the
     # connection's secrets, then closes the IO below when `sync_close?`.
+    # Closing again does nothing.
     def unbuffered_close : Nil
+      return if @closed
+      @closed = true
+
       @write_mutex.synchronize do
         @record_layer.write_alert(AlertLevel::Warning, AlertDescription::CloseNotify) if @outcome && !@has_failed
       ensure

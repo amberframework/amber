@@ -126,7 +126,7 @@ module Amber::Pipe
         served = serve(Compression.new, request_accepting("gzip, deflate, br"), [LONG_BODY] of String | Bytes)
 
         served.headers["Content-Encoding"].should eq "br"
-        served.headers["Vary"].should eq "Accept-Encoding"
+        served.headers["Vary"].should eq BreachGuard::VARY_FIELDS
         served.headers["Content-Length"]?.should be_nil
         String.new(unbrotli(served.body)).should eq LONG_BODY
       end
@@ -150,7 +150,7 @@ module Amber::Pipe
         served = serve(Compression.new(brotli_quality: nil), request_accepting("gzip, deflate, br"), [LONG_BODY] of String | Bytes)
 
         served.headers["Content-Encoding"].should eq "gzip"
-        served.headers["Vary"].should eq "Accept-Encoding"
+        served.headers["Vary"].should eq BreachGuard::VARY_FIELDS
         served.headers["Content-Length"]?.should be_nil
         String.new(gunzip(served.body)).should eq LONG_BODY
       end
@@ -224,7 +224,7 @@ module Amber::Pipe
           served = serve(Compression.new, request_accepting("br, gzip"), chunks.map(&.as(String | Bytes)))
 
           served.headers["Content-Encoding"]?.should be_nil
-          served.headers["Vary"].should eq "Accept-Encoding"
+          served.headers["Vary"].should eq BreachGuard::VARY_FIELDS
           String.new(served.body).should eq LONG_BODY[0, 1_023]
         end
       end
@@ -249,8 +249,34 @@ module Amber::Pipe
         served = serve(Compression.new, request_accepting(nil), ["plain"] of String | Bytes)
 
         served.headers["Content-Encoding"]?.should be_nil
-        served.headers["Vary"].should eq "Accept-Encoding"
+        served.headers["Vary"].should eq BreachGuard::VARY_FIELDS
         String.new(served.body).should eq "plain"
+      end
+
+      it "compresses a same-origin request and a top-level cross-site page load (BREACH guard)" do
+        {
+          HTTP::Headers{"Sec-Fetch-Site" => "same-origin", "Sec-Fetch-Mode" => "cors", "Sec-Fetch-Dest" => "empty"},
+          HTTP::Headers{"Sec-Fetch-Site" => "cross-site", "Sec-Fetch-Mode" => "navigate", "Sec-Fetch-Dest" => "document"},
+        }.each do |fetch_headers|
+          served = serve(Compression.new, request_accepting("gzip", fetch_headers), [LONG_BODY] of String | Bytes)
+
+          served.headers["Content-Encoding"].should eq "gzip"
+          served.headers["Vary"].should eq BreachGuard::VARY_FIELDS
+          String.new(gunzip(served.body)).should eq LONG_BODY
+        end
+      end
+
+      it "answers a cross-site subresource request and a foreign Referer uncompressed, with Vary (BREACH guard)" do
+        {
+          HTTP::Headers{"Sec-Fetch-Site" => "cross-site", "Sec-Fetch-Mode" => "no-cors", "Sec-Fetch-Dest" => "image"},
+          HTTP::Headers{"Host" => "example.com", "Referer" => "https://attacker.example/"},
+        }.each do |fetch_headers|
+          served = serve(Compression.new, request_accepting("gzip, br", fetch_headers), [LONG_BODY] of String | Bytes)
+
+          served.headers["Content-Encoding"]?.should be_nil
+          served.headers["Vary"].should eq BreachGuard::VARY_FIELDS
+          String.new(served.body).should eq LONG_BODY
+        end
       end
 
       it "answers a range request uncompressed and without Vary" do

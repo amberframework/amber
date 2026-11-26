@@ -31,7 +31,10 @@ module Amber::Beryl::Certificates
   #
   # Path building is depth first, trust anchors before intermediates, and
   # candidates whose subject key identifier matches the child's authority
-  # key identifier before the others. A candidate that fails any check is
+  # key identifier before the others. Issuers are found by name: a leaf or
+  # intermediate without an authority key identifier (common under private
+  # CAs for PostgreSQL and MySQL) is matched to the certificates named as
+  # its issuer, each tried by signature, as Go's crypto/x509 and OpenSSL do. A candidate that fails any check is
   # backed out of and the next one tried, so a chain that also offers an
   # expired or cross-signed intermediate still finds its good path. Cycles
   # are refused. The search is bounded by `Limits`.
@@ -53,15 +56,15 @@ module Amber::Beryl::Certificates
   # non-empty subject; path length constraints met, self-issued
   # intermediates not counted; well-formed name constraints, applied to
   # every certificate below them except self-issued intermediates.
-  # Intermediates also need authority and subject key identifiers and,
-  # when they carry extended key usage, the purpose asked for. An anchor
+  # Intermediates also need a subject key identifier and, when they carry
+  # extended key usage, the purpose asked for. An anchor
   # needs no subject key identifier (Mozilla's TWCA Global Root CA has
   # none) and may not carry extended key usage; its authority key
   # identifier, when present, must hold only a key identifier, equal to
   # its subject key identifier when the anchor is self-issued.
   #
-  # The leaf: not a CA, no keyCertSign, no name constraints, an authority
-  # key identifier, and extended key usage either absent or non-critical,
+  # The leaf: not a CA, no keyCertSign, no name constraints, and extended
+  # key usage either absent or non-critical,
   # without anyExtendedKeyUsage and with the purpose asked for. A server
   # leaf needs a subject alternative name (critical exactly when the
   # subject is empty). A common name is not matched against the reference
@@ -237,7 +240,6 @@ module Amber::Beryl::Certificates
       if reason = issuer_profile_violation(certificate)
         return reason
       end
-      return "no authority key identifier with a key identifier" unless certificate.authority_key_identifier.try(&.key_identifier)
       return "no subject key identifier" unless certificate.subject_key_identifier
       if reason = serial_number_violation(certificate)
         return reason
@@ -284,7 +286,6 @@ module Amber::Beryl::Certificates
         return "a key usage without #{required_key_usage}" unless usage.includes?(required_key_usage)
       end
       return "name constraints on a leaf" if certificate.name_constraints
-      return "no authority key identifier with a key identifier" unless certificate.authority_key_identifier.try(&.key_identifier)
       unless certificate.subject_public_key_info.verification_key
         return "a key Beryl does not verify with (#{certificate.subject_public_key_info.unusable_key_reason})"
       end
