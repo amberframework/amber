@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Beryl is the only TLS backend; `-Duse_openssl` is removed.** The
+  one-release opt-out from 2.0.0-beta.16 is gone: `Amber::TLS::OpenSSLBackend`
+  is removed and `Amber::TLS::Backend` is always `Amber::TLS::BerylBackend`.
+  `require "amber/tls"` serves HTTPS and the mailer's STARTTLS and implicit TLS
+  on Beryl TLS 1.3 only, and a build that still passes `-Duse_openssl` gets
+  Beryl and links no OpenSSL. `Amber::SSL#generate_tls`,
+  `Amber::TLS.compiled_in?` and the `server.ssl` and mailer settings are
+  unchanged. The WebSocket heartbeat now treats a Beryl TLS error on a dead
+  socket as a disconnect, as it did OpenSSL's.
 - **BREACH guard for compressed responses (CVE-2013-3587).**
   `Amber::Pipe::Compression` now sends the identity coding to a cross-site
   request that is not a top-level page load (`Sec-Fetch-Site: cross-site`

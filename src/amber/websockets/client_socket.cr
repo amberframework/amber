@@ -183,8 +183,8 @@ module Amber
 
       # Sends ping opcode to client : https://tools.ietf.org/html/rfc6455#section-5.5.2
       protected def beat
-        # A failing socket raises `IO::Error`, or `OpenSSL::SSL::Error` from a
-        # TLS socket in an app that requires `amber/tls`; both disconnect, so
+        # A failing socket raises `IO::Error`, or `Amber::Beryl::TLS::Error`
+        # from a TLS socket in an app that requires `amber/tls`; both disconnect, so
         # neither escapes and kills the heartbeat fiber. The macro is expanded
         # when this method is instantiated, after every file is required.
         {% begin %}
@@ -194,7 +194,7 @@ module Amber
             @pings.push(Time.utc)
             @pings.delete_at(0) if @pings.size > 3
             check_alive!
-          rescue ex : IO::Error{% if Amber::TLS.has_constant?(:OpenSSLBackend) %} | OpenSSL::SSL::Error{% end %}
+          rescue ex : IO::Error{% if Amber::TLS.has_constant?(:Backend) %} | Amber::Beryl::TLS::Error{% end %}
             disconnect!
           end
         {% end %}

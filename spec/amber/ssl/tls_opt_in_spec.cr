@@ -177,11 +177,11 @@ describe "TLS as an opt-in" do
       end
     end
 
-    it "serves and delivers on OpenSSL with -Duse_openssl, for one release" do
+    it "serves and delivers on Beryl when built with the removed -Duse_openssl" do
       outcome = HTTPSAppProbe.outcome("-Duse_openssl")
 
       outcome.status.success?.should be_true, outcome.output
-      outcome.value_for("context").should eq "OpenSSL::SSL::Context::Server"
+      outcome.value_for("context").should eq "Amber::Beryl::TLS::Context::Server"
       outcome.value_for("tls_version").should eq "TLSv1.3"
       outcome.value_for("alpn").should eq "http/1.1"
       outcome.value_for("status").should eq "200"
