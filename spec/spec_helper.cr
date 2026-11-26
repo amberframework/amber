@@ -11,6 +11,10 @@ Amber.path = "./spec/support/config"
 Amber.env=(ENV["AMBER_ENV"])
 
 require "http"
+# The websocket helpers open clients with HTTP::WebSocket.new(String). Since
+# agent-crystal 1.22.3-incremental-1 (crimson-knight/crystal#45) that constructor
+# lives in http/web_socket/client, which require "http/web_socket" loads.
+require "http/web_socket"
 require "spec"
 require "../src/amber"
 require "./support/fixtures"

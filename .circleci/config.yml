@@ -30,9 +30,20 @@ jobs:
       - run:
           name: Check beta contract
           command: scripts/check_beta_contract.sh
+      # `crystal spec` keeps the compiler process, and its multi-GiB heap,
+      # alive until the spec binary exits. The fixture specs then start a
+      # second compiler (spec/support/fixture_compiler.cr), and the two
+      # together exceeded the medium class's 4 GiB: the kernel killed the
+      # outer compiler partway through the run (builds 348, 349, 357). Build
+      # the suite first so that compiler exits, then run the binary on its own.
+      - run:
+          name: Build framework specs
+          command: |
+            find spec -name "*_spec.cr" | LC_ALL=C sort | sed "s|^|require \"./|; s|\$|\"|" > spec_suite.cr
+            crystal build spec_suite.cr -o amber-specs
       - run:
           name: Run framework specs
-          command: crystal spec
+          command: ./amber-specs
           environment:
             # Spec fixture programs build with the compiler that runs the
             # suite (spec/support/fixture_compiler.cr).
