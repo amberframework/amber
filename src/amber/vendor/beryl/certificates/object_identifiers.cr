@@ -24,6 +24,14 @@ module Amber::Beryl::Certificates
     ECDSA_WITH_SHA384          = OID.parse("1.2.840.10045.4.3.3")
     ECDSA_WITH_SHA512          = OID.parse("1.2.840.10045.4.3.4")
 
+    # Signature algorithms over SHA-1 or MD5, which Beryl refuses by name
+    # (RFC 9155, RFC 6151).
+    MD5_WITH_RSA_ENCRYPTION  = OID.parse("1.2.840.113549.1.1.4")
+    SHA1_WITH_RSA_ENCRYPTION = OID.parse("1.2.840.113549.1.1.5")
+    SHA1_WITH_RSA_SIGNATURE  = OID.parse("1.3.14.3.2.29")
+    ECDSA_WITH_SHA1          = OID.parse("1.2.840.10045.4.1")
+    DSA_WITH_SHA1            = OID.parse("1.2.840.10040.4.3")
+
     # Hashes and MGF1, for RSASSA-PSS parameters (RFC 4055 §2.1).
     SHA256 = OID.parse("2.16.840.1.101.3.4.2.1")
     SHA384 = OID.parse("2.16.840.1.101.3.4.2.2")

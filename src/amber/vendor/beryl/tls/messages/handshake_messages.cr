@@ -278,10 +278,12 @@ module Amber::Beryl::TLS::Messages
     def initialize(@signature_scheme_value : UInt16, @signature : Bytes)
     end
 
+    # An empty signature is well formed (`opaque signature<0..2^16-1>`) and
+    # fails verification, so it ends the handshake with decrypt_error.
     def self.decode(body : Bytes) : CertificateVerify
       reader = MessageReader.new(body)
       scheme = reader.read_u16
-      signature = reader.read_vector16(1)
+      signature = reader.read_vector16
       reader.finish
       CertificateVerify.new(scheme, signature)
     end

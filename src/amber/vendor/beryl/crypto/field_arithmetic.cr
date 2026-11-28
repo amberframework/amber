@@ -1,4 +1,6 @@
 require "./field_arithmetic/curve25519_field"
+require "./field_arithmetic/curve25519_solinas_field"
+require "./field_arithmetic/curve25519_solinas_field_with_assembly"
 require "./field_arithmetic/curve25519_scalar_field"
 require "./field_arithmetic/p256_field"
 require "./field_arithmetic/p256_scalar_field"

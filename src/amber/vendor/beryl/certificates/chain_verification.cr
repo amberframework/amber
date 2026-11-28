@@ -137,6 +137,9 @@ module Amber::Beryl::Certificates
           "#{presented_count} certificates of #{presented_bytesize} bytes were presented; the limits are #{@limits.largest_presented_certificate_count} and #{@limits.largest_presented_bytesize}")
       end
 
+      if reason = ChainVerification.refused_signature_algorithm_violation(leaf)
+        raise VerificationFailed.new(FailureReason::SignatureAlgorithmRefused, reason)
+      end
       if reason = ChainVerification.leaf_profile_violation(leaf, purpose, required_key_usage)
         raise VerificationFailed.new(FailureReason::LeafProfileViolation, "the leaf #{leaf.subject}: #{reason}")
       end
@@ -157,6 +160,9 @@ module Amber::Beryl::Certificates
       if search.revocation_failure?
         raise VerificationFailed.new(FailureReason::Revoked, search.last_failure || "revoked")
       end
+      if refused_signature_failure = search.refused_signature_failure
+        raise VerificationFailed.new(FailureReason::SignatureAlgorithmRefused, refused_signature_failure)
+      end
       raise VerificationFailed.new(FailureReason::NoTrustedPath,
         "no path from #{leaf.subject} to a trust anchor passed every check#{search.last_failure.try { |failure| ": #{failure}" }}")
     rescue exhausted : NameConstraintCheck::BudgetExhausted | BudgetSpent
@@ -165,6 +171,20 @@ module Amber::Beryl::Certificates
 
     # :nodoc:
     class BudgetSpent < Exception
+    end
+
+    # :nodoc:
+    #
+    # Names the hash when *certificate* is signed with SHA-1 or MD5, which
+    # Beryl refuses by the algorithm identifier alone, before any signature
+    # check. A trust anchor's own signature is never checked, so this
+    # applies to leaves and intermediates.
+    def self.refused_signature_algorithm_violation(certificate : Certificate) : String?
+      hash_function_name = certificate.signature_algorithm.refused_hash_function_name
+      return nil unless hash_function_name
+
+      standard = hash_function_name == "MD5" ? "RFC 6151" : "RFC 9155"
+      "the certificate for #{certificate.subject} is signed with #{hash_function_name}, which Beryl refuses (#{standard})"
     end
 
     # :nodoc:
@@ -366,6 +386,9 @@ module Amber::Beryl::Certificates
     private class PathSearch
       getter last_failure : String? = nil
       getter? revocation_failure = false
+      # Set when an intermediate was passed over for a SHA-1 or MD5
+      # signature; a search that finds no path reports it.
+      getter refused_signature_failure : String? = nil
 
       @signature_check_count = 0
       @started_at : Time::Instant
@@ -412,6 +435,11 @@ module Amber::Beryl::Certificates
           end
           if reason = issuer_violation(intermediate, is_anchor: false)
             note("the intermediate #{intermediate.subject}: #{reason}")
+            next
+          end
+          if reason = ChainVerification.refused_signature_algorithm_violation(intermediate)
+            note(reason)
+            @refused_signature_failure = reason
             next
           end
           next unless signature_verifies?(current, intermediate)

@@ -37,11 +37,17 @@ module Amber::Beryl::Crypto::V1::RivestShamirAdleman
     # R^e mod n, so that each private operation's check under the public
     # exponent takes one multiplication fewer.
     @public_exponent_correction : Slice(UInt64)
+    # The modulus in the form of the AVX-512 IFMA path, for that check, where
+    # the processor and the modulus suit it.
+    @modulus_in_digits : MontgomeryMultiplicationWithIntegerFusedMultiplyAdd::PublicModulus?
     @first_prime : OddModulus
     @second_prime : OddModulus
     @first_prime_exponent : Bytes
     @second_prime_exponent : Bytes
     @coefficient : Slice(UInt64)
+    # The primes in the form of the AVX-512 IFMA path, where the processor
+    # and the key suit it (`MontgomeryMultiplicationWithIntegerFusedMultiplyAdd`).
+    @prime_pair : MontgomeryMultiplicationWithIntegerFusedMultiplyAdd::PrimePair?
 
     # Takes the components of RFC 8017 §3.2 as big-endian bytes (leading
     # zero bytes allowed): the modulus n, the public exponent e (or an
@@ -62,6 +68,10 @@ module Amber::Beryl::Crypto::V1::RivestShamirAdleman
       @modulus = PublicKey.read_modulus(modulus, SMALLEST_MODULUS_BIT_COUNT, LARGEST_MODULUS_BIT_COUNT)
       @public_exponent = PublicKey.read_public_exponent(public_exponent)
       @public_exponent_correction = @modulus.public_exponent_correction(@public_exponent)
+      if MontgomeryMultiplicationWithIntegerFusedMultiplyAdd::PublicModulus.usable_for?(@modulus.word_count)
+        @modulus_in_digits = MontgomeryMultiplicationWithIntegerFusedMultiplyAdd::PublicModulus.new(@modulus.words,
+          @modulus.r_squared, @modulus.negated_inverse, @public_exponent)
+      end
       @modulus_bytesize = @modulus.bytesize
       @public_key = PublicKey.new(modulus, @public_exponent)
 
@@ -91,6 +101,12 @@ module Amber::Beryl::Crypto::V1::RivestShamirAdleman
       SecretWiping.wipe(private_exponent_bytes)
       is_well_formed &= primes_multiply_to_modulus_bit
       is_well_formed &= coefficient_inverts_second_prime_bit
+      if MontgomeryMultiplicationWithIntegerFusedMultiplyAdd::PrimePair.usable_for?(@first_prime.word_count,
+           @second_prime.word_count, @first_prime_exponent.size, @second_prime_exponent.size)
+        @prime_pair = MontgomeryMultiplicationWithIntegerFusedMultiplyAdd::PrimePair.new(@first_prime.words,
+          @first_prime.r_squared, @first_prime.negated_inverse, @second_prime.words, @second_prime.r_squared,
+          @second_prime.negated_inverse)
+      end
 
       unless Declassification.reveal(is_well_formed == 1_u64)
         wipe
@@ -240,10 +256,14 @@ module Amber::Beryl::Crypto::V1::RivestShamirAdleman
         MontgomeryArithmetic.decode_big_endian(input, input_words)
         result_words = Slice(UInt64).new(word_count)
         is_in_range = PrivateKey.exponentiate_by_chinese_remainder(result_words, input_words, @first_prime, @second_prime,
-          @first_prime_exponent, @second_prime_exponent, @coefficient, @modulus)
+          @first_prime_exponent, @second_prime_exponent, @coefficient, @modulus, @prime_pair)
 
         check_words = Slice(UInt64).new(word_count)
-        @modulus.exponentiate_by_public_exponent(check_words, result_words, @public_exponent, @public_exponent_correction)
+        if modulus_in_digits = @modulus_in_digits
+          modulus_in_digits.exponentiate(check_words, result_words)
+        else
+          @modulus.exponentiate_by_public_exponent(check_words, result_words, @public_exponent, @public_exponent_correction)
+        end
         is_correct = MontgomeryArithmetic.equal_bit(check_words, input_words) | (is_in_range ^ 1_u64)
         wipe_words(check_words)
         wipe_words(input_words)
@@ -270,7 +290,8 @@ module Amber::Beryl::Crypto::V1::RivestShamirAdleman
     def self.exponentiate_by_chinese_remainder(result : Slice(UInt64), input : Slice(UInt64), first_prime : OddModulus,
                                                second_prime : OddModulus, first_prime_exponent : Bytes,
                                                second_prime_exponent : Bytes, coefficient : Slice(UInt64),
-                                               modulus : OddModulus) : UInt64
+                                               modulus : OddModulus,
+                                               prime_pair : MontgomeryMultiplicationWithIntegerFusedMultiplyAdd::PrimePair? = nil) : UInt64
       is_in_range = MontgomeryArithmetic.less_than_bit(input, modulus.words)
       first_word_count = first_prime.word_count
       second_word_count = second_prime.word_count
@@ -278,13 +299,18 @@ module Amber::Beryl::Crypto::V1::RivestShamirAdleman
       base = Slice(UInt64).new(first_word_count)
       first_power = Slice(UInt64).new(first_word_count)
       first_prime.reduce_to_montgomery_form(base, input)
-      first_prime.exponentiate(first_power, base, first_prime_exponent)
-
       second_base = Slice(UInt64).new(second_word_count)
       second_power = Slice(UInt64).new(second_word_count)
       second_prime.reduce_to_montgomery_form(second_base, input)
-      second_prime.exponentiate(second_power, second_base, second_prime_exponent)
-      second_prime.leave_montgomery_form(second_power)
+      if prime_pair
+        # Both exponentiations at once; the second result leaves Montgomery
+        # form there.
+        prime_pair.exponentiate(first_power, second_power, base, second_base, first_prime_exponent, second_prime_exponent)
+      else
+        first_prime.exponentiate(first_power, base, first_prime_exponent)
+        second_prime.exponentiate(second_power, second_base, second_prime_exponent)
+        second_prime.leave_montgomery_form(second_power)
+      end
 
       # m₁ - m₂ mod p, in p's Montgomery form, times qInv: the Montgomery
       # product drops the factor R, leaving h = qInv·(m₁ - m₂) mod p.
@@ -311,6 +337,9 @@ module Amber::Beryl::Crypto::V1::RivestShamirAdleman
 
     # Overwrites the secret parts of the key. The key cannot be used after.
     def wipe : Nil
+      if prime_pair = @prime_pair
+        prime_pair.wipe
+      end
       @first_prime.wipe
       @second_prime.wipe
       SecretWiping.wipe(@first_prime_exponent)

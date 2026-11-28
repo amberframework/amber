@@ -48,6 +48,11 @@ module Amber::Beryl::Crypto
   class TagSizeNotSupported < Error
   end
 
+  # Raised when an authenticated cipher is used after `wipe`: its key is
+  # gone, and a zeroed key must never seal or open a message.
+  class KeyWiped < Error
+  end
+
   # Raised when code written for a processor's instructions is reached on a
   # processor without them. `ProcessorFeatures` decides which code runs, so
   # this means a fault in Beryl, not in the caller.

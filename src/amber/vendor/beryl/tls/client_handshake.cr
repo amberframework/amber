@@ -13,7 +13,8 @@ module Amber::Beryl::TLS
   # Order of events: ClientHello; at most one HelloRetryRequest and a
   # second ClientHello; ServerHello; EncryptedExtensions; then either
   # Finished (resumed) or [CertificateRequest] Certificate
-  # CertificateVerify Finished; then the client's [Certificate] Finished.
+  # CertificateVerify Finished; then the client's [Certificate
+  # [CertificateVerify]] Finished.
   class ClientHandshake
     alias ExtensionCodec = Messages::ExtensionCodec
 
@@ -120,16 +121,12 @@ module Amber::Beryl::TLS
 
       list_of_peer_certificates = [] of Certificates::Certificate
       certificate_request = nil
+      list_of_requested_scheme_values = [] of UInt16
       unless is_resumed
         message = @record_layer.read_handshake_message
         if Messages.unwrap(message)[0] == HandshakeType::CertificateRequest
           certificate_request = Messages::CertificateRequest.decode(Messages.unwrap(message)[1])
-          unless certificate_request.certificate_request_context.empty?
-            raise Error.new("a CertificateRequest with a context during the handshake", AlertDescription::IllegalParameter)
-          end
-          unless certificate_request.has_extension?(ExtensionType::SignatureAlgorithms)
-            raise Error.new("a CertificateRequest without signature_algorithms", AlertDescription::MissingExtension)
-          end
+          list_of_requested_scheme_values = check_certificate_request(certificate_request)
           @transcript.add(message)
           message = @record_layer.read_handshake_message
         end
@@ -180,11 +177,7 @@ module Amber::Beryl::TLS
       install_read_protection(RecordProtection.new(cipher_suite, server_application_secret))
 
       if certificate_request
-        # Beryl's client holds no certificate: an empty Certificate tells
-        # the server so, and the server decides (§4.4.2.4).
-        empty_certificate = Messages::CertificateMessage.new(Bytes.empty, [] of Messages::CertificateEntry).encode
-        @record_layer.write_handshake(empty_certificate)
-        @transcript.add(empty_certificate)
+        send_client_certificate(certificate_request, list_of_requested_scheme_values, hash)
       end
       client_finished = Messages::Finished.new(KeySchedule.finished_verify_data(hash, client_handshake_secret, @transcript.digest(hash))).encode
       @record_layer.write_handshake(client_finished)
@@ -199,6 +192,54 @@ module Amber::Beryl::TLS
       HandshakeOutcome.new(cipher_suite, client_application_secret, server_application_secret, exporter_master_secret,
         resumption_master_secret, alpn_protocol, server_name_sent(offer), list_of_peer_certificates, is_resumed,
         peer_record_size_limit, key_exchange.group)
+    end
+
+    # Checks a CertificateRequest (§4.3.2) and returns the signature scheme
+    # values its signature_algorithms lists. certificate_authorities is
+    # read for its form only: the client presents its certificate whatever
+    # authorities the server names.
+    private def check_certificate_request(certificate_request : Messages::CertificateRequest) : Array(UInt16)
+      unless certificate_request.certificate_request_context.empty?
+        raise Error.new("a CertificateRequest with a context during the handshake", AlertDescription::IllegalParameter)
+      end
+      signature_algorithms = certificate_request.extension(ExtensionType::SignatureAlgorithms)
+      unless signature_algorithms
+        raise Error.new("a CertificateRequest without signature_algorithms", AlertDescription::MissingExtension)
+      end
+      if certificate_authorities = certificate_request.extension(ExtensionType::CertificateAuthorities)
+        ExtensionCodec.decode_certificate_authorities(certificate_authorities)
+      end
+      ExtensionCodec.decode_u16_list(signature_algorithms)
+    end
+
+    # Answers a CertificateRequest (§4.4.2, §4.4.3). With a configured
+    # certificate whose key signs one of *list_of_requested_scheme_values*,
+    # the client sends its chain and a CertificateVerify over the
+    # transcript; otherwise an empty Certificate tells the server it has
+    # none, and the server decides (§4.4.2.4). Both enter the transcript
+    # before the client's Finished.
+    private def send_client_certificate(certificate_request : Messages::CertificateRequest,
+                                        list_of_requested_scheme_values : Array(UInt16), hash : HashAlgorithm) : Nil
+      request_context = certificate_request.certificate_request_context
+      certified_key = @context.certified_key?
+      scheme = certified_key ? certified_key.signature_scheme_for(list_of_requested_scheme_values) : nil
+      unless certified_key && scheme
+        write_and_record(Messages::CertificateMessage.new(request_context, [] of Messages::CertificateEntry).encode)
+        return
+      end
+
+      list_of_entries = certified_key.list_of_certificates.map do |certificate|
+        Messages::CertificateEntry.new(certificate.encoded, [] of Messages::Extension)
+      end
+      write_and_record(Messages::CertificateMessage.new(request_context, list_of_entries).encode)
+      content = Messages::CertificateVerify.signed_content(@transcript.digest(hash), is_server: false)
+      signature = certified_key.sign(scheme, content, @randomness)
+      write_and_record(Messages::CertificateVerify.new(scheme.value, signature).encode)
+    end
+
+    private def write_and_record(message : Bytes) : Nil
+      @record_layer.write_handshake(message)
+      @transcript.add(message)
     end
 
     # The leaf's CertificateEntry may carry only extensions the client

@@ -11,10 +11,22 @@ module Amber::Beryl::TLS
   # `RecordLayer`. One instance runs one handshake.
   #
   # Beryl's server authenticates with its certificate (or a resumption
-  # PSK with a fresh ECDHE exchange), never requests a client certificate,
-  # never accepts 0-RTT data, and sends at most one HelloRetryRequest.
+  # PSK with a fresh ECDHE exchange), never accepts 0-RTT data, and sends
+  # at most one HelloRetryRequest. When `Context::Server#client_verify_mode`
+  # asks for one, a full handshake sends a CertificateRequest and reads
+  # the client's Certificate and CertificateVerify before its Finished
+  # (§4.3.2, §4.4.2, §4.4.3); a resumed one carries the certificate chain
+  # its ticket recorded.
   class ServerHandshake
     alias ExtensionCodec = Messages::ExtensionCodec
+
+    # A ticket the server resumes: its state, the index of its identity in
+    # the ClientHello, and the client certificate chain the connection
+    # carries on.
+    private record Resumption,
+      state : SealedSessionState,
+      identity_index : Int32,
+      list_of_peer_certificates : Array(Certificates::Certificate)
 
     # The choices made from one ClientHello.
     private record Selection,
@@ -91,11 +103,17 @@ module Amber::Beryl::TLS
       end
 
       hash = selection.cipher_suite.hash_algorithm
-      resumed_state, selected_identity = find_resumable_session(client_hello, client_hello_message, selection)
+      resumption = find_resumable_session(client_hello, client_hello_message, selection)
+      resumed_state = resumption.try(&.state)
+      selected_identity = resumption.try(&.identity_index)
       # The CertificateVerify scheme is chosen before the ServerHello, so a
       # client that offers none of this key's schemes is refused in the clear.
       certificate_scheme = nil
+      client_certificate_verifier = nil
       unless resumed_state
+        if @context.client_verify_mode.requests_certificate?
+          client_certificate_verifier = @context.client_certificate_verifier
+        end
         list_of_offered_schemes = client_hello.extension(ExtensionType::SignatureAlgorithms).try { |contents| ExtensionCodec.decode_u16_list(contents) } || [] of UInt16
         certificate_scheme = @context.certified_key.signature_scheme_for(list_of_offered_schemes) ||
                              raise Error.new("the client offers no signature scheme this server's key signs", AlertDescription::HandshakeFailure)
@@ -140,6 +158,7 @@ module Amber::Beryl::TLS
           ExtensionCodec.encode_record_size_limit(@context.limits.record_size_limit))
       end
       write_and_record(Messages::EncryptedExtensions.new(list_of_encrypted_extensions).encode)
+      write_and_record(build_certificate_request) if client_certificate_verifier
 
       if scheme = certificate_scheme
         certified_key = @context.certified_key
@@ -161,8 +180,15 @@ module Amber::Beryl::TLS
 
       install_read_protection(RecordProtection.new(selection.cipher_suite, client_handshake_secret))
       @record_layer.is_accepting_plaintext_alerts = true
-      finished_message = @record_layer.read_handshake_message
+      first_client_message = @record_layer.read_handshake_message
       @record_layer.is_accepting_plaintext_alerts = false
+      list_of_peer_certificates = resumption.try(&.list_of_peer_certificates) || [] of Certificates::Certificate
+      finished_message = if verifier = client_certificate_verifier
+                           list_of_peer_certificates = read_client_certificate(first_client_message, hash, verifier)
+                           @record_layer.read_handshake_message
+                         else
+                           first_client_message
+                         end
       expect_type(finished_message, HandshakeType::Finished)
       finished = Messages::Finished.decode(Messages.unwrap(finished_message)[1], hash.bytesize)
       unless KeySchedule.finished_matches?(hash, client_handshake_secret, @transcript.digest(hash), finished.verify_data)
@@ -178,9 +204,90 @@ module Amber::Beryl::TLS
 
       outcome = HandshakeOutcome.new(selection.cipher_suite, client_application_secret, server_application_secret,
         exporter_master_secret, resumption_master_secret, selection.alpn_protocol, selection.server_name,
-        [] of Certificates::Certificate, !resumed_state.nil?, selection.peer_record_size_limit, selection.group)
+        list_of_peer_certificates, !resumed_state.nil?, selection.peer_record_size_limit, selection.group)
       send_session_tickets(client_hello, outcome)
       outcome
+    end
+
+    # The CertificateRequest of a full handshake (§4.3.2): an empty
+    # context, the CertificateVerify schemes this server checks, and the
+    # names of the client trust store's roots when they fit the context's
+    # limit.
+    private def build_certificate_request : Bytes
+      list_of_schemes = CertificateVerifier::LIST_OF_VERIFIED_SIGNATURE_SCHEMES.map(&.value)
+      list_of_certificate_schemes = list_of_schemes + [SignatureScheme::RsaPkcs1Sha256, SignatureScheme::RsaPkcs1Sha384, SignatureScheme::RsaPkcs1Sha512].map(&.value)
+      list_of_extensions = [
+        Messages::Extension.new(ExtensionType::SignatureAlgorithms.value, ExtensionCodec.encode_u16_list(list_of_schemes)),
+        Messages::Extension.new(ExtensionType::SignatureAlgorithmsCert.value, ExtensionCodec.encode_u16_list(list_of_certificate_schemes)),
+      ]
+      if trust_store = @context.client_trust_store
+        list_of_names = trust_store.list_of_certificates.map(&.subject.encoded).reject(&.empty?).uniq
+        names_bytesize = list_of_names.sum { |name| name.size + 2 }
+        if 0 < names_bytesize <= @context.largest_certificate_authorities_bytesize
+          list_of_extensions << Messages::Extension.new(ExtensionType::CertificateAuthorities.value,
+            ExtensionCodec.encode_certificate_authorities(list_of_names))
+        end
+      end
+      Messages::CertificateRequest.new(Bytes.empty, list_of_extensions).encode
+    end
+
+    # Reads the client's Certificate in *message* and, when it holds a
+    # chain, verifies the chain with *verifier* and reads and checks the
+    # CertificateVerify that follows (§4.4.2, §4.4.3). Returns the chain,
+    # empty when the client sent none and the mode allows that.
+    private def read_client_certificate(message : Bytes, hash : HashAlgorithm, verifier : CertificateVerifier) : Array(Certificates::Certificate)
+      expect_type(message, HandshakeType::Certificate)
+      certificate_message = Messages::CertificateMessage.decode(Messages.unwrap(message)[1],
+        largest_count: @context.limits.largest_certificate_count,
+        largest_bytesize: @context.limits.largest_certificate_chain_bytesize)
+      unless certificate_message.certificate_request_context.empty?
+        raise Error.new("a client Certificate whose context is not the CertificateRequest's", AlertDescription::IllegalParameter)
+      end
+      if certificate_message.list_of_entries.empty?
+        if @context.client_verify_mode.required?
+          raise Error.new("the client sent no certificate, and this server requires one", AlertDescription::CertificateRequired)
+        end
+        @transcript.add(message)
+        return [] of Certificates::Certificate
+      end
+
+      list_of_certificates = certificate_message.list_of_entries.map do |entry|
+        # The CertificateRequest asks for no extension a CertificateEntry
+        # may answer (§4.4.2).
+        if extension = entry.list_of_extensions.first?
+          raise Error.new("the extension #{extension.type_value} on a client certificate, which the server did not ask for", AlertDescription::UnsupportedExtension)
+        end
+        Certificates::Certificate.new(entry.certificate_data)
+      rescue error : Certificates::Error
+        raise Error.new("a client certificate does not parse: #{error.message}", AlertDescription::BadCertificate)
+      end
+      leaf = list_of_certificates.first
+      # A leaf whose key usage leaves out digitalSignature cannot sign
+      # CertificateVerify (§4.4.2.2), whatever the verifier decides.
+      if (key_usage = leaf.key_usage) && !key_usage.digital_signature?
+        raise Error.new("the client certificate's key usage leaves out digitalSignature", AlertDescription::BadCertificate)
+      end
+      verifier.verify_chain(list_of_certificates, nil)
+      @transcript.add(message)
+
+      certificate_verify_message = @record_layer.read_handshake_message
+      expect_type(certificate_verify_message, HandshakeType::CertificateVerify)
+      certificate_verify = Messages::CertificateVerify.decode(Messages.unwrap(certificate_verify_message)[1])
+      scheme = SignatureScheme.from_value?(certificate_verify.signature_scheme_value)
+      unless scheme && CertificateVerifier::LIST_OF_VERIFIED_SIGNATURE_SCHEMES.includes?(scheme)
+        raise Error.new("the client signed with scheme #{certificate_verify.signature_scheme_value}, which was not requested", AlertDescription::IllegalParameter)
+      end
+      # A scheme for another key type (or another curve) is a wrong
+      # parameter rather than a bad signature.
+      unless CertificateVerifier.scheme_fits_key?(leaf, scheme)
+        raise Error.new("the client signed with #{scheme}, which its certificate's key does not sign with", AlertDescription::IllegalParameter)
+      end
+      content = Messages::CertificateVerify.signed_content(@transcript.digest(hash), is_server: false)
+      unless verifier.verify_signature(leaf, scheme, content, certificate_verify.signature)
+        raise Error.new("the client's CertificateVerify does not verify", AlertDescription::DecryptError)
+      end
+      @transcript.add(certificate_verify_message)
+      list_of_certificates
     end
 
     private def write_and_record(message : Bytes) : Nil
@@ -350,15 +457,15 @@ module Amber::Beryl::TLS
       @record_layer.is_skipping_plaintext_early_data = after_hello_retry_request
     end
 
-    # Returns the state of the first offered ticket this server sealed and
-    # can resume with, and its index; or nils for a full handshake. A
-    # binder that does not verify ends the handshake (§4.2.11).
-    private def find_resumable_session(client_hello : Messages::ClientHello, message : Bytes, selection : Selection) : {SealedSessionState?, Int32?}
+    # Returns the first offered ticket this server sealed and can resume
+    # with, or nil for a full handshake. A binder that does not verify ends
+    # the handshake (§4.2.11).
+    private def find_resumable_session(client_hello : Messages::ClientHello, message : Bytes, selection : Selection) : Resumption?
       contents = client_hello.extension(ExtensionType::PreSharedKey)
-      return {nil, nil} unless contents
+      return nil unless contents
       list_of_identities, list_of_binders = ExtensionCodec.decode_client_pre_shared_key(contents)
       modes = ExtensionCodec.decode_psk_modes(client_hello.extension(ExtensionType::PskKeyExchangeModes) || Bytes.empty)
-      return {nil, nil} unless modes.includes?(PskKeyExchangeMode::PskDheKe.value)
+      return nil unless modes.includes?(PskKeyExchangeMode::PskDheKe.value)
 
       hash = selection.cipher_suite.hash_algorithm
       now_milliseconds = Time.utc.to_unix_ms
@@ -371,6 +478,8 @@ module Amber::Beryl::TLS
         age_milliseconds = now_milliseconds - state.issued_at_unix_milliseconds
         next unless 0 <= age_milliseconds < state.lifetime_seconds.to_i64 * 1000
         next unless state.server_name == selection.server_name
+        list_of_peer_certificates = peer_certificates_to_resume(state)
+        next unless list_of_peer_certificates
         binder = list_of_binders[index]
         next unless binder.size == hash.bytesize
         prefix = message[0, Messages::ClientHello.binder_prefix_bytesize(message, list_of_binders)]
@@ -380,15 +489,36 @@ module Amber::Beryl::TLS
         Crypto::SecretWiping.wipe(binder_key)
         schedule.wipe
         raise Error.new("a PSK binder does not verify", AlertDescription::DecryptError) unless is_binder_valid
-        return {state, index}
+        return Resumption.new(state, index, list_of_peer_certificates)
       end
-      {nil, nil}
+      nil
+    end
+
+    # The client chain a resumed connection carries, or nil when *state*
+    # may not be resumed under this context's client certificate mode: a
+    # server that requires a certificate resumes only a session that had
+    # one, and a chain is verified again (the trust store may have changed,
+    # or the leaf expired). A server that asks for no certificate carries
+    # none on.
+    private def peer_certificates_to_resume(state : SealedSessionState) : Array(Certificates::Certificate)?
+      mode = @context.client_verify_mode
+      return [] of Certificates::Certificate unless mode.requests_certificate?
+      if state.list_of_peer_certificate_data.empty?
+        return mode.required? ? nil : [] of Certificates::Certificate
+      end
+      list_of_certificates = state.list_of_peer_certificate_data.map { |data| Certificates::Certificate.new(data) }
+      @context.client_certificate_verifier.verify_chain(list_of_certificates, nil)
+      list_of_certificates
+    rescue Certificates::Error | CertificateRejected
+      nil
     end
 
     private def send_session_tickets(client_hello : Messages::ClientHello, outcome : HandshakeOutcome) : Nil
       return unless @context.session_tickets_enabled?
       modes = client_hello.extension(ExtensionType::PskKeyExchangeModes).try { |contents| ExtensionCodec.decode_psk_modes(contents) }
       return unless modes && modes.includes?(PskKeyExchangeMode::PskDheKe.value)
+      list_of_peer_certificate_data = outcome.list_of_peer_certificates.map(&.encoded)
+      return if list_of_peer_certificate_data.sum(&.size) > SealedSessionState::LARGEST_PEER_CERTIFICATES_BYTESIZE
       hash = outcome.cipher_suite.hash_algorithm
       lifetime = Math.min(@context.ticket_lifetime.total_seconds.to_u32, SealedSessionState::LONGEST_LIFETIME_SECONDS)
       @context.session_ticket_count.times do |count|
@@ -396,7 +526,7 @@ module Amber::Beryl::TLS
         pre_shared_key = KeySchedule.resumption_pre_shared_key(hash, outcome.resumption_master_secret, nonce)
         age_add = IO::ByteFormat::BigEndian.decode(UInt32, @randomness.random_bytes(4))
         state = SealedSessionState.new(outcome.cipher_suite, pre_shared_key, Time.utc.to_unix_ms, lifetime, age_add,
-          outcome.alpn_protocol, outcome.server_name)
+          outcome.alpn_protocol, outcome.server_name, list_of_peer_certificate_data)
         ticket = state.seal(@context.ticket_key)
         Crypto::SecretWiping.wipe(pre_shared_key)
         @record_layer.write_handshake(Messages::NewSessionTicket.new(lifetime, age_add, nonce, ticket).encode)

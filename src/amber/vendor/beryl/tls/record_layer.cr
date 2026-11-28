@@ -14,11 +14,25 @@ module Amber::Beryl::TLS
   # (`unexpected_message`), zero-length handshake or alert fragments, a
   # handshake message interleaved with another content type, an alert that
   # is not two bytes (`decode_error`), and the floods the limits bound.
+  #
+  # Every buffer it keeps starts at the size of the first record that needs
+  # it (the read-ahead buffer at a record header, then the first record)
+  # and grows, doubling, up to the record limits only when a larger
+  # record arrives, so an idle connection with small requests holds a few
+  # kilobytes. It reads ahead into its own buffer, so it turns off read
+  # buffering on an `IO::Buffered` under it, for good: the bytes would
+  # otherwise be buffered twice.
   class RecordLayer
     # The largest plaintext fragment (§5.1).
     LARGEST_FRAGMENT_BYTESIZE = 16_384
     # A handshake message header: type and a 24-bit length.
     HANDSHAKE_HEADER_BYTESIZE = 4
+    # The largest record on the wire: its header and the largest
+    # TLSCiphertext fragment.
+    LARGEST_RECORD_BYTESIZE = RecordProtection::HEADER_BYTESIZE + RecordProtection::LARGEST_CIPHERTEXT_BYTESIZE
+    # The largest protected record this end writes: its header, the largest
+    # inner plaintext (content and type, no padding) and the tag.
+    LARGEST_PROTECTED_RECORD_BYTESIZE = RecordProtection::HEADER_BYTESIZE + RecordProtection::LARGEST_INNER_PLAINTEXT_BYTESIZE + 16
 
     # Keys for reading, or `nil` before the ServerHello.
     property read_protection : RecordProtection? = nil
@@ -57,17 +71,23 @@ module Amber::Beryl::TLS
     @consecutive_warning_alert_count = 0
     @handshake_buffer = Bytes.empty
     # Spare room the handshake buffer grows into, doubling, so a message
-    # sent in many small records costs linear time to reassemble.
+    # sent in many small records costs linear time to reassemble. Both are
+    # released once no part of a message is waiting.
     @handshake_storage = Bytes.empty
-    @record_header = Bytes.new(RecordProtection::HEADER_BYTESIZE)
-    # Buffers reused for every record, grown to the largest record seen,
-    # so a connection does not allocate for each record it reads or writes.
-    @read_fragment_storage = Bytes.empty
+    # Bytes read from the IO and not yet taken as records: the records
+    # start at `@read_start` and end at `@read_end`.
+    @read_storage = Bytes.empty
+    @read_start = 0
+    @read_end = 0
+    # Buffers reused for every record, grown on demand, so a connection
+    # does not allocate for each record it reads or writes.
     @read_plaintext_storage = Bytes.empty
     @write_record_storage = Bytes.empty
     @write_scratch_storage = Bytes.empty
 
     def initialize(@io : IO, @limits : Limits = Limits.new)
+      io = @io
+      io.read_buffering = false if io.is_a?(IO::Buffered)
     end
 
     # Writes *message* (a whole handshake message) in as many handshake
@@ -102,6 +122,15 @@ module Amber::Beryl::TLS
     # Flushes the IO.
     def flush : Nil
       @io.flush
+    end
+
+    # :nodoc:
+    #
+    # The sizes of the buffers the layer holds, for the specs and memory
+    # measurements.
+    def buffer_bytesizes : NamedTuple(read: Int32, read_plaintext: Int32, write_record: Int32, write_scratch: Int32, handshake: Int32)
+      {read: @read_storage.size, read_plaintext: @read_plaintext_storage.size, write_record: @write_record_storage.size,
+       write_scratch: @write_scratch_storage.size, handshake: Math.max(@handshake_storage.size, @handshake_buffer.size)}
     end
 
     # Returns whether no part of a handshake message is waiting. A key
@@ -157,8 +186,9 @@ module Amber::Beryl::TLS
         fragment = content[offset, Math.min(fragment_limit, content.size - offset)]
         if protection = @write_protection
           inner_bytesize = fragment.size + 1
-          @write_record_storage = storage_of_at_least(@write_record_storage, RecordProtection::HEADER_BYTESIZE + inner_bytesize + protection.tag_bytesize)
-          @write_scratch_storage = storage_of_at_least(@write_scratch_storage, inner_bytesize)
+          @write_record_storage = storage_of_at_least(@write_record_storage, RecordProtection::HEADER_BYTESIZE + inner_bytesize + protection.tag_bytesize,
+            LARGEST_PROTECTED_RECORD_BYTESIZE)
+          @write_scratch_storage = storage_of_at_least(@write_scratch_storage, inner_bytesize, RecordProtection::LARGEST_INNER_PLAINTEXT_BYTESIZE)
           @io.write(protection.seal(content_type, fragment, into: @write_record_storage, scratch: @write_scratch_storage))
         else
           header = Bytes[content_type.value, (legacy_record_version >> 8).to_u8, (legacy_record_version & 0xFF).to_u8,
@@ -177,20 +207,21 @@ module Amber::Beryl::TLS
     private def read_content_record : {ContentType, Bytes}?
       return nil if @peer_closed
       loop do
-        @io.read_fully(@record_header)
-        outer_type = ContentType.new(@record_header[0])
+        record_header = read_ahead(RecordProtection::HEADER_BYTESIZE)
+        outer_type = ContentType.new(record_header[0])
         # An unknown record type is refused from its header, before its
         # length is trusted (§5); an SSL 2.0 ClientHello ends here too.
         unless ContentType::ChangeCipherSpec.value <= outer_type.value <= ContentType::ApplicationData.value
           raise Error.new("a record of type #{outer_type.value}", AlertDescription::UnexpectedMessage)
         end
-        length = (@record_header[3].to_i << 8) | @record_header[4].to_i
+        length = (record_header[3].to_i << 8) | record_header[4].to_i
         if length > RecordProtection::LARGEST_CIPHERTEXT_BYTESIZE
           raise Error.new("a record of #{length} bytes", AlertDescription::RecordOverflow)
         end
-        @read_fragment_storage = storage_of_at_least(@read_fragment_storage, length)
-        fragment = @read_fragment_storage[0, length]
-        @io.read_fully(fragment)
+        record = read_ahead(RecordProtection::HEADER_BYTESIZE + length)
+        @read_start += record.size
+        record_header = record[0, RecordProtection::HEADER_BYTESIZE]
+        fragment = record + RecordProtection::HEADER_BYTESIZE
 
         if outer_type.change_cipher_spec?
           unless @is_change_cipher_spec_allowed && length == 1 && fragment[0] == 1
@@ -216,8 +247,8 @@ module Amber::Beryl::TLS
                                   if length - protection.tag_bytesize > @largest_incoming_inner_plaintext_bytesize
                                     raise Error.new("a protected record over the record_size_limit of #{@largest_incoming_inner_plaintext_bytesize}", AlertDescription::RecordOverflow)
                                   end
-                                  @read_plaintext_storage = storage_of_at_least(@read_plaintext_storage, length)
-                                  opened = protection.open(@record_header, fragment, into: @read_plaintext_storage)
+                                  @read_plaintext_storage = storage_of_at_least(@read_plaintext_storage, length, RecordProtection::LARGEST_CIPHERTEXT_BYTESIZE)
+                                  opened = protection.open(record_header, fragment, into: @read_plaintext_storage)
                                   unless opened
                                     next if skip_refused_early_data?(length)
                                     raise Error.new("a record failed authentication", AlertDescription::BadRecordMac)
@@ -301,11 +332,41 @@ module Amber::Beryl::TLS
       raise PeerAlert.new("the peer sent the alert #{description}", description)
     end
 
+    # Returns the next *bytesize* bytes the IO sends, without taking them:
+    # a slice of the read-ahead buffer, valid until the next read. Reads
+    # as much as the buffer holds, so one read from the IO usually brings
+    # a whole record, or several. Raises `IO::EOFError` when the IO ends
+    # first.
+    private def read_ahead(bytesize : Int32) : Bytes
+      while @read_end - @read_start < bytesize
+        if @read_start + bytesize > @read_storage.size
+          make_room_to_read_ahead(bytesize)
+        end
+        count = @io.read(@read_storage[@read_end, @read_storage.size - @read_end])
+        raise IO::EOFError.new if count == 0
+        @read_end += count
+      end
+      @read_storage[@read_start, bytesize]
+    end
+
+    # Moves the bytes not yet taken to the front of the read-ahead buffer,
+    # in a larger buffer when *bytesize* bytes would not fit.
+    private def make_room_to_read_ahead(bytesize : Int32) : Nil
+      waiting = @read_storage[@read_start, @read_end - @read_start]
+      storage = storage_of_at_least(@read_storage, bytesize, LARGEST_RECORD_BYTESIZE)
+      waiting.move_to(storage)
+      @read_storage = storage
+      @read_start = 0
+      @read_end = waiting.size
+    end
+
     # Returns *storage* when it holds *bytesize* bytes, or a new buffer
-    # that does (at least 1 KiB, so small records do not regrow it).
-    private def storage_of_at_least(storage : Bytes, bytesize : Int32) : Bytes
+    # that does: twice the size of *storage*, or *bytesize* when that is
+    # more, never over *largest_bytesize*. A connection whose records stay
+    # small keeps small buffers.
+    private def storage_of_at_least(storage : Bytes, bytesize : Int32, largest_bytesize : Int32) : Bytes
       return storage if storage.size >= bytesize
-      Bytes.new(Math.max(bytesize, 1024))
+      Bytes.new(Math.min(Math.max(bytesize, storage.size * 2), Math.max(bytesize, largest_bytesize)))
     end
 
     private def append_handshake(content : Bytes) : Nil
@@ -340,6 +401,13 @@ module Amber::Beryl::TLS
       return nil if @handshake_buffer.size < total
       message = @handshake_buffer[0, total]
       @handshake_buffer = @handshake_buffer[total..]
+      if @handshake_buffer.empty?
+        # Nothing waits: let the reassembly buffers go. *message* keeps
+        # what it points into alive for as long as the caller holds it.
+        @handshake_buffer = Bytes.empty
+        @handshake_storage = Bytes.empty
+        return message
+      end
       if @handshake_buffer.size >= HANDSHAKE_HEADER_BYTESIZE && declared_length(@handshake_buffer) > @limits.largest_handshake_message_bytesize
         raise Error.new("a handshake message of #{declared_length(@handshake_buffer)} bytes", AlertDescription::IllegalParameter)
       end

@@ -6,9 +6,21 @@ module Amber::Beryl::TLS
   # What a server seals into a session ticket, and reads back when a client
   # offers it (RFC 9846 §4.6.1, §4.2.11). The server keeps no state: the
   # ticket is XChaCha20-Poly1305 under the context's ticket key.
+  #
+  # A session whose client sent a certificate keeps that chain in its
+  # tickets, so a resumed connection has the same peer certificate. A
+  # server that asks for client certificates verifies the chain again when
+  # it resumes, and one that requires a certificate resumes only a session
+  # that had one.
   struct SealedSessionState
-    # A version byte at the front, so a later format can coexist.
-    FORMAT_VERSION = 1_u8
+    # A version byte at the front, so a later format can coexist. Version 2
+    # added the client's certificate chain; a version 1 ticket is not
+    # opened, and its client gets a full handshake.
+    FORMAT_VERSION = 2_u8
+    # The most bytes of client certificates a ticket carries. A server
+    # sends no tickets after a handshake whose client chain is larger, so
+    # every ticket stays well inside NewSessionTicket's two-byte length.
+    LARGEST_PEER_CERTIFICATES_BYTESIZE = 32_768
     # Authenticated with every ticket, so a ticket key used elsewhere
     # cannot be confused with this one.
     ASSOCIATED_DATA = "beryl tls13 session ticket"
@@ -22,9 +34,12 @@ module Amber::Beryl::TLS
     getter ticket_age_add : UInt32
     getter alpn_protocol : String?
     getter server_name : String?
+    # The DER of the client's certificate chain, leaf first; empty when the
+    # client sent none.
+    getter list_of_peer_certificate_data : Array(Bytes)
 
     def initialize(@cipher_suite, @resumption_pre_shared_key, @issued_at_unix_milliseconds, @lifetime_seconds,
-                   @ticket_age_add, @alpn_protocol, @server_name)
+                   @ticket_age_add, @alpn_protocol, @server_name, @list_of_peer_certificate_data = [] of Bytes)
     end
 
     # Returns the sealed ticket.
@@ -39,6 +54,9 @@ module Amber::Beryl::TLS
       writer.write_u32(@ticket_age_add)
       writer.write_vector8((@alpn_protocol || "").to_slice)
       writer.write_vector8((@server_name || "").to_slice)
+      writer.write_vector24 do |list|
+        @list_of_peer_certificate_data.each { |data| list.write_vector24(data) }
+      end
       plaintext = writer.to_slice
       sealed = Crypto.encrypt(plaintext, key: ticket_key, associated_data: ASSOCIATED_DATA)
       Crypto::SecretWiping.wipe(plaintext)
@@ -60,9 +78,15 @@ module Amber::Beryl::TLS
       age_add = reader.read_u32
       alpn = String.new(reader.read_vector8)
       server_name = String.new(reader.read_vector8)
+      certificate_list = Messages::MessageReader.new(reader.read_vector24)
+      list_of_peer_certificate_data = [] of Bytes
+      until certificate_list.at_end?
+        list_of_peer_certificate_data << certificate_list.read_vector24(1).dup
+      end
       reader.finish
       Crypto::SecretWiping.wipe(plaintext)
-      new(suite, pre_shared_key, issued_at, lifetime, age_add, alpn.empty? ? nil : alpn, server_name.empty? ? nil : server_name)
+      new(suite, pre_shared_key, issued_at, lifetime, age_add, alpn.empty? ? nil : alpn, server_name.empty? ? nil : server_name,
+        list_of_peer_certificate_data)
     rescue Error
       nil
     end

@@ -34,6 +34,11 @@ module Amber::Beryl::Crypto::V1
       NONCE_BYTESIZE
     end
 
+    # Zeroes this cipher's copy of the key.
+    protected def wipe_key_material : Nil
+      SecretWiping.wipe(@key)
+    end
+
     protected def ensure_nonce_is_accepted(nonce : Bytes) : Nil
       return if nonce.size == NONCE_BYTESIZE
 

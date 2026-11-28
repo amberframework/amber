@@ -30,6 +30,9 @@ module Amber::Beryl::Crypto::V1::RivestShamirAdleman
     # operation and saves a multiplication in each one after.
     @public_exponent_correction : Slice(UInt64)?
     @has_operated = false
+    # The modulus in the form of the AVX-512 IFMA path, built with the
+    # correction where the processor and the modulus suit it.
+    @modulus_in_digits : MontgomeryMultiplicationWithIntegerFusedMultiplyAdd::PublicModulus?
 
     # Takes the big-endian *modulus* (leading zero bytes allowed) and the
     # public exponent, as big-endian bytes or as an integer. Raises
@@ -175,11 +178,18 @@ module Amber::Beryl::Crypto::V1::RivestShamirAdleman
       return nil unless MontgomeryArithmetic.less_than_bit(input_words, @modulus_words) == 1_u64
 
       result_words = Slice(UInt64).new(@modulus_words.size)
-      if correction = @public_exponent_correction
+      if modulus_in_digits = @modulus_in_digits
+        modulus_in_digits.exponentiate(result_words, input_words)
+      elsif correction = @public_exponent_correction
         modulus.exponentiate_by_public_exponent(result_words, input_words, @public_exponent, correction)
       elsif @has_operated
         correction = modulus.public_exponent_correction(@public_exponent)
         @public_exponent_correction = correction
+        if MontgomeryMultiplicationWithIntegerFusedMultiplyAdd::PublicModulus.usable_for?(@modulus_words.size)
+          built = modulus
+          @modulus_in_digits = MontgomeryMultiplicationWithIntegerFusedMultiplyAdd::PublicModulus.new(built.words,
+            built.r_squared, built.negated_inverse, @public_exponent)
+        end
         modulus.exponentiate_by_public_exponent(result_words, input_words, @public_exponent, correction)
       else
         @has_operated = true

@@ -1,4 +1,5 @@
 require "./montgomery_multiplication_in_assembly"
+require "./montgomery_multiplication_with_two_carry_chains"
 
 module Amber::Beryl::Crypto::V1
   # :nodoc:
@@ -162,6 +163,13 @@ module Amber::Beryl::Crypto::V1
             MontgomeryMultiplicationInAssembly.multiply_{{ word_count }}(result_pointer, a_pointer, b_pointer, modulus_pointer,
               negated_inverse, scratch[0, 2 * {{ word_count }} + 2].to_unsafe)
           {% end %}
+        {% elsif flag?(:x86_64) && !flag?(:beryl_portable_rsa) %}
+          if ProcessorFeatures::HAS_WIDE_MULTIPLY_WITH_TWO_CARRY_CHAINS
+            MontgomeryMultiplicationWithTwoCarryChains.multiply_{{ word_count }}(result_pointer, a_pointer, b_pointer,
+              modulus_pointer, negated_inverse, scratch[0, multiplication_scratch_word_count({{ word_count }})].to_unsafe)
+          else
+            multiply_{{ word_count }}(result_pointer, a_pointer, b_pointer, modulus_pointer, negated_inverse, accumulator)
+          end
         {% else %}
           multiply_{{ word_count }}(result_pointer, a_pointer, b_pointer, modulus_pointer, negated_inverse, accumulator)
         {% end %}
@@ -195,14 +203,33 @@ module Amber::Beryl::Crypto::V1
           {% end %}
           end
         {% end %}
+      {% elsif flag?(:x86_64) && !flag?(:beryl_portable_rsa) %}
+        if ProcessorFeatures::HAS_WIDE_MULTIPLY_WITH_TWO_CARRY_CHAINS
+          {% begin %}
+            case modulus.size
+            {% for word_count in SPECIALIZED_WORD_COUNTS %}
+            when {{ word_count }}
+              MontgomeryMultiplicationWithTwoCarryChains.square_{{ word_count }}(result.to_unsafe, a.to_unsafe, modulus.to_unsafe,
+                negated_inverse, scratch[0, multiplication_scratch_word_count({{ word_count }})].to_unsafe)
+              return
+            {% end %}
+            end
+          {% end %}
+        end
       {% end %}
       multiply(result, a, a, modulus, negated_inverse, scratch)
     end
 
     # The number of words of scratch `multiply` and `square` need for a
-    # modulus of *word_count* words.
+    # modulus of *word_count* words: on x86-64, the layout
+    # `MontgomeryMultiplicationWithTwoCarryChains` describes.
     def self.multiplication_scratch_word_count(word_count : Int32) : Int32
-      2 * word_count + 2
+      {% if flag?(:x86_64) && !flag?(:beryl_portable_rsa) %}
+        MontgomeryMultiplicationWithTwoCarryChains::SCRATCH_WORD_COUNT_PER_WORD * word_count +
+          MontgomeryMultiplicationWithTwoCarryChains::SCRATCH_EXTRA_WORD_COUNT
+      {% else %}
+        2 * word_count + 2
+      {% end %}
     end
 
     # The word counts of the moduli and primes of 2,048, 3,072 and 4,096-bit
@@ -458,6 +485,18 @@ module Amber::Beryl::Crypto::V1
           {% end %}
           end
         {% end %}
+      {% elsif flag?(:x86_64) && !flag?(:beryl_portable_rsa) %}
+        if ProcessorFeatures::HAS_AVX2
+          {% begin %}
+            case word_count
+            {% for count in SPECIALIZED_WORD_COUNTS %}
+            when {{ count }}
+              MontgomeryMultiplicationWithTwoCarryChains.select_entry_{{ count }}(selected.to_unsafe, table.to_unsafe, window)
+              return
+            {% end %}
+            end
+          {% end %}
+        end
       {% end %}
       selected_pointer = selected.to_unsafe
       table_pointer = table.to_unsafe

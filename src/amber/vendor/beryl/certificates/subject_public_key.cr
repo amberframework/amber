@@ -261,6 +261,19 @@ module Amber::Beryl::Certificates
       !@scheme.unsupported?
     end
 
+    # Returns "SHA-1" or "MD5" when this algorithm signs over that hash,
+    # which Beryl refuses whatever the key (RFC 9155 for SHA-1, RFC 6151
+    # for MD5); `nil` for every other algorithm.
+    def refused_hash_function_name : String?
+      case @identifier
+      when ObjectIdentifiers::SHA1_WITH_RSA_ENCRYPTION, ObjectIdentifiers::SHA1_WITH_RSA_SIGNATURE,
+           ObjectIdentifiers::ECDSA_WITH_SHA1, ObjectIdentifiers::DSA_WITH_SHA1
+        "SHA-1"
+      when ObjectIdentifiers::MD5_WITH_RSA_ENCRYPTION
+        "MD5"
+      end
+    end
+
     # Returns whether *signature* is this algorithm's signature of *message*
     # under *key*. A key of the wrong type for the algorithm gives `false`.
     def verify(key : VerificationKey, message : Bytes, signature : Bytes) : Bool

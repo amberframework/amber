@@ -34,6 +34,11 @@ module Amber::Beryl::Crypto::V1
       NONCE_BYTESIZE
     end
 
+    # Zeroes this cipher's copy of the key.
+    protected def wipe_key_material : Nil
+      SecretWiping.wipe(@key)
+    end
+
     protected def ensure_nonce_is_accepted(nonce : Bytes) : Nil
       return if nonce.size == NONCE_BYTESIZE
 
@@ -99,8 +104,8 @@ module Amber::Beryl::Crypto::V1
     end
 
     # Checks *tag* against the first `tag.size` bytes of the right tag, then
-    # decrypts into *plaintext*; returns false, leaving *plaintext*
-    # untouched, when the tag is wrong.
+    # decrypts into *plaintext*; returns false without writing *plaintext*
+    # when the tag is wrong (`AuthenticatedEncryption#decrypt` then zeroes it).
     def self.open(key : Bytes, nonce : Bytes, associated_data : Bytes, ciphertext : Bytes, tag : Bytes, plaintext : Bytes) : Bool
       if ProcessorFeatures::HAS_VECTOR_INSTRUCTIONS
         return ChaCha20WithVectorInstructions.open(key, nonce, associated_data, ciphertext, tag, plaintext)

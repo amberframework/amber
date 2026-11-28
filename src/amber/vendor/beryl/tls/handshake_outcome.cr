@@ -7,7 +7,8 @@ module Amber::Beryl::TLS
     getter server_application_traffic_secret : Bytes
     getter exporter_master_secret : Bytes
     # The resumption master secret, for the tickets a server sends or a
-    # client receives.
+    # client receives. A server socket wipes it once its handshake (and
+    # the tickets sent with it) ends.
     getter resumption_master_secret : Bytes
     getter alpn_protocol : String?
     # The server name the client asked for (SNI).
