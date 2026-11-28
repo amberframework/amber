@@ -4,6 +4,7 @@ require "../secret_wiping"
 require "../data_independent_timing"
 require "./secure_hash_with_512_bit_digest"
 require "./edwards25519_group"
+require "./edwards25519_verification_arithmetic"
 
 module Amber::Beryl::Crypto::V1
   # Ed25519 signatures (RFC 8032 §5.1), the pure variant without context.
@@ -68,8 +69,8 @@ module Amber::Beryl::Crypto::V1
         reduced_challenge = Edwards25519Group::Scalar.encode(Edwards25519Group::Scalar.reduce(challenge))
         # [S]B + [k](-A), negating the point rather than the scalar, as ref10
         # and OpenSSL do: the two differ when A has a small-order component.
-        candidate_r = Edwards25519Group.multiply_and_add_public(encoded_s, @point.negate, reduced_challenge)
-        candidate_r.encode == encoded_r
+        candidate_r = Edwards25519VerificationArithmetic.multiply_and_add_encoded(encoded_s, @point.negate, reduced_challenge)
+        candidate_r == encoded_r
       end
 
       def ==(other : VerificationKey) : Bool

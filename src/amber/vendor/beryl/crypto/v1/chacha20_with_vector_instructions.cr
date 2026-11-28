@@ -29,13 +29,35 @@ module Amber::Beryl::Crypto::V1
   module ChaCha20WithVectorInstructions
     BLOCK_BYTESIZE = 64
 
-    # Bytes in one group of blocks the assembly makes in one pass: 64 times
-    # `CHACHA20_BLOCKS_PER_GROUP` of the instruction module, written out as
-    # a number because it sizes the staging buffers.
+    # Bytes in the widest group of blocks the assembly makes in one pass: 64
+    # times `CHACHA20_BLOCKS_PER_GROUP` of the instruction module, written
+    # out as a number because it sizes the staging buffers. On x86-64 the
+    # widest pass this processor has is chosen at run time
+    # (`widest_group_bytesize`), and this is the widest of all, the
+    # AVX-512 pass.
     {% if flag?(:aarch64) %}
       GROUP_BYTESIZE = 576
     {% elsif flag?(:x86_64) %}
-      GROUP_BYTESIZE = 192
+      GROUP_BYTESIZE = 1024
+
+      # Bytes in one pass of the SSE, AVX2 and AVX-512 assembly, and in the
+      # scratch buffer of the AVX2 pass.
+      private SSE_GROUP_BYTESIZE    =  192
+      private AVX2_GROUP_BYTESIZE   =  512
+      private AVX512_GROUP_BYTESIZE = 1024
+      private AVX2_SCRATCH_BYTESIZE =  256
+
+      # The parameter block of the absorbing AVX2 pass, in 64-bit words:
+      # 256 bytes of scratch, the ChaCha20 state from word 32, the Poly1305
+      # state of `Poly1305WithWideMultiplication` (accumulator, r) and s1
+      # from word 40, the input and output addresses at words 46 and 47,
+      # and at word 48 the address of the stretch the AVX-512 pass that
+      # shares Poly1305 absorbs.
+      private ABSORBING_PARAMETER_WORD_COUNT = 49
+      private ABSORBING_STATE_WORD           = 32
+      private ABSORBING_POLY1305_WORD        = 40
+      private ABSORBING_INPUT_WORD           = 46
+      private SHARED_STRETCH_WORD            = 48
     {% else %}
       GROUP_BYTESIZE = 64
     {% end %}
@@ -58,8 +80,19 @@ module Amber::Beryl::Crypto::V1
     # seven blocks, the eighth's general registers going to Poly1305.
     ABSORBING_GROUP_BYTESIZE = 448
 
-    # Message bytes the first group carries after block 0.
+    # Message bytes the first group carries after block 0, at most.
     FIRST_GROUP_MESSAGE_BYTESIZE = GROUP_BYTESIZE - BLOCK_BYTESIZE
+
+    # The widest pass the assembly makes on this processor, in bytes.
+    def self.widest_group_bytesize : Int32
+      {% if flag?(:x86_64) %}
+        return AVX512_GROUP_BYTESIZE if ProcessorFeatures::HAS_AVX512
+        return AVX2_GROUP_BYTESIZE if ProcessorFeatures::HAS_AVX2
+        SSE_GROUP_BYTESIZE
+      {% else %}
+        GROUP_BYTESIZE
+      {% end %}
+    end
 
     private POLY1305_KEY_BYTESIZE = 32
 
@@ -81,6 +114,21 @@ module Amber::Beryl::Crypto::V1
     def self.seal(key : Bytes, nonce : Bytes, associated_data : Bytes, plaintext : Bytes, ciphertext : Bytes, full_tag : Bytes) : Nil
       raise OutputSizeMismatch.new("the ciphertext is as long as the plaintext") unless plaintext.size == ciphertext.size
       ensure_message_fits(1_u32, plaintext.size)
+
+      {% if flag?(:x86_64) %}
+        if shares_poly1305_while_it_ciphers? && plaintext.size >= AVX512_GROUP_BYTESIZE * 2
+          seal_sharing_poly1305(key, nonce, associated_data, plaintext, ciphertext, full_tag)
+          return
+        end
+        if absorbs_while_it_ciphers? && plaintext.size >= first_group_message_bytesize + widest_group_bytesize
+          seal_absorbing(key, nonce, associated_data, plaintext, ciphertext, full_tag)
+          return
+        end
+        if plaintext.size >= first_group_message_bytesize && widest_group_bytesize > SSE_GROUP_BYTESIZE
+          seal_from_a_direct_first_group(key, nonce, associated_data, plaintext, ciphertext, full_tag)
+          return
+        end
+      {% end %}
 
       with_first_group(key, nonce, plaintext) do |state, staging, first_bytesize|
         staging[BLOCK_BYTESIZE, first_bytesize].copy_to(ciphertext)
@@ -115,14 +163,24 @@ module Amber::Beryl::Crypto::V1
 
     # ChaCha20-Poly1305 opening: when *tag* is the first `tag.size` bytes of
     # the right tag, writes the plaintext of *ciphertext* into *plaintext*
-    # and returns true; otherwise returns false and leaves *plaintext*
-    # untouched.
+    # and returns true; otherwise returns false without writing *plaintext*
+    # (`AuthenticatedEncryption#decrypt` then zeroes it, as for every cipher).
     def self.open(key : Bytes, nonce : Bytes, associated_data : Bytes, ciphertext : Bytes, tag : Bytes, plaintext : Bytes) : Bool
       raise OutputSizeMismatch.new("the plaintext is as long as the ciphertext") unless plaintext.size == ciphertext.size
       ensure_message_fits(1_u32, ciphertext.size)
 
       {% if flag?(:aarch64) %}
         return open_absorbing(key, nonce, associated_data, ciphertext, tag, plaintext)
+      {% elsif flag?(:x86_64) %}
+        if absorbs_while_it_ciphers? && ciphertext.size >= widest_group_bytesize
+          return open_absorbing_on_vector_registers(key, nonce, associated_data, ciphertext, tag, plaintext)
+        end
+        if ProcessorFeatures::HAS_AVX512 && ciphertext.size >= first_group_message_bytesize
+          return open_from_a_held_first_group(key, nonce, associated_data, ciphertext, tag, plaintext)
+        end
+        if ciphertext.size >= widest_group_bytesize && widest_group_bytesize > SSE_GROUP_BYTESIZE
+          return open_after_a_separate_key_block(key, nonce, associated_data, ciphertext, tag, plaintext)
+        end
       {% end %}
 
       is_authentic = false
@@ -140,6 +198,326 @@ module Amber::Beryl::Crypto::V1
       end
       is_authentic
     end
+
+    {% if flag?(:x86_64) %}
+      # Sealing a message that fills the first group of the widest pass: the
+      # pass writes block 0's keystream, the Poly1305 key, into a block on
+      # the stack and XORs blocks 1 on straight into *ciphertext*, so the
+      # message never goes through a staging buffer.
+      private def self.seal_from_a_direct_first_group(key : Bytes, nonce : Bytes, associated_data : Bytes, plaintext : Bytes,
+                                                      ciphertext : Bytes, full_tag : Bytes) : Nil
+        state_storage = uninitialized UInt32[26]
+        state = state_storage.to_slice
+        load_state(key, nonce, 0_u32, state)
+        key_block_storage = uninitialized UInt8[64]
+        first_bytesize = first_group_message_bytesize
+        xor_first_group(state, plaintext.to_unsafe, ciphertext.to_unsafe, key_block_storage.to_unsafe)
+        xor_from_state(state, plaintext[first_bytesize..], ciphertext[first_bytesize..])
+        authenticate(key_block_storage.to_slice[0, POLY1305_KEY_BYTESIZE], associated_data, ciphertext, full_tag)
+        SecretWiping.wipe(key_block_storage.to_slice)
+        SecretWiping.wipe(state.to_unsafe_bytes)
+      end
+
+      # Whether ChaCha20-Poly1305 runs Poly1305 on the general registers
+      # inside the AVX2 keystream passes (`xor_chacha20_keystream_absorbing_poly1305`)
+      # rather than as a pass of its own: on processors with AVX2 but not
+      # AVX-512, such as Zen 3, whose vector and general units work side by
+      # side, so the absorbing costs next to nothing. The pass needs the
+      # general multiply of 64 by 64 bits only, which every x86-64 has.
+      def self.absorbs_while_it_ciphers? : Bool
+        ProcessorFeatures::HAS_AVX2 && !ProcessorFeatures::HAS_AVX512
+      end
+
+      # Whether sealing on AVX-512 shares Poly1305 between the general
+      # registers, inside the keystream passes, and IFMA after them
+      # (`xor_chacha20_keystream_sharing_poly1305`): measured 6 to 21%
+      # faster from 4 KiB on the Xeon 6975P-C, EPYC 9V74 and 9V45, whose
+      # general multiplier is otherwise idle while the vector units cipher.
+      # Opening keeps separate passes, since sharing would hold the whole
+      # plaintext in a scratch buffer until the tag is checked, which cost
+      # more than it saved.
+      def self.shares_poly1305_while_it_ciphers? : Bool
+        ProcessorFeatures::HAS_AVX512_INTEGER_FUSED_MULTIPLY_ADD
+      end
+
+      # Poly1305 blocks each AVX-512 pass absorbs on the general registers
+      # when Poly1305 is shared, of the 64 the pass ciphers: the fastest of
+      # 16 to 56 on all three processors.
+      private SHARED_BLOCKS_PER_PASS = 40
+
+      # Sealing on AVX-512 with Poly1305 shared (*plaintext* at least two
+      # groups): the first group goes straight into *ciphertext*, then each
+      # pass absorbs `SHARED_BLOCKS_PER_PASS` blocks of the ciphertext from its
+      # start, and IFMA absorbs the rest afterwards.
+      private def self.seal_sharing_poly1305(key : Bytes, nonce : Bytes, associated_data : Bytes, plaintext : Bytes,
+                                             ciphertext : Bytes, full_tag : Bytes) : Nil
+        state_storage = uninitialized UInt32[26]
+        state = state_storage.to_slice
+        load_state(key, nonce, 0_u32, state)
+        key_block_storage = uninitialized UInt8[64]
+        one_time_key = key_block_storage.to_slice[0, POLY1305_KEY_BYTESIZE]
+        first_bytesize = AVX512_GROUP_BYTESIZE
+        xor_first_group(state, plaintext.to_unsafe, ciphertext.to_unsafe, key_block_storage.to_unsafe)
+
+        parameters_storage = uninitialized UInt64[ABSORBING_PARAMETER_WORD_COUNT]
+        parameters = parameters_storage.to_unsafe
+        poly1305_state = parameters + ABSORBING_POLY1305_WORD
+        Poly1305WithWideMultiplication.start(one_time_key, poly1305_state)
+        Poly1305WithWideMultiplication.absorb_padded(poly1305_state, associated_data)
+        group_count = (plaintext.size - first_bytesize) // AVX512_GROUP_BYTESIZE
+        shared = run_sharing_groups(state, parameters, plaintext.to_unsafe + first_bytesize,
+          ciphertext.to_unsafe + first_bytesize, ciphertext.to_unsafe, group_count)
+
+        done = first_bytesize + group_count * AVX512_GROUP_BYTESIZE
+        xor_from_state(state, plaintext[done..], ciphertext[done..])
+        Poly1305WithWideMultiplication.absorb_padded(poly1305_state, ciphertext[shared..])
+        Poly1305WithWideMultiplication.finish_encrypted_message(poly1305_state, one_time_key, associated_data.size,
+          ciphertext.size, full_tag)
+        SecretWiping.wipe(Bytes.new(parameters.as(UInt8*), ABSORBING_PARAMETER_WORD_COUNT * 8))
+        SecretWiping.wipe(key_block_storage.to_slice)
+        SecretWiping.wipe(state.to_unsafe_bytes)
+      end
+
+      # Runs *group_count* (at least 1) AVX-512 passes that share Poly1305
+      # from *input* to *output*, absorbing from *stretch* into the state
+      # at `ABSORBING_POLY1305_WORD` of *parameters*; leaves *state* at the
+      # next block and returns the bytes of the stretch absorbed.
+      @[NoInline]
+      private def self.run_sharing_groups(state : Slice(UInt32), parameters : Pointer(UInt64), input : Pointer(UInt8),
+                                          output : Pointer(UInt8), stretch : Pointer(UInt8), group_count : Int32) : Int32
+        raise OutputSizeMismatch.new("the working state is #{STATE_WORD_COUNT} words") unless state.size == STATE_WORD_COUNT
+        raise OutputSizeMismatch.new("the sharing pass runs at least once") unless group_count >= 1
+        raise UnsupportedProcessor.new("this processor has no AVX-512") unless ProcessorFeatures::HAS_AVX512
+
+        state_words = (parameters + ABSORBING_STATE_WORD).as(UInt32*)
+        16.times { |index| state_words[index] = state[index] }
+        r1 = parameters[ABSORBING_POLY1305_WORD + 4]
+        parameters[ABSORBING_POLY1305_WORD + 5] = r1 &+ r1.unsafe_shr(2)
+        parameters[ABSORBING_INPUT_WORD] = input.address
+        parameters[ABSORBING_INPUT_WORD + 1] = output.address
+        parameters[SHARED_STRETCH_WORD] = stretch.address
+        X8664CipherInstructions.xor_chacha20_keystream_sharing_poly1305(parameters, group_count.to_u64, 40)
+        state[12] = state_words[12]
+        group_count * SHARED_BLOCKS_PER_PASS * 16
+      end
+
+      # Sealing on the absorbing pass (*plaintext* at least two groups less
+      # 64 bytes): the first group goes straight into *ciphertext* (all but
+      # the key block), then each pass absorbs as many bytes of ciphertext,
+      # ending 64 bytes into what it writes, and what is left is absorbed
+      # afterwards.
+      private def self.seal_absorbing(key : Bytes, nonce : Bytes, associated_data : Bytes, plaintext : Bytes,
+                                      ciphertext : Bytes, full_tag : Bytes) : Nil
+        group_bytesize = widest_group_bytesize
+        state_storage = uninitialized UInt32[26]
+        state = state_storage.to_slice
+        load_state(key, nonce, 0_u32, state)
+        key_block_storage = uninitialized UInt8[64]
+        one_time_key = key_block_storage.to_slice[0, POLY1305_KEY_BYTESIZE]
+        first_bytesize = first_group_message_bytesize
+        xor_first_group(state, plaintext.to_unsafe, ciphertext.to_unsafe, key_block_storage.to_unsafe)
+
+        parameters_storage = uninitialized UInt64[ABSORBING_PARAMETER_WORD_COUNT]
+        parameters = parameters_storage.to_unsafe
+        poly1305_state = parameters + ABSORBING_POLY1305_WORD
+        Poly1305WithWideMultiplication.start(one_time_key, poly1305_state)
+        Poly1305WithWideMultiplication.absorb_padded(poly1305_state, associated_data)
+        group_count = (plaintext.size - first_bytesize) // group_bytesize
+        run_absorbing_groups(state, parameters, plaintext.to_unsafe + first_bytesize, ciphertext.to_unsafe + first_bytesize, group_count, true)
+
+        absorbed = group_count * group_bytesize
+        done = first_bytesize + absorbed
+        left_over = plaintext.size - done
+        if !ProcessorFeatures::HAS_AVX512 && 0 < left_over <= SSE_GROUP_BYTESIZE
+          seal_last_bytes_absorbing(parameters, plaintext[done..], ciphertext[done..], ciphertext.to_unsafe + absorbed)
+          Poly1305WithWideMultiplication.absorb_padded(poly1305_state, ciphertext[done..])
+        else
+          xor_from_state(state, plaintext[done..], ciphertext[done..])
+          Poly1305WithWideMultiplication.absorb_padded(poly1305_state, ciphertext[absorbed..])
+        end
+        Poly1305WithWideMultiplication.finish_encrypted_message(poly1305_state, one_time_key, associated_data.size,
+          ciphertext.size, full_tag)
+        SecretWiping.wipe(Bytes.new(parameters.as(UInt8*), ABSORBING_PARAMETER_WORD_COUNT * 8))
+        SecretWiping.wipe(key_block_storage.to_slice)
+        SecretWiping.wipe(state.to_unsafe_bytes)
+      end
+
+      # The last pass of a seal on AVX2 when at most one SSE group of
+      # *plaintext* is left: the SSE pass that ciphers it absorbs the 448
+      # bytes of ciphertext at *pending* (written, not yet absorbed) on the
+      # general registers, from the parameter block the absorbing passes
+      # left. The bytes go through a staging group.
+      private def self.seal_last_bytes_absorbing(parameters : Pointer(UInt64), plaintext : Bytes, ciphertext : Bytes,
+                                                 pending : Pointer(UInt8)) : Nil
+        staging_storage = StaticArray(UInt8, SSE_GROUP_BYTESIZE).new(0_u8)
+        staging = staging_storage.to_slice
+        plaintext.copy_to(staging)
+        parameters[ABSORBING_INPUT_WORD] = staging.to_unsafe.address
+        parameters[ABSORBING_INPUT_WORD + 1] = staging.to_unsafe.address
+        X8664CipherInstructions.xor_chacha20_keystream_absorbing_poly1305_on_128_bit_registers(parameters, pending, 28)
+        staging[0, plaintext.size].copy_to(ciphertext)
+        SecretWiping.wipe(staging)
+      end
+
+      # Opening on the absorbing pass (*ciphertext* at least one group): one
+      # SSE pass gives the key block, then the whole groups are
+      # decrypted into a scratch buffer while their ciphertext is absorbed,
+      # and the plaintext leaves the scratch buffer only once the tag is
+      # right.
+      private def self.open_absorbing_on_vector_registers(key : Bytes, nonce : Bytes, associated_data : Bytes, ciphertext : Bytes,
+                                                          tag : Bytes, plaintext : Bytes) : Bool
+        group_bytesize = widest_group_bytesize
+        state_storage = uninitialized UInt32[26]
+        state = state_storage.to_slice
+        load_state(key, nonce, 0_u32, state)
+        key_staging_storage = StaticArray(UInt8, SSE_GROUP_BYTESIZE).new(0_u8)
+        key_staging = key_staging_storage.to_slice
+        xor_groups_of(SSE_GROUP_BYTESIZE, state, key_staging.to_unsafe, key_staging.to_unsafe, 1_u64)
+        state[12] = 1_u32
+        one_time_key = key_staging[0, POLY1305_KEY_BYTESIZE]
+
+        parameters_storage = uninitialized UInt64[ABSORBING_PARAMETER_WORD_COUNT]
+        parameters = parameters_storage.to_unsafe
+        poly1305_state = parameters + ABSORBING_POLY1305_WORD
+        Poly1305WithWideMultiplication.start(one_time_key, poly1305_state)
+        Poly1305WithWideMultiplication.absorb_padded(poly1305_state, associated_data)
+        group_count = ciphertext.size // group_bytesize
+        absorbed = group_count * group_bytesize
+        stack_scratch_storage = uninitialized UInt8[STACK_SCRATCH_BYTESIZE]
+        if absorbed <= STACK_SCRATCH_BYTESIZE
+          scratch = stack_scratch_storage.to_slice[0, absorbed]
+        else
+          scratch = Bytes.new(GC.malloc_atomic(absorbed.to_u64).as(UInt8*), absorbed)
+        end
+        run_absorbing_groups(state, parameters, ciphertext.to_unsafe, scratch.to_unsafe, group_count, false)
+        Poly1305WithWideMultiplication.absorb_padded(poly1305_state, ciphertext[absorbed..])
+
+        full_tag_storage = uninitialized UInt8[16]
+        full_tag = full_tag_storage.to_slice
+        Poly1305WithWideMultiplication.finish_encrypted_message(poly1305_state, one_time_key, associated_data.size,
+          ciphertext.size, full_tag)
+        tags_match = ::Crypto::Subtle.constant_time_compare(full_tag[0, tag.size], tag)
+        SecretWiping.wipe(full_tag)
+        is_authentic = Declassification.reveal(tags_match)
+        if is_authentic
+          scratch.copy_to(plaintext)
+          xor_from_state(state, ciphertext[absorbed..], plaintext[absorbed..])
+        end
+        SecretWiping.wipe(scratch)
+        GC.free(scratch.to_unsafe.as(Void*)) if absorbed > STACK_SCRATCH_BYTESIZE
+        SecretWiping.wipe(Bytes.new(parameters.as(UInt8*), ABSORBING_PARAMETER_WORD_COUNT * 8))
+        SecretWiping.wipe(key_staging)
+        SecretWiping.wipe(state.to_unsafe_bytes)
+        is_authentic
+      end
+
+      # *group_count* (at least 1) passes of the absorbing assembly from the
+      # counter in *state*, with the Poly1305 state at
+      # `ABSORBING_POLY1305_WORD` of *parameters*; leaves *state* at the
+      # next block.
+      @[NoInline]
+      private def self.run_absorbing_groups(state : Slice(UInt32), parameters : Pointer(UInt64), input : Pointer(UInt8),
+                                            output : Pointer(UInt8), group_count : Int32, is_sealing : Bool) : Nil
+        raise OutputSizeMismatch.new("the working state is #{STATE_WORD_COUNT} words") unless state.size == STATE_WORD_COUNT
+        raise OutputSizeMismatch.new("the absorbing pass runs at least once") unless group_count >= 1
+
+        state_words = (parameters + ABSORBING_STATE_WORD).as(UInt32*)
+        16.times { |index| state_words[index] = state[index] }
+        r1 = parameters[ABSORBING_POLY1305_WORD + 4]
+        parameters[ABSORBING_POLY1305_WORD + 5] = r1 &+ r1.unsafe_shr(2)
+        parameters[ABSORBING_INPUT_WORD] = input.address
+        parameters[ABSORBING_INPUT_WORD + 1] = output.address
+        if is_sealing
+          X8664CipherInstructions.xor_chacha20_keystream_absorbing_poly1305(parameters, group_count.to_u64, true)
+        else
+          X8664CipherInstructions.xor_chacha20_keystream_absorbing_poly1305(parameters, group_count.to_u64, false)
+        end
+        state[12] = state_words[12]
+      end
+
+      # Opening on AVX-512 a message that fills the first group: the pass
+      # that gives the key block decrypts the first 1024 bytes into a block
+      # on the stack, and they reach *plaintext*, with the rest, only once
+      # the tag is right.
+      private def self.open_from_a_held_first_group(key : Bytes, nonce : Bytes, associated_data : Bytes, ciphertext : Bytes,
+                                                    tag : Bytes, plaintext : Bytes) : Bool
+        state_storage = uninitialized UInt32[26]
+        state = state_storage.to_slice
+        load_state(key, nonce, 0_u32, state)
+        key_block_storage = uninitialized UInt8[64]
+        held_storage = uninitialized UInt8[AVX512_GROUP_BYTESIZE]
+        held = held_storage.to_slice
+        xor_first_group(state, ciphertext.to_unsafe, held.to_unsafe, key_block_storage.to_unsafe)
+
+        full_tag_storage = uninitialized UInt8[16]
+        full_tag = full_tag_storage.to_slice
+        authenticate(key_block_storage.to_slice[0, POLY1305_KEY_BYTESIZE], associated_data, ciphertext, full_tag)
+        tags_match = ::Crypto::Subtle.constant_time_compare(full_tag[0, tag.size], tag)
+        SecretWiping.wipe(full_tag)
+        SecretWiping.wipe(key_block_storage.to_slice)
+        is_authentic = Declassification.reveal(tags_match)
+        if is_authentic
+          held.copy_to(plaintext)
+          xor_from_state(state, ciphertext[AVX512_GROUP_BYTESIZE..], plaintext[AVX512_GROUP_BYTESIZE..])
+        end
+        SecretWiping.wipe(held)
+        SecretWiping.wipe(state.to_unsafe_bytes)
+        is_authentic
+      end
+
+      # Opening a message of at least one whole group of the widest pass:
+      # one SSE pass gives block 0, the Poly1305 key, and once the tag is
+      # right the message is decrypted from block 1, whole groups straight
+      # from *ciphertext* into *plaintext*.
+      private def self.open_after_a_separate_key_block(key : Bytes, nonce : Bytes, associated_data : Bytes, ciphertext : Bytes,
+                                                       tag : Bytes, plaintext : Bytes) : Bool
+        state_storage = uninitialized UInt32[26]
+        state = state_storage.to_slice
+        load_state(key, nonce, 0_u32, state)
+        key_staging_storage = StaticArray(UInt8, SSE_GROUP_BYTESIZE).new(0_u8)
+        key_staging = key_staging_storage.to_slice
+        xor_groups_of(SSE_GROUP_BYTESIZE, state, key_staging.to_unsafe, key_staging.to_unsafe, 1_u64)
+        state[12] = 1_u32
+
+        full_tag_storage = uninitialized UInt8[16]
+        full_tag = full_tag_storage.to_slice
+        authenticate(key_staging[0, POLY1305_KEY_BYTESIZE], associated_data, ciphertext, full_tag)
+        tags_match = ::Crypto::Subtle.constant_time_compare(full_tag[0, tag.size], tag)
+        SecretWiping.wipe(full_tag)
+        SecretWiping.wipe(key_staging)
+        is_authentic = Declassification.reveal(tags_match)
+        xor_from_state(state, ciphertext, plaintext) if is_authentic
+        SecretWiping.wipe(state.to_unsafe_bytes)
+        is_authentic
+      end
+
+      # Message bytes `xor_first_group` XORs: the AVX-512 pass carries a
+      # seventeenth block in its first group, so it fills 1024 bytes after
+      # the key block; the AVX2 pass fills 448.
+      private def self.first_group_message_bytesize : Int32
+        return AVX512_GROUP_BYTESIZE if ProcessorFeatures::HAS_AVX512
+        AVX2_GROUP_BYTESIZE - BLOCK_BYTESIZE
+      end
+
+      # One pass of the widest assembly from block 0 of *state*: block 0's
+      # keystream goes to *key_block* (64 bytes), the others XOR the
+      # `first_group_message_bytesize` bytes at *input* into *output*.
+      @[NoInline]
+      private def self.xor_first_group(state : Slice(UInt32), input : Pointer(UInt8), output : Pointer(UInt8), key_block : Pointer(UInt8)) : Nil
+        raise OutputSizeMismatch.new("the working state is #{STATE_WORD_COUNT} words") unless state.size == STATE_WORD_COUNT
+
+        state_pointer = state.to_unsafe
+        if ProcessorFeatures::HAS_AVX512
+          X8664CipherInstructions.xor_chacha20_keystream_on_512_bit_registers(state_pointer, input, output, 1_u64, key_block)
+        else
+          raise UnsupportedProcessor.new("this processor has no AVX2") unless ProcessorFeatures::HAS_AVX2
+          scratch_storage = uninitialized UInt8[AVX2_SCRATCH_BYTESIZE]
+          scratch_pointer = scratch_storage.to_unsafe
+          X8664CipherInstructions.xor_chacha20_keystream_on_256_bit_registers(state_pointer, scratch_pointer, input, output, 1_u64, key_block)
+          SecretWiping.wipe(scratch_storage.to_slice)
+        end
+      end
+    {% end %}
 
     # Opening on AArch64: one pass absorbs the ciphertext into Poly1305
     # while it decrypts into a scratch buffer, and the plaintext leaves the
@@ -223,7 +601,7 @@ module Amber::Beryl::Crypto::V1
       state = state_storage.to_slice
       load_state(key, nonce, 0_u32, state)
       staging_storage = uninitialized UInt8[GROUP_BYTESIZE]
-      first_bytesize = Math.min(message.size, FIRST_GROUP_MESSAGE_BYTESIZE)
+      first_bytesize = Math.min(message.size, widest_group_bytesize - BLOCK_BYTESIZE)
       # Only the blocks the keystream runs over are used, so only they are
       # cleared before and wiped after.
       used_bytesize = staging_bytesize_for(BLOCK_BYTESIZE + first_bytesize)
@@ -239,11 +617,16 @@ module Amber::Beryl::Crypto::V1
     end
 
     # The staging bytes the keystream of *bytesize* bytes runs over: whole
-    # blocks when they go on the general registers, else a whole group.
+    # blocks when they go on the general registers, else a whole group (on
+    # x86-64, of the narrowest pass that covers them).
     private def self.staging_bytesize_for(bytesize : Int32) : Int32
       {% if flag?(:aarch64) %}
         block_count = (bytesize + BLOCK_BYTESIZE - 1) // BLOCK_BYTESIZE
         return block_count * BLOCK_BYTESIZE if block_count <= MOST_GENERAL_REGISTER_BLOCKS
+      {% elsif flag?(:x86_64) %}
+        return SSE_GROUP_BYTESIZE if bytesize <= SSE_GROUP_BYTESIZE
+        return AVX2_GROUP_BYTESIZE if bytesize <= AVX2_GROUP_BYTESIZE && ProcessorFeatures::HAS_AVX2
+        return widest_group_bytesize
       {% end %}
       GROUP_BYTESIZE
     end
@@ -260,15 +643,20 @@ module Amber::Beryl::Crypto::V1
           return
         end
       {% end %}
-      xor_groups(state, staging.to_unsafe, staging.to_unsafe, 1_u64)
+      {% if flag?(:x86_64) %}
+        xor_groups_of(staging.size, state, staging.to_unsafe, staging.to_unsafe, 1_u64)
+      {% else %}
+        xor_groups(state, staging.to_unsafe, staging.to_unsafe, 1_u64)
+      {% end %}
     end
 
     # XORs the keystream from the counter in *state* into *input*: whole
     # groups in place, then the bytes left over through a staging buffer.
     private def self.xor_from_state(state : Slice(UInt32), input : Bytes, output : Bytes) : Nil
-      group_count = input.size // GROUP_BYTESIZE
+      group_bytesize = widest_group_bytesize
+      group_count = input.size // group_bytesize
       xor_groups(state, input.to_unsafe, output.to_unsafe, group_count.to_u64) if group_count > 0
-      done = group_count * GROUP_BYTESIZE
+      done = group_count * group_bytesize
       left_over = input.size - done
       return if left_over == 0
 
@@ -319,11 +707,37 @@ module Amber::Beryl::Crypto::V1
       {% if flag?(:aarch64) %}
         Armv8CipherInstructions.xor_chacha20_keystream(state_pointer, input, output, group_count)
       {% elsif flag?(:x86_64) %}
-        X8664CipherInstructions.xor_chacha20_keystream(state_pointer, input, output, group_count)
+        xor_groups_of(widest_group_bytesize, state, input, output, group_count)
       {% else %}
         raise UnsupportedProcessor.new("this processor has no vector instructions Beryl can use")
       {% end %}
     end
+
+    {% if flag?(:x86_64) %}
+      # *group_count* passes of the assembly whose pass is *group_bytesize*
+      # bytes: AVX-512, AVX2 or SSE. The AVX2 pass keeps four words of the
+      # state in a scratch buffer on the stack, wiped afterwards.
+      @[NoInline]
+      private def self.xor_groups_of(group_bytesize : Int32, state : Slice(UInt32), input : Pointer(UInt8), output : Pointer(UInt8),
+                                     group_count : UInt64) : Nil
+        raise OutputSizeMismatch.new("the working state is #{STATE_WORD_COUNT} words") unless state.size == STATE_WORD_COUNT
+
+        state_pointer = state.to_unsafe
+        case group_bytesize
+        when AVX512_GROUP_BYTESIZE
+          raise UnsupportedProcessor.new("this processor has no AVX-512") unless ProcessorFeatures::HAS_AVX512
+          X8664CipherInstructions.xor_chacha20_keystream_on_512_bit_registers(state_pointer, input, output, group_count)
+        when AVX2_GROUP_BYTESIZE
+          raise UnsupportedProcessor.new("this processor has no AVX2") unless ProcessorFeatures::HAS_AVX2
+          scratch_storage = uninitialized UInt8[AVX2_SCRATCH_BYTESIZE]
+          scratch_pointer = scratch_storage.to_unsafe
+          X8664CipherInstructions.xor_chacha20_keystream_on_256_bit_registers(state_pointer, scratch_pointer, input, output, group_count)
+          SecretWiping.wipe(scratch_storage.to_slice)
+        else
+          X8664CipherInstructions.xor_chacha20_keystream(state_pointer, input, output, group_count)
+        end
+      end
+    {% end %}
 
     {% if flag?(:aarch64) %}
       # The pass that also absorbs into the Poly1305 state at byte 64 of

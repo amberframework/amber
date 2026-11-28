@@ -66,6 +66,13 @@ module Amber::Configuration
     # starting size, a few hundred KiB.
     property gc_initial_heap_mib : Int32 = 0
 
+    # Whether each connection the server accepts on `host` and `port`, plain
+    # HTTP or TLS, gets `TCP_NODELAY`. On by default: a small write then goes
+    # out at once instead of waiting for the ACK of the write before it, which
+    # a Linux peer delays up to 40 ms. Turn it off only for a server that sends
+    # few, large responses. A UNIX socket (`unix_socket`) has no such delay.
+    property? tcp_nodelay : Bool = true
+
     # The validated, parsed form of `trusted_proxies`. Nothing changes it
     # after it is built: an assignment builds a new one and replaces the
     # reference, so a request running on another thread sees either the old

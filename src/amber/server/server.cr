@@ -1,5 +1,6 @@
 require "./cluster"
 require "./ssl"
+require "./tcp_listener"
 
 module Amber
   class Server
@@ -95,7 +96,7 @@ module Amber
       elsif ssl_enabled?
         bind_tls_listener(server)
       else
-        server.bind_tcp Amber.settings.host, Amber.settings.port, settings.port_reuse
+        self.class.bind_tcp_listener(server, settings.host, settings.port, settings.port_reuse, settings.server.tcp_nodelay?)
       end
 
       # Crystal does not implement Signal#trap on Windows. Windows services and
@@ -175,10 +176,25 @@ module Amber
       # required, so `require "amber/tls"` may come before or after
       # `require "amber"`.
       {% if Amber::TLS.has_constant?(:Backend) %}
-        Amber::TLS::Backend.bind_listener(server, settings.host, settings.port, key_file, cert_file, settings.port_reuse)
+        Amber::TLS::Backend.bind_listener(server, settings.host, settings.port, key_file, cert_file, settings.port_reuse, settings.server.tcp_nodelay?)
       {% else %}
         raise Amber::Exceptions::TLSNotCompiledIn.new(Amber::TLS::LISTENER)
       {% end %}
+    end
+
+    # Binds *server* to *host*:*port* over plain HTTP on a `TCPListener`, which
+    # sets `TCP_NODELAY` on each accepted connection when *tcp_nodelay* is true.
+    # Returns the address it listens on.
+    def self.bind_tcp_listener(server : HTTP::Server, host : String, port : Int32, reuse_port : Bool, tcp_nodelay : Bool) : Socket::IPAddress
+      listener = TCPListener.new(host, port, reuse_port: reuse_port)
+      listener.tcp_nodelay = tcp_nodelay
+      begin
+        server.bind(listener)
+      rescue error
+        listener.close
+        raise error
+      end
+      listener.local_address
     end
 
     # Access mode of the socket file `server.unix_socket` creates: its owner

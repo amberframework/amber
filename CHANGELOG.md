@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- **TCP_NODELAY on accepted connections, on by default.** The plain-HTTP
+  listener accepts on `Amber::Server::TCPListener`, which sets `TCP_NODELAY` on
+  each accepted socket, and the HTTPS listener sets it through Beryl
+  (`Beryl::TLS::Server#tcp_nodelay`; under `-Duse_openssl`, through the same
+  `TCPListener`). `server.tcp_nodelay: false` (or
+  `AMBER_SERVER_TCP_NODELAY=false`) keeps Nagle on. On Linux a relay writing
+  many small WebSocket messages per socket measured about 35 ms more p95
+  latency per message without it: the kernel held each small write until the
+  peer acknowledged the one before, and Linux delays that acknowledgment 40 ms
+  or more.
+- The vendored Beryl (`src/amber/vendor`, `Amber::Beryl`) moves from 6afec73 to
+  Beryl main with the TCP_NODELAY change, re-vendored with Beryl's
+  `scripts/vendor_into.rb`.
 - **BREACH guard for compressed responses (CVE-2013-3587).**
   `Amber::Pipe::Compression` now sends the identity coding to a cross-site
   request that is not a top-level page load (`Sec-Fetch-Site: cross-site`

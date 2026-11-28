@@ -1,6 +1,7 @@
 require "random/secure"
 require "../data_independent_timing"
 require "./montgomery_arithmetic"
+require "./montgomery_multiplication_with_integer_fused_multiply_add"
 require "./rivest_shamir_adleman/odd_modulus"
 require "./rivest_shamir_adleman/message_encoding"
 require "./rivest_shamir_adleman/public_key"

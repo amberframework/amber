@@ -18,6 +18,13 @@ module Amber::Beryl::TLS
   #
   # Reads and writes may run in two fibers at once (one each). A failure
   # sends the alert the error names before it is raised.
+  #
+  # The socket keeps no `IO::Buffered` buffers of its own. Reads (`read`,
+  # `peek`, `gets`) are served from the plaintext of the record last
+  # opened, so `read_buffering?` has no effect. Writes gather, up to one
+  # record's worth, in a buffer that starts at the size of the first write
+  # and grows with what is written, and are sealed into a record at
+  # `flush`, when that record is full, or at `close`.
   abstract class Socket < IO
     include IO::Buffered
 
@@ -31,7 +38,14 @@ module Amber::Beryl::TLS
     property? is_raising_io_errors : Bool = false
 
     @outcome : HandshakeOutcome? = nil
+    # The plaintext of the record last opened that is not yet read: a
+    # slice of the record layer's buffer.
     @read_buffer = Bytes.empty
+    # Plaintext written and not yet sealed: the first
+    # `@pending_plaintext_bytesize` bytes of the storage.
+    @pending_plaintext_storage = Bytes.empty
+    @pending_plaintext_bytesize = 0
+    @is_sealing_pending_plaintext = false
     @handshake_mutex = Mutex.new
     # Reentrant: a failed write sends its alert while holding the lock.
     @write_mutex = Mutex.new(:reentrant)
@@ -121,6 +135,82 @@ module Amber::Beryl::TLS
       end
     end
 
+    # Reads straight from the plaintext of the record last opened.
+    def read(slice : Bytes) : Int32
+      check_open
+      unbuffered_read(slice)
+    end
+
+    # Returns the plaintext waiting to be read, reading the next record
+    # when none is waiting; empty at the end of the stream.
+    def peek : Bytes
+      check_open
+      with_io_errors { plaintext_waiting }
+    end
+
+    # :nodoc:
+    def read_byte : UInt8?
+      waiting = peek
+      return nil if waiting.empty?
+      @read_buffer += 1
+      waiting[0]
+    end
+
+    # :nodoc:
+    def skip(bytes_count : Int) : Nil
+      remaining = bytes_count.to_i64
+      while remaining > 0
+        waiting = peek
+        raise IO::EOFError.new if waiting.empty?
+        count = Math.min(remaining, waiting.size.to_i64).to_i32
+        @read_buffer += count
+        remaining -= count
+      end
+    end
+
+    # Gathers *slice* with what was written before it, sealing the
+    # gathered plaintext into a record first when *slice* would not fit
+    # in the same record.
+    def write(slice : Bytes) : Nil
+      check_open
+      return if slice.empty?
+      return unbuffered_write(slice) if sync?
+      largest_bytesize = @record_layer.largest_outgoing_fragment_bytesize
+      if slice.size >= largest_bytesize
+        write_pending_plaintext
+        return unbuffered_write(slice)
+      end
+      write_pending_plaintext if @pending_plaintext_bytesize + slice.size > largest_bytesize
+      # Only while gathered plaintext is being sealed (by a writer that may
+      # have yielded inside the IO) does another fiber's write take the
+      # lock and wait; otherwise appending yields nowhere and needs none.
+      if @is_sealing_pending_plaintext
+        @write_mutex.synchronize { append_pending_plaintext(slice, largest_bytesize) }
+      else
+        append_pending_plaintext(slice, largest_bytesize)
+      end
+      flush if flush_on_newline? && slice.includes?('\n'.ord.to_u8)
+    end
+
+    # :nodoc:
+    def write_byte(byte : UInt8) : Nil
+      write(Slice.new(pointerof(byte), 1))
+    end
+
+    # Seals the gathered plaintext into a record and flushes the IO.
+    def flush : self
+      write_pending_plaintext
+      unbuffered_flush
+      self
+    end
+
+    # Seals the gathered plaintext, then closes as `unbuffered_close` does.
+    def close : Nil
+      write_pending_plaintext unless @closed || @has_failed
+    ensure
+      unbuffered_close
+    end
+
     def unbuffered_read(slice : Bytes) : Int32
       with_io_errors { read_application_data(slice) }
     end
@@ -129,13 +219,34 @@ module Amber::Beryl::TLS
       with_io_errors { write_application_data(slice) }
     end
 
+    # :nodoc:
+    #
+    # The sizes of the buffers the connection holds, for the specs and
+    # memory measurements.
+    def buffer_bytesizes : NamedTuple(pending_plaintext: Int32, read: Int32, read_plaintext: Int32, write_record: Int32, write_scratch: Int32, handshake: Int32)
+      {pending_plaintext: @pending_plaintext_storage.size}.merge(@record_layer.buffer_bytesizes)
+    end
+
     private def read_application_data(slice : Bytes) : Int32
+      return 0 if slice.empty?
+      waiting = plaintext_waiting
+      count = Math.min(slice.size, waiting.size)
+      waiting[0, count].copy_to(slice)
+      @read_buffer = waiting + count
+      count
+    end
+
+    # The plaintext waiting to be read: what is left of the record last
+    # opened, or the next record's once that is all read. Empty once the
+    # peer sent close_notify. Plaintext already opened is still served
+    # after a failure, as a read buffer would serve it.
+    private def plaintext_waiting : Bytes
+      return @read_buffer unless @read_buffer.empty?
       handshake_outcome
       raise ConnectionClosed.new("the connection failed earlier", AlertDescription::InternalError) if @has_failed
-      return 0 if slice.empty?
       while @read_buffer.empty?
         record = with_alert_on_failure { @record_layer.read_after_handshake }
-        return 0 unless record
+        return Bytes.empty unless record
         content_type, content = record
         if content_type.application_data?
           @read_buffer = content
@@ -143,10 +254,38 @@ module Amber::Beryl::TLS
           with_alert_on_failure { handle_post_handshake_message(content) }
         end
       end
-      count = Math.min(slice.size, @read_buffer.size)
-      @read_buffer[0, count].copy_to(slice)
-      @read_buffer = @read_buffer[count..]
-      count
+      @read_buffer
+    end
+
+    private def append_pending_plaintext(slice : Bytes, largest_bytesize : Int32) : Nil
+      needed = @pending_plaintext_bytesize + slice.size
+      if needed > @pending_plaintext_storage.size
+        storage = Bytes.new(Math.min(Math.max(needed, @pending_plaintext_storage.size * 2), Math.max(needed, largest_bytesize)))
+        @pending_plaintext_storage[0, @pending_plaintext_bytesize].copy_to(storage)
+        @pending_plaintext_storage = storage
+      end
+      slice.copy_to(@pending_plaintext_storage + @pending_plaintext_bytesize)
+      @pending_plaintext_bytesize = needed
+    end
+
+    # Seals the gathered plaintext. The write lock is held, and
+    # `@is_sealing_pending_plaintext` set, until it is sealed, so a write
+    # from another fiber (a WebSocket pong, say) waits instead of
+    # overwriting it. The handshake runs first, outside the lock, as it
+    # does for every write.
+    private def write_pending_plaintext : Nil
+      return if @pending_plaintext_bytesize == 0
+      handshake_outcome
+      @write_mutex.synchronize do
+        return if @pending_plaintext_bytesize == 0
+        @is_sealing_pending_plaintext = true
+        begin
+          unbuffered_write(@pending_plaintext_storage[0, @pending_plaintext_bytesize])
+        ensure
+          @pending_plaintext_bytesize = 0
+          @is_sealing_pending_plaintext = false
+        end
+      end
     end
 
     private def write_application_data(slice : Bytes) : Nil
@@ -497,13 +636,36 @@ module Amber::Beryl::TLS
         handshake_outcome.server_name
       end
 
-      # Beryl's server does not request client certificates.
+      # The client's leaf certificate, verified by the context's
+      # `Context::Server#client_certificate_verifier`; nil when the server
+      # asked for none (`ClientVerifyMode::None`) or the client sent none
+      # (`ClientVerifyMode::Optional`). A resumed connection has the
+      # certificate of the session it resumes.
+      #
+      # ```
+      # socket.peer_certificate.try(&.subject.to_s) # => "CN=alice"
+      # ```
       def peer_certificate : Certificates::Certificate?
-        nil
+        handshake_outcome.list_of_peer_certificates.first?
+      end
+
+      # The client's chain, leaf first, as it sent it; empty when it sent
+      # no certificate.
+      def list_of_peer_certificates : Array(Certificates::Certificate)
+        handshake_outcome.list_of_peer_certificates
+      end
+
+      # Alias of `list_of_peer_certificates`, named as
+      # `Socket::Client#peer_certificate_chain`.
+      def peer_certificate_chain : Array(Certificates::Certificate)
+        list_of_peer_certificates
       end
 
       private def run_handshake : HandshakeOutcome
         outcome = ServerHandshake.new(@record_layer, @context).perform
+        # The server's tickets went out with its handshake and it sends no
+        # more, so the resumption master secret goes now.
+        Crypto::SecretWiping.wipe(outcome.resumption_master_secret)
         @client_application_secret = outcome.client_application_traffic_secret
         @server_application_secret = outcome.server_application_traffic_secret
         outcome
@@ -546,6 +708,12 @@ module Amber::Beryl::TLS
     # handshake runs in the connection's own fiber on first use.
     property start_immediately : Bool = false
     property? sync_close : Bool
+    # Whether each accepted `TCPSocket` gets `TCP_NODELAY`; on by default.
+    # Each WebSocket message or HTTP response goes out as one TLS record in
+    # one write, and with Nagle on a small write waits for the ACK of the one
+    # before it, which a peer delaying its ACKs holds back for up to 40 ms on
+    # Linux. Turn it off only for a server that writes few, large records.
+    property? tcp_nodelay : Bool = true
 
     def initialize(@wrapped : ::Socket::Server, @context : Context::Server, @sync_close : Bool = true)
     end
@@ -565,9 +733,19 @@ module Amber::Beryl::TLS
     # quietly on an `IO::Error`) never sees an unhandled exception from a
     # client whose handshake fails.
     private def wrap(io : IO) : Socket::Server
+      set_tcp_nodelay(io) if tcp_nodelay?
       socket = Socket::Server.new(io, @context, sync_close: @sync_close, accept: @start_immediately)
       socket.is_raising_io_errors = true
       socket
+    end
+
+    # A connection the peer has already reset can refuse the option; its own
+    # first read or write reports that, so the accept goes on.
+    private def set_tcp_nodelay(io : IO) : Nil
+      if io.is_a?(TCPSocket)
+        io.tcp_nodelay = true
+      end
+    rescue ::Socket::Error
     end
 
     def close : Nil

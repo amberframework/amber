@@ -1,5 +1,7 @@
 require "../error"
+require "../processor_features"
 require "../secret_wiping"
+require "../x86_64_cipher_instructions"
 
 module Amber::Beryl::Crypto::V1
   # :nodoc:
@@ -24,6 +26,14 @@ module Amber::Beryl::Crypto::V1
   # as `Poly1305OneTimeAuthenticator` does. The blocks left after the four
   # runs follow with one accumulator.
   #
+  # On x86-64 processors with AVX2, whole blocks from
+  # `SHORTEST_VECTOR_BLOCK_COUNT` on go to the vector instructions instead:
+  # four lanes in limbs of 26 bits on AVX2
+  # (`X8664CipherInstructions.absorb_poly1305_groups`), or eight lanes in
+  # limbs of 44 bits on AVX-512 IFMA
+  # (`absorb_poly1305_groups_with_fused_multiply_add`), with a table of the
+  # powers of r this module computes in limbs of 44 bits.
+  #
   # Every product is a wrapping 128-bit multiply of two 64-bit words, which
   # these processors run in a time that does not depend on the words, and
   # the final reduction picks its result with a mask. Nothing the key or the
@@ -45,6 +55,43 @@ module Amber::Beryl::Crypto::V1
     # The clamp of RFC 8439 §2.5 on the two words of r.
     private CLAMP_LOW  = 0x0ffffffc0fffffff_u64
     private CLAMP_HIGH = 0x0ffffffc0ffffffc_u64
+
+    {% if flag?(:x86_64) %}
+      # Fewest whole blocks worth the table of powers the vector
+      # instructions need, measured on the processors of GitHub's x86-64
+      # runners.
+      private SHORTEST_VECTOR_BLOCK_COUNT = 64
+
+      private LIMB_MASK_26 = 0x3ffffff_u64
+
+      # Words of the tables `X8664CipherInstructions.absorb_poly1305_groups`
+      # (23 vectors of four words, then five sums) and
+      # `absorb_poly1305_groups_with_fused_multiply_add` (up to 18 vectors of
+      # eight words, then three sums) read.
+      private FOUR_LANE_TABLE_WORD_COUNT          = 23 * 4 + 5
+      private FUSED_MULTIPLY_ADD_TABLE_WORD_COUNT = 160
+
+      # Words of that table the general-register blocks of a mixed pass
+      # use (`absorb_poly1305_groups_with_fused_multiply_add`).
+      private MIXED_TABLE_WORD = 152
+
+      # From 1024 blocks (16 KiB), IFMA Poly1305 also absorbs four blocks a
+      # pass on the general registers: 25% faster on the EPYC 9V74, whose
+      # IFMA runs on half-width units, and 1 to 3% slower on the Xeon
+      # 6975P-C; below 16 KiB the power of r that joins the two stretches
+      # costs more than the blocks save.
+      private SHORTEST_MIXED_BLOCK_COUNT = 1024
+      private MIXED_BLOCKS_PER_PASS      =    4
+
+      # Fewest whole blocks worth the sixteen powers of r that two sets of
+      # IFMA lanes need.
+      private SHORTEST_TWO_SET_BLOCK_COUNT = 256
+
+      # The block each lane of a group holds, in the order the vector
+      # instructions load them (see `absorb_poly1305_groups`).
+      private BLOCK_OF_LANE_IN_FOUR  = {0, 2, 1, 3}
+      private BLOCK_OF_LANE_IN_EIGHT = {0, 4, 1, 5, 2, 6, 3, 7}
+    {% end %}
 
     # The accumulator: two full words and the bits above 2^128.
     private record Accumulator, low : UInt64, high : UInt64, top : UInt64
@@ -117,6 +164,33 @@ module Amber::Beryl::Crypto::V1
     end
 
     private def self.absorb_whole_blocks(accumulator : Accumulator, r0 : UInt64, r1 : UInt64, blocks : Pointer(UInt8), block_count : Int32) : Accumulator
+      {% if flag?(:x86_64) %}
+        if ProcessorFeatures::HAS_AVX2 && block_count >= SHORTEST_VECTOR_BLOCK_COUNT
+          if ProcessorFeatures::HAS_AVX512_INTEGER_FUSED_MULTIPLY_ADD && block_count >= SHORTEST_MIXED_BLOCK_COUNT
+            mixed_count = MIXED_BLOCKS_PER_PASS
+            # Groups of 16 vector blocks, and mixed_count blocks on the
+            # general registers in each pass but the last.
+            group_count = (block_count + mixed_count) // (16 + mixed_count)
+            vector_block_count = group_count * 16
+            scalar_block_count = (group_count - 1) * mixed_count
+            vector_accumulator, scalar_accumulator = absorb_mixed_groups(accumulator, r0, r1, blocks, group_count, mixed_count)
+            power = power_of(to_limbs(Accumulator.new(r0, r1, 0_u64)), scalar_block_count)
+            accumulator = to_words(add_limbs(multiply_limbs(to_limbs(vector_accumulator), power), to_limbs(scalar_accumulator)))
+            done = vector_block_count + scalar_block_count
+          elsif ProcessorFeatures::HAS_AVX512_INTEGER_FUSED_MULTIPLY_ADD
+            set_count = block_count >= SHORTEST_TWO_SET_BLOCK_COUNT ? 2 : 1
+            group_count = block_count // (8 * set_count)
+            accumulator = absorb_groups_with_fused_multiply_add(accumulator, r0, r1, blocks, group_count, set_count)
+            done = group_count * 8 * set_count
+          else
+            group_count = block_count // 4
+            accumulator = absorb_four_lane_groups(accumulator, r0, r1, blocks, group_count)
+            done = group_count * 4
+          end
+          blocks += done * BLOCK_BYTESIZE
+          block_count -= done
+        end
+      {% end %}
       run_block_count = block_count // RUN_COUNT
       done = 0
       if run_block_count >= SHORTEST_RUN_BLOCK_COUNT
@@ -187,6 +261,186 @@ module Amber::Beryl::Crypto::V1
       total = add_limbs(total, to_limbs(fourth))
       to_words(total)
     end
+
+    {% if flag?(:x86_64) %}
+      # Absorbs *group_count* (at least 2) groups of four blocks on AVX2. The
+      # table on the stack holds the accumulator, r^4 for every lane and,
+      # for the last group, the power of r each lane ends with, all in limbs
+      # of 26 bits with limbs 1 to 4 also times 5; it is wiped afterwards.
+      @[NoInline]
+      private def self.absorb_four_lane_groups(accumulator : Accumulator, r0 : UInt64, r1 : UInt64, blocks : Pointer(UInt8),
+                                               group_count : Int32) : Accumulator
+        raise OutputSizeMismatch.new("the vector instructions take at least two groups") unless group_count >= 2
+
+        table_storage = StaticArray(UInt64, FOUR_LANE_TABLE_WORD_COUNT).new(0_u64)
+        table = table_storage.to_slice
+        list_of_powers = powers_of_r(r0, r1, 4)
+        put_26_bit_limbs(table, 0, 0, to_26_bit_limbs(accumulator))
+        4.times do |lane|
+          put_26_bit_limbs(table, 5, lane, to_26_bit_limbs(to_words(list_of_powers[3])))
+          put_26_bit_limbs(table, 14, lane, to_26_bit_limbs(to_words(list_of_powers[3 - BLOCK_OF_LANE_IN_FOUR[lane]])))
+        end
+
+        table_pointer = table.to_unsafe
+        X8664CipherInstructions.absorb_poly1305_groups(table_pointer, blocks, (group_count - 1).to_u64)
+        sums = table_pointer + 23 * 4
+        result = from_26_bit_limbs(sums[0], sums[1], sums[2], sums[3], sums[4])
+        SecretWiping.wipe(table)
+        result
+      end
+
+      # Absorbs *group_count* (at least 2) groups of 8 * *set_count* blocks
+      # on AVX-512 IFMA, with a table like that of `absorb_four_lane_groups`
+      # in limbs of 44, 44 and 42 bits, limbs 1 and 2 also times 20.
+      @[NoInline]
+      private def self.absorb_groups_with_fused_multiply_add(accumulator : Accumulator, r0 : UInt64, r1 : UInt64, blocks : Pointer(UInt8),
+                                                             group_count : Int32, set_count : Int32) : Accumulator
+        raise OutputSizeMismatch.new("the vector instructions take at least two groups") unless group_count >= 2
+        raise OutputSizeMismatch.new("the vector instructions run one or two sets of lanes") unless set_count == 1 || set_count == 2
+
+        # Every word the statement reads is written below: lane 0 of the
+        # accumulator's vectors and zeros in its other lanes, then the
+        # powers.
+        table_storage = uninitialized UInt64[FUSED_MULTIPLY_ADD_TABLE_WORD_COUNT]
+        table_pointer = table_storage.to_unsafe
+        table = table_storage.to_slice[0, (8 + 5 * set_count) * 8 + 3]
+        lane_count = 8 * set_count
+        list_of_powers = powers_of_r(r0, r1, lane_count)
+        limbs = to_limbs(accumulator)
+        Intrinsics.memset(table_pointer.as(Void*), 0_u8, 3 * 64, false)
+        3.times { |limb| table_pointer[limb * 8] = limbs[limb] }
+        8.times do |lane|
+          put_44_bit_limbs(table_pointer, 3, lane, list_of_powers[lane_count - 1])
+          set_count.times do |set|
+            block = 8 * set + BLOCK_OF_LANE_IN_EIGHT[lane]
+            put_44_bit_limbs(table_pointer, 8 + 5 * set, lane, list_of_powers[lane_count - 1 - block])
+          end
+        end
+
+        if set_count == 2
+          X8664CipherInstructions.absorb_poly1305_groups_with_fused_multiply_add(table_pointer, blocks, (group_count - 1).to_u64, 2)
+        else
+          X8664CipherInstructions.absorb_poly1305_groups_with_fused_multiply_add(table_pointer, blocks, (group_count - 1).to_u64, 1)
+        end
+        sums = table_pointer + (8 + 5 * set_count) * 8
+        result = from_44_bit_limbs(sums[0], sums[1], sums[2])
+        SecretWiping.wipe(table)
+        result
+      end
+
+      # Absorbs *group_count* (at least 2) groups of 16 blocks on IFMA (two
+      # sets) from *accumulator* and, meanwhile, the *mixed_count* blocks a
+      # pass after them on the general registers from zero; returns both
+      # accumulators.
+      @[NoInline]
+      private def self.absorb_mixed_groups(accumulator : Accumulator, r0 : UInt64, r1 : UInt64, blocks : Pointer(UInt8),
+                                           group_count : Int32, mixed_count : Int32) : {Accumulator, Accumulator}
+        raise OutputSizeMismatch.new("the vector instructions take at least two groups") unless group_count >= 2
+
+        table_storage = uninitialized UInt64[FUSED_MULTIPLY_ADD_TABLE_WORD_COUNT]
+        table_pointer = table_storage.to_unsafe
+        table = table_storage.to_slice
+        list_of_powers = powers_of_r(r0, r1, 16)
+        limbs = to_limbs(accumulator)
+        Intrinsics.memset(table_pointer.as(Void*), 0_u8, 3 * 64, false)
+        3.times { |limb| table_pointer[limb * 8] = limbs[limb] }
+        8.times do |lane|
+          put_44_bit_limbs(table_pointer, 3, lane, list_of_powers[15])
+          2.times do |set|
+            block = 8 * set + BLOCK_OF_LANE_IN_EIGHT[lane]
+            put_44_bit_limbs(table_pointer, 8 + 5 * set, lane, list_of_powers[15 - block])
+          end
+        end
+        mixed = table_pointer + MIXED_TABLE_WORD
+        mixed[0] = r0
+        mixed[1] = r1
+        mixed[2] = r1 &+ r1.unsafe_shr(2)
+        mixed[3] = 0_u64
+        mixed[4] = 0_u64
+        mixed[5] = 0_u64
+        mixed[6] = (blocks + group_count * 16 * BLOCK_BYTESIZE).address
+        mixed[7] = blocks.address
+
+        raise OutputSizeMismatch.new("the mixed statement absorbs #{MIXED_BLOCKS_PER_PASS} blocks a pass") unless mixed_count == MIXED_BLOCKS_PER_PASS
+        X8664CipherInstructions.absorb_poly1305_groups_with_fused_multiply_add(table_pointer, nil, (group_count - 1).to_u64, 2, 4)
+        sums = table_pointer + 18 * 8
+        vector_accumulator = from_44_bit_limbs(sums[0], sums[1], sums[2])
+        scalar_accumulator = Accumulator.new(mixed[3], mixed[4], mixed[5])
+        SecretWiping.wipe(table)
+        {vector_accumulator, scalar_accumulator}
+      end
+
+      # r, r^2, ... r^count (count 4, 8 or 16) in limbs of 44, 44 and 42
+      # bits; the entries after r^count are left at r. Each power from r^3
+      # on multiplies two earlier ones, so the chain of multiplies to r^16
+      # is four long.
+      private def self.powers_of_r(r0 : UInt64, r1 : UInt64, count : Int32) : StaticArray({UInt64, UInt64, UInt64}, 16)
+        r = to_limbs(Accumulator.new(r0, r1, 0_u64))
+        list_of_powers = StaticArray({UInt64, UInt64, UInt64}, 16).new(r)
+        list_of_powers[1] = multiply_limbs(r, r)
+        list_of_powers[2] = multiply_limbs(list_of_powers[1], r)
+        list_of_powers[3] = multiply_limbs(list_of_powers[1], list_of_powers[1])
+        half = 4
+        while half < count
+          half.times { |index| list_of_powers[half + index] = multiply_limbs(list_of_powers[half - 1], list_of_powers[index]) }
+          half *= 2
+        end
+        list_of_powers
+      end
+
+      # Writes *limbs* into lane *lane* of the five vectors (four words
+      # each) from *first_vector* and, when that is a power, limbs 1 to 4
+      # times 5 into the four vectors after them.
+      private def self.put_26_bit_limbs(table : Slice(UInt64), first_vector : Int32, lane : Int32,
+                                        limbs : {UInt64, UInt64, UInt64, UInt64, UInt64}) : Nil
+        5.times { |limb| table[(first_vector + limb) * 4 + lane] = limbs[limb] }
+        return if first_vector == 0
+
+        (1...5).each { |limb| table[(first_vector + 4 + limb) * 4 + lane] = limbs[limb] &* 5_u64 }
+      end
+
+      # Writes the power *limbs* into lane *lane* of the three vectors
+      # (eight words each) from *first_vector*, then limbs 1 and 2 times 20.
+      private def self.put_44_bit_limbs(table : Pointer(UInt64), first_vector : Int32, lane : Int32, limbs : {UInt64, UInt64, UInt64}) : Nil
+        3.times { |limb| table[(first_vector + limb) * 8 + lane] = limbs[limb] }
+        table[(first_vector + 3) * 8 + lane] = limbs[1] &* 20_u64
+        table[(first_vector + 4) * 8 + lane] = limbs[2] &* 20_u64
+      end
+
+      private def self.to_26_bit_limbs(accumulator : Accumulator) : {UInt64, UInt64, UInt64, UInt64, UInt64}
+        {accumulator.low & LIMB_MASK_26,
+         accumulator.low.unsafe_shr(26) & LIMB_MASK_26,
+         (accumulator.low.unsafe_shr(52) | accumulator.high.unsafe_shl(12)) & LIMB_MASK_26,
+         accumulator.high.unsafe_shr(14) & LIMB_MASK_26,
+         accumulator.high.unsafe_shr(40) | accumulator.top.unsafe_shl(24)}
+      end
+
+      # The accumulator from limbs of 26 bits that may hold a few bits more.
+      private def self.from_26_bit_limbs(limb0 : UInt64, limb1 : UInt64, limb2 : UInt64, limb3 : UInt64, limb4 : UInt64) : Accumulator
+        sum = limb0.to_u128! &+ limb1.to_u128!.unsafe_shl(26) &+ limb2.to_u128!.unsafe_shl(52)
+        low = sum.to_u64!
+        sum = sum.unsafe_shr(64) &+ limb3.to_u128!.unsafe_shl(14) &+ limb4.to_u128!.unsafe_shl(40)
+        fold_top(low, sum.to_u64!, sum.unsafe_shr(64).to_u64!)
+      end
+
+      # The accumulator from limbs of 44, 44 and 42 bits that may hold a few
+      # bits more.
+      private def self.from_44_bit_limbs(limb0 : UInt64, limb1 : UInt64, limb2 : UInt64) : Accumulator
+        sum = limb0.to_u128! &+ limb1.to_u128!.unsafe_shl(44)
+        low = sum.to_u64!
+        sum = sum.unsafe_shr(64) &+ limb2.to_u128!.unsafe_shl(24)
+        fold_top(low, sum.to_u64!, sum.unsafe_shr(64).to_u64!)
+      end
+
+      # Folds the bits of *top* from 2^130 up back into the bottom, times 5,
+      # so that the top word is at most 4, as `multiply_by_r` needs.
+      private def self.fold_top(low : UInt64, high : UInt64, top : UInt64) : Accumulator
+        sum = low.to_u128! &+ top.unsafe_shr(2) &* 5_u64
+        low = sum.to_u64!
+        sum = high.to_u128! &+ sum.unsafe_shr(64)
+        Accumulator.new(low, sum.to_u64!, (top & 3_u64) &+ sum.unsafe_shr(64).to_u64!)
+      end
+    {% end %}
 
     # *base* raised to *exponent* (at least 1), by squaring and multiplying.
     # The exponent is a length, which is public.

@@ -74,6 +74,54 @@ module Amber::Beryl::Crypto
         feature_bits = processor_identification(1_u32, 0_u32)[2]
         feature_bits.bit(bit) == 1 && feature_bits.bit(9) == 1 && feature_bits.bit(19) == 1
       end
+
+      # XCR0, the register that says which register state the operating
+      # system saves on a context switch (`xgetbv` with ECX 0). Only read
+      # once OSXSAVE (bit 27 of ECX in leaf 1) says `xgetbv` is allowed.
+      private def self.extended_control_register : UInt64
+        low = 0_u32
+        high = 0_u32
+        asm("xgetbv" : "={eax}"(low), "={edx}"(high) : "{ecx}"(0_u32))
+        (high.to_u64 << 32) | low.to_u64
+      end
+
+      # Whether the operating system saves the 256-bit YMM registers (XCR0
+      # bits 1 and 2), which AVX and AVX2 need.
+      private def self.saves_256_bit_registers? : Bool
+        feature_bits = processor_identification(1_u32, 0_u32)[2]
+        return false unless feature_bits.bit(27) == 1 && feature_bits.bit(28) == 1
+
+        extended_control_register & 0b110 == 0b110
+      end
+
+      # Whether the operating system also saves the AVX-512 state: the
+      # opmask registers and both halves of the 512-bit ZMM registers (XCR0
+      # bits 5, 6 and 7).
+      private def self.saves_512_bit_registers? : Bool
+        saves_256_bit_registers? && extended_control_register & 0b1110_0110 == 0b1110_0110
+      end
+
+      # Bit *bit* of EBX (*register* 1) or ECX (*register* 2) in leaf 7,
+      # subleaf 0, or false where the processor has no leaf 7.
+      private def self.has_leaf7_bit?(register : Int32, bit : Int32) : Bool
+        highest_leaf = processor_identification(0_u32, 0_u32)[0]
+        return false if highest_leaf < 7
+
+        processor_identification(7_u32, 0_u32)[register].bit(bit) == 1
+      end
+
+      # Whether the processor is AMD's family 19h (Zen 3 and Zen 4): the
+      # vendor string of leaf 0 is "AuthenticAMD", and the family of leaf 1
+      # (its base, 0Fh, plus the extended family) is 19h.
+      private def self.amd_family_19h? : Bool
+        _, ebx, ecx, edx = processor_identification(0_u32, 0_u32)
+        return false unless ebx == 0x68747541_u32 && edx == 0x69746e65_u32 && ecx == 0x444d4163_u32
+
+        signature = processor_identification(1_u32, 0_u32)[0]
+        base_family = (signature >> 8) & 0xf_u32
+        extended_family = (signature >> 20) & 0xff_u32
+        base_family == 0xf_u32 && base_family + extended_family == 0x19_u32
+      end
     {% end %}
 
     {% if flag?(:beryl_portable_hashes) %}
@@ -118,6 +166,80 @@ module Amber::Beryl::Crypto
       HAS_AES_INSTRUCTIONS                = false
       HAS_CARRYLESS_MULTIPLY_INSTRUCTIONS = false
       HAS_VECTOR_INSTRUCTIONS             = false
+    {% end %}
+
+    # The wider x86-64 vector and integer instructions, each found through
+    # CPUID and, for the vector registers, XCR0 (the operating system must
+    # save them):
+    #
+    # - `HAS_AVX2`: AVX2 (bit 5 of EBX in leaf 7), on 256-bit registers.
+    # - `HAS_AVX512`: AVX-512 Foundation, DQ, BW and VL (bits 16, 17, 30 and
+    #   31 of EBX in leaf 7), on 512-bit registers with opmasks.
+    # - `HAS_VECTOR_AES`: VAES (bit 9 of ECX in leaf 7), AES rounds on every
+    #   128-bit lane of a 256-bit (or, with AVX-512, 512-bit) register;
+    #   only set with AVX2 and AES-NI.
+    # - `HAS_VECTOR_CARRYLESS_MULTIPLY`: VPCLMULQDQ (bit 10 of ECX in leaf
+    #   7), the carry-less multiply on every lane; only set with AVX2 and
+    #   `pclmulqdq`.
+    # - `HAS_WIDE_MULTIPLY_WITH_TWO_CARRY_CHAINS`: BMI2 (`mulx`, bit 8 of
+    #   EBX in leaf 7) and ADX (`adcx`, `adox`, bit 19), for multiplication
+    #   with two independent carry chains.
+    # - `HAS_AVX512_INTEGER_FUSED_MULTIPLY_ADD`: AVX-512 IFMA (bit 21 of EBX
+    #   in leaf 7), 52-bit multiply-add, only set with `HAS_AVX512`.
+    # - `SPLITS_512_BIT_OPERATIONS`: the processor runs each 512-bit
+    #   instruction as two 256-bit halves, as Zen 4 does (AMD family 19h with
+    #   AVX-512; Zen 3, the same family, has no AVX-512). Where a 512-bit
+    #   path saves little, such a processor takes the narrower one.
+    #
+    # `-Dberyl_without_avx512` keeps every 512-bit path off,
+    # `-Dberyl_without_avx2` every 256-bit and 512-bit path (VAES and
+    # VPCLMULQDQ included), and `-Dberyl_without_mulx` the BMI2 and ADX
+    # path, so the test suite runs each narrower path on a processor that
+    # has the wider one. `-Dberyl_portable_rsa` turns off the multiplication
+    # flag; `HAS_VECTOR_AES` and `HAS_VECTOR_CARRYLESS_MULTIPLY` follow
+    # `-Dberyl_portable_ciphers` through the older flags, and each algorithm
+    # checks its own `-Dberyl_portable_*` flag before taking an AVX2 or
+    # AVX-512 path.
+    {% if flag?(:x86_64) && !flag?(:beryl_without_avx2) %}
+      HAS_AVX2 = saves_256_bit_registers? && has_leaf7_bit?(1, 5)
+    {% else %}
+      HAS_AVX2 = false
+    {% end %}
+
+    {% if flag?(:x86_64) && !flag?(:beryl_without_avx2) && !flag?(:beryl_without_avx512) %}
+      HAS_AVX512 = HAS_AVX2 && saves_512_bit_registers? &&
+                   has_leaf7_bit?(1, 16) && has_leaf7_bit?(1, 17) && has_leaf7_bit?(1, 30) && has_leaf7_bit?(1, 31)
+      HAS_AVX512_INTEGER_FUSED_MULTIPLY_ADD = HAS_AVX512 && has_leaf7_bit?(1, 21)
+      SPLITS_512_BIT_OPERATIONS             = HAS_AVX512 && amd_family_19h?
+    {% else %}
+      HAS_AVX512                            = false
+      HAS_AVX512_INTEGER_FUSED_MULTIPLY_ADD = false
+      SPLITS_512_BIT_OPERATIONS             = false
+    {% end %}
+
+    {% if flag?(:x86_64) %}
+      HAS_VECTOR_AES                = HAS_AVX2 && HAS_AES_INSTRUCTIONS && has_leaf7_bit?(2, 9)
+      HAS_VECTOR_CARRYLESS_MULTIPLY = HAS_AVX2 && HAS_CARRYLESS_MULTIPLY_INSTRUCTIONS && has_leaf7_bit?(2, 10)
+    {% else %}
+      HAS_VECTOR_AES                = false
+      HAS_VECTOR_CARRYLESS_MULTIPLY = false
+    {% end %}
+
+    # Whether the processor has the bit manipulation instructions BMI1
+    # (`andn`, bit 3 of EBX in leaf 7) and BMI2 (`rorx`, bit 8), which the
+    # rounds of the x86-64 SHA-512 code use. They change no register width,
+    # so no flag turns them off on their own; the hashes that use them
+    # follow `-Dberyl_portable_hashes` and `HAS_AVX2`.
+    {% if flag?(:x86_64) %}
+      HAS_BIT_MANIPULATION_INSTRUCTIONS = has_leaf7_bit?(1, 3) && has_leaf7_bit?(1, 8)
+    {% else %}
+      HAS_BIT_MANIPULATION_INSTRUCTIONS = false
+    {% end %}
+
+    {% if flag?(:x86_64) && !flag?(:beryl_portable_rsa) && !flag?(:beryl_without_mulx) %}
+      HAS_WIDE_MULTIPLY_WITH_TWO_CARRY_CHAINS = has_leaf7_bit?(1, 8) && has_leaf7_bit?(1, 19)
+    {% else %}
+      HAS_WIDE_MULTIPLY_WITH_TWO_CARRY_CHAINS = false
     {% end %}
 
     # Whether the processor has `eor3`, which XORs three registers in one

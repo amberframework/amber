@@ -112,8 +112,11 @@ module Amber::Beryl::TLS
       {ContentType.new(inner_plaintext[type_index]), inner_plaintext[0, type_index]}
     end
 
-    # Wipes the key material this direction holds.
+    # Wipes the key material this direction holds: the AEAD's key and
+    # everything derived from it, the IV and the last nonce. A wiped
+    # direction raises `Crypto::KeyWiped` on `seal` and `open`.
     def wipe : Nil
+      @authenticated_encryption.wipe
       Crypto::SecretWiping.wipe(@iv)
       Crypto::SecretWiping.wipe(@nonce)
     end

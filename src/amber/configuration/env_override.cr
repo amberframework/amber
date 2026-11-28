@@ -270,6 +270,9 @@ module Amber::Configuration
       if v = ENV["AMBER_SERVER_GC_INITIAL_HEAP_MIB"]?
         config.gc_initial_heap_mib = v.to_i
       end
+      if v = ENV["AMBER_SERVER_TCP_NODELAY"]?
+        config.tcp_nodelay = parse_bool(v)
+      end
       if v = ENV["AMBER_SERVER_UNIX_SOCKET"]?
         config.unix_socket = v.empty? ? nil : v
       end

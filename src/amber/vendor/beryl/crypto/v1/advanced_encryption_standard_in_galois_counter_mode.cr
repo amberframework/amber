@@ -20,7 +20,8 @@ module Amber::Beryl::Crypto::V1
   #
   # On a processor with AES and carry-less multiply instructions (ARMv8
   # `aese` and `pmull`, x86-64 AES-NI and `pclmulqdq`), both run on those
-  # instructions, eight blocks at a time
+  # instructions, eight blocks at a time, and on x86-64 with VAES and
+  # VPCLMULQDQ four or two blocks to an instruction
   # (`GaloisCounterModeWithProcessorInstructions`). Elsewhere AES runs as a
   # Boolean circuit and GHASH as carry-less multiplies built from integer
   # ones, with no table (`BitslicedAdvancedEncryptionStandard` and
@@ -41,7 +42,7 @@ module Amber::Beryl::Crypto::V1
     @round_keys : Slice(UInt64)
     @hash_key_state : Slice(UInt64)
 
-    # The round keys as bytes and the hash key powers H to H^8, for the
+    # The round keys as bytes and the table of hash key powers, for the
     # processor's instructions; empty when the portable code runs.
     @round_key_bytes : Bytes
     @hash_key_powers : Bytes
@@ -83,6 +84,15 @@ module Amber::Beryl::Crypto::V1
       NONCE_BYTESIZE
     end
 
+    # Zeroes the expanded round keys and the GHASH key state (the portable
+    # code's words, or the processor code's round key bytes and hash key powers).
+    protected def wipe_key_material : Nil
+      SecretWiping.wipe(@round_keys)
+      SecretWiping.wipe(@hash_key_state)
+      SecretWiping.wipe(@round_key_bytes)
+      SecretWiping.wipe(@hash_key_powers)
+    end
+
     protected def ensure_nonce_is_accepted(nonce : Bytes) : Nil
       raise NonceSizeMismatch.new("a GCM nonce holds at least one byte") if nonce.empty?
     end
@@ -112,8 +122,23 @@ module Amber::Beryl::Crypto::V1
       counter_block = counter_block_storage.to_slice
       write_first_counter_block(nonce, counter_block)
       GaloisCounterModeWithProcessorInstructions.seal(@round_key_bytes, @round_count, @hash_key_powers, counter_block,
-        associated_data, plaintext, ciphertext, full_tag)
+        associated_data, plaintext, ciphertext, full_tag, nonce.size == NONCE_BYTESIZE)
       SecretWiping.wipe(counter_block)
+    end
+
+    # Checks the tag and decrypts on the processor's instructions, in one
+    # pass where they allow it (`GaloisCounterModeWithProcessorInstructions.open`);
+    # on a wrong tag *plaintext* is zeros.
+    protected def open(nonce : Bytes, associated_data : Bytes, ciphertext : Bytes, tag : Bytes, plaintext : Bytes) : Bool
+      return super unless ProcessorFeatures::HAS_GALOIS_COUNTER_MODE_INSTRUCTIONS
+
+      counter_block_storage = uninitialized UInt8[16]
+      counter_block = counter_block_storage.to_slice
+      write_first_counter_block(nonce, counter_block)
+      is_authentic = GaloisCounterModeWithProcessorInstructions.open(@round_key_bytes, @round_count, @hash_key_powers, counter_block,
+        associated_data, ciphertext, tag, plaintext, nonce.size == NONCE_BYTESIZE)
+      SecretWiping.wipe(counter_block)
+      is_authentic
     end
 
     protected def compute_tag(nonce : Bytes, associated_data : Bytes, ciphertext : Bytes, full_tag : Bytes) : Nil

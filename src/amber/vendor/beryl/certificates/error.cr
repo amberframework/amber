@@ -43,6 +43,9 @@ module Amber::Beryl::Certificates
     Revoked
     # More certificates, or more bytes, were presented than the limits allow.
     TooManyCertificates
+    # A certificate of the chain is signed with SHA-1 or MD5, which Beryl
+    # refuses by name before checking the signature (RFC 9155, RFC 6151).
+    SignatureAlgorithmRefused
   end
 
   # Raised when a certificate chain does not verify. `reason` says which

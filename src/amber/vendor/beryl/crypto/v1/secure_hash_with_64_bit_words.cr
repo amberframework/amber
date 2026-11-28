@@ -1,6 +1,7 @@
 require "./block_hash_function"
 require "../processor_features"
 require "../armv8_hash_instructions"
+require "../x86_64_hash_instructions"
 
 module Amber::Beryl::Crypto::V1
   # The SHA-2 compression function on 64-bit words (FIPS 180-4 §6.4), shared
@@ -68,12 +69,74 @@ module Amber::Beryl::Crypto::V1
       end
     end
 
+    # Whether `compress` runs the x86-64 assembly with the vector message
+    # schedule (`X8664HashInstructions.compress_sha512_blocks`): on a
+    # processor with AVX2, BMI1 and BMI2, unless the program was compiled
+    # with `-Dberyl_portable_hashes`.
+    {% if flag?(:x86_64) && !flag?(:beryl_portable_hashes) %}
+      HAS_VECTOR_MESSAGE_SCHEDULE = ProcessorFeatures::HAS_AVX2 && ProcessorFeatures::HAS_BIT_MANIPULATION_INSTRUCTIONS
+    {% else %}
+      HAS_VECTOR_MESSAGE_SCHEDULE = false
+    {% end %}
+
+    # Names the code `compress` runs on this processor, for benchmarks and
+    # test logs.
+    def self.compression_in_use : String
+      if ProcessorFeatures::HAS_SHA512_INSTRUCTIONS
+        "the ARMv8 SHA512 instructions"
+      elsif HAS_VECTOR_MESSAGE_SCHEDULE && ProcessorFeatures::HAS_AVX512
+        "AVX-512 message schedule with BMI2 rounds"
+      elsif HAS_VECTOR_MESSAGE_SCHEDULE
+        "AVX2 message schedule with BMI2 rounds"
+      else
+        "portable code"
+      end
+    end
+
+    # Mixes *block_count* blocks at *block_pointer* into the eight words at
+    # *state_pointer* with the x86-64 assembly: two blocks per statement
+    # while two are left, then the last one alone. Defined once for every
+    # hash of this family, so the program holds one copy of each statement.
+    @[NoInline]
+    protected def self.compress_with_vector_message_schedule(state_pointer : UInt64*, block_pointer : UInt8*, block_count : Int32) : Nil
+      {% if flag?(:x86_64) %}
+        if ProcessorFeatures::HAS_AVX512
+          (block_count // 2).times do
+            X8664HashInstructions.compress_sha512_blocks(state_pointer, block_pointer, ::Amber::Beryl::Crypto::V1::SecureHashWith64BitWords::ROUND_CONSTANTS, true, true)
+            block_pointer += 2 * BLOCK_SIZE
+          end
+          if block_count.odd?
+            X8664HashInstructions.compress_sha512_blocks(state_pointer, block_pointer, ::Amber::Beryl::Crypto::V1::SecureHashWith64BitWords::ROUND_CONSTANTS, false, true)
+          end
+        else
+          (block_count // 2).times do
+            X8664HashInstructions.compress_sha512_blocks(state_pointer, block_pointer, ::Amber::Beryl::Crypto::V1::SecureHashWith64BitWords::ROUND_CONSTANTS, true, false)
+            block_pointer += 2 * BLOCK_SIZE
+          end
+          if block_count.odd?
+            X8664HashInstructions.compress_sha512_blocks(state_pointer, block_pointer, ::Amber::Beryl::Crypto::V1::SecureHashWith64BitWords::ROUND_CONSTANTS, false, false)
+          end
+        end
+      {% end %}
+    end
+
     # Mixes whole blocks into the state: with the processor's SHA-512
-    # instructions where it has them (`ProcessorFeatures`), with the portable
-    # code below everywhere else. Kept out of line so that the program holds
-    # one copy of the assembly and its table of constants per hash.
+    # instructions where it has them (`ProcessorFeatures`), with the x86-64
+    # vector schedule where the processor has AVX2 and BMI2, with the
+    # portable code below everywhere else. Kept out of line so that the
+    # program holds one copy of the assembly and its table of constants per
+    # hash.
     @[NoInline]
     private def compress(list_of_blocks : Bytes) : Nil
+      {% if flag?(:x86_64) %}
+        if HAS_VECTOR_MESSAGE_SCHEDULE
+          block_count = list_of_blocks.size // BLOCK_SIZE
+          return if block_count == 0
+
+          SecureHashWith64BitWords.compress_with_vector_message_schedule(pointerof(@state).as(UInt64*), list_of_blocks.to_unsafe, block_count)
+          return
+        end
+      {% end %}
       {% if flag?(:aarch64) %}
         if ProcessorFeatures::HAS_SHA512_INSTRUCTIONS
           state_pointer = pointerof(@state).as(UInt64*)

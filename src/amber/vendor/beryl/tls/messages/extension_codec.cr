@@ -51,6 +51,19 @@ module Amber::Beryl::TLS::Messages
       Array(UInt16).new(list.remaining // 2) { list.read_u16 }
     end
 
+    # certificate_authorities (RFC 9846 §4.2.4): a non-empty two-byte
+    # vector of DER distinguished names, each non-empty. Returns the names.
+    def self.decode_certificate_authorities(contents : Bytes) : Array(Bytes)
+      reader = MessageReader.new(contents)
+      list = MessageReader.new(reader.read_vector16(3))
+      reader.finish
+      list_of_names = [] of Bytes
+      until list.at_end?
+        list_of_names << list.read_vector16(1)
+      end
+      list_of_names
+    end
+
     def self.encode_u16_list(list_of_values : Array(UInt16)) : Bytes
       writer = MessageWriter.new
       writer.write_vector16 { |list| list_of_values.each { |value| list.write_u16(value) } }
@@ -245,6 +258,14 @@ module Amber::Beryl::TLS::Messages
 
     def self.encode_selected_identity(index : Int) : Bytes
       Bytes[(index >> 8).to_u8, (index & 0xFF).to_u8]
+    end
+
+    # certificate_authorities (§4.2.4): DER distinguished names, each in a
+    # two-byte vector, in a two-byte vector.
+    def self.encode_certificate_authorities(list_of_names : Array(Bytes)) : Bytes
+      writer = MessageWriter.new
+      writer.write_vector16 { |list| list_of_names.each { |name| list.write_vector16(name) } }
+      writer.to_slice
     end
   end
 end

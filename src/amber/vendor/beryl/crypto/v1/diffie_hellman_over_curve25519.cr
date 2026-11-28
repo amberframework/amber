@@ -5,6 +5,7 @@ require "../field_arithmetic"
 require "../constant_time_selection"
 require "../declassification"
 require "../data_independent_timing"
+require "../processor_features"
 require "./curve25519_field_element"
 require "./edwards25519_group"
 
@@ -24,7 +25,7 @@ module Amber::Beryl::Crypto::V1
   module DiffieHellmanOverCurve25519
     KEY_BYTESIZE = 32
 
-    private alias Field = Amber::Beryl::Crypto::FieldArithmetic::Curve25519Field
+    private alias Field = Amber::Beryl::Crypto::FieldArithmetic::Curve25519SolinasFieldWithAssembly
 
     # The u-coordinate of the base point, 9 (RFC 7748 §4.1).
     BASE_POINT_U = Bytes.new(KEY_BYTESIZE) { |index| index == 0 ? 9_u8 : 0_u8 }
@@ -110,7 +111,9 @@ module Amber::Beryl::Crypto::V1
         u_bytes = StaticArray(UInt8, 32).new { |index| u_coordinate.unsafe_fetch(index) }
         u_bytes[31] &= 0x7f_u8
 
-        result = ladder(clamped, Field.from_bytes(u_bytes), random_coordinate_factor)
+        x1 = Field.from_bytes(u_bytes)
+        factor = random_coordinate_factor
+        result = ladder_on_this_processor(clamped, x1, factor)
         SecretWiping.wipe(clamped.to_slice)
         Bytes.new(KEY_BYTESIZE) { |index| result[index] }
       end
@@ -150,11 +153,31 @@ module Amber::Beryl::Crypto::V1
       factor
     end
 
-    # The Montgomery ladder of RFC 7748 §5. Field bounds: sums and
-    # differences of tight elements are loose, `carry_mul`, `carry_square`
-    # and `carry_scmul_121666` take loose elements and return tight ones.
-    # `a24` enters as z_2 = E * (BB + 121666 * E), which equals RFC 7748's
-    # E * (AA + 121665 * E) because AA = BB + E.
+    # Runs `ladder` on the field variant for this processor: on x86-64 the
+    # `mulx` one where BMI2 and ADX are present (a constant read once at
+    # start-up), else the `mulq` one.
+    @[AlwaysInline]
+    private def self.ladder_on_this_processor(clamped : StaticArray(UInt8, 32), x1 : Field::Limbs, factor : Field::Limbs) : StaticArray(UInt8, 32)
+      {% if flag?(:aarch64) && !flag?(:beryl_portable_curves) %}
+        ladder(Field::AArch64, clamped, x1, factor)
+      {% elsif flag?(:x86_64) && !flag?(:beryl_portable_curves) %}
+        if ProcessorFeatures::HAS_WIDE_MULTIPLY_WITH_TWO_CARRY_CHAINS
+          ladder_with_wide_multiply(Field::X86WithWideMultiply, clamped, x1, factor)
+        else
+          ladder_with_multiply(Field::X86WithMultiply, clamped, x1, factor)
+        end
+      {% else %}
+        ladder(Field::Portable, clamped, x1, factor)
+      {% end %}
+    end
+
+    # The Montgomery ladder of RFC 7748 §5, on four 64-bit words per
+    # coordinate (`Curve25519SolinasFieldWithAssembly`): every operation of
+    # *field* takes any 256-bit values and returns one, so no bounds need
+    # tracking between steps. `a24` enters as z_2 = E * (BB + 121666 * E),
+    # which equals RFC 7748's E * (AA + 121665 * E) because AA = BB + E.
+    # *field* is one of the variants (`mulx` or `mulq` on x86-64, chosen
+    # once per call, `AArch64`, or `Portable`).
     #
     # The ladder starts from (x_2 : z_2) = (λ : 0) and (x_3 : z_3) =
     # (λ·u : λ) for a random nonzero *factor* λ rather than (1 : 0) and
@@ -166,39 +189,91 @@ module Amber::Beryl::Crypto::V1
     # scalar; with the random start, every case stayed under 2.6
     # (docs/crypto/public-key.md, "Timing on x86-64").
     @[NoInline]
-    private def self.ladder(clamped : StaticArray(UInt8, 32), x1 : Field::Limbs, factor : Field::Limbs) : StaticArray(UInt8, 32)
+    private def self.ladder(field : F.class, clamped : StaticArray(UInt8, 32), x1 : Field::Limbs, factor : Field::Limbs) : StaticArray(UInt8, 32) forall F
       x2 = factor
       z2 = Field::Limbs.new(0_u64)
-      x3 = Field.carry_mul(x1, factor)
+      x3 = field.mul(x1, factor)
       z3 = factor
       swap = 0_u64
 
       254.downto(0) do |bit_index|
         bit = (clamped[bit_index >> 3].to_u64 >> (bit_index & 7)) & 1_u64
         swap ^= bit
-        x2, x3 = Field.selectznz(swap, x2, x3), Field.selectznz(swap, x3, x2)
-        z2, z3 = Field.selectznz(swap, z2, z3), Field.selectznz(swap, z3, z2)
+        x2, x3 = Field.conditional_swap(swap, x2, x3)
+        z2, z3 = Field.conditional_swap(swap, z2, z3)
         swap = bit
 
-        a = Field.add(x2, z2)
-        aa = Field.carry_square(a)
-        b = Field.sub(x2, z2)
-        bb = Field.carry_square(b)
-        e = Field.sub(aa, bb)
-        c = Field.add(x3, z3)
-        d = Field.sub(x3, z3)
-        da = Field.carry_mul(d, a)
-        cb = Field.carry_mul(c, b)
-        x3 = Field.carry_square(Field.add(da, cb))
-        z3 = Field.carry_mul(x1, Field.carry_square(Field.sub(da, cb)))
-        x2 = Field.carry_mul(aa, bb)
-        z2 = Field.carry_mul(e, Field.add(bb, Field.carry_scmul_121666(e)))
+        a = field.add(x2, z2)
+        aa = field.square(a)
+        b = field.sub(x2, z2)
+        bb = field.square(b)
+        e = field.sub(aa, bb)
+        c = field.add(x3, z3)
+        d = field.sub(x3, z3)
+        da = field.mul(d, a)
+        cb = field.mul(c, b)
+        x3 = field.square(field.add(da, cb))
+        z3 = field.mul(x1, field.square(field.sub(da, cb)))
+        x2 = field.mul(aa, bb)
+        z2 = field.mul(e, field.add(bb, field.scmul_121666(e)))
       end
-      x2 = Field.selectznz(swap, x2, x3)
-      z2 = Field.selectznz(swap, z2, z3)
+      x2, _ = Field.conditional_swap(swap, x2, x3)
+      z2, _ = Field.conditional_swap(swap, z2, z3)
 
-      affine_u = Curve25519FieldElement.new(x2) * Curve25519FieldElement.new(z2).invert
-      affine_u.to_bytes
+      affine_u = field.mul(x2, invert(Field.canonical(z2)))
+      Field.to_bytes(Field.canonical(affine_u))
+    end
+
+    {% if flag?(:x86_64) %}
+      {% for name, wide in {ladder_with_multiply: false, ladder_with_wide_multiply: true} %}
+        # `ladder` on x86-64 with each step (the conditional swap included)
+        # one assembly statement
+        # (`Curve25519SolinasFieldWithAssembly.x86_64_ladder_step_statement`,
+        # {{ wide ? "`mulx`".id : "`mulq`".id }}): the same operations in the
+        # same order on the same representation, so the same result, with
+        # the state in memory only the assembly writes and reads. Compiled
+        # code copying each result with wider loads than the assembly's
+        # 8-byte stores made the processor wait on every such copy (the
+        # ladder of separate statements took 47 µs on Xeon 6975P-C, against
+        # 32 µs for fiat-crypto's 51-bit limbs).
+        @[NoInline]
+        private def self.{{ name.id }}(field : F.class, clamped : StaticArray(UInt8, 32), x1 : Field::Limbs, factor : Field::Limbs) : StaticArray(UInt8, 32) forall F
+          x3 = field.mul(x1, factor)
+          state = StaticArray(UInt64, 20).new(0_u64)
+          4.times do |index|
+            state[index] = x1[index]
+            state[4 + index] = factor[index]
+            state[12 + index] = x3[index]
+            state[16 + index] = factor[index]
+          end
+          scratch = StaticArray(UInt64, 40).new(0_u64)
+          swap = 0_u64
+          254.downto(0) do |bit_index|
+            bit = (clamped[bit_index >> 3].to_u64 >> (bit_index & 7)) & 1_u64
+            swap ^= bit
+            mask = Amber::Beryl::Crypto::FieldArithmetic::Curve25519SolinasField.value_barrier(0_u64 &- swap)
+            Field.x86_64_ladder_step_statement({{ wide }}, pointerof(scratch), pointerof(state), mask)
+            swap = bit
+          end
+          mask = Amber::Beryl::Crypto::FieldArithmetic::Curve25519SolinasField.value_barrier(0_u64 &- swap)
+          Field.x86_64_ladder_swap_statement(pointerof(state), mask)
+          x2 = Field::Limbs.new { |index| state[4 + index] }
+          z2 = Field::Limbs.new { |index| state[8 + index] }
+          SecretWiping.wipe(scratch.to_slice)
+          affine_u = field.mul(x2, invert(Field.canonical(z2)))
+          SecretWiping.wipe(state.to_slice)
+          Field.to_bytes(Field.canonical(affine_u))
+        end
+      {% end %}
+    {% end %}
+
+    # p = 2^255 - 19 for `DivstepInversion`.
+    private DIVSTEP_MODULUS = Amber::Beryl::Crypto::FieldArithmetic::DivstepInversion.modulus_of(Field::PRIME_WORDS)
+
+    # The inverse of the *canonical* value (below p), zero for zero, in
+    # constant time by divsteps.
+    private def self.invert(canonical : Field::Limbs) : Field::Limbs
+      Amber::Beryl::Crypto::FieldArithmetic::DivstepInversion.invert(canonical, DIVSTEP_MODULUS)
     end
   end
 
