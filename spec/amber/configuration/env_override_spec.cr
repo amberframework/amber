@@ -295,6 +295,14 @@ module Amber::Configuration
         end
       end
 
+      it "overrides server.tcp_nodelay from AMBER_SERVER_TCP_NODELAY" do
+        with_env({"AMBER_SERVER_TCP_NODELAY" => "false"}) do
+          config = AppConfig.new
+          EnvOverride.apply_all(config)
+          config.server.tcp_nodelay?.should be_false
+        end
+      end
+
       it "overrides server.gc_initial_heap_mib from AMBER_SERVER_GC_INITIAL_HEAP_MIB" do
         with_env({"AMBER_SERVER_GC_INITIAL_HEAP_MIB" => "48"}) do
           config = AppConfig.new

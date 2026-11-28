@@ -24,6 +24,7 @@
 require "http/server"
 require "./vendor/beryl"
 require "./server/ssl"
+require "./server/tcp_listener"
 
 module Amber
   module TLS
@@ -45,11 +46,14 @@ module Amber
 
       # Binds *server* to *host*:*port* over TLS with the key and certificate
       # files. Each handshake runs in its connection's fiber, on its first
-      # read, so a slow client never holds up the accept loop.
-      def self.bind_listener(server : HTTP::Server, host : String, port : Int32, key_file : String, cert_file : String, reuse_port : Bool) : Socket::IPAddress
+      # read, so a slow client never holds up the accept loop. Each accepted
+      # connection gets `TCP_NODELAY` when *tcp_nodelay* is true.
+      def self.bind_listener(server : HTTP::Server, host : String, port : Int32, key_file : String, cert_file : String, reuse_port : Bool, tcp_nodelay : Bool = true) : Socket::IPAddress
         context = server_context(key_file, cert_file)
         tcp_server = TCPServer.new(host, port, reuse_port: reuse_port)
-        server.bind(Beryl::TLS::Server.new(tcp_server, context))
+        tls_server = Beryl::TLS::Server.new(tcp_server, context)
+        tls_server.tcp_nodelay = tcp_nodelay
+        server.bind(tls_server)
         tcp_server.local_address
       end
 
@@ -83,9 +87,13 @@ module Amber
         end
 
         # Binds *server* to *host*:*port* over TLS with the key and certificate
-        # files.
-        def self.bind_listener(server : HTTP::Server, host : String, port : Int32, key_file : String, cert_file : String, reuse_port : Bool) : Socket::IPAddress
-          server.bind_tls(host, port, server_context(key_file, cert_file), reuse_port)
+        # files. Each accepted connection gets `TCP_NODELAY` when
+        # *tcp_nodelay* is true.
+        def self.bind_listener(server : HTTP::Server, host : String, port : Int32, key_file : String, cert_file : String, reuse_port : Bool, tcp_nodelay : Bool = true) : Socket::IPAddress
+          listener = Amber::Server::TCPListener.new(host, port, reuse_port: reuse_port)
+          listener.tcp_nodelay = tcp_nodelay
+          server.bind(OpenSSL::SSL::Server.new(listener, server_context(key_file, cert_file)))
+          listener.local_address
         end
 
         # Starts TLS on a connection to the mail server, checking the

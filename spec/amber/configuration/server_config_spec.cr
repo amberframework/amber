@@ -11,6 +11,7 @@ module Amber::Configuration
         config.process_count.should eq 1
         config.secret_key_base.should eq ""
         config.gc_initial_heap_mib.should eq 0
+        config.tcp_nodelay?.should be_true
       end
 
       it "trusts only loopback proxies" do
@@ -168,6 +169,11 @@ module Amber::Configuration
         config.port_reuse.should be_false
         config.process_count.should eq 4
         config.secret_key_base.should eq "a-very-long-secret-key-that-is-at-least-32-chars"
+      end
+
+      it "reads tcp_nodelay" do
+        ServerConfig.from_yaml("tcp_nodelay: false").tcp_nodelay?.should be_false
+        ServerConfig.from_yaml("port: 3000").tcp_nodelay?.should be_true
       end
 
       it "reads the starting heap size in MiB" do
