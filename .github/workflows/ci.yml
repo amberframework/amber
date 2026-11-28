@@ -190,13 +190,13 @@ jobs:
     # commit (git verifies every object against that SHA, and the tree hash is
     # checked too) inside the official Crystal 1.22.1 build image, pinned by
     # digest, which supplies the bootstrap compiler, shards and LLVM.
-    name: crystal-alpha 1.21.0-incremental-1 on ubuntu-24.04
+    name: crystal-alpha 1.22.3-incremental-6 on ubuntu-24.04
     runs-on: ubuntu-24.04
     container:
       image: crystallang/crystal:1.22.1-build@sha256:037cc42d8a270f73754aeeca48cb2fcdaa5f883b24a7751ad994bd0fc465cee2
     env:
-      CRYSTAL_ALPHA_COMMIT: 9c1e8ec64f6be6343e90d3979bc9536c4b050292 # tag v1.21.0-incremental-1
-      CRYSTAL_ALPHA_TREE: 4fdb7a4f547b5b6f6390f34279ac8a1ee60e7327
+      CRYSTAL_ALPHA_COMMIT: 31372f755ad61f6fb754fe463210f268b791e17a # tag v1.22.3-incremental-6
+      CRYSTAL_ALPHA_TREE: 1930aa452d4aa3a2ccca002f7a54388f1a74e0a6
     defaults:
       run:
         shell: bash
@@ -211,7 +211,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: crimson-knight/crystal
-          ref: 9c1e8ec64f6be6343e90d3979bc9536c4b050292 # v1.21.0-incremental-1
+          ref: 31372f755ad61f6fb754fe463210f268b791e17a # v1.22.3-incremental-6
           path: crystal-alpha
           persist-credentials: false
 
@@ -236,7 +236,7 @@ jobs:
         run: |
           set -euo pipefail
           crystal --version
-          crystal --version | grep -q '^Crystal 1\.21\.0 \[9c1e8ec\]'
+          crystal --version | grep -q '^Crystal 1\.22\.3 \[31372f7\]'
 
       - name: Install dependencies
         working-directory: amber
